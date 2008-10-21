@@ -37,8 +37,8 @@ public class Repository {
 	/**
 	 * Return the number of triples/quads in the repository.
 	 */
-	public int getSize() {
-		return (int)new Integer((String)this.jsonRequest("GET", this.url + "/size"));
+	public long getSize() {
+		return (long)new Long((String)this.jsonRequest("GET", this.url + "/size"));
 	}
 
 	/**
@@ -93,7 +93,7 @@ public class Repository {
      * Context can be None or a list of contexts, as in
      * evalSparqlQuery.
      */
-	public List getStatements(String subj, String pred, String obj, Object context, boolean infer, Object callback) {
+	public List<List<String>> getStatements(String subj, String pred, String obj, Object context, boolean infer, Object callback) {
 		try {
 			JSONObject options = new JSONObject().put("subj", subj).put("pred", pred).put("obj", obj).
 				put("context", context).put("infer", infer);
@@ -117,7 +117,7 @@ public class Repository {
      * Delete all statements matching the constraints from the
      * repository. Context can be None or a single graph name.
      */
-    public void deleteMatchingStatements(String subj, String pred, String obj, String context) {
+    public void deleteMatchingStatements(String subj, String pred, String obj, Object context) {
     	try {
             JSONObject options = new JSONObject().put("subj", subj).put("pred", pred).put("obj",obj).
         	put("context", context);

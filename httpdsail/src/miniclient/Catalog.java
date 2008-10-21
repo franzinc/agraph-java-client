@@ -14,7 +14,7 @@ public class Catalog {
 	private Object curl = null;
 	
 	public Catalog(String url, String username, String password) {
-		this.url = url;
+		this.url = Server.toFullURL(url);
 		this.username = username;
 		this.password = password;
 	}

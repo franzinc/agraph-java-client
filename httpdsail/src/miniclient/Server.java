@@ -8,8 +8,17 @@ import franz.exceptions.SoftException;
 
 public class Server {
 	
+	/**
+	 * Make sure that 'url' has an HTTP protocol prepended.
+	 */
+	protected static String toFullURL(String url) {
+		if (!url.toLowerCase().startsWith("http"))
+			url = "http://" + url;
+		return url;
+	}
+	
 	public static List<String> listCatalogs(String serverURL) {
-		 return (List)Request.jsonRequest("GET", serverURL + "/catalogs", null, null, null);
+		 return (List)Request.jsonRequest("GET", toFullURL(serverURL) + "/catalogs", null, null, null);
 	}
 	
 	public static Catalog openCatalog(String serverURL, String catalogName, String username, String password) {
@@ -72,7 +81,7 @@ public class Server {
 	        System.out.println( "Now is 'test' there??:" + reps + (reps.contains("test")));
 	    } catch (Exception ex) {}
 	    Repository rep = cat.getRepository("test");
-	    int size = rep.getSize(); 
+	    long size = rep.getSize(); 
 	    System.out.println( "Size of 'test' repository " + size);
 	    if (size == 0) {
 	        rep.addStatement("<http://www.franz.com/example#ted>", "<http://www.franz.com/example#age>", 
@@ -101,7 +110,7 @@ public class Server {
 	        System.out.println( "Now is 'test' there??:" + reps + (reps.contains("test")));
 	    } catch (Exception ex) {}
 	    Repository rep = cat.getRepository("test");
-	    int size = rep.getSize();
+	    long size = rep.getSize();
 	    System.out.println("Repository size = " + rep.getSize());
 	    return rep;
 	}

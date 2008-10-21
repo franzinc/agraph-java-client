@@ -6,14 +6,14 @@
 package org.openrdf.repository.sail;
 
 import java.io.File;
-
-import miniclient.Catalog;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.openrdf.model.ValueFactory;
+import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.repository.Repository;
-import org.openrdf.repository.RepositoryException;
+import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.sail.Sail;
-import org.openrdf.sail.SailException;
 
 import franz.exceptions.ServerException;
 import franz.exceptions.UnimplementedMethodException;
@@ -44,34 +44,51 @@ import franz.exceptions.UnimplementedMethodException;
  * repository.initialize();
  * </pre>
  * 
- * @author Arjohn Kampman
  */
-public class AllegroRepository {
+public class AllegroRepository implements Repository {
 
 	private String accessVerb = null;
-	private Catalog miniCatalog = null;
+	private miniclient.Catalog miniCatalog = null;
 	private miniclient.Repository miniRepository;
 	private String repositoryName = null; 
-	private SailRepository sailRepository = null;
-	private SailRepositoryConnection repositoryConnection = null;
+	private AllegroRepositoryConnection repositoryConnection = null;
+	private Map<String, String> inlinedPredicates = new HashMap<String, String>();
+	private Map<String, String> inlinedDatatypes = new HashMap<String, String>();	
 
-	/*--------------*
-	 * Constructors *
-	 *--------------*/
+	private static AllegroValueFactory VALUE_FACTORY = null;
+	
+	public static String RENEW = "RENEW";
+	public static String CREATE = "CREATE";
+	public static String OPEN = "OPEN";
+	public static String ACCESS = "ACCESS";	
 
 	/**
-	 * Create a new Sail that operates on the triple store that 'miniRepository'
+	 * Constructor.  Create a new Sail that operates on the triple store that 'miniRepository'
 	 * connects to.
 	 */
-	public AllegroRepository(Catalog catalog, String repositoryName, String accessVerb) {
-		this.miniCatalog = catalog;
+	protected AllegroRepository(Catalog catalog, String repositoryName, String accessVerb) {
+		this.miniCatalog = catalog.getMiniCatalog();
 		this.repositoryName = repositoryName;
 		this.accessVerb = accessVerb;		
 	}
+	
+	protected miniclient.Repository getMiniRepository() {
+		this.verify();
+		return this.miniRepository;
+	}
+	
+	public String getName () {return this.repositoryName;}
+	
+	public Map<String, String> getInlinedPredicates () {
+		return this.inlinedPredicates;
+	}
 
-	/*---------*
-	 * Methods *
-	 *---------*/
+	public Map<String, String> getInlinedDatatypes () {
+		return this.inlinedDatatypes;
+	}
+
+	
+
 
 	public File getDataDir() {
 		throw new UnimplementedMethodException("getDataDir");
@@ -81,30 +98,30 @@ public class AllegroRepository {
 		throw new UnimplementedMethodException("setDataDir");
 	}
 
-	public void initialize() throws RepositoryException {
+	public void initialize() {
         System.out.println("ATTACH" + this.accessVerb + " " + this.miniCatalog.listTripleStores());
         boolean clearIt = false;
         String repName = this.repositoryName;
-        Catalog conn = this.miniCatalog;
-        if (this.accessVerb == SailRepository.RENEW) {
+        miniclient.Catalog conn = this.miniCatalog;
+        if (this.accessVerb == RENEW) {
             if (conn.listTripleStores().contains(repName)) {
                 // not nice, since someone else probably has it open:
                 clearIt = true;
             } else {
                 conn.createTripleStore(repName);
             }
-        } else if (this.accessVerb == SailRepository.CREATE) {
+        } else if (this.accessVerb == CREATE) {
             if (conn.listTripleStores().contains(repName)) {
                 throw new ServerException(
                     "Can't create triple store named '" + repName + "' because a store with that name already exists.");
             }
             conn.createTripleStore(repName);
-        } else if (this.accessVerb == SailRepository.OPEN) {
+        } else if (this.accessVerb == OPEN) {
             if (!conn.listTripleStores().contains(repName)) {
                 throw new ServerException(
                     "Can't open a triple store named '" + repName + "' because there is none.");
             }
-        } else if(this.accessVerb == SailRepository.ACCESS) {
+        } else if(this.accessVerb == ACCESS) {
             if (!conn.listTripleStores().contains(repName)) {
                 conn.createTripleStore(repName) ;
             }
@@ -115,6 +132,14 @@ public class AllegroRepository {
             this.miniRepository.deleteMatchingStatements(null, null, null, null);
         }
 	}
+	
+	private void verify () {
+		if (this.miniCatalog != null && this.miniRepository != null) return;
+		else if (this.miniCatalog == null)
+			throw new ServerException("Attempt to use the repository after it has been closed.");
+		else 
+			throw new ServerException("Attempt to use the repository before it has been initialized.");
+	}
 
 	public void shutDown() {
 		this.miniCatalog = null;
@@ -123,17 +148,21 @@ public class AllegroRepository {
 
 
 	public boolean isWritable() {
+		this.verify();
 		return this.miniRepository.isWriteable();
 	}
 
 	public ValueFactory getValueFactory() {
-		return sail.getValueFactory();
+		if (VALUE_FACTORY == null) {
+			VALUE_FACTORY = new AllegroValueFactory(this);
+		}
+		return VALUE_FACTORY;
 	}
 
-	public SailRepositoryConnection getConnection() {
+	public RepositoryConnection getConnection() {
 		this.verify();
 		if (this.repositoryConnection == null) {
-			this.repositoryConnection = new SailRepositoryConnection(this.sailRepository);
+			this.repositoryConnection = new AllegroRepositoryConnection(this);
 		}
 		return this.repositoryConnection;
 	}

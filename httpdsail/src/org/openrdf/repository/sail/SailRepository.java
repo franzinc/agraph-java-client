@@ -49,11 +49,6 @@ public class SailRepository implements Repository {
 
 	private final Sail sail;
 	
-	public static String RENEW = "RENEW";
-	public static String CREATE = "CREATE";
-	public static String OPEN = "OPEN";
-	public static String ACCESS = "ACCESS";	
-
 	/*--------------*
 	 * Constructors *
 	 *--------------*/
