@@ -13,8 +13,10 @@ import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.httpclient.NameValuePair;
+import org.apache.commons.httpclient.methods.DeleteMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.httpclient.params.HttpMethodParams;
@@ -76,8 +78,14 @@ public class Request {
 		throw new RequestError(status, message);
 	}
 	
-	private static HttpMethodBase makeGetMethod(String url, JSONObject options) {
-		GetMethod method = new GetMethod(url);
+	private static HttpMethodBase makeGetMethod(String method, String url, JSONObject options) {
+		HttpMethodBase httpMethod = null;
+		if ("DELETE".equals(method))
+			httpMethod = new DeleteMethod(url);
+		else if ("PUT".equals(method))
+			httpMethod = new PutMethod(url);
+		else
+			httpMethod = new GetMethod(url);
 		if (options != null) {
 			List<NameValuePair> pairs = new ArrayList<NameValuePair>();
 			for (Iterator it = options.keys(); it.hasNext();) {
@@ -97,33 +105,38 @@ public class Request {
 			}
 			NameValuePair[] morePairs = new NameValuePair[pairs.size()];
 			for (int i = 0; i < pairs.size(); i++) morePairs[i] = pairs.get(i);
-			method.setQueryString(morePairs);
+			httpMethod.setQueryString(morePairs);
 		}
 		//method.addRequestHeader(USER_AGENT, "foo");
 		// Provide custom retry handler if necessary
-		method.getParams().setParameter(HttpMethodParams.RETRY_HANDLER,
+		httpMethod.getParams().setParameter(HttpMethodParams.RETRY_HANDLER,
 										new DefaultHttpMethodRetryHandler(3, false));
-		return method;
+		return httpMethod;
 	}
 
 	private static HttpMethodBase makePostMethod(String url, JSONObject options) {
-		PostMethod method = new PostMethod(url);
-		if (options == null) return method;
+		PostMethod postMethod = new PostMethod(url);
+		if (options == null) return postMethod;
+		//System.out.println("OPTIONS " + options);
 		for (Iterator it = options.keys(); it.hasNext();) {
 			String key = (String)it.next();
 			try {
 				Object value = options.get(key);
 				if ("body".equals(key)) {
 					RequestEntity body = new StringRequestEntity((value == null) ? "null" : value.toString());
-					method.setRequestEntity(body);
+					postMethod.setRequestEntity(body);
 				} else if (value instanceof List) {
-					for (Object v : (List)value)  method.addParameter(key, (v == null) ? "null" : v.toString());
+					for (Object v : (List)value)  {
+						//System.out.println("   KEY " + key + ":'" + v.toString() + "'");
+						postMethod.addParameter(key, (v == null) ? "null" : v.toString());
+					}
 				} else {
-					method.addParameter(key, value.toString());
+					//System.out.println("   KEY " + key + ":'" + value.toString() + "'");
+					postMethod.addParameter(key, value.toString());
 				}
 			} catch (JSONException ex) {throw new RuntimeException("JSON Exception that shouldn't occur", ex);}
 		}
-		return method;
+		return postMethod;
 	}
 	
 	public static boolean TRACE_IT = false;
@@ -135,8 +148,9 @@ public class Request {
 			String accept, String contentType, Object callback, Object errCallback) {
 		//String body = urlenc(options);
 		if ((accept == null) || "".equals(accept)) accept = "*/*";
-		boolean doPost = ("POST".equals(method) || "PUT".equals(method));
-		HttpMethodBase httpMethod = doPost ? makePostMethod(url, options) : makeGetMethod(url, options);
+		//System.out.println("METHOD " + method + " URL " + url);
+		boolean doPost = ("POST".equals(method));
+		HttpMethodBase httpMethod = doPost ? makePostMethod(url, options) : makeGetMethod(method, url, options);
 		httpMethod.addRequestHeader("accept", accept);
 		httpMethod.addRequestHeader("connection", "Keep-Alive");
 		if (doPost && (contentType != null))

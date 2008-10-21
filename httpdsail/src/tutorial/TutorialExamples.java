@@ -6,8 +6,13 @@ import java.util.List;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
+import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.vocabulary.RDF;
+import org.openrdf.query.BindingSet;
+import org.openrdf.query.QueryLanguage;
+import org.openrdf.query.TupleQuery;
+import org.openrdf.query.TupleQueryResult;
 import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
@@ -32,7 +37,7 @@ public class TutorialExamples {
 	    Catalog catalog = server.openCatalog("ag");    
 	    System.out.println("Available repositories in catalog '" + catalog.getName() + "': " +
 	    		catalog.listRepositories());    
-	    AllegroRepository myRepository = catalog.getRepository("agraph_test2", AllegroRepository.RENEW);
+	    AllegroRepository myRepository = catalog.getRepository("agraph_test4", AllegroRepository.RENEW);
 	    myRepository.initialize();
 	    System.out.println( "Repository " + myRepository.getName() + " is up!  It contains "
 	    		+ myRepository.getConnection().size() + " statements.");
@@ -69,18 +74,60 @@ public class TutorialExamples {
 	    return myRepository;
 	}
 	
+	private static void test3() throws Exception {
+	    RepositoryConnection conn = test2().getConnection();
+	    try {
+	        String queryString = "SELECT ?s ?p ?o  WHERE {?s ?p ?o .}";
+	        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+	        TupleQueryResult result = tupleQuery.evaluate();
+	        try {
+	            while (result.hasNext()) {
+	            	BindingSet bindingSet = result.next();
+	                Value s = bindingSet.getValue("s");
+	                Value p = bindingSet.getValue("p");
+	                Value o = bindingSet.getValue("o");             
+	                System.out.println("  " + s + " " + p + " " + o);
+	            }
+	        } finally {
+	            result.close();
+	        }
+        } finally {
+	        conn.close();
+	    }	    
+	}
+	
+	private static void test4() throws RepositoryException {
+	    Repository myRepository = test2();
+	    RepositoryConnection conn = myRepository.getConnection();
+	    URI alice = myRepository.getValueFactory().createURI("http://example.org/people/alice");
+	    RepositoryResult<Statement> statements = conn.getStatements(alice, null, null, false, null);
+	    while (statements.hasNext())
+	        System.out.println(statements.next());
+	    System.out.println( "Same thing using JDBC:");
+//	    resultSet = conn.getJDBCStatements(alice, None, None)
+//	    while resultSet.next():
+//	        #print resultSet.getRow()
+//	        print "   ", resultSet.getValue(2), "   ", resultSet.getString(2) 
+	}
+
+	
 	public static void main(String[] args) throws Exception {
 		List<Integer> choices = new ArrayList<Integer>();
 		int lastChoice = 2;
 		for (int i = 1; i <= lastChoice; i++)
 			choices.add(new Integer(i));
-		
+		if (true) {
+			choices = new ArrayList<Integer>();
+			choices.add(3);
+		}
 		for (Integer choice : choices) {
 			System.out.println("Running test " + choice);
 			switch(choice) {
 			case 0: test0(); break;
 			case 1: test1(); break;
 			case 2: test2(); break;			
+			case 3: test3(); break;			
+			case 4: test4(); break;						
 			default: System.out.println("There is no choice for test " + choice);
 			}
 		}

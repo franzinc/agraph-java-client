@@ -1,14 +1,17 @@
 /*
- * Copyright Aduna (http://www.aduna-software.com/) (c) 1997-2007.
- *
- * Licensed under the Aduna BSD-style license.
+
  */
 package org.openrdf.repository.sail;
 
 import info.aduna.iteration.CloseableIteration;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.openrdf.OpenRDFUtil;
 import org.openrdf.model.BNode;
@@ -19,13 +22,12 @@ import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
+import org.openrdf.model.impl.NamespaceImpl;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryLanguage;
+import org.openrdf.query.TupleQuery;
 import org.openrdf.query.parser.ParsedBooleanQuery;
 import org.openrdf.query.parser.ParsedGraphQuery;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.ParsedTupleQuery;
 import org.openrdf.query.parser.QueryParserUtil;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
@@ -48,7 +50,7 @@ import franz.exceptions.UnimplementedMethodException;
  */
 public class AllegroRepositoryConnection extends RepositoryConnectionBase {
 
-	protected static String ALL_CONTEXTS = "ALL_CONTEXTS";
+	protected static Set<URI> ALL_CONTEXTS = new HashSet<URI>(); 
 	protected static String MINI_NULL_CONTEXT = "null";
 	
 	/**
@@ -66,7 +68,7 @@ public class AllegroRepositoryConnection extends RepositoryConnectionBase {
 	// Helper methods
 	//------------------------------------------------------------------------------------
 
-	private miniclient.Repository getMiniRepository() {
+	protected miniclient.Repository getMiniRepository() {
 		return ((AllegroRepository)this.getRepository()).getMiniRepository();
 	}
 	
@@ -97,7 +99,7 @@ public class AllegroRepositoryConnection extends RepositoryConnectionBase {
      * ALL_CONTEXTS to None.
      * And, convert None context to 'null'.
      */
-    private List<String> contextsToNtripleContexts(Object contexts, boolean noneIsMiniNull) {
+    protected List<String> contextsToNtripleContexts(Object contexts, boolean noneIsMiniNull) {
     	List<String> cxts = new ArrayList<String>();
         if (contexts == ALL_CONTEXTS) {
             // consistency would dictate that  null => [null], but this would
@@ -146,60 +148,37 @@ public class AllegroRepositoryConnection extends RepositoryConnectionBase {
 		throw new UnimplementedMethodException("rollback");
 	}
 
-	@Override
-	public void close(){
-		throw new UnimplementedMethodException("close");
+
+	// currently, there is nothing to close in AllegroGraph	
+//	public void close(){
+//	}
+
+	public TupleQuery prepareQuery(QueryLanguage ql, String queryString, String baseURI) {
+		throw new UnimplementedMethodException("prepareQuery");
 	}
 
-	public SailQuery prepareQuery(QueryLanguage ql, String queryString, String baseURI)
-		throws MalformedQueryException
-	{
-		ParsedQuery parsedQuery = QueryParserUtil.parseQuery(ql, queryString, baseURI);
-
-		if (parsedQuery instanceof ParsedTupleQuery) {
-			return new SailTupleQuery((ParsedTupleQuery)parsedQuery, this);
-		}
-		else if (parsedQuery instanceof ParsedGraphQuery) {
-			return new SailGraphQuery((ParsedGraphQuery)parsedQuery, this);
-		}
-		else if (parsedQuery instanceof ParsedBooleanQuery) {
-			return new SailBooleanQuery((ParsedBooleanQuery)parsedQuery, this);
-		}
-		else {
-			throw new RuntimeException("Unexpected query type: " + parsedQuery.getClass());
-		}
+	/**
+	 * Embed 'queryString' into a query object which can be
+     * executed against the RDF storage.  'queryString' must be a SELECT
+     * query.  The result of query
+     * execution is an iterator of tuples.
+	 */
+	public AllegroTupleQuery prepareTupleQuery(QueryLanguage ql, String queryString, String baseURI) {
+		AllegroTupleQuery query = new AllegroTupleQuery(ql, queryString, baseURI);
+		query.setConnection(this);
+        return query;
 	}
 
-	public SailTupleQuery prepareTupleQuery(QueryLanguage ql, String queryString, String baseURI)
-		throws MalformedQueryException
-	{
-		ParsedTupleQuery parsedQuery = QueryParserUtil.parseTupleQuery(ql, queryString, baseURI);
-		return new SailTupleQuery(parsedQuery, this);
+	public SailGraphQuery prepareGraphQuery(QueryLanguage ql, String queryString, String baseURI){
+		throw new UnimplementedMethodException("prepareGraphQuery");
 	}
 
-	public SailGraphQuery prepareGraphQuery(QueryLanguage ql, String queryString, String baseURI)
-		throws MalformedQueryException
-	{
-		ParsedGraphQuery parsedQuery = QueryParserUtil.parseGraphQuery(ql, queryString, baseURI);
-		return new SailGraphQuery(parsedQuery, this);
+	public SailBooleanQuery prepareBooleanQuery(QueryLanguage ql, String queryString, String baseURI){
+		throw new UnimplementedMethodException("prepareBooleanQuery");
 	}
 
-	public SailBooleanQuery prepareBooleanQuery(QueryLanguage ql, String queryString, String baseURI)
-		throws MalformedQueryException
-	{
-		ParsedBooleanQuery parsedQuery = QueryParserUtil.parseBooleanQuery(ql, queryString, baseURI);
-		return new SailBooleanQuery(parsedQuery, this);
-	}
-
-	public RepositoryResult<Resource> getContextIDs()
-		throws RepositoryException
-	{
-		try {
-			return createRepositoryResult(sailConnection.getContextIDs());
-		}
-		catch (SailException e) {
-			throw new RepositoryException("Unable to get context IDs from Sail", e);
-		}
+	public RepositoryResult<Resource> getContextIDs() {
+		throw new UnimplementedMethodException("getContextIDs");
 	}
 
 	public RepositoryResult<Statement> getStatements(Resource subject, URI predicate, Value object,
@@ -271,77 +250,66 @@ public class AllegroRepositoryConnection extends RepositoryConnectionBase {
 	}
 
 	@Override
-	public void clear(Resource... contexts)
-		throws RepositoryException
-	{
-		OpenRDFUtil.verifyContextNotNull(contexts);
+	public void clear(Resource... contexts) {
+		throw new UnimplementedMethodException("clear");
+	}
+	
+	//----------------------------------------------------------------------------------------------
+	//  Namespaces
+	//----------------------------------------------------------------------------------------------
+	
+	private Map<String, Namespace> namespaceMap = new HashMap<String, Namespace>();
 
-		try {
-			sailConnection.clear(contexts);
-			autoCommit();
-		}
-		catch (SailException e) {
-			throw new RepositoryException(e);
-		}
+	public void setNamespace(String prefix, String name) {
+		this.namespaceMap.put(prefix, new NamespaceImpl(prefix, name));
 	}
 
-	public void setNamespace(String prefix, String name)
-		throws RepositoryException
-	{
-		try {
-			sailConnection.setNamespace(prefix, name);
-			autoCommit();
-		}
-		catch (SailException e) {
-			throw new RepositoryException(e);
-		}
+	public void removeNamespace(String prefix) {
+		this.namespaceMap.remove(prefix);
 	}
 
-	public void removeNamespace(String prefix)
-		throws RepositoryException
-	{
-		try {
-			sailConnection.removeNamespace(prefix);
-			autoCommit();
-		}
-		catch (SailException e) {
-			throw new RepositoryException(e);
-		}
+	public void clearNamespaces() {
+		this.namespaceMap.clear();
 	}
 
-	public void clearNamespaces()
-		throws RepositoryException
-	{
-		try {
-			sailConnection.clearNamespaces();
-			autoCommit();
-		}
-		catch (SailException e) {
-			throw new RepositoryException(e);
-		}
+	public RepositoryResult<Namespace> getNamespaces() {		
+		return createRepositoryResult(new ListIterator(this.namespaceMap.values()));
 	}
 
-	public RepositoryResult<Namespace> getNamespaces()
-		throws RepositoryException
-	{
-		try {
-			return createRepositoryResult(sailConnection.getNamespaces());
-		}
-		catch (SailException e) {
-			throw new RepositoryException("Unable to get namespaces from Sail", e);
-		}
+	public String getNamespace(String prefix) {
+		Namespace ns = this.namespaceMap.get(prefix);
+		return (ns != null) ? ns.getName() : null;
 	}
 
-	public String getNamespace(String prefix)
-		throws RepositoryException
-	{
-		try {
-			return sailConnection.getNamespace(prefix);
+	//----------------------------------------------------------------------------------------------
+	//  Namespaces
+	//----------------------------------------------------------------------------------------------
+	
+	public static class  ListIterator<X> implements CloseableIteration<X, Exception> {
+		private int cursor = 0;
+		private List items = new ArrayList();
+		
+		public ListIterator (Collection items) {
+			this.items.addAll(items);
 		}
-		catch (SailException e) {
-			throw new RepositoryException(e);
+		
+		public void close () {}
+		
+		public boolean hasNext() { return this.cursor < this.items.size(); }
+		
+		public X next() {
+			if (this.hasNext()) {
+				X value = (X)this.items.get(this.cursor);
+				this.cursor++;
+				return value;
+			} else {
+				return null;
+			}
 		}
+		
+		public void remove () {throw new UnimplementedMethodException("remove");}
 	}
+	
 
 	/**
 	 * Wraps a CloseableIteration coming from a Sail in a RepositoryResult

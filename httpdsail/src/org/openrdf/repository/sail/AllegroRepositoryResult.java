@@ -16,7 +16,6 @@ public class AllegroRepositoryResult extends RepositoryResult {
     protected AllegroRepositoryResult(List<List<String>> stringTuples) {
     	super(null);
         this.stringTuples = stringTuples;
-        this.cursor = 0;
     }
        
     /**
@@ -37,7 +36,6 @@ public class AllegroRepositoryResult extends RepositoryResult {
 
     /**
      * Return the next Statement in the answer, if there is one.
-     *   TODO: WHOOOA.  WHAT IF WE HAVE TUPLES INSTEAD OF STATEMENTS; HOW DOES THAT WORK???
      */
     public Statement next() {
         if (this.hasNext()) {

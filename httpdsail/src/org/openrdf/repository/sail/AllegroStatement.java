@@ -66,7 +66,7 @@ public class AllegroStatement extends StatementImpl {
      * Given a string representing a term in ntriples format, return
      * a URI, Literal, or BNode.
 	 */
-    private Value stringTermToTerm(String stringTerm) {
+    protected static Value stringTermToTerm(String stringTerm) {
         if (stringTerm == null) return null;
         if (stringTerm.charAt(0) == '<') {
             String uri = stringTerm.substring(1, stringTerm.length() - 1);
@@ -78,7 +78,7 @@ public class AllegroStatement extends StatementImpl {
             if (caratPos >= 0) {
                 String label = stringTerm.substring(1, caratPos - 1);
                 String dType = stringTerm.substring(caratPos + 2);
-                URI datatype = (URI)this.stringTermToTerm(dType);
+                URI datatype = (URI)stringTermToTerm(dType);
                 return new LiteralImpl(label, datatype);
             }
             int atPos = stringTerm.indexOf('@');
