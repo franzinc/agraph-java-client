@@ -191,6 +191,17 @@ public class AllegroRepositoryConnection extends RepositoryConnectionBase {
         		this.toNtriples(object), this.contextsToNtripleContexts(contexts, false), false, callback);
         return new AllegroRepositoryResult(stringTuples);
 	}
+	
+	public JDBCResultSet getJDBCStatements(Resource subject, URI predicate, Value object,
+			boolean includeInferred, Resource... contexts) {
+		Object callback = null;
+		AllegroRepository rep = (AllegroRepository)this.getRepository();
+		AllegroValueFactory factory = (AllegroValueFactory)rep.getValueFactory(); 
+        object = factory.objectPositionTermToOpenRDFTerm(object, predicate);
+        List<List<String>>stringTuples = this.getMiniRepository().getStatements(this.toNtriples(subject), this.toNtriples(predicate),
+        		this.toNtriples(object), this.contextsToNtripleContexts(contexts, false), false, callback);
+        return new JDBCResultSet(JDBCResultSet.STATEMENT_COLUMN_NAMES, stringTuples);
+	}
 
 	public void exportStatements(Resource subj, URI pred, Value obj, boolean includeInferred,
 			RDFHandler handler, Resource... contexts)

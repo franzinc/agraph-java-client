@@ -27,12 +27,12 @@ public class AllegroTupleQuery extends AllegroQuery implements TupleQuery {
     //TODO: DOESN'T TAKE DATASETS INTO ACCOUNT.  THAT NEEDS TO BE COMMUNICATED
     //TO THE SERVER SOMEHOW.      
     public TupleQueryResult evaluate() {
-        Map response = (Map)this.evaluate_generic_query();
+        Map response = (Map)this.evaluateGenericQuery();
         return new AllegroTupleQueryResult((List<String>)response.get("names"),(List<List<String>>) response.get("values"));
     }
     
     public JDBCResultSet jdbcEvaluate() {
-    	Map response = (Map)this.evaluate_generic_query();
+    	Map response = (Map)this.evaluateGenericQuery();
         return new JDBCResultSet((List<String>)response.get("names"),(List<List<String>>) response.get("values"));
     }
 

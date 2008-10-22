@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.openrdf.model.Literal;
+import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
@@ -18,8 +19,10 @@ import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
 import org.openrdf.repository.sail.AllegroRepository;
+import org.openrdf.repository.sail.AllegroRepositoryConnection;
 import org.openrdf.repository.sail.AllegroSail;
 import org.openrdf.repository.sail.Catalog;
+import org.openrdf.repository.sail.JDBCResultSet;
 
 public class TutorialExamples {
 
@@ -104,10 +107,113 @@ public class TutorialExamples {
 	    while (statements.hasNext())
 	        System.out.println(statements.next());
 	    System.out.println( "Same thing using JDBC:");
-//	    resultSet = conn.getJDBCStatements(alice, None, None)
-//	    while resultSet.next():
-//	        #print resultSet.getRow()
-//	        print "   ", resultSet.getValue(2), "   ", resultSet.getString(2) 
+	    JDBCResultSet resultSet = ((AllegroRepositoryConnection)conn).getJDBCStatements(alice, null, null, false);
+	    while (resultSet.next()) {
+	        System.out.println("   " + resultSet.getRow());
+	        System.out.println("   " + resultSet.getValue(2) + "   " + resultSet.getString(2)); 
+	    }
+	}
+
+	private static void test5() {
+	    // Typed Literals
+	    Repository myRepository = test1();
+	    RepositoryConnection conn = myRepository.getConnection();
+	    ValueFactory f = myRepository.getValueFactory();
+	    conn.clear();
+	    String exns = "http://example.org/people/";
+	    URI alice = f.createURI("http://example.org/people/alice");
+	    URI age = f.createURI(namespace=exns, localname="age");
+	    URI weight = f.createURI(namespace=exns, localname="weight");    
+	    URI favoriteColor = f.createURI(namespace=exns, localname="favoriteColor");
+	    URI birthdate = f.createURI(namespace=exns, localname="birthdate");
+	    URI ted = f.createURI(namespace=exns, localname="Ted");
+	    Literal red = f.createLiteral("Red");
+	    Literal rouge = f.createLiteral("Rouge", language="fr");
+	    Literal fortyTwo = f.createLiteral("42", datatype=XMLSchema.INT);
+	    Literal fortyTwoInteger = f.createLiteral("42", datatype=XMLSchema.LONG);    
+	    Literal fortyTwoUntyped = f.createLiteral("42");
+	    Literal date = f.createLiteral("1984-12-06", datatype=XMLSchema.DATE);     
+	    Literal time = f.createLiteral("1984-12-06", datatype=XMLSchema.DATETIME);         
+	    Statement stmt1 = f.createStatement(alice, age, fortyTwo);
+	    Statement stmt2 = f.createStatement(ted, age, fortyTwoUntyped);    
+	    conn.add(stmt1);
+	    conn.addStatement(stmt2);
+	    conn.addTriple(alice, weight, f.createLiteral("20.5"););
+	    conn.addTriple(ted, weight, f.createLiteral("20.5", datatype=XMLSchema.FLOAT));
+	    conn.add(alice, favoriteColor, red);
+	    conn.add(ted, favoriteColor, rouge);
+	    conn.add(alice, birthdate, date);
+	    conn.add(ted, birthdate, time);    
+	    for obj in [None, fortyTwo, fortyTwoUntyped, f.createLiteral("20.5", datatype=XMLSchema.FLOAT), f.createLiteral("20.5"),
+	                red, rouge]:
+	        print "Retrieve triples matching "%s"." % obj
+	        statements = conn.getStatements(None, None, obj);
+	        for s in statements:
+	            print s
+	    for String obj : new String[]{"42", "\"42\"", "20.5", "\"20.5\"", "\"20.5\"^^xsd:float", "\"Rouge\"@fr", "\"Rouge\"", "\"1984-12-06\"^^xsd:date"}) {
+	        print "Query triples matching "%s"." % obj
+	        queryString = "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = " + obj + ")}";
+	        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+	        result = tupleQuery.evaluate();    
+	        for bindingSet in result {
+	            s = bindingSet[0]
+	            p = bindingSet[1]
+	            o = bindingSet[2]
+	            print "%s %s %s" % (s, p, o);
+	        }
+	    }
+	    fortyTwoInt = f.createLiteral(42);
+	    print fortyTwoInt.toPython();
+	}
+
+
+	private static void test15() {
+		// Queries per second.
+	    Repository myRepository = test6();
+	    RepositoryConnection conn = myRepository.getConnection();
+	    
+	    int reps = 1; //1000;
+	    
+	    //TEMPORARY
+	    URI context = myRepository.getValueFactory().createURI("http://example.org#vcards");
+	    // END TEMPORARY
+	    int count = 0;
+	    long begin = System.currentTimeMillis();
+	    for (int i = 0; i < reps; i++) {
+	        count = 0;
+	        Resource[] contexts = new Resource[]{context, null};
+	        JDBCResultSet resultSet = ((AllegroRepositoryConnection)conn).getJDBCStatements(null, null, null, false, contexts);
+	        while (resultSet.next()) count++;
+	    }
+	    long elapsed = System.currentTimeMillis() - begin;
+	    System.out.println("Did " + reps + " " + count + "-row matches in " + elapsed + " seconds.");
+	 
+	    begin = System.currentTimeMillis();
+	    for (int i = 0; i < reps; i++) {
+	        count = 0;
+	        RepositoryResult statements = conn.getStatements(null, null, null, false, null);
+	        while (statements.hasNext()) {
+	        	Statement st = (Statement)statements.next();
+	            st.getSubject();
+	            st.getPredicate();
+	            st.getObject();
+	            count++;
+	        }
+	    }
+	    elapsed = System.currentTimeMillis() - begin;
+	    System.out.println("Did " + reps + " " + count + "-row matches in " + elapsed + " seconds.");
+	   
+	    for (int size : new int[]{1, 5, 10, 100}) {
+	        String queryString = "select ?x ?y ?z {?x ?y ?z} limit " + size;
+	        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+	        begin = System.currentTimeMillis();
+	        for (int i = 0; i < reps; i++) {
+		        count = 0;
+	            TupleQueryResult result = tupleQuery.evaluate(); 
+	            while (result.hasNext()) {result.next(); count++;}
+	        }	        
+	        System.out.println("Did " + reps + " " + count + "-row matches in " + elapsed + " seconds.");
+	    }
 	}
 
 	
@@ -118,7 +224,7 @@ public class TutorialExamples {
 			choices.add(new Integer(i));
 		if (true) {
 			choices = new ArrayList<Integer>();
-			choices.add(3);
+			choices.add(4);
 		}
 		for (Integer choice : choices) {
 			System.out.println("Running test " + choice);

@@ -101,7 +101,7 @@ public class AllegroStatement extends StatementImpl {
      * a URI or the label portion of a literal (a string minus the double quotes).
      * TODO: IMPLEMENT BNODES
      */
-    private String ntriplesStringToStringValue(String stringTerm) {
+    protected static String ntriplesStringToStringValue(String stringTerm) {
         if (stringTerm == null) return null;
         if (stringTerm.charAt(0) == '<') {
             String uri = stringTerm.substring(1, stringTerm.length() - 1);

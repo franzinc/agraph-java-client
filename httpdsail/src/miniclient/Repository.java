@@ -61,10 +61,10 @@ public class Repository {
      * of lists representing statements. Callback WILL NOT work on
      * ASK queries."""
      */
-    public Object evalSparqlQuery(String query, boolean infer, Object context, Object callback) {
+    public Object evalSparqlQuery(String query, boolean infer, Object context, Object namedContext, Object callback) {
     	try {
     		JSONObject options = new JSONObject().put("query", query).put("infer", infer).put("context", context).
-    			put("environment", this.environment);
+    			put("namedContext", namedContext).put("environment", this.environment);
     		return jsonRequest("POST", this.url, options, null, callback);
     	} catch (JSONException ex) { throw new SoftException(ex); }	
     }

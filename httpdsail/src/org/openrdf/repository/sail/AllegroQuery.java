@@ -69,21 +69,23 @@ public class AllegroQuery extends AbstractQuery {
      * Evaluate a SPARQL or PROLOG query, which may be a 'select', 'construct', 'describe'
      * or 'ask' query (in the SPARQL case).  Return an appropriate response.
      */
-    protected Object evaluate_generic_query() {
-        if ((this.dataset != null) && (this.dataset.getDefaultGraphs() != null)
-    		// TODO: ADD THIS IN:
-        	//&& (this.dataset.getDefaultGraphs() != AllegroRepositoryConnection.ALL_CONTEXTS)
-        	) {
-            throw new UnimplementedMethodException("Query datasets not yet implemented for default graphs.");
-        }
-        Set<URI> namedGraphs = (this.dataset != null) ? this.dataset.getNamedGraphs() : AllegroRepositoryConnection.ALL_CONTEXTS;
-        if (namedGraphs.isEmpty()) namedGraphs = AllegroRepositoryConnection.ALL_CONTEXTS;
+    protected Object evaluateGenericQuery() {
+//        if ((this.dataset != null) && (this.dataset.getDefaultGraphs() != null)
+//    		// TODO: ADD THIS IN:
+//        	//&& (this.dataset.getDefaultGraphs() != AllegroRepositoryConnection.ALL_CONTEXTS)
+//        	) {
+//            throw new UnimplementedMethodException("Query datasets not yet implemented for default graphs.");
+//        }
+        Set<URI> regularGraphs = (this.dataset != null) ? this.dataset.getDefaultGraphs() : AllegroRepositoryConnection.ALL_CONTEXTS;
+        if (regularGraphs.isEmpty()) regularGraphs = AllegroRepositoryConnection.ALL_CONTEXTS;
+        List<String> regularContexts = this.connection.contextsToNtripleContexts(regularGraphs, false);        
+        Set<URI> namedGraphs = (this.dataset != null) ? this.dataset.getNamedGraphs() : null;
         List<String> namedContexts = this.connection.contextsToNtripleContexts(namedGraphs, false);
         miniclient.Repository mini = this.connection.getMiniRepository();
         Object response;
         if (this.queryLanguage == QueryLanguage.SPARQL) {            
             String query = splicePrefixesIntoQuery(this.queryString, this.connection);
-            response = mini.evalSparqlQuery(query, this.includeInferred, namedContexts, null);
+            response = mini.evalSparqlQuery(query, this.includeInferred, regularContexts, namedContexts, null);
         } else { // NEED TO REDEFINE 'QueryLanguage' STUPID!! if (this.queryLanguage == QueryLanguage.PROLOG) {
             response = mini.evalPrologQuery(this.queryString, this.includeInferred, namedContexts);
         }
