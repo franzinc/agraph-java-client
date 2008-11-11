@@ -181,7 +181,7 @@ public class TutorialExamples {
 		AllegroRepository myRepository = (AllegroRepository)test1();
 	    RepositoryConnection conn = myRepository.getConnection();
 	    ValueFactory f = myRepository.getValueFactory();
-	    conn.clear();   
+	    conn.clear(); 
 	    String path1 = "src/tutorial/vc-db-1.rdf";    
 	    String path2 = "src/tutorial/football.nt";            
 	    String baseURI = "http://example.org/example/local";
@@ -194,11 +194,28 @@ public class TutorialExamples {
 	    myRepository.indexTriples(true);
 	    System.out.println("After loading, repository contains " + conn.size(context) + 
 	    		" vcard triples in context '" + context + "'\n    and   " +
-	    		// QUESTION: IS THIS CORRECTLY INTERPRETED AS THE NULL CONTEXT???:
-	    		conn.size(null) + " football triples in context 'null'."); 
+	    		conn.size(null) + " football triples in context 'null'."); 	    
 	    return myRepository;
 	}
 	
+	public static void test7 () throws Exception {    
+		RepositoryConnection conn = test6().getConnection();
+	    System.out.println( "Match all and print subjects and contexts");
+	    RepositoryResult<Statement> result = conn.getStatements(null, null, null, false); 
+	    while (result.hasNext()) {
+	    	Statement stmt = result.next();
+	        System.out.println(stmt.getSubject() + "  " + stmt.getContext());
+	    }	    
+	    System.out.println( "Same thing with SPARQL query");
+	    String queryString = "SELECT DISTINCT ?s ?c WHERE {graph ?c {?s ?p ?o .} }";
+	    TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+	    TupleQueryResult qresult = tupleQuery.evaluate();	    
+	    while (qresult.hasNext()) {
+        	BindingSet bindingSet = qresult.next();
+        	System.out.println(bindingSet.getBinding("s") + "  " + bindingSet.getBinding("c"));
+        }	    	   
+	    conn.close();
+	}
 
 	private static void test15() throws Exception {
 		// Queries per second.
@@ -257,7 +274,7 @@ public class TutorialExamples {
 			choices.add(new Integer(i));
 		if (true) {
 			choices = new ArrayList<Integer>();
-			choices.add(6);
+			choices.add(7);
 		}
 		try {
 		for (Integer choice : choices) {
@@ -269,7 +286,8 @@ public class TutorialExamples {
 			case 3: test3(); break;			
 			case 4: test4(); break;						
 			case 5: test5(); break;									
-			case 6: test6(); break;												
+			case 6: test6(); break;	
+			case 7: test7(); break;
 			default: System.out.println("There is no choice for test " + choice);
 			}
 		}

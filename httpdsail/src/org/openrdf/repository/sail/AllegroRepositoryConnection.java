@@ -93,6 +93,7 @@ public class AllegroRepositoryConnection extends RepositoryConnectionBase {
 			}
 			return goodTerm;
 		}
+		// THIS IS BOGUS: SHOULD NOT NEED STRING QUOTES AROUND BNODE EXPRESSION:
 		else if (term instanceof BNode) return "\"" + term.toString() + "\"";
 		else throw new SoftException("Unexpected datatype passed to 'toNTriples' " + term);
 	}
@@ -110,18 +111,29 @@ public class AllegroRepositoryConnection extends RepositoryConnectionBase {
      * Also, convert singleton context to list of contexts, and convert
      * ALL_CONTEXTS to None.
      * And, convert None context to 'null'.
+     * On assertions, an empty list of contexts means "use the null context".
+     * On retrieval, an empty list of contexts means "use all contexts".
+     * The "emptyMeansNullContext" tells you which interpretation to use here.
      */
-    protected List<String> contextsToNtripleContexts(Object contexts, boolean noneIsMiniNull) {
+    protected List<String> contextsToNtripleContexts(Object contexts, boolean emptyMeansNullContext) {
+//    	System.out.println("CONTEXTS TO NTRIPLE CONTEXTS " + contexts + " " + emptyMeansNullContext);
+//    	if (contexts == null) System.out.println("   NULLLLLL");
+//    	else System.out.println("    " + contexts.getClass());
     	List<String> cxts = new ArrayList<String>();
-        if (contexts == ALL_CONTEXTS) {
+        if (contexts == ALL_CONTEXTS) { // PROBABLY THIS CASE NEVER OCCURS
             // consistency would dictate that  null => [null], but this would
             // likely surprise users, so we don't do that:
             cxts = null;
+        	// The Java semantics for ... treats the 'null' input as a corner case.
+        	// Instead of passing in a singleton array containing one null item,
+        	// it passes in a null.  That's kind of stupid.  We handle that here:
         } else if (contexts == null) {
-            if (noneIsMiniNull) cxts.add(MINI_NULL_CONTEXT);
-            else cxts = null;
+        	cxts.add(MINI_NULL_CONTEXT);
+        } else if (((Object[])contexts).length == 0) {
+            if (emptyMeansNullContext) cxts.add(MINI_NULL_CONTEXT);
+            else cxts = null;    		
         } else if (contexts instanceof Resource[]) {
-        	if ((((Resource[])contexts).length == 0) && noneIsMiniNull) {
+        	if ((((Resource[])contexts).length == 0) && emptyMeansNullContext) {
         		cxts.add(MINI_NULL_CONTEXT);
         	} else {
         		for (Resource c : (Resource[])contexts) {

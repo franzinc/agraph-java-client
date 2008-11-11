@@ -2,6 +2,7 @@ package org.openrdf.repository.sail;
 
 import java.util.List;
 
+import org.openrdf.model.Resource;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.model.impl.BNodeImpl;
@@ -13,10 +14,10 @@ import franz.exceptions.SoftException;
 
 public class AllegroStatement extends StatementImpl {
 
-	private URI subject = null;
+	private Resource subject = null;
 	private URI predicate = null;
 	private Value object = null;
-	private URI context = null;
+	private Resource context = null;
 	private List<String> stringTuple = null;
 
 	public AllegroStatement(URI subject, URI predicate, Value object) {
@@ -27,12 +28,18 @@ public class AllegroStatement extends StatementImpl {
 	}
 
 	protected void setQuad(List<String> stringTuple) {
+		System.out.println("SET QUAD STRING TUPLE " + stringTuple + "   CLASS: " + stringTuple.getClass());
+		System.out.println("   SUBJECT " + stringTuple.get(0) + "  CLASS: " + stringTuple.get(0).getClass());
+		if (stringTuple.get(0).startsWith("\"_:"))
+			System.out.println("BREEEEEEEAK");
 		this.stringTuple = stringTuple;
 	}
 	
-	public URI getSubject() {
+	public Resource getSubject() {
+		System.out.println("GET SUBJECT STRING TUPLE " + stringTuple + "   CLASS: " + stringTuple.getClass());
+		
 		if (this.subject == null) {
-			this.subject = (URI)this.stringTermToTerm(this.stringTuple.get(0));
+			this.subject = (Resource)this.stringTermToTerm(this.stringTuple.get(0));
 		}
 		return this.subject;
 	}
@@ -51,7 +58,7 @@ public class AllegroStatement extends StatementImpl {
 		return this.object;
 	}
 
-	public URI getContext() {
+	public Resource getContext() {
 		if (this.context == null) {
 			if (this.stringTuple.size() > 3) {
 				this.context = (URI)this.stringTermToTerm(this.stringTuple.get(3));
@@ -67,6 +74,7 @@ public class AllegroStatement extends StatementImpl {
      * a URI, Literal, or BNode.
 	 */
     protected static Value stringTermToTerm(String stringTerm) {
+    	System.out.println("STRING TERM TO TERM '" + stringTerm + "'");
         if (stringTerm == null) return null;
         if (stringTerm.charAt(0) == '<') {
             String uri = stringTerm.substring(1, stringTerm.length() - 1);

@@ -167,10 +167,23 @@ public class Request {
 			int statusCode = client.executeMethod(httpMethod);
             InputStream responseStream = httpMethod.getResponseBodyAsStream();	
             InputStreamReader bufferedReader = new InputStreamReader(responseStream);
-        	char c[] = new char[8192];
-        	int byteCount = bufferedReader.read(c);
-        	String jsonString = new String(c, 0, byteCount);
+            // currently, we are not streaming our responses.  Instead, we read the
+            // entire response into one possibly large string.  Given that JSON objects 
+            // may be larger than the size of a 'chunk', this is not entirely unreasonable
+            // for a first cut.
+            StringBuffer buffer = new StringBuffer();
+            while (true) {
+            	// it appears that the HTTPD server sends chunks of size 4096.
+            	// its harmless that we are accepting twice that, but if the 4096 is
+            	// cast in stone, we should change this here to match:
+	        	char c[] = new char[8192];
+	        	int byteCount = bufferedReader.read(c);
+	        	if (byteCount <= 0) break;
+	        	String chunk = new String(c, 0, byteCount);
+	        	buffer.append(chunk);
+            }
         	bufferedReader.close();
+        	String jsonString = buffer.toString();
 			return new Object[]{new Integer(statusCode), URLDecoder.decode(jsonString,"UTF-8")};
 		} catch (Exception e) {
 			if (e instanceof RuntimeException) throw (RuntimeException)e;
@@ -252,8 +265,6 @@ public class Request {
 				JSONObject dict = new JSONObject(json);
 				return helpDecodeJSONResponse(dict);
 			} else if (c == '[') {
-				System.out.println( "BEGINNING " + json.substring(0, Math.min(json.length(), 10)));
-				System.out.println( "ENDING " + json.substring(Math.max(json.length() - 10, 0)));
 				JSONArray list = new JSONArray(json);
 				return helpDecodeJSONResponse(list);
 			} else {
