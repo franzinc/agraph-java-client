@@ -166,4 +166,63 @@ public class AllegroRepository implements Repository {
 		}
 		return this.repositoryConnection;
 	}
+	
+	//------------------------------------------------------------------------
+	// Extensions to the Sesame API
+	//------------------------------------------------------------------------
+
+	/**
+	    Index the newly-added triples in the store.  This should be done after every 
+        significant-sized load of triples into the store.
+        If 'all', re-index all triples in the store.  If 'asynchronous', spawn
+        the indexing task as a separate thread, and don't wait for it to complete.
+        Note. Upon version 4.0, calling this will no longer be necessary.        
+	 */
+   public void indexTriples(boolean all) {
+        this.miniRepository.indexStatements(all);
+   }
+
+   /**
+        Register a predicate 'uri' (or 'namespace'+'localname'), telling the RDF store to index
+        text keywords belonging to strings in object position in the corresponding
+        triples/statements.  This is needed to make the  fti:match  operator
+        work properly.
+    */
+   public void registerFreeTextPredicate(String uri) {
+        this.miniRepository.registerFreeTextPredicate("<" + uri + ">");
+   }
+   
+   
+//   private void translate_inlined_type(String type) {
+//        if (type == "int") return "int";
+//        else if (type == "datetime") return "date-time";
+//        else if (type == "float") return "float";
+//        else
+//            throw new XXX("Unknown inlined type '%s'\n.  Legal types are " +
+//                    "'int', 'float', and 'datetime'");
+//   }
+//        
+//    def registerInlinedDatatype(self, predicate=None, datatype=None, inlinedType=None):
+//        """
+//        Register an inlined datatype.  If 'predicate', then object arguments to triples
+//        with that predicate will use an inlined encoding of type 'inlinedType' in their 
+//        internal representation.
+//        If 'datatype', then typed literal objects with a datatype matching 'datatype' will
+//        use an inlined encoding of type 'inlinedType'.
+//        """
+//        predicate = predicate.getURI() if isinstance(predicate, URI) else predicate
+//        datatype = datatype.getURI() if isinstance(datatype, URI) else datatype
+//        if predicate:
+//            if not inlinedType:
+//                raise IllegalArgumentException("Missing 'inlinedType' parameter in call to 'registerInlinedDatatype'")
+//            lispType = self._translate_inlined_type(inlinedType)
+//            mapping = [predicate, lispType, "predicate"]
+//            self.inlined_predicates[predicate] = lispType
+//        elif datatype:
+//            lispType = self._translate_inlined_type(inlinedType or datatype)
+//            mapping = [datatype, lispType, "datatype"]
+//            self.inlined_datatypes[datatype] = lispType
+//        ##self.internal_ag_store.addDataMapping(mapping)
+//        raise UnimplementedMethodException("Inlined datatypes not yet implemented.")
+	 
 }

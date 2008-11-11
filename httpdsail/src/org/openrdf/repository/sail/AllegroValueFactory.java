@@ -10,10 +10,10 @@ import franz.exceptions.UnimplementedMethodException;
 
 public class AllegroValueFactory extends ValueFactoryImpl {
 	
-	private AllegroRepository store;
+	private AllegroRepository repository;
 	
-	public AllegroValueFactory (AllegroRepository store) {
-//        self.store = store
+	public AllegroValueFactory (AllegroRepository repository) {
+        this.repository = repository;
 //        RDF.initialize(self)
 //        RDFS.initialize(self)
 //        XMLSchema.initialize(self)
@@ -36,10 +36,10 @@ public class AllegroValueFactory extends ValueFactoryImpl {
     	    	
         String inlinedType = null;
         if (predicate != null) {
-        	inlinedType = this.store.getInlinedPredicates().get(predicate.stringValue());
+        	inlinedType = this.repository.getInlinedPredicates().get(predicate.stringValue());
         }
         if ((inlinedType == null) && (term instanceof Literal) && (((Literal)term).getDatatype() != null)) {
-            inlinedType = this.store.getInlinedDatatypes().get(((Literal)term).getDatatype());
+            inlinedType = this.repository.getInlinedDatatypes().get(((Literal)term).getDatatype());
         }
         if (inlinedType != null) {
             throw new UnimplementedMethodException("Inlined literals are not yet implemented");

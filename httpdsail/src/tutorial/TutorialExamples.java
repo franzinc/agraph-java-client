@@ -1,5 +1,6 @@
 package tutorial;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,6 +11,7 @@ import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.vocabulary.RDF;
+import org.openrdf.model.vocabulary.XMLSchema;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.TupleQuery;
@@ -23,6 +25,9 @@ import org.openrdf.repository.sail.AllegroRepositoryConnection;
 import org.openrdf.repository.sail.AllegroSail;
 import org.openrdf.repository.sail.Catalog;
 import org.openrdf.repository.sail.JDBCResultSet;
+import org.openrdf.rio.RDFFormat;
+
+import franz.exceptions.SoftException;
 
 public class TutorialExamples {
 
@@ -114,7 +119,7 @@ public class TutorialExamples {
 	    }
 	}
 
-	private static void test5() {
+	private static void test5() throws Exception {
 	    // Typed Literals
 	    Repository myRepository = test1();
 	    RepositoryConnection conn = myRepository.getConnection();
@@ -122,52 +127,80 @@ public class TutorialExamples {
 	    conn.clear();
 	    String exns = "http://example.org/people/";
 	    URI alice = f.createURI("http://example.org/people/alice");
-	    URI age = f.createURI(namespace=exns, localname="age");
-	    URI weight = f.createURI(namespace=exns, localname="weight");    
-	    URI favoriteColor = f.createURI(namespace=exns, localname="favoriteColor");
-	    URI birthdate = f.createURI(namespace=exns, localname="birthdate");
-	    URI ted = f.createURI(namespace=exns, localname="Ted");
+	    URI age = f.createURI(exns, "age");
+	    URI weight = f.createURI(exns, "weight");    
+	    URI favoriteColor = f.createURI(exns, "favoriteColor");
+	    URI birthdate = f.createURI(exns, "birthdate");
+	    URI ted = f.createURI(exns, "Ted");
 	    Literal red = f.createLiteral("Red");
-	    Literal rouge = f.createLiteral("Rouge", language="fr");
-	    Literal fortyTwo = f.createLiteral("42", datatype=XMLSchema.INT);
-	    Literal fortyTwoInteger = f.createLiteral("42", datatype=XMLSchema.LONG);    
+	    Literal rouge = f.createLiteral("Rouge", "fr");
+	    Literal fortyTwo = f.createLiteral("42", XMLSchema.INT);
+	    Literal fortyTwoInteger = f.createLiteral("42", XMLSchema.LONG);    
 	    Literal fortyTwoUntyped = f.createLiteral("42");
-	    Literal date = f.createLiteral("1984-12-06", datatype=XMLSchema.DATE);     
-	    Literal time = f.createLiteral("1984-12-06", datatype=XMLSchema.DATETIME);         
+	    Literal date = f.createLiteral("1984-12-06", XMLSchema.DATE);     
+	    Literal time = f.createLiteral("1984-12-06", XMLSchema.DATETIME);         
 	    Statement stmt1 = f.createStatement(alice, age, fortyTwo);
 	    Statement stmt2 = f.createStatement(ted, age, fortyTwoUntyped);    
 	    conn.add(stmt1);
-	    conn.addStatement(stmt2);
-	    conn.addTriple(alice, weight, f.createLiteral("20.5"););
-	    conn.addTriple(ted, weight, f.createLiteral("20.5", datatype=XMLSchema.FLOAT));
+	    conn.add(stmt2);
+	    conn.add(alice, weight, f.createLiteral("20.5"));
+	    conn.add(ted, weight, f.createLiteral("20.5", XMLSchema.FLOAT));
 	    conn.add(alice, favoriteColor, red);
 	    conn.add(ted, favoriteColor, rouge);
 	    conn.add(alice, birthdate, date);
 	    conn.add(ted, birthdate, time);    
-	    for obj in [None, fortyTwo, fortyTwoUntyped, f.createLiteral("20.5", datatype=XMLSchema.FLOAT), f.createLiteral("20.5"),
-	                red, rouge]:
-	        print "Retrieve triples matching "%s"." % obj
-	        statements = conn.getStatements(None, None, obj);
-	        for s in statements:
-	            print s
-	    for String obj : new String[]{"42", "\"42\"", "20.5", "\"20.5\"", "\"20.5\"^^xsd:float", "\"Rouge\"@fr", "\"Rouge\"", "\"1984-12-06\"^^xsd:date"}) {
-	        print "Query triples matching "%s"." % obj
-	        queryString = "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = " + obj + ")}";
-	        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
-	        result = tupleQuery.evaluate();    
-	        for bindingSet in result {
-	            s = bindingSet[0]
-	            p = bindingSet[1]
-	            o = bindingSet[2]
-	            print "%s %s %s" % (s, p, o);
-	        }
+	    for (Literal obj : new Literal[] {null, fortyTwo, fortyTwoUntyped, f.createLiteral("20.5",
+	    		                          XMLSchema.FLOAT), f.createLiteral("20.5"),
+	                red, rouge}) {
+	        System.out.println( "Retrieve triples matching " + obj + ".");
+	        RepositoryResult<Statement> statements = conn.getStatements(null, null, obj, false, null); 
+		    while (statements.hasNext()) {
+		        System.out.println(statements.next());
+	    	}
 	    }
-	    fortyTwoInt = f.createLiteral(42);
-	    print fortyTwoInt.toPython();
+	    for (String obj : new String[]{"42", "\"42\"", "20.5", "\"20.5\"", "\"20.5\"^^xsd:float",
+	    		                       "\"Rouge\"@fr", "\"Rouge\"", "\"1984-12-06\"^^xsd:date"}) {
+	        System.out.println( "Query triples matching " + obj + ".");
+	        String queryString = "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = " + obj + ")}";
+	        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+	        TupleQueryResult result = tupleQuery.evaluate();
+	        //try {
+	            while (result.hasNext()) {
+	            	BindingSet bindingSet = result.next();
+	                Value s = bindingSet.getValue("s");
+	                Value p = bindingSet.getValue("p");
+	                Value o = bindingSet.getValue("o");             
+	                System.out.println("  " + s + " " + p + " " + o);
+	            }
+	        //} finally {
+
+	    }	    
 	}
+	
+	private static Repository test6() throws Exception {
+		AllegroRepository myRepository = (AllegroRepository)test1();
+	    RepositoryConnection conn = myRepository.getConnection();
+	    ValueFactory f = myRepository.getValueFactory();
+	    conn.clear();   
+	    String path1 = "src/tutorial/vc-db-1.rdf";    
+	    String path2 = "src/tutorial/football.nt";            
+	    String baseURI = "http://example.org/example/local";
+	    Resource context = myRepository.getValueFactory().createURI("http://example.org#vcards");
+	    conn.setNamespace("vcd", "http://www.w3.org/2001/vcard-rdf/3.0#");
+	    // read football triples into the null context:
+	    conn.add(new File(path2), baseURI, RDFFormat.NTRIPLES);
+	    // read vcards triples into the context 'context':
+	    conn.add(new File(path1), baseURI, RDFFormat.RDFXML, context);
+	    myRepository.indexTriples(true);
+	    System.out.println("After loading, repository contains " + conn.size(context) + 
+	    		" vcard triples in context '" + context + "'\n    and   " +
+	    		// QUESTION: IS THIS CORRECTLY INTERPRETED AS THE NULL CONTEXT???:
+	    		conn.size(null) + " football triples in context 'null'."); 
+	    return myRepository;
+	}
+	
 
-
-	private static void test15() {
+	private static void test15() throws Exception {
 		// Queries per second.
 	    Repository myRepository = test6();
 	    RepositoryConnection conn = myRepository.getConnection();
@@ -219,13 +252,14 @@ public class TutorialExamples {
 	
 	public static void main(String[] args) throws Exception {
 		List<Integer> choices = new ArrayList<Integer>();
-		int lastChoice = 2;
+		int lastChoice = 5;
 		for (int i = 1; i <= lastChoice; i++)
 			choices.add(new Integer(i));
 		if (true) {
 			choices = new ArrayList<Integer>();
-			choices.add(4);
+			choices.add(6);
 		}
+		try {
 		for (Integer choice : choices) {
 			System.out.println("Running test " + choice);
 			switch(choice) {
@@ -234,9 +268,14 @@ public class TutorialExamples {
 			case 2: test2(); break;			
 			case 3: test3(); break;			
 			case 4: test4(); break;						
+			case 5: test5(); break;									
+			case 6: test6(); break;												
 			default: System.out.println("There is no choice for test " + choice);
 			}
 		}
-		
+		} catch (Exception ex) {
+			System.out.println("Caught exception " + new SoftException(ex).getMessage());
+			ex.printStackTrace();
+		}	
 	}
 }

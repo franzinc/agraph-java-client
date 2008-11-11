@@ -116,6 +116,8 @@ public class Repository {
     /**
      * Delete all statements matching the constraints from the
      * repository. Context can be None or a single graph name.
+     * TODO: IF httpd CAN'T HANDLE A LIST OF CONTEXTS HERE, ADD LOGIC HERE
+     * TO HANDLE IT.
      */
     public void deleteMatchingStatements(String subj, String pred, String obj, Object context) {
     	try {

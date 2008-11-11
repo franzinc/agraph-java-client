@@ -80,8 +80,20 @@ public class AllegroRepositoryConnection extends RepositoryConnectionBase {
 		if (term == null) return (String)term;
 		else if (term instanceof String) return (String)term;
 		else if (term instanceof URI) return "<" + ((URI)term).toString() + ">";
-		else if (term instanceof Literal) return term.toString();
-		else if (term instanceof BNode) return term.toString();
+		else if (term instanceof Literal) {
+			String badTerm = term.toString();
+			int pos = badTerm.indexOf("^^");
+			String goodTerm;
+			if (pos > 0) {
+				String value = badTerm.substring(0, pos);
+				String datatype = badTerm.substring(pos + 2);
+				goodTerm = value + "^^<" + datatype + ">";
+			} else {
+				goodTerm = badTerm;
+			}
+			return goodTerm;
+		}
+		else if (term instanceof BNode) return "\"" + term.toString() + "\"";
 		else throw new SoftException("Unexpected datatype passed to 'toNTriples' " + term);
 	}
 	
@@ -145,7 +157,8 @@ public class AllegroRepositoryConnection extends RepositoryConnectionBase {
 	}
 
 	public void rollback() {
-		throw new UnimplementedMethodException("rollback");
+		System.out.println("WHY IS IT CALLING 'rollback' ???");
+		//throw new UnimplementedMethodException("rollback");
 	}
 
 
@@ -238,10 +251,18 @@ public class AllegroRepositoryConnection extends RepositoryConnectionBase {
 	}
 
 	public long size(Resource... contexts) 	{
-		if (contexts.length == 0)
+		if (contexts != null && contexts.length == 0)
 			return this.getMiniRepository().getSize();
-		else
-			throw new UnimplementedMethodException("size");
+		else {
+			System.out.println("Warning:  The HTTPD server does not support a size service for contexts.\n" +  
+					"   Computing the size of a context is a relatively slow operation.");
+			long size = 0;
+			try {
+				 JDBCResultSet resultSet = this.getJDBCStatements(null, null, null, false, contexts);
+			     while (resultSet.next()) size++;
+			} catch (Exception ex) {throw new SoftException(ex);}
+			return size;
+		}
 	}
 
 	/**
@@ -262,7 +283,10 @@ public class AllegroRepositoryConnection extends RepositoryConnectionBase {
 
 	@Override
 	public void clear(Resource... contexts) {
-		throw new UnimplementedMethodException("clear");
+		Object cxt = null;
+		if (contexts.length == 1) cxt = this.toNtriples(contexts[0]);
+		else if (contexts.length > 1) cxt = this.contextsToNtripleContexts(contexts, true);
+		this.getMiniRepository().deleteMatchingStatements(null, null, null, cxt);
 	}
 	
 	//----------------------------------------------------------------------------------------------

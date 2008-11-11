@@ -25,7 +25,13 @@ public class SoftException extends RuntimeException {
 	public String getMessage() {
 		String msg = "";
 		if (this.message != null) msg += this.message;
-		if (this.embeddedException != null) msg += this.embeddedException.getMessage();
+		if (this.embeddedException != null) {
+			// compensate for extreme idiocy of some Java programmer:
+			if (this.embeddedException.getMessage() != null && this.embeddedException.getMessage().length() > 0)
+				msg += this.embeddedException.getMessage();
+			else
+				msg += this.embeddedException.toString();
+		}
 		return msg;
 	}
 	

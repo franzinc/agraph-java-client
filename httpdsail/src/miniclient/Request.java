@@ -148,7 +148,11 @@ public class Request {
 			String accept, String contentType, Object callback, Object errCallback) {
 		//String body = urlenc(options);
 		if ((accept == null) || "".equals(accept)) accept = "*/*";
-		//System.out.println("METHOD " + method + " URL " + url);
+		
+		// TEMPORARY:
+		//if (method.equals("GET") && url.equals("http://localhost:8080/catalogs/ag/repositories/agraph_test4/statements")) method = "POST";
+		// END TEMPORA
+		//System.out.println("METHOD " + method + " URL " + url + " OPTIONS " + options);
 		boolean doPost = ("POST".equals(method));
 		HttpMethodBase httpMethod = doPost ? makePostMethod(url, options) : makeGetMethod(method, url, options);
 		httpMethod.addRequestHeader("accept", accept);
@@ -248,6 +252,8 @@ public class Request {
 				JSONObject dict = new JSONObject(json);
 				return helpDecodeJSONResponse(dict);
 			} else if (c == '[') {
+				System.out.println( "BEGINNING " + json.substring(0, Math.min(json.length(), 10)));
+				System.out.println( "ENDING " + json.substring(Math.max(json.length() - 10, 0)));
 				JSONArray list = new JSONArray(json);
 				return helpDecodeJSONResponse(list);
 			} else {
