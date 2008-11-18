@@ -5,6 +5,10 @@ package org.openrdf.repository.sail;
 
 import info.aduna.iteration.CloseableIteration;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -13,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.openrdf.OpenRDFUtil;
 import org.openrdf.model.BNode;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Namespace;
@@ -23,18 +26,16 @@ import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.NamespaceImpl;
-import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.TupleQuery;
-import org.openrdf.query.parser.ParsedBooleanQuery;
-import org.openrdf.query.parser.ParsedGraphQuery;
-import org.openrdf.query.parser.QueryParserUtil;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
 import org.openrdf.repository.base.RepositoryConnectionBase;
+import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFHandler;
 import org.openrdf.rio.RDFHandlerException;
+import org.openrdf.rio.RDFParseException;
 import org.openrdf.sail.SailConnection;
 import org.openrdf.sail.SailException;
 
@@ -94,7 +95,8 @@ public class AllegroRepositoryConnection extends RepositoryConnectionBase {
 			return goodTerm;
 		}
 		// THIS IS BOGUS: SHOULD NOT NEED STRING QUOTES AROUND BNODE EXPRESSION:
-		else if (term instanceof BNode) return "\"" + term.toString() + "\"";
+		//else if (term instanceof BNode) return "\"" + term.toString() + "\"";
+		else if (term instanceof BNode) return term.toString();		
 		else throw new SoftException("Unexpected datatype passed to 'toNTriples' " + term);
 	}
 	
@@ -131,7 +133,7 @@ public class AllegroRepositoryConnection extends RepositoryConnectionBase {
         	cxts.add(MINI_NULL_CONTEXT);
         } else if (((Object[])contexts).length == 0) {
             if (emptyMeansNullContext) cxts.add(MINI_NULL_CONTEXT);
-            else cxts = null;    		
+            else cxts = null;  // interpreted as wildcard
         } else if (contexts instanceof Resource[]) {
         	if ((((Resource[])contexts).length == 0) && emptyMeansNullContext) {
         		cxts.add(MINI_NULL_CONTEXT);
@@ -225,7 +227,7 @@ public class AllegroRepositoryConnection extends RepositoryConnectionBase {
         object = factory.objectPositionTermToOpenRDFTerm(object, predicate);
         List<List<String>>stringTuples = this.getMiniRepository().getStatements(this.toNtriples(subject), this.toNtriples(predicate),
         		this.toNtriples(object), this.contextsToNtripleContexts(contexts, false), false, callback);
-        return new JDBCResultSet(JDBCResultSet.STATEMENT_COLUMN_NAMES, stringTuples);
+        return new JDBCResultSet(JDBCResultSet.STATEMENT_COLUMN_NAMES, stringTuples, true);
 	}
 
 	public void exportStatements(Resource subj, URI pred, Value obj, boolean includeInferred,
@@ -263,18 +265,49 @@ public class AllegroRepositoryConnection extends RepositoryConnectionBase {
 	}
 
 	public long size(Resource... contexts) 	{
-		if (contexts != null && contexts.length == 0)
-			return this.getMiniRepository().getSize();
+		List<String> ntripleContexts = this.contextsToNtripleContexts(contexts, true);
+		if (ntripleContexts.isEmpty())
+			return this.getMiniRepository().getSize(null);
 		else {
-			System.out.println("Warning:  The HTTPD server does not support a size service for contexts.\n" +  
-					"   Computing the size of a context is a relatively slow operation.");
-			long size = 0;
-			try {
-				 JDBCResultSet resultSet = this.getJDBCStatements(null, null, null, false, contexts);
-			     while (resultSet.next()) size++;
-			} catch (Exception ex) {throw new SoftException(ex);}
-			return size;
+			long total = 0;
+			for (String cxt : ntripleContexts) {
+				total += this.getMiniRepository().getSize(cxt);
+			}
+			return total;
 		}
+	}
+	
+	private static String translateRDFFormat (RDFFormat rdfFormat) {
+		if (rdfFormat == RDFFormat.NTRIPLES) return "NTRIPLES";
+		else if (rdfFormat == RDFFormat.RDFXML) return "RDF/XML";
+		else throw new SoftException("Unsupported data format " + rdfFormat);
+	}
+	
+	public void add(String file, String baseURI, RDFFormat dataFormat, Resource... contexts) {
+		add(new File(file), baseURI, dataFormat, false, contexts);
+	}
+
+	public void add(File file, String baseURI, RDFFormat dataFormat, Resource... contexts) {
+		add(file, baseURI, dataFormat, false, contexts);
+	}
+
+	public void add(String file, String baseURI, RDFFormat dataFormat, boolean serverSide, Resource... contexts) {
+		add(new File(file), baseURI, dataFormat, serverSide, contexts);
+	}
+	
+	public void add(File file, String baseURI, RDFFormat dataFormat, boolean serverSide, Resource... contexts) {
+		if (baseURI == null) {
+			// default baseURI to file
+			baseURI = file.toURI().toString();
+		}
+		String rdfFormat = translateRDFFormat(dataFormat);
+		List<String> cxts = this.contextsToNtripleContexts(contexts, false);
+		if (cxts == null)
+			this.getMiniRepository().loadFile(file.getAbsolutePath(), rdfFormat, baseURI, null, serverSide);
+		else
+			for (String cxt : cxts) {
+				this.getMiniRepository().loadFile(file.getAbsolutePath(), rdfFormat, baseURI, cxt, serverSide);
+			}
 	}
 
 	/**
@@ -282,23 +315,36 @@ public class AllegroRepositoryConnection extends RepositoryConnectionBase {
      * one or more named contexts.        
 	 */
 	protected void addWithoutCommit(Resource subject, URI predicate, Value object, Resource... contexts) {
-        this.getMiniRepository().addStatement(this.toNtriples(subject), this.toNtriples(predicate),
-        		this.toNtriples(object), this.contextsToNtripleContexts(contexts, true));
+		
+		//System.out.println("ADD WITHOUT COMMIT " + subject + " " + predicate + " " + object + " " + contexts);
+		List<String> cxts = this.contextsToNtripleContexts(contexts, true);
+		for (String cxt : cxts) {
+			this.getMiniRepository().addStatement(this.toNtriples(subject), this.toNtriples(predicate),
+					this.toNtriples(object), cxt);
+		}
 	}
-
+	
+	private void deleteMatchingStatements(Resource subject, URI predicate, Value object, Resource... contexts) {
+		String subj = this.toNtriples(subject);
+		String pred = this.toNtriples(predicate);
+		String obj = this.toNtriples(object);
+		List<String> ntripleContexts = this.contextsToNtripleContexts(contexts, true);
+		if (ntripleContexts.isEmpty())
+			this.getMiniRepository().deleteMatchingStatements(subj, pred, obj, null);
+		else
+			for (String cxt : ntripleContexts) {
+				this.getMiniRepository().deleteMatchingStatements(subj, pred, obj, cxt);
+			}
+	}
+	
 	@Override
 	protected void removeWithoutCommit(Resource subject, URI predicate, Value object, Resource... contexts) {
-		List<String> ntripleContexts = this.contextsToNtripleContexts(contexts, true);
-		this.getMiniRepository().deleteMatchingStatements(this.toNtriples(subject), this.toNtriples(predicate),
-        		this.toNtriples(object), (contexts != null) ? ntripleContexts : null);
+		deleteMatchingStatements(subject, predicate, object, contexts);
 	}
 
 	@Override
 	public void clear(Resource... contexts) {
-		Object cxt = null;
-		if (contexts.length == 1) cxt = this.toNtriples(contexts[0]);
-		else if (contexts.length > 1) cxt = this.contextsToNtripleContexts(contexts, true);
-		this.getMiniRepository().deleteMatchingStatements(null, null, null, cxt);
+		deleteMatchingStatements(null, null, null, contexts);
 	}
 	
 	//----------------------------------------------------------------------------------------------

@@ -23,6 +23,7 @@ import org.openrdf.repository.RepositoryResult;
 import org.openrdf.repository.sail.AllegroRepository;
 import org.openrdf.repository.sail.AllegroRepositoryConnection;
 import org.openrdf.repository.sail.AllegroSail;
+import org.openrdf.repository.sail.AllegroTupleQueryResult;
 import org.openrdf.repository.sail.Catalog;
 import org.openrdf.repository.sail.JDBCResultSet;
 import org.openrdf.rio.RDFFormat;
@@ -42,7 +43,7 @@ public class TutorialExamples {
 	public static Repository test1() throws RepositoryException {
 	    AllegroSail server = new AllegroSail("localhost", 8080);
 	    System.out.println("Available catalogs " + server.listCatalogs());
-	    Catalog catalog = server.openCatalog("ag");    
+	    Catalog catalog = server.openCatalog("scratch");    
 	    System.out.println("Available repositories in catalog '" + catalog.getName() + "': " +
 	    		catalog.listRepositories());    
 	    AllegroRepository myRepository = catalog.getRepository("agraph_test4", AllegroRepository.RENEW);
@@ -188,9 +189,9 @@ public class TutorialExamples {
 	    Resource context = myRepository.getValueFactory().createURI("http://example.org#vcards");
 	    conn.setNamespace("vcd", "http://www.w3.org/2001/vcard-rdf/3.0#");
 	    // read football triples into the null context:
-	    conn.add(new File(path2), baseURI, RDFFormat.NTRIPLES);
+	    ((AllegroRepositoryConnection)conn).add(new File(path2), baseURI, RDFFormat.NTRIPLES, false, null);
 	    // read vcards triples into the context 'context':
-	    conn.add(new File(path1), baseURI, RDFFormat.RDFXML, context);
+	    ((AllegroRepositoryConnection)conn).add(new File(path1), baseURI, RDFFormat.RDFXML, false, context);
 	    myRepository.indexTriples(true);
 	    System.out.println("After loading, repository contains " + conn.size(context) + 
 	    		" vcard triples in context '" + context + "'\n    and   " +
@@ -222,21 +223,22 @@ public class TutorialExamples {
 	    Repository myRepository = test6();
 	    RepositoryConnection conn = myRepository.getConnection();
 	    
-	    int reps = 1; //1000;
+	    int reps = 1000;
 	    
 	    //TEMPORARY
 	    URI context = myRepository.getValueFactory().createURI("http://example.org#vcards");
 	    // END TEMPORARY
+	    Resource[] contexts = new Resource[]{context, null};
+	    Literal ajax = conn.getValueFactory().createLiteral("AFC Ajax");
 	    int count = 0;
 	    long begin = System.currentTimeMillis();
 	    for (int i = 0; i < reps; i++) {
-	        count = 0;
-	        Resource[] contexts = new Resource[]{context, null};
-	        JDBCResultSet resultSet = ((AllegroRepositoryConnection)conn).getJDBCStatements(null, null, null, false, contexts);
+	        count = 0;	        
+	        JDBCResultSet resultSet = ((AllegroRepositoryConnection)conn).getJDBCStatements(null, null, ajax, false, contexts);
 	        while (resultSet.next()) count++;
 	    }
 	    long elapsed = System.currentTimeMillis() - begin;
-	    System.out.println("Did " + reps + " " + count + "-row matches in " + elapsed + " seconds.");
+	    System.out.println("Did " + reps + " " + count + "-row matches in " + (elapsed / 1000) + "." + (elapsed % 1000) + " seconds.");
 	 
 	    begin = System.currentTimeMillis();
 	    for (int i = 0; i < reps; i++) {
@@ -251,19 +253,64 @@ public class TutorialExamples {
 	        }
 	    }
 	    elapsed = System.currentTimeMillis() - begin;
-	    System.out.println("Did " + reps + " " + count + "-row matches in " + elapsed + " seconds.");
+	    System.out.println("Did " + reps + " " + count + "-row matches in " + (elapsed / 1000) + "." + (elapsed % 1000) + " seconds.");
 	   
 	    for (int size : new int[]{1, 5, 10, 100}) {
-	        String queryString = "select ?x ?y ?z {?x ?y ?z} limit " + size;
+	        String queryString = "select ?x ?y ?z where {?x ?y ?z} limit " + size;
 	        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
 	        begin = System.currentTimeMillis();
 	        for (int i = 0; i < reps; i++) {
 		        count = 0;
 	            TupleQueryResult result = tupleQuery.evaluate(); 
 	            while (result.hasNext()) {result.next(); count++;}
-	        }	        
-	        System.out.println("Did " + reps + " " + count + "-row matches in " + elapsed + " seconds.");
+	        }
+	        elapsed = System.currentTimeMillis() - begin;
+	        System.out.println("Did " + reps + " " + count + "-row queries in " + (elapsed / 1000) + "." + (elapsed % 1000) + " seconds.");
 	    }
+	}
+
+	private static void test16() throws Exception {
+		// CIA Fact book
+	    AllegroSail server = new AllegroSail("localhost", 8080);
+	    System.out.println("Available catalogs " + server.listCatalogs());
+	    Catalog catalog = server.openCatalog("scratch");    
+	    System.out.println("Available repositories in catalog '" + catalog.getName() + "': " +
+	    		catalog.listRepositories());    
+	    AllegroRepository myRepository = catalog.getRepository("agraph_test", AllegroRepository.ACCESS);
+	    myRepository.initialize();
+	    System.out.println( "Repository " + myRepository.getName() + " is up!  It contains "
+	    		+ myRepository.getConnection().size() + " statements.");
+	    RepositoryConnection conn = myRepository.getConnection();
+	    if (conn.size(null) == 0) {
+	        System.out.println("Reading CIA Fact Book file.");
+	        String path1 = "/FRANZ_CONSULTING/data/ciafactbook.nt";  
+	        String baseURI = "http://example.org/example/local";
+	        ((AllegroRepositoryConnection)conn).add(new File(path1), baseURI, RDFFormat.NTRIPLES, true, null);
+	    }
+	    myRepository.indexTriples(true);
+	    long begin = System.currentTimeMillis();
+	    int count = 0;
+	    JDBCResultSet resultSet = ((AllegroRepositoryConnection)conn).getJDBCStatements(null, null, null, false);
+	    while (resultSet.next()) {
+//	    	resultSet.getString(0);
+//	    	resultSet.getString(1);
+//	    	resultSet.getString(2);
+//	    	resultSet.getString(3);	    	
+	        count++;
+	    }
+	    long elapsed = (System.currentTimeMillis() - begin);
+	    System.out.println("Did " + count + "-row match in " + (elapsed / 1000) + "." + (elapsed % 1000) + " seconds.");
+	    
+	    String queryString = "select ?x ?y ?z where {?x ?y ?z} ";
+        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        begin = System.currentTimeMillis();
+        count = 0;
+        AllegroTupleQueryResult result = (AllegroTupleQueryResult)tupleQuery.evaluate();
+        result.setSkipIllegalTuples(true);
+        while (result.hasNext()) {result.next(); count++;}
+        System.out.println("Found " + result.getIllegalTuples().size() + " illegal query tuples.");
+        elapsed = System.currentTimeMillis() - begin;
+        System.out.println("Did " + count + "-row query in " + (elapsed / 1000) + "." + (elapsed % 1000) + " seconds.");
 	}
 
 	
@@ -274,7 +321,7 @@ public class TutorialExamples {
 			choices.add(new Integer(i));
 		if (true) {
 			choices = new ArrayList<Integer>();
-			choices.add(7);
+			choices.add(15);
 		}
 		try {
 		for (Integer choice : choices) {
@@ -288,6 +335,9 @@ public class TutorialExamples {
 			case 5: test5(); break;									
 			case 6: test6(); break;	
 			case 7: test7(); break;
+			
+			case 15: test15(); break;
+			case 16: test16(); break;			
 			default: System.out.println("There is no choice for test " + choice);
 			}
 		}

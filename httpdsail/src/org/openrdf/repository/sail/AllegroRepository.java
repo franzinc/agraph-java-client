@@ -99,7 +99,7 @@ public class AllegroRepository implements Repository {
 	}
 
 	public void initialize() {
-        System.out.println("ATTACH" + this.accessVerb + " " + this.miniCatalog.listTripleStores());
+        System.out.println("ATTACH " + this.accessVerb + " " + this.miniCatalog.listTripleStores());
         boolean clearIt = false;
         String repName = this.repositoryName;
         miniclient.Catalog conn = this.miniCatalog;
@@ -122,6 +122,7 @@ public class AllegroRepository implements Repository {
                     "Can't open a triple store named '" + repName + "' because there is none.");
             }
         } else if(this.accessVerb == ACCESS) {
+        	System.out.println("LIST TRIPLE STORES: " + conn.listTripleStores());
             if (!conn.listTripleStores().contains(repName)) {
                 conn.createTripleStore(repName) ;
             }

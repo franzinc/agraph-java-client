@@ -18,7 +18,8 @@ public class JDBCResultSet {
     private int low_index = -1;
     private int high_index = -1;
     private List<String> current_strings_row = null;
-    private List<Value> current_terms_row = null;   
+    private List<Value> current_terms_row = null;
+    private boolean isQuads = false;
 
     public static int COUNTING_STARTS_AT = 0;   // real JDBC starts at one; we could change this to 1 if users want
     public static List<String> STATEMENT_COLUMN_NAMES = new ArrayList<String>();
@@ -28,17 +29,20 @@ public class JDBCResultSet {
     }
     
     /** Constructor */
-	public JDBCResultSet(List<String> columnNames, List<List<String>> stringTuples) {
+	public JDBCResultSet(List<String> columnNames, List<List<String>> stringTuples, boolean isQuads) {
 		this.columnNames = new ArrayList<String>();
 		// strip questions marks from column names (not sure why we call 'toLowerCase':
 		for (String name : columnNames) this.columnNames.add(name.substring(1).toLowerCase());
 		this.stringTuples = stringTuples;
+		this.isQuads = isQuads;
 	}
     
     private void initialize_tuple_width() {
         this.tuple_width = this.current_strings_row.size();
         this.low_index = JDBCResultSet.COUNTING_STARTS_AT;
-        this.high_index = JDBCResultSet.COUNTING_STARTS_AT + this.tuple_width;
+        this.high_index = JDBCResultSet.COUNTING_STARTS_AT + this.tuple_width - 1;
+        // allow for null context:
+        if (this.isQuads && (this.high_index - this.low_index) == 2) this.high_index++;
     }
         
     /**
@@ -153,7 +157,13 @@ public class JDBCResultSet {
      */
     public String getString(int index) {
         index = this._get_valid_cursor_index(index);
-        return AllegroStatement.ntriplesStringToStringValue(this.current_strings_row.get(index));
+        try {
+        	return AllegroStatement.ntriplesStringToStringValue(this.current_strings_row.get(index));
+        } catch (RuntimeException ex) {
+        	// possibly return the null context:
+        	if (this.isQuads && index == this.COUNTING_STARTS_AT + 3) return null;
+        	throw ex;
+        }
     }
     
     public String getString(String columnName) {

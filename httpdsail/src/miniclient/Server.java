@@ -81,7 +81,7 @@ public class Server {
 	        System.out.println( "Now is 'test' there??:" + reps + (reps.contains("test")));
 	    } catch (Exception ex) {}
 	    Repository rep = cat.getRepository("test");
-	    long size = rep.getSize(); 
+	    long size = rep.getSize(null); 
 	    System.out.println( "Size of 'test' repository " + size);
 	    if (size == 0) {
 	        rep.addStatement("<http://www.franz.com/example#ted>", "<http://www.franz.com/example#age>", 
@@ -110,8 +110,8 @@ public class Server {
 	        System.out.println( "Now is 'test' there??:" + reps + (reps.contains("test")));
 	    } catch (Exception ex) {}
 	    Repository rep = cat.getRepository("test");
-	    long size = rep.getSize();
-	    System.out.println("Repository size = " + rep.getSize());
+	    long size = rep.getSize(null);
+	    System.out.println("Repository size = " + rep.getSize(null));
 	    return rep;
 	}
 	
@@ -158,7 +158,7 @@ public class Server {
 	    
 	    stmts.add(makeStatement(ns + "bob", ns + "name", "bob", true, null));	    
 	    rep.addStatements(stmts);
-	    System.out.println("Repository size = " + rep.getSize());    
+	    System.out.println("Repository size = " + rep.getSize(null));    
 	    System.out.println("Statements " + rep.getStatements(null, null, null,  makeTerm(makeList(ns + "cxt", null), false), false, null));
 	}
 

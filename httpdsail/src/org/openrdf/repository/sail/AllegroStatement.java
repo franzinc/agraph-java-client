@@ -28,15 +28,15 @@ public class AllegroStatement extends StatementImpl {
 	}
 
 	protected void setQuad(List<String> stringTuple) {
-		System.out.println("SET QUAD STRING TUPLE " + stringTuple + "   CLASS: " + stringTuple.getClass());
-		System.out.println("   SUBJECT " + stringTuple.get(0) + "  CLASS: " + stringTuple.get(0).getClass());
+		//System.out.println("SET QUAD STRING TUPLE " + stringTuple + "   CLASS: " + stringTuple.getClass());
+		//System.out.println("   SUBJECT " + stringTuple.get(0) + "  CLASS: " + stringTuple.get(0).getClass());
 		if (stringTuple.get(0).startsWith("\"_:"))
 			System.out.println("BREEEEEEEAK");
 		this.stringTuple = stringTuple;
 	}
 	
 	public Resource getSubject() {
-		System.out.println("GET SUBJECT STRING TUPLE " + stringTuple + "   CLASS: " + stringTuple.getClass());
+		//System.out.println("GET SUBJECT STRING TUPLE " + stringTuple + "   CLASS: " + stringTuple.getClass());
 		
 		if (this.subject == null) {
 			this.subject = (Resource)this.stringTermToTerm(this.stringTuple.get(0));
@@ -74,7 +74,7 @@ public class AllegroStatement extends StatementImpl {
      * a URI, Literal, or BNode.
 	 */
     protected static Value stringTermToTerm(String stringTerm) {
-    	System.out.println("STRING TERM TO TERM '" + stringTerm + "'");
+    	//System.out.println("STRING TERM TO TERM '" + stringTerm + "'");
         if (stringTerm == null) return null;
         if (stringTerm.charAt(0) == '<') {
             String uri = stringTerm.substring(1, stringTerm.length() - 1);
@@ -111,11 +111,12 @@ public class AllegroStatement extends StatementImpl {
      */
     protected static String ntriplesStringToStringValue(String stringTerm) {
         if (stringTerm == null) return null;
-        if (stringTerm.charAt(0) == '<') {
+        char firstChar = stringTerm.charAt(0);
+        if (firstChar == '<') {
             String uri = stringTerm.substring(1, stringTerm.length() - 1);
             return uri;
         }
-        else if (stringTerm.charAt(0) == '"') {
+        else if (firstChar == '"') {
             // we have a double-quoted literal with either a data type or a language indicator
             int caratPos = stringTerm.indexOf("^^");
             if (caratPos >= 0) {
@@ -129,6 +130,8 @@ public class AllegroStatement extends StatementImpl {
             } else {
                 return stringTerm.substring(1, stringTerm.length() - 1);
             }
+        } else if (firstChar == '_' && stringTerm.charAt(1) == ':') {
+        	return stringTerm;
         } else {
         	throw new SoftException("Cannot translate '" + stringTerm + "' into a string value.");
         }

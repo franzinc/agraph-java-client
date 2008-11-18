@@ -1,5 +1,6 @@
 package org.openrdf.repository.sail;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.openrdf.model.Value;
@@ -14,6 +15,8 @@ public class AllegroTupleQueryResult implements TupleQueryResult {
 	private List<String> columnNames;
 	private List<List<String>> stringTuples;
 	private int cursor = 0;
+	private boolean skipIllegalTuples = false;
+	private List<List<String>> illegalTuples = new ArrayList<List<String>>();
 	
 	public static boolean STRIP_QUESTION_MARKS = true;
 	
@@ -34,7 +37,24 @@ public class AllegroTupleQueryResult implements TupleQueryResult {
 	public List<String> getBindingNames() {
 		return this.columnNames;
 	}
+	
+	/**
+	 * Return 'true' if query tuples with illegal syntax should be collected
+	 * silently.  Otherwise, an exception will be thrown if illegal syntax is detected. 
+	 */
+	public boolean skipIllegalTuples() {return this.skipIllegalTuples;}
+	
+	/**
+	 * A setting of 'true' indicates that query tuples with illegal syntax should be collected
+	 * silently.  Otherwise, an exception will be thrown if illegal syntax is detected. 
+	 */
+	public void setSkipIllegalTuples(boolean setting) {this.skipIllegalTuples = setting;}
 
+	/**
+	 * Return a list of illegal tuples returned by the last query.
+	 */
+	public List<List<String>> getIllegalTuples () {return this.illegalTuples;}
+	
 	public void close() {
 	}
 
@@ -63,7 +83,16 @@ public class AllegroTupleQueryResult implements TupleQueryResult {
         if (this.hasNext()) {
             List<String>stringTuple = this.stringTuples.get(this.cursor);
             this.cursor++;
-            return createBindingSet(stringTuple);            
+            try {
+            	return createBindingSet(stringTuple);
+            } catch (IllegalArgumentException ex) {
+            	if (this.skipIllegalTuples()) {
+            		if (this.illegalTuples == null) this.illegalTuples = new ArrayList<List<String>>();
+            		this.illegalTuples.add(stringTuple);
+            		return this.next();
+            	}
+            	throw ex;
+            }
         } else {
         	return null;
         }

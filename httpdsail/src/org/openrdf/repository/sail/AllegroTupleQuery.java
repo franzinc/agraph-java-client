@@ -33,7 +33,7 @@ public class AllegroTupleQuery extends AllegroQuery implements TupleQuery {
     
     public JDBCResultSet jdbcEvaluate() {
     	Map response = (Map)this.evaluateGenericQuery();
-        return new JDBCResultSet((List<String>)response.get("names"),(List<List<String>>) response.get("values"));
+        return new JDBCResultSet((List<String>)response.get("names"),(List<List<String>>) response.get("values"), false);
     }
 
 	public void evaluate(TupleQueryResultHandler arg0) {

@@ -1,5 +1,10 @@
 package miniclient;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -37,10 +42,13 @@ public class Repository {
 	/**
 	 * Return the number of triples/quads in the repository.
 	 */
-	public long getSize() {
-		return (long)new Long((String)this.jsonRequest("GET", this.url + "/size"));
+	public long getSize(String context) {
+		try {
+			JSONObject options = new JSONObject().put("context", context);
+			return (long)new Long((String)this.jsonRequest("GET", this.url + "/size", options, null, null));
+		} catch (JSONException ex) {throw new SoftException(ex);} 
 	}
-
+	
 	/**
 	 * List the contexts (named graphs) that are present in this repository.
 	 */
@@ -64,7 +72,11 @@ public class Repository {
     public Object evalSparqlQuery(String query, boolean infer, Object context, Object namedContext, Object callback) {
     	try {
     		JSONObject options = new JSONObject().put("query", query).put("infer", infer).put("context", context).
-    			put("namedContext", namedContext).put("environment", this.environment);
+    			put("environment", this.environment);
+    		// TODO: FOLD THIS BACK IN ABOVE AFTER WE DEBUG IT:
+    		//System.out.println("NAMED CONTEXT '" + namedContext + "'");
+    		if (false && namedContext != null && !"null".equals(namedContext))
+    			options.put("namedContext", namedContext);
     		return jsonRequest("POST", this.url, options, null, callback);
     	} catch (JSONException ex) { throw new SoftException(ex); }	
     }
@@ -106,10 +118,12 @@ public class Repository {
 	 * 'context' is a string or a list of strings.
 	 */
     public void addStatement(String subj, String pred, String obj, Object context) {
+    	//System.out.println("ADD STATEMENT " + subj + " " + pred + " " + obj + " " + context);
     	try {
-    		JSONObject options = new JSONObject().put("subj", subj).put("pred", pred).put("obj", obj).
-    		put("context", context);
-    		nullRequest("POST", this.url + "/statements", options, null);
+    		JSONArray row = new JSONArray().put(subj).put(pred).put(obj).put(context);
+    		JSONArray rows = new JSONArray().put(row);
+    		JSONObject options = new JSONObject().put("body", rows);
+    		nullRequest("POST", this.url + "/statements", options, "application/json");
         } catch (JSONException ex) { throw new SoftException(ex); }	
     }
 
@@ -122,7 +136,7 @@ public class Repository {
     public void deleteMatchingStatements(String subj, String pred, String obj, Object context) {
     	try {
             JSONObject options = new JSONObject().put("subj", subj).put("pred", pred).put("obj",obj).
-        	put("context", context);
+        		put("context", context);
     		nullRequest("DELETE", this.url + "/statements", options, null);
         } catch (JSONException ex) { throw new SoftException(ex); }
     }
@@ -187,29 +201,54 @@ public class Repository {
             return "'" + this.format + "' file format not supported (try 'ntriples' or 'rdf/xml').";
     	}
     }
-    	
-    public void loadFile(String file, String format, String baseURI, String context, boolean serverSide) {
-    	try {
-	        String urlformat = null;
-	        String mime = null;
-	        if ("ntriples".equalsIgnoreCase(format)) {
-	            urlformat = "ntriples";
-	            mime = "text/plain";
-	        } else if ("rdf/xml".equalsIgnoreCase(format)) {
-	            urlformat = "rdfxml";
-	            mime = "application/rdf+xml";
-	        } else {
-	            throw new Repository.UnsupportedFormatError(format);
-	        }
-	        String body = "";
-	        if (!serverSide) {
-	            throw new SoftException("Use the Franz Sesame API for client-side loading of RDF files.");
-	        }
-	        JSONObject options = new JSONObject().put("file", file).put("context", context).put("baseURI", baseURI).
-	             put("body", body).put("contentType", mime);	            
-	        nullRequest("POST", this.url + "/statements/" + urlformat + "?" + options.toString(), null, null);
-    	} catch (JSONException ex) { throw new SoftException(ex); }	
+    
+    private String[] formatToURLFormatAndContentType (String format) {
+        String urlformat = null;
+        String mime = null;
+         if ("ntriples".equalsIgnoreCase(format)) {
+            urlformat = "ntriples";
+            mime = "text/plain";
+        } else if ("rdf/xml".equalsIgnoreCase(format)) {
+            urlformat = "rdfxml";
+            mime = "application/rdf+xml";
+        } else {
+            throw new Repository.UnsupportedFormatError(format);
+        }
+        return new String[]{urlformat, mime};
     }
+    
+    public void loadData (String data, String format, String baseURI, String context) {
+    	try {
+	    	String[] pair = formatToURLFormatAndContentType(format);
+	    	JSONObject options = new JSONObject().put("context", context).put("baseURI", baseURI).
+	    		put("format", pair[0]).put("body", data);
+	    	nullRequest("POST", this.url + "/statements", options, pair[1]);
+    	} //catch (UnsupportedEncodingException ex) {throw new SoftException(ex);}
+		  catch (JSONException ex) {throw new SoftException(ex);}    	
+    }
+    	
+    public void loadFile(String fileURL, String format, String baseURI, String context, boolean serverSide) {
+    	try {
+	        if (!serverSide) {
+	        	File file = new File(fileURL);
+	        	int size = (int) file.length();
+	        	InputStreamReader reader = new InputStreamReader(new FileInputStream(file));
+	            char[] buffer = new char[size];
+	            reader.read(buffer);
+	            String s = new String(buffer);
+	            reader.close();
+	            loadData(s, format, baseURI, context);
+	        } else {
+	    		String[] pair = formatToURLFormatAndContentType(format);
+		        JSONObject options = new JSONObject().put("file", fileURL).put("context", context).put("baseURI", baseURI).
+		            put("format", pair[0]);	                        
+		    	nullRequest("POST", this.url + "/statements", options, pair[1]);
+	        }
+	} catch (UnsupportedEncodingException ex) {throw new SoftException(ex);}
+	  catch (JSONException ex) { throw new SoftException(ex); }	
+	  catch (IOException ex) { throw new SoftException(ex); }		  
+    }
+    
     	
     /**
      * Delete a collection of statements from the repository.
@@ -249,7 +288,7 @@ public class Repository {
      * Returns the proportion (0-1) of the repository that is indexed.
      */
     public String getIndexCoverage() {
-		return (String)jsonRequest("GET", this.url + "/index", null, null, null);
+		return (String)jsonRequest("GET", this.url + "/indexing", null, null, null);
     }
     	   
     /**
@@ -259,7 +298,7 @@ public class Repository {
     public void indexStatements(boolean all) {
     	try {
     		JSONObject options = new JSONObject().put("all", all);
-    		nullRequest("POST", this.url + "/index", options, null);
+    		nullRequest("POST", this.url + "/indexing", options, null);
     	} catch (JSONException ex) { throw new SoftException(ex); }
     }
     	
@@ -343,7 +382,7 @@ public class Repository {
     	try {
     		JSONObject options = new JSONObject().put("prefix", prefix).put("uri", namespace).
     			put("environment", this.environment);
-    		nullRequest("POST", this.url + "/namespaces", options, null);                    
+    		nullRequest("POST", this.url + "/namespaces", options, "text/plain");                    
     	} catch (JSONException ex) { throw new SoftException(ex); }
     }
     

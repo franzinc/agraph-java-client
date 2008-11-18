@@ -78,9 +78,11 @@ public class Request {
 		throw new RequestError(status, message);
 	}
 	
-	private static HttpMethodBase makeGetMethod(String method, String url, JSONObject options) {
+	private static HttpMethodBase makeHTTPMethod(String method, String url, JSONObject options) {
 		HttpMethodBase httpMethod = null;
-		if ("DELETE".equals(method))
+		if ("POST".equals(method))
+			httpMethod = new PostMethod(url);
+		else if ("DELETE".equals(method))
 			httpMethod = new DeleteMethod(url);
 		else if ("PUT".equals(method))
 			httpMethod = new PutMethod(url);
@@ -92,7 +94,10 @@ public class Request {
 				String key = (String)it.next();
 				try {
 					Object value = options.get(key);
-					if (value instanceof List) {
+					if ("body".equals(key)) {
+						RequestEntity body = new StringRequestEntity((value == null) ? "null" : value.toString());
+						((PostMethod)httpMethod).setRequestEntity(body);
+					} else if (value instanceof List) {
 						for (Object v : (List)value) {
 							NameValuePair nvp= new NameValuePair(key, (v == null) ? "null" : v.toString());
 							pairs.add(nvp);
@@ -114,30 +119,56 @@ public class Request {
 		return httpMethod;
 	}
 
-	private static HttpMethodBase makePostMethod(String url, JSONObject options) {
-		PostMethod postMethod = new PostMethod(url);
-		if (options == null) return postMethod;
-		//System.out.println("OPTIONS " + options);
-		for (Iterator it = options.keys(); it.hasNext();) {
-			String key = (String)it.next();
-			try {
-				Object value = options.get(key);
-				if ("body".equals(key)) {
-					RequestEntity body = new StringRequestEntity((value == null) ? "null" : value.toString());
-					postMethod.setRequestEntity(body);
-				} else if (value instanceof List) {
-					for (Object v : (List)value)  {
-						//System.out.println("   KEY " + key + ":'" + v.toString() + "'");
-						postMethod.addParameter(key, (v == null) ? "null" : v.toString());
-					}
-				} else {
-					//System.out.println("   KEY " + key + ":'" + value.toString() + "'");
-					postMethod.addParameter(key, value.toString());
-				}
-			} catch (JSONException ex) {throw new RuntimeException("JSON Exception that shouldn't occur", ex);}
-		}
-		return postMethod;
-	}
+//	private static HttpMethodBase makePostMethod(String url, JSONObject options) {
+//		PostMethod postMethod = new PostMethod(url);
+//		if (options == null) return postMethod;
+//		//System.out.println("OPTIONS " + options);
+//
+//		List<NameValuePair> pairs = new ArrayList<NameValuePair>();
+//		for (Iterator it = options.keys(); it.hasNext();) {
+//			String key = (String)it.next();
+//			try {
+//				Object value = options.get(key);
+//				if ("body".equals(key)) {
+//					RequestEntity body = new StringRequestEntity((value == null) ? "null" : value.toString());
+//					postMethod.setRequestEntity(body);
+//				} else if (value instanceof List) {
+//					for (Object v : (List)value) {
+//						NameValuePair nvp= new NameValuePair(key, (v == null) ? "null" : v.toString());
+//						pairs.add(nvp);
+//					}
+//				} else {
+//					NameValuePair nvp= new NameValuePair(key, (value == null) ? "null" : value.toString());
+//					pairs.add(nvp);
+//				}
+//			} catch (JSONException ex) {throw new RuntimeException("JSON Exception that shouldn't occur", ex);}
+//		}
+//		NameValuePair[] morePairs = new NameValuePair[pairs.size()];
+//		for (int i = 0; i < pairs.size(); i++) morePairs[i] = pairs.get(i);
+//		postMethod.setQueryString(morePairs);
+//		for (NameValuePair p : morePairs) System.out.println("PPPPPAIR " + p);
+//
+////		for (Iterator it = options.keys(); it.hasNext();) {
+////			String key = (String)it.next();
+////			try {
+////				Object value = options.get(key);
+////				if ("body".equals(key)) {
+////					RequestEntity body = new StringRequestEntity((value == null) ? "null" : value.toString());
+////					postMethod.setRequestEntity(body);
+////				} else if (value instanceof List) {
+////					for (Object v : (List)value)  {
+////						//System.out.println("   KEY " + key + ":'" + v.toString() + "'");
+////						postMethod.addParameter(key, (v == null) ? "null" : v.toString());
+////					}
+////				} else {
+////					//System.out.println("   KEY " + key + ":'" + value.toString() + "'");
+////					postMethod.addParameter(key, value.toString());
+////				}
+////			} catch (JSONException ex) {throw new RuntimeException("JSON Exception that shouldn't occur", ex);}
+////		}
+//		
+//		return postMethod;
+//	}
 	
 	public static boolean TRACE_IT = false;
 
@@ -153,11 +184,10 @@ public class Request {
 		//if (method.equals("GET") && url.equals("http://localhost:8080/catalogs/ag/repositories/agraph_test4/statements")) method = "POST";
 		// END TEMPORA
 		//System.out.println("METHOD " + method + " URL " + url + " OPTIONS " + options);
-		boolean doPost = ("POST".equals(method));
-		HttpMethodBase httpMethod = doPost ? makePostMethod(url, options) : makeGetMethod(method, url, options);
+		HttpMethodBase httpMethod =  makeHTTPMethod(method, url, options);
 		httpMethod.addRequestHeader("accept", accept);
 		httpMethod.addRequestHeader("connection", "Keep-Alive");
-		if (doPost && (contentType != null))
+		if ("POST".equals(method) && (contentType != null))
 			httpMethod.addRequestHeader("Content-Type", contentType);
 		HttpClient client = new HttpClient();
 		try {
@@ -166,6 +196,11 @@ public class Request {
 			}
 			int statusCode = client.executeMethod(httpMethod);
             InputStream responseStream = httpMethod.getResponseBodyAsStream();	
+            // EXPERIMENT:
+            if (responseStream == null) {
+            	//System.out.println("   RESPONSE STREAM: " + responseStream);
+            	return new Object[]{new Integer(statusCode), URLDecoder.decode("","UTF-8")};
+            }
             InputStreamReader bufferedReader = new InputStreamReader(responseStream);
             // currently, we are not streaming our responses.  Instead, we read the
             // entire response into one possibly large string.  Given that JSON objects 
@@ -184,7 +219,9 @@ public class Request {
             }
         	bufferedReader.close();
         	String jsonString = buffer.toString();
-			return new Object[]{new Integer(statusCode), URLDecoder.decode(jsonString,"UTF-8")};
+        	//System.out.println("JSON STRING REPONSE " + jsonString.substring(0, Math.min(200, jsonString.length())));
+			//return new Object[]{new Integer(statusCode), URLDecoder.decode(jsonString,"UTF-8")};
+			return new Object[]{new Integer(statusCode), jsonString};        	
 		} catch (Exception e) {
 			if (e instanceof RuntimeException) throw (RuntimeException)e;
 			else throw new SoftException("Error executing request " + url + " because: ", e);
@@ -197,34 +234,6 @@ public class Request {
 		}
 	}
 
-		
-/***********
-
-	    if callback:
-	        status = [None]
-	        error = []
-	        def headerfunc(string):
-	            if status[0] is None:
-	                status[0] = locale.atoi(string.split(" ")[1])
-	            return len(string)
-	        def writefunc(string):
-	            if status[0] == 200: callback(string)
-	            else: error.append(string.decode("utf-8"))
-	        curl.setopt(pycurl.WRITEFUNCTION, writefunc)
-	        curl.setopt(pycurl.HEADERFUNCTION, headerfunc)
-	        curl.perform()
-	        if status[0] != 200:
-	            errCallback(curl.getinfo(pycurl.RESPONSE_CODE), "".join(error))
-	    else:
-	        buf = StringIO.StringIO()
-	        curl.setopt(pycurl.WRITEFUNCTION, buf.write)
-	        curl.perform()
-	        response = buf.getvalue().decode("utf-8")
-	        buf.close()
-	        return (curl.getinfo(pycurl.RESPONSE_CODE), response)
-
-
-*********************/
 	
 	/**
 	 * Decode 'value', which has already been converted from a JSON string into
@@ -257,7 +266,7 @@ public class Request {
 	 * strings.  Not sure about ints and booleans.
 	 */
 	private static Object decodeJSONResponse(String json) {
-		if (TRACE_IT) System.out.println("HERE IS THE RESPONSE: \n   " + json);
+		if (TRACE_IT) System.out.println("HERE IS THE RESPONSE: \n   " + json.substring(0, Math.min(200, json.length())));
 		if (json.length() == 0) return null;
 		char c = json.charAt(0);
 		try {
@@ -296,11 +305,17 @@ public class Request {
     }
 		
 	public static void nullRequest(String method, String url, JSONObject options, String contentType) {
+		// I HAVE NO IDEA WHAT TO PASS HERE:
 		if (contentType == null) contentType = "application/x-www-form-urlencoded";
+		//System.out.println("SENDING CONTENT TYPE: " + contentType);
+		String optionsString = options != null ? options.toString() : "";
+		//System.out.println("LENGTH " + optionsString.length());
+		//System.out.println("   SENDING OPTIONS " + optionsString.substring(0, Math.min(200, optionsString.length())));
+		//System.out.println("         OPTIONS TAIL " + optionsString.substring(Math.max(0, optionsString.length() - 100), optionsString.length()));
 		Object[] statusAndBody = makeRequest(method, url, options, "application/json", contentType, null, null);
 		int status = (int)(Integer)statusAndBody[0];
 		String body = (String)statusAndBody[1];
-		if (status != 200) {
+		if (!(status >= 200 && status <= 204)) {
 			raiseError(status, body);
 		}
 	}
