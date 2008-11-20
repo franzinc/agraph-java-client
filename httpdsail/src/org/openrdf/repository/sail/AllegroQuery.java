@@ -29,6 +29,8 @@ public class AllegroQuery extends AbstractQuery {
         this.queryString = queryString;
         this.queryLanguage = queryLanguage;
         this.baseURI = baseURI;
+        // reverse the default in the Sesame code:
+        this.includeInferred = false;
     }
     
     protected void setConnection (AllegroRepositoryConnection connection) {

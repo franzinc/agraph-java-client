@@ -136,6 +136,24 @@ public class AllegroStatement extends StatementImpl {
         	throw new SoftException("Cannot translate '" + stringTerm + "' into a string value.");
         }
     }
-                
+
+  	/**
+   	 * Return a String-representation of this Statement that can be used for debugging.
+   	 */
+   	public String toString() {
+   		StringBuilder sb = new StringBuilder(256);
+		sb.append("(");
+		sb.append(getSubject());
+		sb.append(", ");
+		sb.append(getPredicate());
+		sb.append(", ");
+		sb.append(getObject());
+		Resource cxt = this.getContext();
+		if (cxt != null)
+			sb.append(", " + cxt);
+		sb.append(")");
+		return sb.toString();
+	}
+
 
 }

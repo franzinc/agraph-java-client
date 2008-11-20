@@ -1,6 +1,8 @@
 package tutorial;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,6 +15,7 @@ import org.openrdf.model.ValueFactory;
 import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.model.vocabulary.XMLSchema;
 import org.openrdf.query.BindingSet;
+import org.openrdf.query.Dataset;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.TupleQuery;
 import org.openrdf.query.TupleQueryResult;
@@ -20,6 +23,7 @@ import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
+import org.openrdf.repository.sail.AllegroDataset;
 import org.openrdf.repository.sail.AllegroRepository;
 import org.openrdf.repository.sail.AllegroRepositoryConnection;
 import org.openrdf.repository.sail.AllegroSail;
@@ -27,6 +31,8 @@ import org.openrdf.repository.sail.AllegroTupleQueryResult;
 import org.openrdf.repository.sail.Catalog;
 import org.openrdf.repository.sail.JDBCResultSet;
 import org.openrdf.rio.RDFFormat;
+import org.openrdf.rio.ntriples.NTriplesWriter;
+import org.openrdf.rio.rdfxml.RDFXMLWriter;
 
 import franz.exceptions.SoftException;
 
@@ -218,12 +224,107 @@ public class TutorialExamples {
 	    conn.close();
 	}
 
+	// Writing RDF or NTriples to a file
+	private static void test8 () throws Exception {    
+	    Repository myRepository = test6();
+	    RepositoryConnection conn = myRepository.getConnection();
+	    Resource context = myRepository.getValueFactory().createURI("http://example.org#vcards");
+	    String outputFile = "/tmp/temp.nt";
+	    outputFile = null;
+	    if (outputFile == null)
+	        System.out.println("Writing to Standard Out instead of to a file");
+	    OutputStream output = (outputFile != null) ? new FileOutputStream(outputFile) : System.out;
+	    NTriplesWriter ntriplesWriter = new NTriplesWriter(output);
+	    conn.export(ntriplesWriter, context);
+	    String outputFile2 = "/tmp/temp.rdf";
+	    outputFile2 = null;
+	    if (outputFile2 == null)
+	    	System.out.println( "Writing to Standard Out instead of to a file");
+	    output = (outputFile2 != null) ? new FileOutputStream(outputFile2) : System.out;
+	    RDFXMLWriter rdfxmlfWriter = new RDFXMLWriter(output);    
+	    conn.export(rdfxmlfWriter, context);
+	}
+	
+	// Writing the result of a statements match to a file.
+	private static void test9 () throws Exception {    
+	    Repository myRepository = test6();
+	    RepositoryConnection conn = myRepository.getConnection();
+	    conn.exportStatements(null, RDF.TYPE, null, false, new RDFXMLWriter(System.out));
+	}
+
+	// Datasets and multiple contexts.
+	private static void test10 () throws Exception {    
+	    Repository myRepository = test1();	    
+	    RepositoryConnection conn = myRepository.getConnection();
+	    ValueFactory f = myRepository.getValueFactory();
+	    String exns = "http://example.org/people/";
+	    URI alice = f.createURI(exns, "alice");
+	    URI bob = f.createURI(exns, "bob");
+	    URI ted = f.createURI(exns, "ted");	    
+	    URI name = f.createURI("http://example.org/ontology/name");
+	    URI person = f.createURI("http://example.org/ontology/Person");
+	    Literal alicesName = f.createLiteral("Alice");
+	    Literal bobsName = f.createLiteral("Bob");
+	    Literal tedsName = f.createLiteral("Ted");	    
+	    URI context1 = f.createURI(exns, "cxt1");      
+	    URI context2 = f.createURI(exns, "cxt2");         
+	    conn.add(alice, RDF.TYPE, person, context1);
+	    conn.add(alice, name, alicesName, context1);
+	    conn.add(bob, RDF.TYPE, person, context2);
+	    conn.add(bob, name, bobsName, context2);
+	    conn.add(ted, RDF.TYPE, person);
+	    conn.add(ted, name, bobsName);
+	    RepositoryResult<Statement> statements = conn.getStatements(null, null, null, false);
+	    System.out.println("All triples in all contexts:");	    
+	    while (statements.hasNext()) {
+	    	System.out.println(statements.next());	    	
+	    }
+	    statements = conn.getStatements(null, null, null, false, context1, context2);
+	    System.out.println("Triples in contexts 1 or 2:");	    
+	    while (statements.hasNext()) {
+	    	System.out.println(statements.next());
+	    }
+	    statements = conn.getStatements(null, null, null, false, null, context2);
+	    System.out.println("Triples in contexts null or 2:");	    
+	    while (statements.hasNext()) {
+	    	System.out.println(statements.next());
+	    }
+	    
+	    String queryString = "SELECT ?s ?p ?o ?c WHERE { GRAPH ?c {?s ?p ?o . } }";	    
+	    AllegroDataset ds = new AllegroDataset();
+	    ds.addNamedGraph(context1);
+	    ds.addNamedGraph(context2);
+	    TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+	    tupleQuery.setDataset(ds);
+	    TupleQueryResult result = tupleQuery.evaluate();    
+	    System.out.println("Query over contexts 1 and 2.");
+	    while (result.hasNext()) {
+        	BindingSet bindingSet = result.next();
+        	System.out.println(bindingSet.getBinding("s") + "  " + bindingSet.getBinding("c"));
+        }	
+	    
+//
+//	    queryString = """
+//	    SELECT ?s ?p ?o    
+//	    WHERE {?s ?p ?o . } 
+//	    """
+//	    ds = Dataset()
+//	    ds.addDefaultGraph(None)
+//	    tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString)
+//	    tupleQuery.setDataset(ds)
+//	    result = tupleQuery.evaluate();    
+//	    print "Query over the null context."
+//	    for bindingSet in result:
+//	        print bindingSet.getRow()
+	    
+	}
+
 	private static void test15() throws Exception {
 		// Queries per second.
 	    Repository myRepository = test6();
 	    RepositoryConnection conn = myRepository.getConnection();
 	    
-	    int reps = 1000;
+	    int reps = 10;
 	    
 	    //TEMPORARY
 	    URI context = myRepository.getValueFactory().createURI("http://example.org#vcards");
@@ -268,6 +369,7 @@ public class TutorialExamples {
 	        System.out.println("Did " + reps + " " + count + "-row queries in " + (elapsed / 1000) + "." + (elapsed % 1000) + " seconds.");
 	    }
 	}
+	
 
 	private static void test16() throws Exception {
 		// CIA Fact book
@@ -281,21 +383,22 @@ public class TutorialExamples {
 	    System.out.println( "Repository " + myRepository.getName() + " is up!  It contains "
 	    		+ myRepository.getConnection().size() + " statements.");
 	    RepositoryConnection conn = myRepository.getConnection();
+	    conn.clear();
 	    if (conn.size(null) == 0) {
 	        System.out.println("Reading CIA Fact Book file.");
 	        String path1 = "/FRANZ_CONSULTING/data/ciafactbook.nt";  
 	        String baseURI = "http://example.org/example/local";
-	        ((AllegroRepositoryConnection)conn).add(new File(path1), baseURI, RDFFormat.NTRIPLES, true, null);
+	        ((AllegroRepositoryConnection)conn).add(new File(path1), baseURI, RDFFormat.NTRIPLES, false, null);
 	    }
 	    myRepository.indexTriples(true);
 	    long begin = System.currentTimeMillis();
 	    int count = 0;
 	    JDBCResultSet resultSet = ((AllegroRepositoryConnection)conn).getJDBCStatements(null, null, null, false);
 	    while (resultSet.next()) {
-//	    	resultSet.getString(0);
-//	    	resultSet.getString(1);
-//	    	resultSet.getString(2);
-//	    	resultSet.getString(3);	    	
+	    	resultSet.getString(0);
+	    	resultSet.getString(1);
+	    	resultSet.getString(2);
+	    	resultSet.getString(3);	    	
 	        count++;
 	    }
 	    long elapsed = (System.currentTimeMillis() - begin);
@@ -316,12 +419,12 @@ public class TutorialExamples {
 	
 	public static void main(String[] args) throws Exception {
 		List<Integer> choices = new ArrayList<Integer>();
-		int lastChoice = 5;
+		int lastChoice = 6;
 		for (int i = 1; i <= lastChoice; i++)
 			choices.add(new Integer(i));
 		if (true) {
 			choices = new ArrayList<Integer>();
-			choices.add(15);
+			choices.add(10);
 		}
 		try {
 		for (Integer choice : choices) {
@@ -335,6 +438,9 @@ public class TutorialExamples {
 			case 5: test5(); break;									
 			case 6: test6(); break;	
 			case 7: test7(); break;
+			case 8: test8(); break;			
+			case 9: test9(); break;	
+			case 10: test10(); break;
 			
 			case 15: test15(); break;
 			case 16: test16(); break;			

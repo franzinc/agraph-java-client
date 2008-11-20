@@ -23,6 +23,8 @@ public class Repository {
 	public Repository(String url) {
 		this.url = url;
 	}
+	
+	public String getName () {return this.url;}
 
 	public Object jsonRequest(String method, String url) {
 		return Request.jsonRequest( method, url, null, null, null);
@@ -77,7 +79,7 @@ public class Repository {
     		//System.out.println("NAMED CONTEXT '" + namedContext + "'");
     		if (false && namedContext != null && !"null".equals(namedContext))
     			options.put("namedContext", namedContext);
-    		return jsonRequest("POST", this.url, options, null, callback);
+    		return jsonRequest("GET", this.url, options, null, callback);
     	} catch (JSONException ex) { throw new SoftException(ex); }	
     }
     
