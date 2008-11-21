@@ -142,6 +142,10 @@ public class AllegroRepositoryConnection extends RepositoryConnectionBase {
         			cxts.add(this.contextToNtriples(c, true));
         		}
         	}
+        } else if (contexts instanceof Object[]) {
+        	for (Object c : (Object[])contexts) {
+        		cxts.add(this.contextToNtriples((Resource)c, true));   
+        	}
         } else if (contexts instanceof List) {
         	for (URI c : (List<URI>)contexts) {
         		cxts.add(this.contextToNtriples(c, true));   

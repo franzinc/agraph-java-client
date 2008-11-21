@@ -20,12 +20,8 @@ public class AllegroTupleQuery extends AllegroQuery implements TupleQuery {
      * Execute the embedded SELECT query against the RDF store.  Return
      * an iterator that produces for each step a tuple of values
      * (resources and literals) corresponding to the variables
-     * or expressions in a 'select' clause (or its equivalent).
-     * If 'jdbc', returns a JDBC-style iterator that mininizes the
-     * overhead of creating response objects.        
+     * or expressions in a 'select' clause (or its equivalent).         
      */  
-    //TODO: DOESN'T TAKE DATASETS INTO ACCOUNT.  THAT NEEDS TO BE COMMUNICATED
-    //TO THE SERVER SOMEHOW.      
     public TupleQueryResult evaluate() {
         Map response = (Map)this.evaluateGenericQuery();
         return new AllegroTupleQueryResult((List<String>)response.get("names"),(List<List<String>>) response.get("values"));

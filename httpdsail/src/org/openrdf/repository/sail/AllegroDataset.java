@@ -1,5 +1,6 @@
 package org.openrdf.repository.sail;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import org.openrdf.model.Resource;
@@ -15,14 +16,15 @@ import org.openrdf.query.Dataset;
  * Language for RDF</a> for more info.
  */
 public class AllegroDataset implements Dataset {
+	private Set<URI> defaultGraphs = new HashSet<URI>();
+	private Set<URI> namedGraphs = new HashSet<URI>();
 
 	/**
-	 * Gets the default graph URIs of this dataset. An empty set indicates that
-	 * the default graph is an empty graph.
+	 * Gets the default graph URIs of this dataset.
+	 * The Sesame 'Dataset' is prohibiting BNodes here; I don't know why. 
 	 */
 	public Set<URI> getDefaultGraphs() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.defaultGraphs;
 	}
 
 	/**
@@ -30,22 +32,21 @@ public class AllegroDataset implements Dataset {
 	 * there are no named graphs in this dataset.
 	 */
 	public Set<URI> getNamedGraphs() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.namedGraphs;
 	}
 	
 	/**
 	 * Include 'context' in the set of the named graph URIs for this dataset. 
 	 */
 	public void addNamedGraph(URI context) {
-		
+		this.namedGraphs.add(context);
 	}
 	
 	/**
 	 * Include 'context' in the set of the default graph Resources for this dataset. 
 	 */
-	public void addDefaultGraph(Resource context) {
-		
+	public void addDefaultGraph(URI context) {
+		this.defaultGraphs.add(context);
 	}
 
 

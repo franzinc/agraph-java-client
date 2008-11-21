@@ -1,5 +1,7 @@
 package org.openrdf.repository.sail;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +39,11 @@ public class AllegroQuery extends AbstractQuery {
     	this.connection = connection;
     }
     
+    public void setDataset(Dataset dataset) {
+    	this.dataset = dataset;
+    }
+    
+    
 //    protected static void checkLanguage(String queryLanguage) {
 //        if (!(queryLanguage  == QueryLanguage.SPARQL) || (queryLanguage == QueryLanguage.PROLOG))
 //            throw new SoftException("Can't evaluate the query language '" + queryLanguage + "'.  Options are: SPARQL and PROLOG.");
@@ -66,23 +73,23 @@ public class AllegroQuery extends AbstractQuery {
         return query;
     	} catch (RepositoryException ex) {throw new SoftException(ex);}
     }
-        
+       
+    private List setToList (Set set) {
+    	List list = new ArrayList();
+    	if (set == null) return list;    	
+    	for (Object item : set) list.add(item);
+    	return list;
+    }
     /**
      * Evaluate a SPARQL or PROLOG query, which may be a 'select', 'construct', 'describe'
      * or 'ask' query (in the SPARQL case).  Return an appropriate response.
      */
     protected Object evaluateGenericQuery() {
-//        if ((this.dataset != null) && (this.dataset.getDefaultGraphs() != null)
-//    		// TODO: ADD THIS IN:
-//        	//&& (this.dataset.getDefaultGraphs() != AllegroRepositoryConnection.ALL_CONTEXTS)
-//        	) {
-//            throw new UnimplementedMethodException("Query datasets not yet implemented for default graphs.");
-//        }
-        Set<URI> regularGraphs = (this.dataset != null) ? this.dataset.getDefaultGraphs() : AllegroRepositoryConnection.ALL_CONTEXTS;
-        if (regularGraphs.isEmpty()) regularGraphs = AllegroRepositoryConnection.ALL_CONTEXTS;
-        List<String> regularContexts = this.connection.contextsToNtripleContexts(regularGraphs, false);        
+        Set<URI> regularGraphs = (this.dataset != null) ? this.dataset.getDefaultGraphs() : AllegroRepositoryConnection.ALL_CONTEXTS;       
+        if (regularGraphs.isEmpty()) regularGraphs = AllegroRepositoryConnection.ALL_CONTEXTS;        
+        List<String> regularContexts = this.connection.contextsToNtripleContexts(setToList(regularGraphs).toArray(), false);        
         Set<URI> namedGraphs = (this.dataset != null) ? this.dataset.getNamedGraphs() : null;
-        List<String> namedContexts = this.connection.contextsToNtripleContexts(namedGraphs, false);
+        List<String> namedContexts = this.connection.contextsToNtripleContexts(setToList(namedGraphs).toArray(), false);
         miniclient.Repository mini = this.connection.getMiniRepository();
         Object response;
         if (this.queryLanguage == QueryLanguage.SPARQL) {            

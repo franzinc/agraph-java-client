@@ -273,7 +273,7 @@ public class TutorialExamples {
 	    conn.add(bob, RDF.TYPE, person, context2);
 	    conn.add(bob, name, bobsName, context2);
 	    conn.add(ted, RDF.TYPE, person);
-	    conn.add(ted, name, bobsName);
+	    conn.add(ted, name, tedsName);
 	    RepositoryResult<Statement> statements = conn.getStatements(null, null, null, false);
 	    System.out.println("All triples in all contexts:");	    
 	    while (statements.hasNext()) {
@@ -303,21 +303,84 @@ public class TutorialExamples {
         	System.out.println(bindingSet.getBinding("s") + "  " + bindingSet.getBinding("c"));
         }	
 	    
-//
-//	    queryString = """
-//	    SELECT ?s ?p ?o    
-//	    WHERE {?s ?p ?o . } 
-//	    """
-//	    ds = Dataset()
-//	    ds.addDefaultGraph(None)
-//	    tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString)
-//	    tupleQuery.setDataset(ds)
-//	    result = tupleQuery.evaluate();    
-//	    print "Query over the null context."
-//	    for bindingSet in result:
-//	        print bindingSet.getRow()
+	    queryString = "SELECT ?s ?p ?o WHERE {?s ?p ?o . }";
+	    ds = new AllegroDataset();
+	    ds.addDefaultGraph(null);
+	    tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+	    tupleQuery.setDataset(ds);
+	    result = tupleQuery.evaluate();    
+	    System.out.println("Query over the null context.");
+	    while (result.hasNext()) {
+        	System.out.println(result.next());
+        }
 	    
 	}
+	
+	// Namespaces
+	private static void test11 () throws Exception {    
+	    AllegroRepository myRepository = (AllegroRepository)test1();	    
+	    RepositoryConnection conn = myRepository.getConnection();
+	    ValueFactory f = myRepository.getValueFactory();
+	    String exns = "http://example.org/people/";
+	    URI alice = f.createURI(exns, "alice");
+	    URI person = f.createURI(exns, "Person");
+	    conn.add(alice, RDF.TYPE, person);
+	    myRepository.indexTriples(true);
+	    conn.setNamespace("ex", exns);
+	    //conn.removeNamespace("ex");
+	    String queryString = "SELECT ?s ?p ?o WHERE { ?s ?p ?o . FILTER ((?p = rdf:type) && (?o = ex:Person) ) }";
+	    TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+	    TupleQueryResult result = tupleQuery.evaluate();  
+	    while (result.hasNext()) {
+        	System.out.println(result.next());
+        }
+	}                                                   
+
+//	private static void test12 () throws Exception {    
+//	    """
+//	    Text search
+//	    """
+//	    myRepository = test1();
+//	    conn = myRepository.getConnection()
+//	    f = myRepository.getValueFactory()
+//	    exns = "http://example.org/people/"
+//	    conn.setNamespace('ex', exns)
+//	    #myRepository.registerFreeTextPredicate("http://example.org/people/name")    
+//	    myRepository.registerFreeTextPredicate(namespace=exns, localname='fullname')
+//	    alice = f.createURI(namespace=exns, localname="alice1")
+//	    persontype = f.createURI(namespace=exns, localname="Person")
+//	    fullname = f.createURI(namespace=exns, localname="fullname")    
+//	    alicename = f.createLiteral('Alice B. Toklas')
+//	    book =  f.createURI(namespace=exns, localname="book1")
+//	    booktype = f.createURI(namespace=exns, localname="Book")
+//	    booktitle = f.createURI(namespace=exns, localname="title")    
+//	    wonderland = f.createLiteral('Alice in Wonderland')
+//	    conn.clear()    
+//	    conn.add(alice, RDF.TYPE, persontype)
+//	    conn.add(alice, fullname, alicename)
+//	    conn.add(book, RDF.TYPE, booktype)    
+//	    conn.add(book, booktitle, wonderland) 
+//	    ##myRepository.indexTriples(all=True, asynchronous=True)
+//	    conn.setNamespace('ex', exns)
+//	    #conn.setNamespace('fti', "http://franz.com/ns/allegrograph/2.2/textindex/")    
+//	    queryString = """
+//	    SELECT ?s ?p ?o
+//	    WHERE { ?s ?p ?o . ?s fti:match 'Alice' . }
+//	    """
+//	#    queryString=""" 
+//	#    SELECT ?s ?p ?o
+//	#    WHERE { ?s ?p ?o . FILTER regex(?o, "Ali") }
+//	#    """
+//	    tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString)
+//	    result = tupleQuery.evaluate(); 
+//	    print "Found %i query results" % len(result.string_tuples)
+//	    print "Found %i query results" % result.tupleCount    
+//	    count = 0
+//	    for bindingSet in result:
+//	        print bindingSet
+//	        count += 1
+//	        if count > 5: break
+//	}
 
 	private static void test15() throws Exception {
 		// Queries per second.
@@ -424,7 +487,7 @@ public class TutorialExamples {
 			choices.add(new Integer(i));
 		if (true) {
 			choices = new ArrayList<Integer>();
-			choices.add(10);
+			choices.add(11);
 		}
 		try {
 		for (Integer choice : choices) {
@@ -441,6 +504,9 @@ public class TutorialExamples {
 			case 8: test8(); break;			
 			case 9: test9(); break;	
 			case 10: test10(); break;
+			case 11: test11(); break;			
+//			case 12: test12(); break;						
+//			case 12: test13(); break;									
 			
 			case 15: test15(); break;
 			case 16: test16(); break;			
