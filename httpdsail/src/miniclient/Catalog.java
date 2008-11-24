@@ -83,7 +83,7 @@ public class Catalog {
 	 */
 	public static String trimDoubleQuotes(String s, boolean verify) {
 		if (verify) {
-			System.out.print(" v ");
+			//System.out.print(" v ");
 			if (!(s.startsWith("\"") && s.endsWith("\"")))
 				throw new SoftException("Double-quotes missing on double-quoted string " + s);
 		}

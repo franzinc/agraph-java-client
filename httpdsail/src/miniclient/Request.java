@@ -305,7 +305,7 @@ public class Request {
     }
 		
 	public static void nullRequest(String method, String url, JSONObject options, String contentType) {
-		// I HAVE NO IDEA WHAT TO PASS HERE:
+		// I HAVE NO IDEA WHAT TO PASS HERE IF ITS NOT THIS:
 		if (contentType == null) contentType = "application/x-www-form-urlencoded";
 		//System.out.println("SENDING CONTENT TYPE: " + contentType);
 		String optionsString = options != null ? options.toString() : "";

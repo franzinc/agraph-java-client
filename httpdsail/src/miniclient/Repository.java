@@ -320,7 +320,7 @@ public class Repository {
      * List the predicates that are used for free-text indexing.
      */
     public List listFreeTextPredicates() {
-		return (List)jsonRequest("GET", this.url + "/freetextpredicates");
+		return (List)jsonRequest("GET", this.url + "/freetextPredicates");
     }
     	
     /**
@@ -329,7 +329,7 @@ public class Repository {
     public void registerFreeTextPredicate(String predicate) { 		
     	try {
         	JSONObject options = new JSONObject().put("predicate", predicate);
-    		nullRequest("POST", this.url + "/freetextpredicates", options, null);
+    		nullRequest("POST", this.url + "/freetextPredicates", options, null);
     	} catch (JSONException ex) { throw new SoftException(ex); }
     }
     	

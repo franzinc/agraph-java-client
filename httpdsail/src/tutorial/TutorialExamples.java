@@ -15,7 +15,9 @@ import org.openrdf.model.ValueFactory;
 import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.model.vocabulary.XMLSchema;
 import org.openrdf.query.BindingSet;
-import org.openrdf.query.Dataset;
+import org.openrdf.query.BooleanQuery;
+import org.openrdf.query.GraphQuery;
+import org.openrdf.query.GraphQueryResult;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.TupleQuery;
 import org.openrdf.query.TupleQueryResult;
@@ -336,51 +338,76 @@ public class TutorialExamples {
         }
 	}                                                   
 
-//	private static void test12 () throws Exception {    
-//	    """
-//	    Text search
-//	    """
-//	    myRepository = test1();
-//	    conn = myRepository.getConnection()
-//	    f = myRepository.getValueFactory()
-//	    exns = "http://example.org/people/"
-//	    conn.setNamespace('ex', exns)
-//	    #myRepository.registerFreeTextPredicate("http://example.org/people/name")    
-//	    myRepository.registerFreeTextPredicate(namespace=exns, localname='fullname')
-//	    alice = f.createURI(namespace=exns, localname="alice1")
-//	    persontype = f.createURI(namespace=exns, localname="Person")
-//	    fullname = f.createURI(namespace=exns, localname="fullname")    
-//	    alicename = f.createLiteral('Alice B. Toklas')
-//	    book =  f.createURI(namespace=exns, localname="book1")
-//	    booktype = f.createURI(namespace=exns, localname="Book")
-//	    booktitle = f.createURI(namespace=exns, localname="title")    
-//	    wonderland = f.createLiteral('Alice in Wonderland')
-//	    conn.clear()    
-//	    conn.add(alice, RDF.TYPE, persontype)
-//	    conn.add(alice, fullname, alicename)
-//	    conn.add(book, RDF.TYPE, booktype)    
-//	    conn.add(book, booktitle, wonderland) 
-//	    ##myRepository.indexTriples(all=True, asynchronous=True)
-//	    conn.setNamespace('ex', exns)
-//	    #conn.setNamespace('fti', "http://franz.com/ns/allegrograph/2.2/textindex/")    
-//	    queryString = """
-//	    SELECT ?s ?p ?o
-//	    WHERE { ?s ?p ?o . ?s fti:match 'Alice' . }
-//	    """
-//	#    queryString=""" 
-//	#    SELECT ?s ?p ?o
-//	#    WHERE { ?s ?p ?o . FILTER regex(?o, "Ali") }
-//	#    """
-//	    tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString)
-//	    result = tupleQuery.evaluate(); 
-//	    print "Found %i query results" % len(result.string_tuples)
-//	    print "Found %i query results" % result.tupleCount    
-//	    count = 0
-//	    for bindingSet in result:
-//	        print bindingSet
-//	        count += 1
-//	        if count > 5: break
-//	}
+	// Text search
+	private static void test12 () throws Exception {    
+	    AllegroRepository myRepository = (AllegroRepository)test1();	    
+	    RepositoryConnection conn = myRepository.getConnection();
+	    ValueFactory f = myRepository.getValueFactory();
+	    String exns = "http://example.org/people/";
+	    //myRepository.registerFreeTextPredicate("http://example.org/people/name");    
+	    myRepository.registerFreeTextPredicate(exns + "fullname");
+	    URI alice = f.createURI(exns, "alice1");
+	    URI persontype = f.createURI(exns, "Person");
+	    URI fullname = f.createURI(exns, "fullname");    
+	    Literal alicename = f.createLiteral("Alice B. Toklas");
+	    URI book =  f.createURI(exns, "book1");
+	    URI booktype = f.createURI(exns, "Book");
+	    URI booktitle = f.createURI(exns, "title");    
+	    Literal wonderland = f.createLiteral("Alice in Wonderland");
+	    conn.clear();    
+	    conn.add(alice, RDF.TYPE, persontype);
+	    conn.add(alice, fullname, alicename);
+	    conn.add(book, RDF.TYPE, booktype);    
+	    conn.add(book, booktitle, wonderland); 
+	    //myRepository.indexTriples(true);
+	    conn.setNamespace("ex", exns);
+	    //conn.setNamespace('fti', "http://franz.com/ns/allegrograph/2.2/textindex/");  // is already built-in    
+	    String queryString = "SELECT ?s ?p ?o WHERE { ?s ?p ?o . ?s fti:match 'Alice' . }";
+	    //queryString="SELECT ?s ?p ?o WHERE { ?s ?p ?o . FILTER regex(?o, "Ali") }";
+	    TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+	    AllegroTupleQueryResult result = (AllegroTupleQueryResult)tupleQuery.evaluate();	    
+	    System.out.println("Found " + result.getTupleCount() + " query results");	    
+	    int count = 0;
+	    while (result.hasNext()) {
+	    	BindingSet bindingSet = result.next();
+	    	System.out.println(bindingSet);
+	        count += 1;
+	        if (count > 5) break;
+	    }
+	}
+	
+	
+    // Ask, Construct, and Describe queries 
+    private static void test13 () throws Exception {    
+	    RepositoryConnection conn = test2().getConnection();
+	    conn.setNamespace("ex", "http://example.org/people/");
+	    conn.setNamespace("ont", "http://example.org/ontology/");
+	    String queryString = "select ?s ?p ?o where { ?s ?p ?o} ";
+	    TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+	    TupleQueryResult result = tupleQuery.evaluate();
+	    while (result.hasNext()) {
+	    	System.out.println(result.next());
+	    }
+	    queryString = "ask { ?s ont:name \"Alice\" } ";
+	    BooleanQuery booleanQuery = conn.prepareBooleanQuery(QueryLanguage.SPARQL, queryString);
+	    boolean truth = booleanQuery.evaluate(); 
+	    System.out.println("Boolean result " + truth);
+	    queryString = "construct {?s ?p ?o} where { ?s ?p ?o . filter (?o = \"Alice\") } ";
+	    GraphQuery constructQuery = conn.prepareGraphQuery(QueryLanguage.SPARQL, queryString);
+	    GraphQueryResult gresult = constructQuery.evaluate(); 
+	    List statements = new ArrayList();
+	    while (gresult.hasNext()) {
+	    	statements.add(gresult.next());
+	    }
+	    System.out.println("Construct result" + statements);
+	    queryString = "describe ?s where { ?s ?p ?o . filter (?o = \"Alice\") } ";
+	    GraphQuery describeQuery = conn.prepareGraphQuery(QueryLanguage.SPARQL, queryString);
+	    gresult = describeQuery.evaluate(); 
+	    System.out.println("Describe result");
+	    while (gresult.hasNext()) {
+	    	System.out.println(gresult.next());
+	    }
+    }
 
 	private static void test15() throws Exception {
 		// Queries per second.
@@ -482,12 +509,12 @@ public class TutorialExamples {
 	
 	public static void main(String[] args) throws Exception {
 		List<Integer> choices = new ArrayList<Integer>();
-		int lastChoice = 6;
+		int lastChoice = 13;
 		for (int i = 1; i <= lastChoice; i++)
 			choices.add(new Integer(i));
-		if (true) {
+		if (false) {
 			choices = new ArrayList<Integer>();
-			choices.add(11);
+			choices.add(13);
 		}
 		try {
 		for (Integer choice : choices) {
@@ -505,8 +532,8 @@ public class TutorialExamples {
 			case 9: test9(); break;	
 			case 10: test10(); break;
 			case 11: test11(); break;			
-//			case 12: test12(); break;						
-//			case 12: test13(); break;									
+			case 12: test12(); break;						
+			case 13: test13(); break;									
 			
 			case 15: test15(); break;
 			case 16: test16(); break;			

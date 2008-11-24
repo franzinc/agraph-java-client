@@ -200,12 +200,21 @@ public class AllegroRepositoryConnection extends RepositoryConnectionBase {
         return query;
 	}
 
-	public SailGraphQuery prepareGraphQuery(QueryLanguage ql, String queryString, String baseURI){
-		throw new UnimplementedMethodException("prepareGraphQuery");
+	public AllegroGraphQuery prepareGraphQuery(QueryLanguage ql, String queryString, String baseURI){
+		AllegroGraphQuery query = new AllegroGraphQuery(ql, queryString, baseURI);
+		query.setConnection(this);
+        return query;
 	}
 
-	public SailBooleanQuery prepareBooleanQuery(QueryLanguage ql, String queryString, String baseURI){
-		throw new UnimplementedMethodException("prepareBooleanQuery");
+	/**
+	 * Embed 'queryString' into a query object which can be
+     * executed against the RDF storage.  'queryString' must be a Boolean
+     * query.  The result of query execution is a boolean true/false.
+	 */
+	public AllegroBooleanQuery prepareBooleanQuery(QueryLanguage ql, String queryString, String baseURI){
+		AllegroBooleanQuery query = new AllegroBooleanQuery(ql, queryString, baseURI);
+		query.setConnection(this);
+        return query;
 	}
 
 	public RepositoryResult<Resource> getContextIDs() {

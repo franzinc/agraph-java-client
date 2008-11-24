@@ -57,6 +57,13 @@ public class AllegroTupleQueryResult implements TupleQueryResult {
 	
 	public void close() {
 	}
+	
+	/**
+	 * Return a count of the number of tuples retrieved into the query result.
+	 */
+	public int getTupleCount() {
+		return this.stringTuples.size();
+	}
 
     /**
      * Return 'true' if the iterator has additional statement(s).

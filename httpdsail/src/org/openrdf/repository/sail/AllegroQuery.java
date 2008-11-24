@@ -34,7 +34,11 @@ public class AllegroQuery extends AbstractQuery {
         // reverse the default in the Sesame code:
         this.includeInferred = false;
     }
-    
+
+    protected AllegroRepositoryConnection getConnection () {
+    	return this.connection;
+    }
+
     protected void setConnection (AllegroRepositoryConnection connection) {
     	this.connection = connection;
     }
