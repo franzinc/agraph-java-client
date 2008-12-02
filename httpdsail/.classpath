@@ -10,5 +10,6 @@
 	<classpathentry kind="lib" path="commons-logging-1.0.4.jar"/>
 	<classpathentry kind="lib" path="commons-codec-1.3.jar"/>
 	<classpathentry kind="lib" path="log4j-1.2.11.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
