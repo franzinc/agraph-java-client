@@ -121,7 +121,7 @@ public class Repository {
 	 * 'context' is a string or a list of strings.
 	 */
     public void addStatement(String subj, String pred, String obj, Object context) {
-    	//System.out.println("ADD STATEMENT " + subj + " " + pred + " " + obj + " " + context);
+    	System.out.println("ADD STATEMENT " + subj + " " + pred + " " + obj + " " + context);
     	try {
     		JSONArray row = new JSONArray().put(subj).put(pred).put(obj).put(context);
     		JSONArray rows = new JSONArray().put(row);
@@ -252,6 +252,12 @@ public class Repository {
 	  catch (IOException ex) { throw new SoftException(ex); }		  
     }
     
+    public List<String> getBlankNodes(int quantity) {
+    	try {
+    		JSONObject options = new JSONObject().put("amount", quantity);
+    		return (List)jsonRequest("POST", this.url + "/blankNodes", options, null, null);
+    	} catch (JSONException ex) { throw new SoftException(ex); }	
+    } 
     	
     /**
      * Delete a collection of statements from the repository.

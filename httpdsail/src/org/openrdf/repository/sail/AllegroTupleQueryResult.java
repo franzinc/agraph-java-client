@@ -77,6 +77,7 @@ public class AllegroTupleQueryResult implements TupleQueryResult {
     	for (int i = 0; i < stringTuple.size(); i++) {
     		String stringTerm = stringTuple.get(i);
     		Value term = AllegroStatement.stringTermToTerm(stringTerm);
+    		System.out.println("BS " + stringTerm + "  " + term);
     		bs.addBinding(this.getBindingNames().get(i), term);
     	}
     	return bs;

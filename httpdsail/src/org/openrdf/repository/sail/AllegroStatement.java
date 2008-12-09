@@ -81,6 +81,10 @@ public class AllegroStatement extends StatementImpl {
             return new URIImpl(uri);
         }
         else if (stringTerm.charAt(0) == '"') {
+        	// look for the trailing double quote:
+        	int lastPos = stringTerm.lastIndexOf('"');
+        	if (lastPos == stringTerm.length() - 1)
+        		return new LiteralImpl(stringTerm.substring(1, stringTerm.length() - 1));
             // we have a double-quoted literal with either a data type or a language indicator
             int caratPos = stringTerm.indexOf("^^");
             if (caratPos >= 0) {

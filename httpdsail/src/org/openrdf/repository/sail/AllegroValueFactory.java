@@ -1,8 +1,13 @@
 package org.openrdf.repository.sail;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.openrdf.model.BNode;
 import org.openrdf.model.Literal;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
+import org.openrdf.model.impl.BNodeImpl;
 import org.openrdf.model.impl.ValueFactoryImpl;
 
 import franz.exceptions.ServerException;
@@ -11,6 +16,7 @@ import franz.exceptions.UnimplementedMethodException;
 public class AllegroValueFactory extends ValueFactoryImpl {
 	
 	private AllegroRepository repository;
+	private List<String> unusedBNodeIds = new ArrayList<String>();
 	
 	public AllegroValueFactory (AllegroRepository repository) {
         this.repository = repository;
@@ -48,5 +54,27 @@ public class AllegroValueFactory extends ValueFactoryImpl {
             return (Value)term;
         }
     }
+    
+    public static int BLANK_NODE_AMOUNT = 10; // number of blank nodes retrieved as a batch from server
+
+    private String getUnusedBNodeId() {
+        if (this.unusedBNodeIds.isEmpty()) {
+            // retrieve a fresh set of bnode ids (they include leading '_:', which we strip off below):
+            this.unusedBNodeIds = this.repository.getMiniRepository().getBlankNodes(BLANK_NODE_AMOUNT);
+        }
+        String name = this.unusedBNodeIds.remove(this.unusedBNodeIds.size() - 1);
+        return name.substring(2);   // strip off leading '_:'
+    }
+    
+	public BNode createBNode(String nodeID) {
+		if (nodeID == null || "".equals(nodeID))
+			nodeID = getUnusedBNodeId();
+		return new BNodeImpl(nodeID);
+	}
+
+	public BNode createBNode() {
+		return createBNode(null);
+	}
+
 
 }
