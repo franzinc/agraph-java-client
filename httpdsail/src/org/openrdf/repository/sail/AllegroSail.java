@@ -43,15 +43,20 @@ public class AllegroSail {
 	
 	protected List<Catalog> getOpenCatalogs() {return this.openCatalogs;}
 	
+	private String longCatalogNameToShortName(String longName) {
+		int pos = longName.lastIndexOf("/");
+		String shortName = (pos >= 0) ? longName.substring(pos + 1) : longName;
+        shortName = unquotePlus(shortName);
+        return shortName;
+	}
+	
 	/**
 	 * List the (short) names of available catalogs.
 	 */
 	public List<String> listCatalogs() {
 		List<String> catNames = new ArrayList<String>();
-		for (String name : Server.listCatalogs(this.getAddress())) {
-			int pos = name.lastIndexOf("/");
-			if (pos >= 0) name = name.substring(pos + 1);
-			catNames.add(name);
+		for (String longName : Server.listCatalogs(this.getAddress())) {
+			catNames.add(longCatalogNameToShortName(longName));
 		}
 		return catNames;
 	}
@@ -65,10 +70,29 @@ public class AllegroSail {
 		for (Catalog cat : this.openCatalogs) {
 			if (cat.getName().equals(catalogName)) return cat;
 		}
-        String longName = "/catalogs/" + catalogName;
+        String longName = null;		
+        for (String internalLongName : Server.listCatalogs(this.getAddress())) {
+        	String shortName = this.longCatalogNameToShortName(internalLongName);
+			if (shortName.equals(catalogName)) {
+				longName = internalLongName;
+				break;
+			}
+		}        
         miniclient.Catalog miniCatalog = Server.openCatalog(this.getAddress(), longName, this.username, this.password);
         Catalog catalog = new Catalog(catalogName, miniCatalog, this);
         return catalog;
+	}
+
+	//----------------------------------------------------------------------------------------------
+	// Utilities
+	//----------------------------------------------------------------------------------------------
+	
+	public static String unquotePlus(String string) {
+		return string.replace('+', ' ');
+	}
+	
+	public static String quotePlus(String string) {
+		return string.replace(' ', '+');
 	}
 
 

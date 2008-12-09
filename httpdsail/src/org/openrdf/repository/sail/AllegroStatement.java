@@ -3,6 +3,7 @@ package org.openrdf.repository.sail;
 import java.util.List;
 
 import org.openrdf.model.Resource;
+import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.model.impl.BNodeImpl;
@@ -157,6 +158,33 @@ public class AllegroStatement extends StatementImpl {
 			sb.append(", " + cxt);
 		sb.append(")");
 		return sb.toString();
+	}
+
+	// Overrides Object.equals(Object), implements Statement.equals(Object)
+	@Override
+	public boolean equals(Object other) {
+		if (this == other) {
+			return true;
+		}
+
+		if (other instanceof Statement) {
+			Statement otherSt = (Statement)other;
+
+			// The object is potentially the cheapest to check, as types
+			// of these references might be different.
+
+			// In general the number of different predicates in sets of
+			// statements is the smallest, so predicate equality is checked
+			// last.
+			return this.getObject().equals(otherSt.getObject()) && this.getSubject().equals(otherSt.getSubject())
+					&& this.getPredicate().equals(otherSt.getPredicate());
+		}
+
+		return false;
+	}
+
+	public int hashCode() {
+		return 961 * this.getSubject().hashCode() + 31 * this.getPredicate().hashCode() + this.getObject().hashCode();
 	}
 
 

@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.sail.Sail;
@@ -55,7 +54,7 @@ public class AllegroRepository implements Repository {
 	private Map<String, String> inlinedPredicates = new HashMap<String, String>();
 	private Map<String, String> inlinedDatatypes = new HashMap<String, String>();	
 
-	private static AllegroValueFactory VALUE_FACTORY = null;
+	private AllegroValueFactory valueFactory = null;
 	
 	public static String RENEW = "RENEW";
 	public static String CREATE = "CREATE";
@@ -100,32 +99,32 @@ public class AllegroRepository implements Repository {
 
 	public void initialize() {
         boolean clearIt = false;
-        String repName = this.repositoryName;
-        miniclient.Catalog conn = this.miniCatalog;
+        String quotedRepName = AllegroSail.quotePlus(this.repositoryName);
+        miniclient.Catalog miniConn = this.miniCatalog;
         if (this.accessVerb == RENEW) {
-            if (conn.listTripleStores().contains(repName)) {
+            if (miniConn.listTripleStores().contains(quotedRepName)) {
                 // not nice, since someone else probably has it open:
                 clearIt = true;
             } else {
-                conn.createTripleStore(repName);
+                miniConn.createTripleStore(quotedRepName);
             }
         } else if (this.accessVerb == CREATE) {
-            if (conn.listTripleStores().contains(repName)) {
+            if (miniConn.listTripleStores().contains(quotedRepName)) {
                 throw new ServerException(
-                    "Can't create triple store named '" + repName + "' because a store with that name already exists.");
+                    "Can't create triple store named '" + this.repositoryName + "' because a store with that name already exists.");
             }
-            conn.createTripleStore(repName);
+            miniConn.createTripleStore(quotedRepName);
         } else if (this.accessVerb == OPEN) {
-            if (!conn.listTripleStores().contains(repName)) {
+            if (!miniConn.listTripleStores().contains(quotedRepName)) {
                 throw new ServerException(
-                    "Can't open a triple store named '" + repName + "' because there is none.");
+                    "Can't open a triple store named '" + this.repositoryName + "' because there is none.");
             }
         } else if(this.accessVerb == ACCESS) {
-            if (!conn.listTripleStores().contains(repName)) {
-                conn.createTripleStore(repName) ;
+            if (!miniConn.listTripleStores().contains(quotedRepName)) {
+                miniConn.createTripleStore(quotedRepName) ;
             }
         }
-        this.miniRepository = conn.getRepository(repName);
+        this.miniRepository = miniConn.getRepository(quotedRepName);
         // we are done unless a RENEW requires us to clear the store
         if (clearIt) {
             this.miniRepository.deleteMatchingStatements(null, null, null, null);
@@ -141,6 +140,7 @@ public class AllegroRepository implements Repository {
 	}
 
 	public void shutDown() {
+		System.out.println("SHUT DOWN");
 		this.miniCatalog = null;
 		this.miniRepository = null;
 	}
@@ -152,10 +152,10 @@ public class AllegroRepository implements Repository {
 	}
 
 	public ValueFactory getValueFactory() {
-		if (VALUE_FACTORY == null) {
-			VALUE_FACTORY = new AllegroValueFactory(this);
+		if (this.valueFactory == null) {
+			this.valueFactory = new AllegroValueFactory(this);
 		}
-		return VALUE_FACTORY;
+		return this.valueFactory;
 	}
 
 	public RepositoryConnection getConnection() {
