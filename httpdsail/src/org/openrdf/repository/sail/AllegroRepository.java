@@ -50,7 +50,7 @@ public class AllegroRepository implements Repository {
 	private miniclient.Catalog miniCatalog = null;
 	private miniclient.Repository miniRepository;
 	private String repositoryName = null; 
-	private AllegroRepositoryConnection repositoryConnection = null;
+	//private AllegroRepositoryConnection repositoryConnection = null;
 	private Map<String, String> inlinedPredicates = new HashMap<String, String>();
 	private Map<String, String> inlinedDatatypes = new HashMap<String, String>();	
 
@@ -140,7 +140,6 @@ public class AllegroRepository implements Repository {
 	}
 
 	public void shutDown() {
-		System.out.println("SHUT DOWN");
 		this.miniCatalog = null;
 		this.miniRepository = null;
 	}
@@ -160,10 +159,13 @@ public class AllegroRepository implements Repository {
 
 	public RepositoryConnection getConnection() {
 		this.verify();
-		if (this.repositoryConnection == null) {
-			this.repositoryConnection = new AllegroRepositoryConnection(this);
-		}
-		return this.repositoryConnection;
+//		if (this.repositoryConnection == null) {
+//			this.repositoryConnection = new AllegroRepositoryConnection(this);
+//		}
+//		return this.repositoryConnection;
+		// Sesame JUnits test insists on supporting multiple connections to same repository:
+		// Not clear that there is any value in that:
+		return new AllegroRepositoryConnection(this);
 	}
 	
 	//------------------------------------------------------------------------

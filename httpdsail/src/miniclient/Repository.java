@@ -121,7 +121,7 @@ public class Repository {
 	 * 'context' is a string or a list of strings.
 	 */
     public void addStatement(String subj, String pred, String obj, Object context) {
-    	System.out.println("ADD STATEMENT " + subj + " " + pred + " " + obj + " " + context);
+    	//System.out.println("ADD STATEMENT " + subj + " " + pred + " " + obj + " " + context);
     	try {
     		JSONArray row = new JSONArray().put(subj).put(pred).put(obj).put(context);
     		JSONArray rows = new JSONArray().put(row);

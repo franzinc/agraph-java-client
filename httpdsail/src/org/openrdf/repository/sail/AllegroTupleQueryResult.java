@@ -74,6 +74,7 @@ public class AllegroTupleQueryResult implements TupleQueryResult {
     
     private BindingSet createBindingSet(List<String> stringTuple) {
     	MapBindingSet bs = new MapBindingSet(stringTuple.size());
+    	System.out.println("CREATE BINDING SET " + stringTuple);
     	for (int i = 0; i < stringTuple.size(); i++) {
     		System.out.println("AS " + stringTuple.get(i));
     		String stringTerm = stringTuple.get(i);

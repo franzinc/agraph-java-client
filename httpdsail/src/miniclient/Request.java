@@ -170,7 +170,7 @@ public class Request {
 //		return postMethod;
 //	}
 	
-	public static boolean TRACE_IT = true;
+	public static boolean TRACE_IT = false;
 
 	/**
 	 * Execute an HTTP request, and return the status and response in an array.
@@ -198,7 +198,7 @@ public class Request {
             InputStream responseStream = httpMethod.getResponseBodyAsStream();	
             // EXPERIMENT:
             if (responseStream == null) {
-            	System.out.println("   RESPONSE STREAM: " + responseStream);
+            	//System.out.println("   RESPONSE STREAM: " + responseStream);
             	return new Object[]{new Integer(statusCode), URLDecoder.decode("","UTF-8")};
             }
             InputStreamReader bufferedReader = new InputStreamReader(responseStream);
@@ -220,7 +220,7 @@ public class Request {
         	bufferedReader.close();
         	String jsonString = buffer.toString();
         	if (TRACE_IT) {
-        		System.out.println("JSON STRING REPONSE " + jsonString.substring(0, Math.min(200, jsonString.length())));
+        		System.out.println("JSON STRING REPONSE " + jsonString.substring(0, Math.min(2000, jsonString.length())));
         	}
 			//return new Object[]{new Integer(statusCode), URLDecoder.decode(jsonString,"UTF-8")};
 			return new Object[]{new Integer(statusCode), jsonString};        	
@@ -258,6 +258,8 @@ public class Request {
 				map.put(key, helpDecodeJSONResponse(dict.get(key)));
 			}
 			return map;
+		} else if (value == JSONObject.NULL) {
+			return null;
 		} else {
 			throw new SoftException("Don't know how to decode '" + value + "'");
 		}

@@ -45,7 +45,7 @@ import org.openrdf.rio.helpers.RDFHandlerBase;
 
 public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 
-	private final String TEST_DIR_PREFIX = System.getProperty("user.dir") + "\\";
+	private final String TEST_DIR_PREFIX = "./"; //System.getProperty("user.dir") + "\\";
 	
 	public AGRepositoryConnectionTest(String name) {
 		super(name);
@@ -54,7 +54,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 	protected Repository createRepository() throws Exception {
 	    AllegroSail server = new AllegroSail("localhost", 8080);
 	    Catalog catalog = server.openCatalog("scratch");    
-	    AllegroRepository myRepository = catalog.getRepository("test", AllegroRepository.RENEW);
+	    AllegroRepository myRepository = catalog.getRepository("test2", AllegroRepository.RENEW);
 	    return myRepository;
 	}
 
@@ -170,6 +170,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 		queryBuilder.append(" WHERE { ?x foaf:name ?name .");
 		queryBuilder.append("         ?x foaf:mbox ?mbox .}");
 
+		System.out.println("QQQ " + queryBuilder.toString());
 		TupleQuery query = testCon.prepareTupleQuery(QueryLanguage.SPARQL,
 				queryBuilder.toString());
 		query.setBinding("name", nameBob);	// FIXME: needs bug18180 fixed
@@ -189,6 +190,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 				Value nameResult = solution.getValue("name");
 				Value mboxResult = solution.getValue("mbox");
 
+				System.out.println("QQQ " + nameBob + "  " + nameResult);				
 				assertEquals("unexpected value for name: " + nameResult,
 						nameBob, nameResult);
 				assertEquals("unexpected value for mbox: " + mboxResult,

@@ -1,17 +1,18 @@
 package org.openrdf.repository.sail;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.openrdf.model.Statement;
-import org.openrdf.model.impl.StatementImpl;
 import org.openrdf.repository.RepositoryResult;
-
-import franz.exceptions.UnimplementedMethodException;
 
 public class AllegroRepositoryResult extends RepositoryResult {
 	
 	private List<List<String>> stringTuples;
 	private int cursor = 0;
+	private Set<Statement> nonDuplicateSet = null;
+	private Statement nextUniqueStatement = null;
 
     protected AllegroRepositoryResult(List<List<String>> stringTuples) {
     	super(null);
@@ -31,6 +32,24 @@ public class AllegroRepositoryResult extends RepositoryResult {
      * Return 'true' if the iterator has additional statement(s).
      */
     public boolean hasNext() {
+    	if (this.nonDuplicateSet != null) {
+			// need to materialize the next non duplicate statement immediately, 
+    		// which is slightly awkward:
+    		Set<Statement> savedNonDuplicateSet = this.nonDuplicateSet;    		
+    		try {
+    			this.nonDuplicateSet = null;
+    			while (this.hasNext()) {
+    				Statement stmt = this.next();
+    				if (!savedNonDuplicateSet.contains(stmt)) {
+    					savedNonDuplicateSet.add(stmt);
+    					this.nextUniqueStatement = stmt;
+    					return true;
+    				}
+    			}
+    		} finally {
+    			this.nonDuplicateSet = savedNonDuplicateSet;
+    		}    		
+    	}
     	return this.cursor < this.stringTuples.size();
     }
 
@@ -38,7 +57,9 @@ public class AllegroRepositoryResult extends RepositoryResult {
      * Return the next Statement in the answer, if there is one.
      */
     public Statement next() {
-        if (this.hasNext()) {
+    	if ((this.nonDuplicateSet != null) && this.hasNext()) {
+    		return this.nextUniqueStatement;
+    	} else if (this.hasNext()) {
             List<String>stringTuple = this.stringTuples.get(this.cursor);
             this.cursor++;
             return this.createStatement(stringTuple);
@@ -61,7 +82,7 @@ public class AllegroRepositoryResult extends RepositoryResult {
      * Caution: use of this filtering mechanism is potentially memory-intensive.
      */
     public void enableDuplicateFilter() {
-        throw new UnimplementedMethodException("enableDuplicateFilterthis");
+    	this.nonDuplicateSet = new HashSet<Statement>();
     }
 
 

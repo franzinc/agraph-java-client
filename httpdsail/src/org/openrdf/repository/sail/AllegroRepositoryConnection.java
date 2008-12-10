@@ -181,7 +181,8 @@ public class AllegroRepositoryConnection extends RepositoryConnectionBase {
 
 
 	// currently, there is nothing to close in AllegroGraph	
-//	public void close(){
+//	public void close() {
+//		System.out.println("CLOSING!!!");
 //	}
 
 	public TupleQuery prepareQuery(QueryLanguage ql, String queryString, String baseURI) {
@@ -278,8 +279,9 @@ public class AllegroRepositoryConnection extends RepositoryConnectionBase {
 	}
 
 	public long size(Resource... contexts) 	{
-		List<String> ntripleContexts = this.contextsToNtripleContexts(contexts, true);
-		if (ntripleContexts.isEmpty())
+		// we are guessing that no contexts means all contexts here:
+		List<String> ntripleContexts = this.contextsToNtripleContexts(contexts, false);
+		if ((ntripleContexts == null) ||ntripleContexts.isEmpty())
 			return this.getMiniRepository().getSize(null);
 		else {
 			long total = 0;

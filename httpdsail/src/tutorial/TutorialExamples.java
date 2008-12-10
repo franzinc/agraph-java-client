@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.openrdf.model.BNode;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
@@ -54,7 +55,7 @@ public class TutorialExamples {
 	    Catalog catalog = server.openCatalog("scratch");    
 	    System.out.println("Available repositories in catalog '" + catalog.getName() + "': " +
 	    		catalog.listRepositories());    
-	    AllegroRepository myRepository = catalog.getRepository("agraph_test4", AllegroRepository.RENEW);
+	    AllegroRepository myRepository = catalog.getRepository("agraph_test", AllegroRepository.RENEW);
 	    myRepository.initialize();
 	    System.out.println( "Repository " + myRepository.getName() + " is up!  It contains "
 	    		+ myRepository.getConnection().size() + " statements.");
@@ -67,6 +68,7 @@ public class TutorialExamples {
 	    // create some resources and literals to make statements out of
 	    URI alice = f.createURI("http://example.org/people/alice");
 	    URI bob = f.createURI("http://example.org/people/bob");
+	    //BNode bob = f.createBNode();
 	    URI name = f.createURI("http://example.org/ontology/name");
 	    URI person = f.createURI("http://example.org/ontology/Person");
 	    Literal bobsName = f.createLiteral("Bob");
@@ -514,7 +516,7 @@ public class TutorialExamples {
 			choices.add(new Integer(i));
 		if (false) {
 			choices = new ArrayList<Integer>();
-			choices.add(13);
+			choices.add(1);
 		}
 		try {
 		for (Integer choice : choices) {
