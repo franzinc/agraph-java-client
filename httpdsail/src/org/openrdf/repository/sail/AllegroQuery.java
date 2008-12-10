@@ -88,9 +88,9 @@ public class AllegroQuery extends AbstractQuery {
      * Evaluate a SPARQL or PROLOG query, which may be a 'select', 'construct', 'describe'
      * or 'ask' query (in the SPARQL case).  Return an appropriate response.
      */
-    protected Object evaluateGenericQuery() {
+    protected Object evaluateGenericQuery() {    	
         Set<URI> regularGraphs = (this.dataset != null) ? this.dataset.getDefaultGraphs() : AllegroRepositoryConnection.ALL_CONTEXTS;       
-        if (regularGraphs.isEmpty()) regularGraphs = AllegroRepositoryConnection.ALL_CONTEXTS;        
+        if (regularGraphs.isEmpty()) regularGraphs = AllegroRepositoryConnection.ALL_CONTEXTS;  
         List<String> regularContexts = this.connection.contextsToNtripleContexts(setToList(regularGraphs).toArray(), false);        
         Set<URI> namedGraphs = (this.dataset != null) ? this.dataset.getNamedGraphs() : null;
         List<String> namedContexts = this.connection.contextsToNtripleContexts(setToList(namedGraphs).toArray(), false);
@@ -98,6 +98,8 @@ public class AllegroQuery extends AbstractQuery {
         Object response;
         if (this.queryLanguage == QueryLanguage.SPARQL) {            
             String query = splicePrefixesIntoQuery(this.queryString, this.connection);
+            System.out.println("QUERY " + queryString);
+            System.out.println("REGULAR " + regularContexts + "  NAMED " + namedContexts);
             response = mini.evalSparqlQuery(query, this.includeInferred, regularContexts, namedContexts, null);
         } else { // NEED TO REDEFINE 'QueryLanguage' STUPID!! if (this.queryLanguage == QueryLanguage.PROLOG) {
             response = mini.evalPrologQuery(this.queryString, this.includeInferred, namedContexts);

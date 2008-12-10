@@ -1,15 +1,23 @@
 package org.openrdf.repository.sail;
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
 import org.openrdf.model.Statement;
 import org.openrdf.repository.RepositoryResult;
 
+/**
+ * The inventors of OpenRDF 'RepositoryResult' should be shot for obstruction of
+ * progress.  This version of the class tries to make it vaguely palatable.
+ *
+ */
 public class AllegroRepositoryResult extends RepositoryResult {
 	
-	private List<List<String>> stringTuples;
+	private List<List<String>> stringTuples = null;
+	private List uninterpretedCollection = null;
+	private Iterator uninterpretedCollectionIterator = null;
 	private int cursor = 0;
 	private Set<Statement> nonDuplicateSet = null;
 	private Statement nextUniqueStatement = null;
@@ -18,7 +26,14 @@ public class AllegroRepositoryResult extends RepositoryResult {
     	super(null);
         this.stringTuples = stringTuples;
     }
-       
+   
+    protected static AllegroRepositoryResult createUninterpretedRepositoryResult(List collection) {
+    	AllegroRepositoryResult rr = new AllegroRepositoryResult(null);
+        rr.uninterpretedCollection = collection;
+        rr.uninterpretedCollectionIterator = collection.iterator();
+        return rr;
+    }
+
     /**
      * Allocate a Statement and fill it in from 'stringTuple'.
      */
@@ -32,6 +47,8 @@ public class AllegroRepositoryResult extends RepositoryResult {
      * Return 'true' if the iterator has additional statement(s).
      */
     public boolean hasNext() {
+    	if (this.uninterpretedCollectionIterator != null)
+    		return this.uninterpretedCollectionIterator.hasNext();
     	if (this.nonDuplicateSet != null) {
 			// need to materialize the next non duplicate statement immediately, 
     		// which is slightly awkward:
@@ -39,7 +56,7 @@ public class AllegroRepositoryResult extends RepositoryResult {
     		try {
     			this.nonDuplicateSet = null;
     			while (this.hasNext()) {
-    				Statement stmt = this.next();
+    				Statement stmt = (Statement)this.next();
     				if (!savedNonDuplicateSet.contains(stmt)) {
     					savedNonDuplicateSet.add(stmt);
     					this.nextUniqueStatement = stmt;
@@ -55,8 +72,11 @@ public class AllegroRepositoryResult extends RepositoryResult {
 
     /**
      * Return the next Statement in the answer, if there is one.
+     * Else if this is an uninterpreted collection, return something.
      */
-    public Statement next() {
+    public Object next() {
+    	if (this.uninterpretedCollectionIterator != null)
+    		return this.uninterpretedCollectionIterator.next();
     	if ((this.nonDuplicateSet != null) && this.hasNext()) {
     		return this.nextUniqueStatement;
     	} else if (this.hasNext()) {

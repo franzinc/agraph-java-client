@@ -12,7 +12,7 @@ import franz.exceptions.UnimplementedMethodException;
 
 public class AllegroTupleQuery extends AllegroQuery implements TupleQuery {
  
-	public AllegroTupleQuery(QueryLanguage queryLanguage, String queryString, String baseURI) {
+	protected AllegroTupleQuery(QueryLanguage queryLanguage, String queryString, String baseURI) {
 		super(queryLanguage, queryString, baseURI);
 	}
 

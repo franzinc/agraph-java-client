@@ -93,7 +93,7 @@ public class AllegroGraphQueryResult implements GraphQueryResult {
      * Return the next Statement in the answer, if there is one.
      */
     public Statement next() {
-        return this.repositoryResult.next();
+        return (Statement)this.repositoryResult.next();
     }
 
 	public void remove() {

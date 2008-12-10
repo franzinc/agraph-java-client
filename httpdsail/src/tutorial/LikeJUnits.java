@@ -1,39 +1,17 @@
 
 package tutorial;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.openrdf.model.Literal;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.Dataset;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.TupleQuery;
-import org.openrdf.query.TupleQueryResult;
 import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.RepositoryResult;
-import org.openrdf.repository.sail.AllegroDataset;
 import org.openrdf.repository.sail.AllegroRepository;
-import org.openrdf.repository.sail.AllegroRepositoryConnection;
 import org.openrdf.repository.sail.AllegroSail;
-import org.openrdf.repository.sail.AllegroTupleQueryResult;
 import org.openrdf.repository.sail.Catalog;
-import org.openrdf.repository.sail.JDBCResultSet;
-import org.openrdf.rio.RDFFormat;
-import org.openrdf.rio.ntriples.NTriplesWriter;
-import org.openrdf.rio.rdfxml.RDFXMLWriter;
 
 import franz.exceptions.SoftException;
 

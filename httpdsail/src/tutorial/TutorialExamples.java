@@ -6,7 +6,6 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.openrdf.model.BNode;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
@@ -22,11 +21,11 @@ import org.openrdf.query.GraphQueryResult;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.TupleQuery;
 import org.openrdf.query.TupleQueryResult;
+import org.openrdf.query.impl.DatasetImpl;
 import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
-import org.openrdf.repository.sail.AllegroDataset;
 import org.openrdf.repository.sail.AllegroRepository;
 import org.openrdf.repository.sail.AllegroRepositoryConnection;
 import org.openrdf.repository.sail.AllegroSail;
@@ -295,7 +294,7 @@ public class TutorialExamples {
 	    }
 	    
 	    String queryString = "SELECT ?s ?p ?o ?c WHERE { GRAPH ?c {?s ?p ?o . } }";	    
-	    AllegroDataset ds = new AllegroDataset();
+	    DatasetImpl ds = new DatasetImpl();
 	    ds.addNamedGraph(context1);
 	    ds.addNamedGraph(context2);
 	    TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
@@ -308,7 +307,7 @@ public class TutorialExamples {
         }	
 	    
 	    queryString = "SELECT ?s ?p ?o WHERE {?s ?p ?o . }";
-	    ds = new AllegroDataset();
+	    ds = new DatasetImpl();
 	    ds.addDefaultGraph(null);
 	    tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
 	    tupleQuery.setDataset(ds);
@@ -514,9 +513,9 @@ public class TutorialExamples {
 		int lastChoice = 13;
 		for (int i = 1; i <= lastChoice; i++)
 			choices.add(new Integer(i));
-		if (false) {
+		if (true) {
 			choices = new ArrayList<Integer>();
-			choices.add(1);
+			choices.add(10);
 		}
 		try {
 		for (Integer choice : choices) {

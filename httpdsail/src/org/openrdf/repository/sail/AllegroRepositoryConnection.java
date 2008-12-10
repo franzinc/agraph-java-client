@@ -6,9 +6,6 @@ package org.openrdf.repository.sail;
 import info.aduna.iteration.CloseableIteration;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -26,6 +23,7 @@ import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.NamespaceImpl;
+import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.TupleQuery;
 import org.openrdf.repository.RepositoryConnection;
@@ -35,7 +33,6 @@ import org.openrdf.repository.base.RepositoryConnectionBase;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFHandler;
 import org.openrdf.rio.RDFHandlerException;
-import org.openrdf.rio.RDFParseException;
 import org.openrdf.sail.SailConnection;
 import org.openrdf.sail.SailException;
 
@@ -219,7 +216,16 @@ public class AllegroRepositoryConnection extends RepositoryConnectionBase {
 	}
 
 	public RepositoryResult<Resource> getContextIDs() {
-		throw new UnimplementedMethodException("getContextIDs");
+		System.out.println("Executing relatively slow computation to compute the set of contexts.");
+		String queryString = "select distinct ?c where {graph ?c {?s ?p ?o}}";
+		AllegroTupleQuery query = prepareTupleQuery(QueryLanguage.SPARQL, queryString, null);
+		AllegroTupleQueryResult result = (AllegroTupleQueryResult)query.evaluate();
+		List<Resource> contexts = new ArrayList<Resource>();
+		while (result.hasNext()) {
+			BindingSet bs = result.next();
+			contexts.add((Resource)bs.getValue("c"));
+		}
+		return AllegroRepositoryResult.createUninterpretedRepositoryResult(contexts);
 	}
 
 	public RepositoryResult<Statement> getStatements(Resource subject, URI predicate, Value object,
