@@ -45,7 +45,7 @@ import org.openrdf.rio.helpers.RDFHandlerBase;
 
 public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 
-	private final String TEST_DIR_PREFIX = "./"; //System.getProperty("user.dir") + "\\";
+	private final String TEST_DIR_PREFIX = "./src/test/"; //System.getProperty("user.dir") + "\\";
 	
 	public AGRepositoryConnectionTest(String name) {
 		super(name);
