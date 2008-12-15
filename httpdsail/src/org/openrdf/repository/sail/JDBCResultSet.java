@@ -31,8 +31,8 @@ public class JDBCResultSet {
     /** Constructor */
 	public JDBCResultSet(List<String> columnNames, List<List<String>> stringTuples, boolean isQuads) {
 		this.columnNames = new ArrayList<String>();
-		// strip questions marks from column names (not sure why we call 'toLowerCase':
-		for (String name : columnNames) this.columnNames.add(name.substring(1).toLowerCase());
+		// not sure why we call 'toLowerCase':
+		for (String name : columnNames) this.columnNames.add(name.toLowerCase());
 		this.stringTuples = stringTuples;
 		this.isQuads = isQuads;
 	}

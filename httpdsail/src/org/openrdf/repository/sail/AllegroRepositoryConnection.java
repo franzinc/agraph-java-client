@@ -74,7 +74,7 @@ public class AllegroRepositoryConnection extends RepositoryConnectionBase {
 	 * If 'term' is an OpenRDF term, convert it to a string.  If its already
      * a string; assume its in ntriples format, and just pass it through.
 	 */
-	private String toNtriples(Object term) {
+	protected String toNtriples(Object term) {
 		if (term == null) return (String)term;
 		else if (term instanceof String) return (String)term;
 		else if (term instanceof URI) return "<" + ((URI)term).toString() + ">";

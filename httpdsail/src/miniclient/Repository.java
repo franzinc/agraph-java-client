@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -71,15 +72,18 @@ public class Repository {
      * of lists representing statements. Callback WILL NOT work on
      * ASK queries."""
      */
-    public Object evalSparqlQuery(String query, boolean infer, Object contexts, Object namedContexts, Object callback) {
+    public Object evalSparqlQuery(String query, boolean infer, Object contexts, Object namedContexts, 
+    		Map<String, String> bindings, Object callback) {
     	try {
     		JSONObject options = new JSONObject().put("query", query).put("infer", infer).put("context", contexts).
-    			put("environment", this.environment);
-    		// TODO: FOLD THIS BACK IN ABOVE AFTER WE DEBUG IT:
-    		if (true && namedContexts != null && !"null".equals(namedContexts))
-    			options.put("namedContext", namedContexts);
-    		if (true && contexts != null && !"null".equals(contexts))
-    			options.put("context", contexts);
+    			put("environment", this.environment).put("context", contexts).put("namedContexts", namedContexts);    				
+    		// a list of contexts is automatically converted into multiple atomic options by JSON;
+    		// not so for a list of bindings.  I have no idea why.  Here we explicitly convert
+    		// the list into atomic options (and reformat the dictionary entries):
+    		if (bindings != null) {
+    			for (Map.Entry entry : bindings.entrySet()) 
+    				options.put("bind", entry.getKey() + " " + entry.getValue());
+    		}
    		return jsonRequest("GET", this.url, options, null, callback);
     	} catch (JSONException ex) { throw new SoftException(ex); }	
     }

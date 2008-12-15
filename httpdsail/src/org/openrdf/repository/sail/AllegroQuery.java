@@ -1,7 +1,6 @@
 package org.openrdf.repository.sail;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,6 +8,7 @@ import java.util.Set;
 
 import org.openrdf.model.Namespace;
 import org.openrdf.model.URI;
+import org.openrdf.query.Binding;
 import org.openrdf.query.Dataset;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.impl.AbstractQuery;
@@ -95,12 +95,21 @@ public class AllegroQuery extends AbstractQuery {
         Set<URI> namedGraphs = (this.dataset != null) ? this.dataset.getNamedGraphs() : null;
         List<String> namedContexts = this.connection.contextsToNtripleContexts(setToList(namedGraphs).toArray(), false);
         miniclient.Repository mini = this.connection.getMiniRepository();
+        Map<String, String> bindings = null;
+        if (this.bindings != null) {
+            bindings = new HashMap<String, String>();
+            for (String vbl : this.bindings.getBindingNames()) {
+            	Binding b = this.bindings.getBinding(vbl);
+            	String term = this.connection.toNtriples(b.getValue());
+                bindings.put(vbl, term);
+            }
+        }
         Object response;
         if (this.queryLanguage == QueryLanguage.SPARQL) {            
             String query = splicePrefixesIntoQuery(this.queryString, this.connection);
-            System.out.println("QUERY " + queryString);
-            System.out.println("REGULAR " + regularContexts + "  NAMED " + namedContexts);
-            response = mini.evalSparqlQuery(query, this.includeInferred, regularContexts, namedContexts, null);
+            //System.out.println("QUERY " + queryString);
+            response = mini.evalSparqlQuery(query, this.includeInferred, regularContexts, namedContexts, 
+            		bindings, null);
         } else { // NEED TO REDEFINE 'QueryLanguage' STUPID!! if (this.queryLanguage == QueryLanguage.PROLOG) {
             response = mini.evalPrologQuery(this.queryString, this.includeInferred, namedContexts);
         }

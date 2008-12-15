@@ -60,7 +60,7 @@ public class Server {
 	private static long timeQuery(Repository rep, int n, int limit) {
 	    long begin = System.currentTimeMillis();
 	    for (int i = 0; i < n; i++) {
-	        rep.evalSparqlQuery("select ?x ?y ?z {?x ?y ?z} limit " + limit, false, null, null, null);
+	        rep.evalSparqlQuery("select ?x ?y ?z {?x ?y ?z} limit " + limit, false, null, null, null, null);
 	    }
 	    long elapsed = System.currentTimeMillis() - begin;
 	    System.out.println("Did " + n + " " + limit + "-row queries in " + elapsed + " milli seconds.");
@@ -88,7 +88,7 @@ public class Server {
 	        		"\"55\"^^<http://www.w3.org/2001/XMLSchema#int>", "<http://foo.com>");
 	    }
 	    String query = "select ?x ?y ?z {?x ?y ?z} limit 5";
-	    Map answer = (Map)rep.evalSparqlQuery(query, false, "<http://foo.com>", null, null);
+	    Map answer = (Map)rep.evalSparqlQuery(query, false, "<http://foo.com>", null, null, null);
 	    System.out.println(answer.get("names"));
 	    for (List v : (List<List>)answer.get("values")) {
 	    	System.out.println("  " + v);

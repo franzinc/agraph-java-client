@@ -18,20 +18,20 @@ public class AllegroTupleQueryResult implements TupleQueryResult {
 	private boolean skipIllegalTuples = false;
 	private List<List<String>> illegalTuples = new ArrayList<List<String>>();
 	
-	public static boolean STRIP_QUESTION_MARKS = true;
+	//public static boolean STRIP_QUESTION_MARKS = true;
 	
 	public AllegroTupleQueryResult(List<String> columnNames, List<List<String>> stringTuples) {
 		this.columnNames = columnNames;
 		this.stringTuples = stringTuples;
-		if (STRIP_QUESTION_MARKS) {
-			for (int i = 0; i < this.columnNames.size(); i++) {
-				String name = this.columnNames.get(i);
-				if ((name != null) && name.startsWith("?")) {
-					name = name.substring(1);
-					this.columnNames.set(i, name);
-				}
-			}
-		}
+//		if (STRIP_QUESTION_MARKS) {
+//			for (int i = 0; i < this.columnNames.size(); i++) {
+//				String name = this.columnNames.get(i);
+//				if ((name != null) && name.startsWith("?")) {
+//					name = name.substring(1);
+//					this.columnNames.set(i, name);
+//				}
+//			}
+//		}
 	}
 
 	public List<String> getBindingNames() {

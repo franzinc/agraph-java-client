@@ -378,7 +378,7 @@ public class TutorialExamples {
 	}
 	
 	
-    // Ask, Construct, and Describe queries 
+    /** Ask, Construct, and Describe queries */ 
     private static void test13 () throws Exception {    
 	    RepositoryConnection conn = test2().getConnection();
 	    conn.setNamespace("ex", "http://example.org/people/");
@@ -407,6 +407,28 @@ public class TutorialExamples {
 	    System.out.println("Describe result");
 	    while (gresult.hasNext()) {
 	    	System.out.println(gresult.next());
+	    }
+    }
+
+    /** Parametric Queries */
+    private static void test14() throws Exception {
+    	RepositoryConnection conn = test2().getConnection();
+        ValueFactory f = conn.getValueFactory();
+        URI alice = f.createURI("http://example.org/people/alice");
+        URI bob = f.createURI("http://example.org/people/bob");
+        String queryString = "select ?s ?p ?o where { ?s ?p ?o} ";
+        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        tupleQuery.setBinding("s", alice);
+        TupleQueryResult result = tupleQuery.evaluate();
+        System.out.println("Facts about Alice:");            
+	    while (result.hasNext()) {
+	    	System.out.println(result.next());
+	    }
+        tupleQuery.setBinding("s", bob);
+        System.out.println("Facts about Bob:");    
+        result = tupleQuery.evaluate();
+	    while (result.hasNext()) {
+	    	System.out.println(result.next());
 	    }
     }
 
@@ -510,12 +532,12 @@ public class TutorialExamples {
 	
 	public static void main(String[] args) throws Exception {
 		List<Integer> choices = new ArrayList<Integer>();
-		int lastChoice = 13;
+		int lastChoice = 14;
 		for (int i = 1; i <= lastChoice; i++)
 			choices.add(new Integer(i));
-		if (true) {
+		if (false) {
 			choices = new ArrayList<Integer>();
-			choices.add(10);
+			choices.add(14);
 		}
 		try {
 		for (Integer choice : choices) {
@@ -535,6 +557,7 @@ public class TutorialExamples {
 			case 11: test11(); break;			
 			case 12: test12(); break;						
 			case 13: test13(); break;									
+			case 14: test14(); break;									
 			
 			case 15: test15(); break;
 			case 16: test16(); break;			
