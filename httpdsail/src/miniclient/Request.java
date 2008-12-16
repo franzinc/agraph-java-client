@@ -177,14 +177,10 @@ public class Request {
 	 */
 	private static Object[] makeRequest(String method, String url, JSONObject options, 
 			String accept, String contentType, Object callback, Object errCallback) {
-		//String body = urlenc(options);
 		if ((accept == null) || "".equals(accept)) accept = "*/*";
-		
-		// TEMPORARY:
-		//if (method.equals("GET") && url.equals("http://localhost:8080/catalogs/ag/repositories/agraph_test4/statements")) method = "POST";
-		// END TEMPORA
-		//System.out.println("METHOD " + method + " URL " + url + " OPTIONS " + options);
+		//System.out.println("BEFORE:   METHOD " + method + " URL " + url + " OPTIONS " + options);
 		HttpMethodBase httpMethod =  makeHTTPMethod(method, url, options);
+		//try { System.out.println("AFTER:" + httpMethod.getName() + " " + httpMethod.getURI()); } catch (Exception ex) {}
 		httpMethod.addRequestHeader("accept", accept);
 		httpMethod.addRequestHeader("connection", "Keep-Alive");
 		if ("POST".equals(method) && (contentType != null))
@@ -314,7 +310,10 @@ public class Request {
 		//System.out.println("SENDING CONTENT TYPE: " + contentType);
 		String optionsString = options != null ? options.toString() : "";
 		//System.out.println("LENGTH " + optionsString.length());
-		//System.out.println("   SENDING OPTIONS " + optionsString.substring(0, Math.min(200, optionsString.length())));
+		if (TRACE_IT) {
+			System.out.println("nullRequest " + method + " " + url);
+			System.out.println("   OPTIONS " + optionsString.substring(0, Math.min(200, optionsString.length())));
+		}
 		//System.out.println("         OPTIONS TAIL " + optionsString.substring(Math.max(0, optionsString.length() - 100), optionsString.length()));
 		Object[] statusAndBody = makeRequest(method, url, options, "application/json", contentType, null, null);
 		int status = (int)(Integer)statusAndBody[0];

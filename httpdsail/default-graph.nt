@@ -1,4 +1,0 @@
-<urn:x-local:graph1> <http://purl.org/dc/elements/1.1/publisher> "Bob" .
-<urn:x-local:graph1> <http://purl.org/dc/elements/1.1/date> "2004-12-06T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
-<urn:x-local:graph2> <http://purl.org/dc/elements/1.1/publisher> "Alice" .
-<urn:x-local:graph2> <http://purl.org/dc/elements/1.1/date> "2005-01-10T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .

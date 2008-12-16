@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import franz.exceptions.SoftException;
 
 public class Catalog {
@@ -43,6 +46,16 @@ public class Catalog {
 	 */
 	public void createTripleStore(String name) {
 		Request.nullRequest("PUT", this.url + "/repositories/" + legalizeName(name), null, null);
+	}
+	
+	/**
+	 * Create a federated store.
+	 */
+	public void federateTripleStores(String name, List<String>storeNames) {
+		try {
+			JSONObject options = new JSONObject().put("federate", (Object)storeNames);
+			Request.nullRequest("PUT", this.url + "/repositories/" + legalizeName(name), options, null);
+		} catch (JSONException ex) { throw new SoftException(ex); }	
 	}
 
 	/**

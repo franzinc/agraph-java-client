@@ -95,13 +95,13 @@ public class AllegroQuery extends AbstractQuery {
         Set<URI> namedGraphs = (this.dataset != null) ? this.dataset.getNamedGraphs() : null;
         List<String> namedContexts = this.connection.contextsToNtripleContexts(setToList(namedGraphs).toArray(), false);
         miniclient.Repository mini = this.connection.getMiniRepository();
-        Map<String, String> bindings = null;
+        List<String> bindings = null;
         if (this.bindings != null) {
-            bindings = new HashMap<String, String>();
-            for (String vbl : this.bindings.getBindingNames()) {
+            bindings = new ArrayList<String>();
+            for (String vbl : this.bindings.getBindingNames()) {            	
             	Binding b = this.bindings.getBinding(vbl);
             	String term = this.connection.toNtriples(b.getValue());
-                bindings.put(vbl, term);
+                bindings.add(vbl + " " + term);
             }
         }
         Object response;

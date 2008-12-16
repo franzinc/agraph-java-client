@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.openrdf.model.Literal;
@@ -431,8 +432,42 @@ public class TutorialExamples {
 	    	System.out.println(result.next());
 	    }
     }
+    
+	private static void pt(String kind, TupleQueryResult rows) throws Exception {
+		System.out.println("\n" + kind + " Apples:\t");
+		while (rows.hasNext()) {
+		  	System.out.println(rows.next());
+		}
+	}
 
-	private static void test15() throws Exception {
+    /** Federated triple stores. */
+    private static void test16() throws Exception {        
+    	Catalog catalog = new AllegroSail("localhost", 8080).openCatalog("scratch"); 
+        // create two ordinary stores, and one federated store: 
+    	RepositoryConnection redConn = catalog.getRepository("redthings", AllegroRepository.RENEW).init().getConnection();
+        ValueFactory rf = redConn.getValueFactory();
+        RepositoryConnection greenConn = catalog.getRepository("greenthings", AllegroRepository.RENEW).init().getConnection();
+        ValueFactory gf = greenConn.getValueFactory();
+        RepositoryConnection rainbowConn = catalog.getRepository("rainbowthings", AllegroRepository.RENEW)
+                             .addFederatedTripleStores(Arrays.asList(new String[]{"redthings", "greenthings"})).init().getConnection();
+        ValueFactory rbf = rainbowConn.getValueFactory();
+        String ex = "http://www.demo.com/example#";
+        // add a few triples to the red and green stores:
+        redConn.add(rf.createURI(ex+"mcintosh"), RDF.TYPE, rf.createURI(ex+"Apple"));
+        redConn.add(rf.createURI(ex+"reddelicious"), RDF.TYPE, rf.createURI(ex+"Apple"));    
+        greenConn.add(gf.createURI(ex+"pippin"), RDF.TYPE, gf.createURI(ex+"Apple"));
+        greenConn.add(gf.createURI(ex+"kermitthefrog"), RDF.TYPE, gf.createURI(ex+"Frog"));
+        redConn.setNamespace("ex", ex);
+        greenConn.setNamespace("ex", ex);
+        rainbowConn.setNamespace("ex", ex);
+        String queryString = "select ?s where { ?s rdf:type ex:Apple }";
+        // query each of the stores; observe that the federated one is the union of the other two:
+        pt("red", redConn.prepareTupleQuery(QueryLanguage.SPARQL, queryString).evaluate());
+        pt("green", greenConn.prepareTupleQuery(QueryLanguage.SPARQL, queryString).evaluate());
+        pt("federated", rainbowConn.prepareTupleQuery(QueryLanguage.SPARQL, queryString).evaluate());
+    }
+
+	private static void test26() throws Exception {
 		// Queries per second.
 	    Repository myRepository = test6();
 	    RepositoryConnection conn = myRepository.getConnection();
@@ -484,7 +519,7 @@ public class TutorialExamples {
 	}
 	
 
-	private static void test16() throws Exception {
+	private static void test27() throws Exception {
 		// CIA Fact book
 	    AllegroSail server = new AllegroSail("localhost", 8080);
 	    System.out.println("Available catalogs " + server.listCatalogs());
@@ -535,9 +570,9 @@ public class TutorialExamples {
 		int lastChoice = 14;
 		for (int i = 1; i <= lastChoice; i++)
 			choices.add(new Integer(i));
-		if (false) {
+		if (true) {
 			choices = new ArrayList<Integer>();
-			choices.add(14);
+			choices.add(16);
 		}
 		try {
 		for (Integer choice : choices) {
@@ -558,9 +593,11 @@ public class TutorialExamples {
 			case 12: test12(); break;						
 			case 13: test13(); break;									
 			case 14: test14(); break;									
+			//case 15: test15(); break;									
+			case 16: test16(); break;									
 			
-			case 15: test15(); break;
-			case 16: test16(); break;			
+			case 26: test26(); break;
+			case 27: test27(); break;			
 			default: System.out.println("There is no choice for test " + choice);
 			}
 		}
