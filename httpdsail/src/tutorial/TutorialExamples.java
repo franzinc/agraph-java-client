@@ -159,6 +159,7 @@ public class TutorialExamples {
 	    conn.add(alice, favoriteColor, red);
 	    conn.add(ted, favoriteColor, rouge);
 	    conn.add(alice, birthdate, date);
+	    // CURRENTLY, THIS LINE CAUSES HTTPD SERVER TO BREAK, BUT ITS NOT THE CLIENT'S FAULT:
 	    conn.add(ted, birthdate, time);    
 	    for (Literal obj : new Literal[] {null, fortyTwo, fortyTwoUntyped, f.createLiteral("20.5",
 	    		                          XMLSchema.FLOAT), f.createLiteral("20.5"),
@@ -570,9 +571,9 @@ public class TutorialExamples {
 		int lastChoice = 14;
 		for (int i = 1; i <= lastChoice; i++)
 			choices.add(new Integer(i));
-		if (true) {
+		if (false) {
 			choices = new ArrayList<Integer>();
-			choices.add(16);
+			choices.add(2);
 		}
 		try {
 		for (Integer choice : choices) {
