@@ -239,6 +239,7 @@ public class Request {
 	 */
 	private static Object helpDecodeJSONResponse(Object value) throws JSONException {
 		if (value instanceof String) return value;
+		else if (value instanceof Boolean) return value;
 		else if (value instanceof JSONArray) {
 			JSONArray list = (JSONArray)value;
 			List values = new ArrayList();
@@ -257,7 +258,7 @@ public class Request {
 		} else if (value == JSONObject.NULL) {
 			return null;
 		} else {
-			throw new SoftException("Don't know how to decode '" + value + "'");
+			throw new SoftException("Don't know how to decode '" + value + "'" + " " + value.getClass());
 		}
 	}
 	

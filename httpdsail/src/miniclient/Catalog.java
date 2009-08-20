@@ -35,8 +35,9 @@ public class Catalog {
 		for (Map<String, String> rep : stores) {
 			// I have no idea why this is coming back with an extra layer of quotes on the
 			// repository names:
-			String titleWithQuotes = rep.get("title");
-			names.add(trimDoubleQuotes(titleWithQuotes, true));
+			//String titleWithQuotes = rep.get("title");
+			//names.add(trimDoubleQuotes(titleWithQuotes, true));
+			names.add(rep.get("title"));
 		}
 		return names;
 	}
