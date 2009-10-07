@@ -61,7 +61,7 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements 
 		repoclient = new AGHttpRepoClient(this);
 	}
 
-	@Override
+	/*@Override
 	protected void finalize() throws Throwable {
 		try {
 			if (isOpen()) {
@@ -70,7 +70,7 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements 
 		} finally {
 			super.finalize();
 		}
-	}
+	}*/
 
 	@Override
 	public AGRepository getRepository() {
@@ -130,6 +130,11 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements 
 				contexts);
 	}
 
+	@Override
+	public void setAutoCommit(boolean autoCommit) throws RepositoryException {
+		getHttpRepoClient().setAutoCommit(autoCommit);
+	}
+	
 	public void commit() throws RepositoryException {
 		getHttpRepoClient().commit();
 	}
@@ -145,7 +150,6 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements 
 	@Override
 	public void close() throws RepositoryException {
 		if (isOpen()) {
-			rollback();
 			getHttpRepoClient().close();
 			super.close();
 		}

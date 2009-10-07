@@ -1,5 +1,7 @@
 package com.franz.agraph.http;
 
+import static com.franz.agraph.http.AGProtocol.getSessionURL;
+import static com.franz.agraph.http.AGProtocol.getSessionCloseURL;
 import static org.openrdf.http.protocol.Protocol.ACCEPT_PARAM_NAME;
 import info.aduna.io.IOUtil;
 
@@ -40,6 +42,8 @@ import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFHandler;
 import org.openrdf.rio.RDFHandlerException;
 import org.openrdf.rio.RDFParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.franz.agraph.repository.AGRepositoryConnection;
 
@@ -49,8 +53,8 @@ import com.franz.agraph.repository.AGRepositoryConnection;
 public class AGHttpRepoClient {
 
 	private final AGRepositoryConnection repoconnection;
-	private final String backendID;
-	private final Header backendHeader;
+	private final String sessionRoot;
+	final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	// TODO: choose proper defaults
 	private long lifetimeInSeconds = 3600;
@@ -62,8 +66,8 @@ public class AGHttpRepoClient {
 			throws RepositoryException {
 		this.repoconnection = repoconnection;
 		try {
-			backendID = getHTTPClient().postBackend(lifetimeInSeconds);
-			backendHeader = new Header(AGProtocol.X_BACKEND_ID, backendID);
+			sessionRoot = openSession(lifetimeInSeconds, true);
+			if (logger.isDebugEnabled()) logger.debug("openSession: {}", sessionRoot);
 		} catch (UnauthorizedException e) {
 			throw new RepositoryException(e);
 		} catch (IOException e) {
@@ -71,18 +75,12 @@ public class AGHttpRepoClient {
 		}
 	}
 
-	// TODO: finalize cleans up backendID
-
 	public AGRepositoryConnection getRepositoryConnection() {
 		return repoconnection;
 	}
 
-	public String getRepositoryURL() {
-		return getRepositoryConnection().getRepository().getRepositoryURL();
-	}
-
-	public AGHTTPClient getHTTPClient() {
-		return getRepositoryConnection().getRepository().getHTTPClient();
+	public String getSessionRoot() {
+		return sessionRoot;
 	}
 
 	public TupleQueryResultFormat getPreferredTQRFormat() {
@@ -110,13 +108,56 @@ public class AGHttpRepoClient {
 		this.preferredRDFFormat = preferredRDFFormat;
 	}
 
+	public String getServerURL() {
+		return getRepositoryConnection().getRepository().getCatalog().getServer().getServerURL();
+	}
+
+	public String getRepositoryURL() {
+		return getRepositoryConnection().getRepository().getRepositoryURL();
+	}
+	
+	public AGHTTPClient getHTTPClient() {
+		return getRepositoryConnection().getRepository().getHTTPClient();
+	}
+	
+	private String openSession(long lifetime, boolean autoCommit)
+			throws IOException, RepositoryException, UnauthorizedException {
+		String url = getSessionURL(getRepositoryURL());
+		Header[] headers = new Header[0];
+		NameValuePair[] data = { new NameValuePair(
+				AGProtocol.LIFETIME_PARAM_NAME, Long.toString(lifetime)),
+				new NameValuePair(
+						AGProtocol.AUTOCOMMIT_PARAM_NAME, Boolean.toString(autoCommit))};
+		AGResponseHandler handler = new AGResponseHandler("");
+		try {
+			getHTTPClient().post(url, headers, data, null, handler);
+		} catch (RDFParseException e) {
+			// bug.
+			throw new RuntimeException(e);
+		}
+		return handler.getString();
+	}
+
+	private void closeSession(String sessionRoot) throws IOException,
+			RepositoryException, UnauthorizedException {
+		String url = getSessionCloseURL(getSessionURL(sessionRoot));
+		Header[] headers = new Header[0];
+		NameValuePair[] params = new NameValuePair[0];
+		try {
+			getHTTPClient().post(url, headers, params, null, null);
+			if (logger.isDebugEnabled()) logger.debug("closeSession: {}", url);
+		} catch (RDFParseException e) {
+			// bug.
+			throw new RuntimeException(e);
+		}
+	}
+
 	public void getStatements(Resource subj, URI pred, Value obj,
 			boolean includeInferred, RDFHandler handler, Resource... contexts)
 			throws IOException, RDFHandlerException, RepositoryException,
 			UnauthorizedException {
-		String uri = Protocol.getStatementsLocation(getRepositoryURL());
+		String uri = Protocol.getStatementsLocation(getSessionRoot());
 		Header[] headers = {
-				backendHeader,
 				new Header(ACCEPT_PARAM_NAME, getPreferredRDFFormat()
 						.getDefaultMIMEType()) };
 
@@ -141,12 +182,14 @@ public class AGHttpRepoClient {
 				Boolean.toString(includeInferred)));
 
 		try {
-			getHTTPClient().get(
-					uri,
-					headers,
-					params.toArray(new NameValuePair[params.size()]),
-					new AGResponseHandler(getRepositoryConnection()
-							.getRepository(), handler, getPreferredRDFFormat()));
+			getHTTPClient()
+					.get(
+							uri,
+							headers,
+							params.toArray(new NameValuePair[params.size()]),
+							new AGResponseHandler(getRepositoryConnection()
+									.getRepository(), handler,
+									getPreferredRDFFormat()));
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
@@ -154,8 +197,8 @@ public class AGHttpRepoClient {
 
 	public void deleteStatements(Resource subj, URI pred, Value obj,
 			Resource... contexts) throws RepositoryException {
-		String url = Protocol.getStatementsLocation(getRepositoryURL());
-		Header[] headers = { backendHeader };
+		String url = Protocol.getStatementsLocation(getSessionRoot());
+		Header[] headers = {};
 
 		List<NameValuePair> params = new ArrayList<NameValuePair>(5);
 		if (subj != null) {
@@ -184,9 +227,24 @@ public class AGHttpRepoClient {
 		}
 	}
 
+	public void setAutoCommit(boolean autoCommit) throws RepositoryException {
+		String url = AGProtocol.getAutoCommitLocation(getSessionRoot());
+		Header[] headers = {};
+		NameValuePair[] params = {new NameValuePair(AGProtocol.ON_PARAM_NAME, Boolean.toString(autoCommit))};
+		try {
+			getHTTPClient().post(url, headers, params, null, null);
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (RDFParseException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+	}
+
 	public void commit() throws RepositoryException {
-		String url = getRepositoryURL() + "/" + AGProtocol.COMMIT;
-		Header[] headers = { backendHeader };
+		String url = getSessionRoot() + "/" + AGProtocol.COMMIT;
+		Header[] headers = {};
 		try {
 			getHTTPClient().post(url, headers, new NameValuePair[0],
 					(RequestEntity) null, null);
@@ -201,8 +259,8 @@ public class AGHttpRepoClient {
 	}
 
 	public void rollback() throws RepositoryException {
-		String url = getRepositoryURL() + "/" + AGProtocol.ROLLBACK;
-		Header[] headers = { backendHeader };
+		String url = getSessionRoot() + "/" + AGProtocol.ROLLBACK;
+		Header[] headers = {};
 		try {
 			getHTTPClient().post(url, headers, new NameValuePair[0],
 					(RequestEntity) null, null);
@@ -217,8 +275,8 @@ public class AGHttpRepoClient {
 	}
 
 	public void clearNamespaces() throws RepositoryException {
-		String url = Protocol.getNamespacesLocation(getRepositoryURL());
-		Header[] headers = { backendHeader };
+		String url = Protocol.getNamespacesLocation(getSessionRoot());
+		Header[] headers = {};
 		try {
 			getHTTPClient().delete(url, headers, new NameValuePair[0]);
 		} catch (HttpException e) {
@@ -275,8 +333,8 @@ public class AGHttpRepoClient {
 			boolean overwrite, Resource... contexts) throws IOException,
 			RDFParseException, RepositoryException, UnauthorizedException {
 		OpenRDFUtil.verifyContextNotNull(contexts);
-		String url = Protocol.getStatementsLocation(getRepositoryURL());
-		Header[] headers = { backendHeader };
+		String url = Protocol.getStatementsLocation(getSessionRoot());
+		Header[] headers = {};
 		List<NameValuePair> params = new ArrayList<NameValuePair>(5);
 		for (String encodedContext : Protocol.encodeContexts(contexts)) {
 			params.add(new NameValuePair(Protocol.CONTEXT_PARAM_NAME,
@@ -312,9 +370,8 @@ public class AGHttpRepoClient {
 	public void getContextIDs(TupleQueryResultHandler handler)
 			throws IOException, TupleQueryResultHandlerException,
 			RepositoryException, UnauthorizedException {
-		String url = Protocol.getContextsLocation(getRepositoryURL());
+		String url = Protocol.getContextsLocation(getSessionRoot());
 		Header[] headers = {
-				backendHeader,
 				new Header(ACCEPT_PARAM_NAME, getPreferredTQRFormat()
 						.getDefaultMIMEType()) };
 		try {
@@ -331,8 +388,8 @@ public class AGHttpRepoClient {
 
 	public long size(Resource... contexts) throws IOException,
 			RepositoryException, UnauthorizedException {
-		String url = Protocol.getSizeLocation(getRepositoryURL());
-		Header[] headers = { backendHeader };
+		String url = Protocol.getSizeLocation(getSessionRoot());
+		Header[] headers = {};
 		String[] encodedContexts = Protocol.encodeContexts(contexts);
 		NameValuePair[] contextParams = new NameValuePair[encodedContexts.length];
 		for (int i = 0; i < encodedContexts.length; i++) {
@@ -363,9 +420,8 @@ public class AGHttpRepoClient {
 	public void getNamespaces(TupleQueryResultHandler handler)
 			throws IOException, TupleQueryResultHandlerException,
 			RepositoryException, UnauthorizedException {
-		String url = Protocol.getNamespacesLocation(getRepositoryURL());
+		String url = Protocol.getNamespacesLocation(getSessionRoot());
 		Header[] headers = {
-				backendHeader,
 				new Header(ACCEPT_PARAM_NAME, getPreferredTQRFormat()
 						.getDefaultMIMEType()) };
 		try {
@@ -382,9 +438,9 @@ public class AGHttpRepoClient {
 
 	public String getNamespace(String prefix) throws IOException,
 			RepositoryException, UnauthorizedException {
-		String url = Protocol.getNamespacePrefixLocation(getRepositoryURL(),
+		String url = Protocol.getNamespacePrefixLocation(getSessionRoot(),
 				prefix);
-		Header[] headers = { backendHeader };
+		Header[] headers = {};
 		AGResponseHandler handler = new AGResponseHandler("");
 		try {
 			getHTTPClient().get(url, headers, new NameValuePair[0], handler);
@@ -396,9 +452,9 @@ public class AGHttpRepoClient {
 
 	public void setNamespacePrefix(String prefix, String name)
 			throws RepositoryException {
-		String url = Protocol.getNamespacePrefixLocation(getRepositoryURL(),
+		String url = Protocol.getNamespacePrefixLocation(getSessionRoot(),
 				prefix);
-		Header[] headers = { backendHeader };
+		Header[] headers = {};
 		try {
 			getHTTPClient().put(url, headers,
 					new StringRequestEntity(name, "text/plain", "UTF-8"));
@@ -412,9 +468,9 @@ public class AGHttpRepoClient {
 	}
 
 	public void removeNamespacePrefix(String prefix) throws RepositoryException {
-		String url = Protocol.getNamespacePrefixLocation(getRepositoryURL(),
+		String url = Protocol.getNamespacePrefixLocation(getSessionRoot(),
 				prefix);
-		Header[] headers = { backendHeader };
+		Header[] headers = {};
 		try {
 			getHTTPClient().delete(url, headers, new NameValuePair[0]);
 		} catch (HttpException e) {
@@ -428,13 +484,13 @@ public class AGHttpRepoClient {
 			String query, Dataset dataset, boolean includeInferred,
 			Binding... bindings) throws HttpException, RepositoryException,
 			RDFParseException, IOException {
-		String url = getRepositoryURL();
+		String url = getSessionRoot();
 		List<Header> headers = new ArrayList<Header>(5);
-		headers.add(backendHeader);
 		headers.add(new Header("Content-Type", Protocol.FORM_MIME_TYPE
-						+ "; charset=utf-8"));
-		if (handler.getRequestMIMEType()!=null) {
-			headers.add(new Header(ACCEPT_PARAM_NAME, handler.getRequestMIMEType()));
+				+ "; charset=utf-8"));
+		if (handler.getRequestMIMEType() != null) {
+			headers.add(new Header(ACCEPT_PARAM_NAME, handler
+					.getRequestMIMEType()));
 		}
 		List<NameValuePair> queryParams = getQueryMethodParameters(ql, query,
 				dataset, includeInferred, bindings);
@@ -478,9 +534,9 @@ public class AGHttpRepoClient {
 	}
 
 	public void close() throws RepositoryException {
-		if (backendID != null) {
+		if (sessionRoot != null) {
 			try {
-				getHTTPClient().deleteBackend(backendID);
+				closeSession(sessionRoot);
 			} catch (IOException e) {
 				throw new RepositoryException(e);
 			}

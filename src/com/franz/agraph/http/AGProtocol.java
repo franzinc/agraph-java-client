@@ -46,22 +46,27 @@ public class AGProtocol extends Protocol {
 	public static final String USER_DATA = "data";
 	
 	/**
-	 * Relative location of the backends service.
+	 * Relative location of the session service.
 	 */
-	public static final String BACKENDS = "backends";
+	public static final String SESSION = "session";
 	
 	/**
-	 * Parameter name for the 'lifetime' parameter for backends.
+	 * Parameter name for the 'lifetime' parameter for sessions.
 	 */
 	public static final String LIFETIME_PARAM_NAME = "lifetime";
 	
 	/**
-	 * Header name for the 'backendid' request header.
+	 * Parameter name for the 'autoCommit' parameter for sessions.
 	 */
-	public static final String X_BACKEND_ID = "X-Backend-ID";
+	public static final String AUTOCOMMIT_PARAM_NAME = "autoCommit";
 	
 	/**
-	 * Relative location of the backends ping service.
+	 * Relative location of session close.
+	 */
+	public static final String CLOSE = "close";
+	
+	/**
+	 * Relative location of the session ping service.
 	 */
 	public static final String PING = "ping";
 	
@@ -75,6 +80,16 @@ public class AGProtocol extends Protocol {
 	 */
 	public static final String AMOUNT_PARAM_NAME = "amount";
 
+	/**
+	 * Relative location of the autocommit service.
+	 */
+	public static final String AUTOCOMMIT = "autoCommit";
+	
+	/**
+	 * Parameter name for the 'on' parameter of autoCommit.
+	 */
+	public static final String ON_PARAM_NAME = "on";
+	
 	/**
 	 * Relative location of the commit service.
 	 */
@@ -139,15 +154,16 @@ public class AGProtocol extends Protocol {
 		return repositoryLocation + "/" + BLANK_NODES;
 	}
 
-	/**
-	 * Get the location of the blank nodes service for a repository
-	 * 
-	 * @param repositoryLocation
-	 *        the base location of the repository.
-	 * @return the location of the blank nodes service
-	 */
-	public static final String getBackendsURL(String serverLocation) {
-		return serverLocation + "/" + BACKENDS;
+	public static final String getSessionURL(String serverLocation) {
+		return serverLocation + "/" + SESSION;
+	}
+	
+	public static final String getSessionCloseURL(String sessionRoot) {
+		return sessionRoot + "/" + CLOSE;
+	}
+	
+	public static final String getAutoCommitLocation(String sessionRoot) {
+		return getSessionURL(sessionRoot) + "/" + AUTOCOMMIT;
 	}
 	
 }

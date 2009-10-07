@@ -4,7 +4,6 @@
 package com.franz.agraph.http;
 
 import static com.franz.agraph.http.AGProtocol.AMOUNT_PARAM_NAME;
-import static com.franz.agraph.http.AGProtocol.getBackendsURL;
 import info.aduna.net.http.HttpClientUtil;
 
 import java.io.IOException;
@@ -258,30 +257,6 @@ public class AGHTTPClient
 	/*-----------*
 	 * Services  *
 	 *-----------*/
-
-	public String postBackend(long lifetime) throws IOException,
-			RepositoryException, UnauthorizedException {
-		String url = getBackendsURL(getServerURL());
-		Header[] headers = new Header[0];
-		NameValuePair[] data = { new NameValuePair(
-				AGProtocol.LIFETIME_PARAM_NAME, Long.toString(lifetime)) };
-		AGResponseHandler handler = new AGResponseHandler("");
-		try {
-			post(url, headers, data, null, handler);
-		} catch (RDFParseException e) {
-			// bug.
-			throw new RuntimeException(e);
-		}
-		return handler.getString();
-	}
-
-	public void deleteBackend(String backendID) throws IOException,
-			RepositoryException, UnauthorizedException {
-		String url = getBackendsURL(getServerURL()) + "/" + backendID;
-		Header[] headers = new Header[0];
-		NameValuePair[] params = new NameValuePair[0];
-		delete(url, headers, params);
-	}
 
 	public void putRepository(String repositoryURL) throws IOException,
 			RepositoryException, UnauthorizedException, AGHttpException {

@@ -24,12 +24,11 @@ import com.franz.agraph.repository.AGServer;
 
 public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 
-	private final String TEST_DIR_PREFIX = System.getProperty("user.dir")
-			+ "\\";
-	private final String SERVER_URL = "http://localhost:4166";
-	private final String CATALOG_ID = "testcatalog";
-	private final String USERNAME = "bmillar";
-	private final String PASSWORD = "xyzzy";
+	public String TEST_DIR_PREFIX = System.getProperty("com.franz.agraph.test.dataDir", System.getProperty("user.dir") + System.getProperty("file.separator"));
+	public String SERVER_URL = System.getProperty("com.franz.agraph.test.serverURL","http://localhost:4168");
+	public String CATALOG_ID = System.getProperty("com.franz.agraph.test.catalogID","testcatalog");
+	public String USERNAME = System.getProperty("com.franz.agraph.test.username","bmillar");
+	public String PASSWORD = System.getProperty("com.franz.agraph.test.password","xyzzy");
 
 	int repoNumber = 1;
 
