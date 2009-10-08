@@ -22,12 +22,8 @@ import org.openrdf.model.Value;
 import org.openrdf.model.impl.NamespaceImpl;
 import org.openrdf.model.impl.StatementImpl;
 import org.openrdf.query.BindingSet;
-import org.openrdf.query.BooleanQuery;
-import org.openrdf.query.GraphQuery;
-import org.openrdf.query.Query;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.TupleQuery;
 import org.openrdf.query.TupleQueryResult;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
@@ -260,22 +256,22 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements 
 	/**
 	 * Unsupported method, throws an {@link UnsupportedOperationException}.
 	 */
-	public Query prepareQuery(QueryLanguage ql, String queryString,
+	public AGQuery prepareQuery(QueryLanguage ql, String queryString,
 			String baseURI) {
 		throw new UnsupportedOperationException();
 	}
 
-	public TupleQuery prepareTupleQuery(QueryLanguage ql, String queryString,
+	public AGTupleQuery prepareTupleQuery(QueryLanguage ql, String queryString,
 			String baseURI) {
 		return new AGTupleQuery(this, ql, queryString, baseURI);
 	}
 
-	public GraphQuery prepareGraphQuery(QueryLanguage ql, String queryString,
+	public AGGraphQuery prepareGraphQuery(QueryLanguage ql, String queryString,
 			String baseURI) {
 		return new AGGraphQuery(this, ql, queryString, baseURI);
 	}
 
-	public BooleanQuery prepareBooleanQuery(QueryLanguage ql,
+	public AGBooleanQuery prepareBooleanQuery(QueryLanguage ql,
 			String queryString, String baseURI) {
 		return new AGBooleanQuery(this, ql, queryString, baseURI);
 	}
