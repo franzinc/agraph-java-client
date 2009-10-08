@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.openrdf.model.Literal;
@@ -46,11 +45,10 @@ public class TutorialExamples {
 
     static final String FOAF_NS = "http://xmlns.com/foaf/0.1/";
 
-	
     /**
      * Creating a Repository
      */
-    public static AGRepositoryConnection test1() throws RepositoryException {
+    public static AGRepositoryConnection test1(boolean close) throws RepositoryException {
         // Tests getting the repository up. 
         System.out.println("Starting example test1().");
         AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
@@ -71,18 +69,21 @@ public class TutorialExamples {
                 " is up! It contains " + (conn.size()) +
                 " statements."              
                 );
-        // tidy up
-        //conn.close();
-        //myRepository.shutDown();
+        if (close) {
+            // tidy up
+            conn.close();
+            myRepository.shutDown();
+            return null;
+        }
         return conn;
     }
     
     /**
      * Asserting and Retracting Triples
      */
-    public static AGRepositoryConnection test2() throws RepositoryException {
+    public static AGRepositoryConnection test2(boolean close) throws RepositoryException {
         // Asserts some statements and counts them.
-        AGRepositoryConnection conn = test1();
+        AGRepositoryConnection conn = test1(false);
         AGValueFactory vf = conn.getRepository().getValueFactory();
         System.out.println("Starting example test2().");
         // Create some resources and literals to make statements from.
@@ -116,17 +117,19 @@ public class TutorialExamples {
                 (conn.size()));
         // put it back so we can continue with other examples
         conn.add(bob, name, bobsName);
+        if (close) {
+            conn.close();
+            conn.getRepository().shutDown();
+            return null;
+        }
         return conn;
-        // tidy up
-        //conn.close();
-        //conn.getRepository().shutDown();
     }
     
     /**
      * A SPARQL Query
      */
     public static void test3() throws Exception {
-        AGRepositoryConnection conn = test2();
+        AGRepositoryConnection conn = test2(false);
         try {
             String queryString = "SELECT ?s ?p ?o  WHERE {?s ?p ?o .}";
             TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
@@ -151,7 +154,7 @@ public class TutorialExamples {
      * Statement Matching
      */
     public static void test4() throws RepositoryException {
-        RepositoryConnection conn = test2();
+        RepositoryConnection conn = test2(false);
         Repository myRepository = conn.getRepository();
         URI alice = myRepository.getValueFactory().createURI("http://example.org/people/alice");
         RepositoryResult<Statement> statements = conn.getStatements(alice, null, null, false);
@@ -170,13 +173,15 @@ public class TutorialExamples {
 //            //System.out.println("   " + resultSet.getRow());
 //            System.out.println("   " + resultSet.getValue(2) + "   " + resultSet.getString(2)); 
 //        }
+        conn.close();
+        myRepository.shutDown();
     }
 
     /**
      * Literal Values
      */
     public static void test5() throws Exception {
-        RepositoryConnection conn = test2();
+        RepositoryConnection conn = test2(false);
         Repository myRepository = conn.getRepository();
         ValueFactory f = myRepository.getValueFactory();
         conn.clear();
@@ -262,12 +267,14 @@ public class TutorialExamples {
                 statements.close();
             }
         }
+        conn.close();
+        myRepository.shutDown();
     }
     
     /**
      * Importing Triples
      */
-    public static AGRepositoryConnection test6() throws Exception {
+    public static AGRepositoryConnection test6(boolean close) throws Exception {
         AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
         AGCatalog catalog = server.getCatalog(CATALOG_ID);
         AGRepository myRepository = catalog.createRepository(CATALOG_ID);
@@ -285,9 +292,13 @@ public class TutorialExamples {
         ((AGRepositoryConnection)conn).add(new File(path1), baseURI, RDFFormat.RDFXML, context);
         // read football triples into the null context:
         ((AGRepositoryConnection)conn).add(new File(path2), baseURI, RDFFormat.NTRIPLES);
-        System.out.println("After loading, repository contains " + conn.size(context) + 
+        System.out.println("After loading, repository contains " + conn.size(context) +
                 " vcard triples in context '" + context + "'\n    and   " +
-                conn.size() + " football triples in context 'null'.");      
+                conn.size() + " football triples in context 'null'.");
+        if (close) {
+            conn.close();
+            return null;
+        }
         return conn;
     }
     
@@ -295,7 +306,7 @@ public class TutorialExamples {
      * Importing Triples, query
      */
     public static void test7 () throws Exception {    
-        RepositoryConnection conn = test6();
+        RepositoryConnection conn = test6(false);
         System.out.println( "Match all and print subjects and contexts");
         RepositoryResult<Statement> result = conn.getStatements(null, null, null, false);
         // TODO: limit=25
@@ -319,8 +330,8 @@ public class TutorialExamples {
 
 
 	// Writing RDF or NTriples to a file
-	private static void test8 () throws Exception {    
-        RepositoryConnection conn = test6();
+	public static void test8 () throws Exception {    
+        RepositoryConnection conn = test6(false);
         Repository myRepository = conn.getRepository();
 	    Resource context = myRepository.getValueFactory().createURI("http://example.org#vcards");
 	    String outputFile = "/tmp/temp.nt";
@@ -337,17 +348,19 @@ public class TutorialExamples {
 	    output = (outputFile2 != null) ? new FileOutputStream(outputFile2) : System.out;
 	    RDFXMLWriter rdfxmlfWriter = new RDFXMLWriter(output);    
 	    conn.export(rdfxmlfWriter, context);
+	    conn.close();
 	}
 	
 	// Writing the result of a statements match to a file.
-	private static void test9 () throws Exception {    
-        RepositoryConnection conn = test6();
+	public static void test9 () throws Exception {    
+        RepositoryConnection conn = test6(false);
 	    conn.exportStatements(null, RDF.TYPE, null, false, new RDFXMLWriter(System.out));
+	    conn.close();
 	}
 
 	// Datasets and multiple contexts.
-	private static void test10 () throws Exception {    
-        RepositoryConnection conn = test1();
+	public static void test10 () throws Exception {    
+        RepositoryConnection conn = test1(false);
         Repository myRepository = conn.getRepository();
 	    ValueFactory f = myRepository.getValueFactory();
 	    String exns = "http://example.org/people/";
@@ -406,12 +419,12 @@ public class TutorialExamples {
 	    while (result.hasNext()) {
         	System.out.println(result.next());
         }
-	    
+	    conn.close();
 	}
 	
 	// Namespaces
-	private static void test11 () throws Exception {
-        RepositoryConnection conn = test1();
+	public static void test11 () throws Exception {
+        RepositoryConnection conn = test1(false);
         Repository myRepository = conn.getRepository();
 	    ValueFactory f = myRepository.getValueFactory();
 	    String exns = "http://example.org/people/";
@@ -427,11 +440,13 @@ public class TutorialExamples {
 	    while (result.hasNext()) {
         	System.out.println(result.next());
         }
+	    result.close();
+	    conn.close();
 	}                                                   
 
 	// Text search
-	private static void test12 () throws Exception {    
-        RepositoryConnection conn = test1();
+	public static void test12 () throws Exception {    
+        RepositoryConnection conn = test1(false);
         AGRepository myRepository = (AGRepository) conn.getRepository();
 	    ValueFactory f = myRepository.getValueFactory();
 	    String exns = "http://example.org/people/";
@@ -457,7 +472,7 @@ public class TutorialExamples {
 	    //queryString="SELECT ?s ?p ?o WHERE { ?s ?p ?o . FILTER regex(?o, "Ali") }";
 	    TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
 	    TupleQueryResult result = (TupleQueryResult)tupleQuery.evaluate();
-	    System.out.println("Found " + result.getTupleCount() + " query results");
+	    //System.out.println("Found " + result.getTupleCount() + " query results");
 	    int count = 0;
 	    while (result.hasNext()) {
 	    	BindingSet bindingSet = result.next();
@@ -465,12 +480,14 @@ public class TutorialExamples {
 	        count += 1;
 	        if (count > 5) break;
 	    }
+        result.close();
+        conn.close();
 	}
 	
 	
     /** Ask, Construct, and Describe queries */ 
-    private static void test13 () throws Exception {    
-	    RepositoryConnection conn = test2();
+	public static void test13 () throws Exception {    
+	    RepositoryConnection conn = test2(false);
 	    conn.setNamespace("ex", "http://example.org/people/");
 	    conn.setNamespace("ont", "http://example.org/ontology/");
 	    String queryString = "select ?s ?p ?o where { ?s ?p ?o} ";
@@ -479,6 +496,7 @@ public class TutorialExamples {
 	    while (result.hasNext()) {
 	    	System.out.println(result.next());
 	    }
+        result.close();
 	    queryString = "ask { ?s ont:name \"Alice\" } ";
 	    BooleanQuery booleanQuery = conn.prepareBooleanQuery(QueryLanguage.SPARQL, queryString);
 	    boolean truth = booleanQuery.evaluate(); 
@@ -498,11 +516,13 @@ public class TutorialExamples {
 	    while (gresult.hasNext()) {
 	    	System.out.println(gresult.next());
 	    }
+        gresult.close();
+        conn.close();
     }
 
     /** Parametric Queries */
-    private static void test14() throws Exception {
-    	RepositoryConnection conn = test2();
+	public static void test14() throws Exception {
+    	RepositoryConnection conn = test2(false);
         ValueFactory f = conn.getValueFactory();
         URI alice = f.createURI("http://example.org/people/alice");
         URI bob = f.createURI("http://example.org/people/bob");
@@ -514,12 +534,15 @@ public class TutorialExamples {
 	    while (result.hasNext()) {
 	    	System.out.println(result.next());
 	    }
+        result.close();
         tupleQuery.setBinding("s", bob);
         System.out.println("Facts about Bob:");    
         result = tupleQuery.evaluate();
 	    while (result.hasNext()) {
 	    	System.out.println(result.next());
 	    }
+        result.close();
+        conn.close();
     }
     
 	private static void pt(String kind, TupleQueryResult rows) throws Exception {
@@ -530,12 +553,13 @@ public class TutorialExamples {
 	}
 
     /** Federated triple stores. */
-    private static void test16() throws Exception {        
+	/*
+    public static void test16() throws Exception {        
         AGRepositoryConnection conn = test6();
         AGRepository myRepository = conn.getRepository();
     	AGCatalog catalog = myRepository.getCatalog();
         // create two ordinary stores, and one federated store: 
-    	RepositoryConnection redConn = catalog.getRepository("redthings", AGRepository.RENEW).init().getConnection();
+    	RepositoryConnection redConn = catalog.createRepository("redthings", AGRepository.RENEW).init().getConnection();
         ValueFactory rf = redConn.getValueFactory();
         RepositoryConnection greenConn = catalog.getRepository("greenthings", AGRepository.RENEW).init().getConnection();
         ValueFactory gf = greenConn.getValueFactory();
@@ -558,7 +582,7 @@ public class TutorialExamples {
         pt("federated", rainbowConn.prepareTupleQuery(QueryLanguage.SPARQL, queryString).evaluate());
     }
 
-	private static void test26() throws Exception {
+	public static void test26() throws Exception {
 		// Queries per second.
 	    RepositoryConnection conn = test6();
 	    Repository myRepository = conn.getRepository();
@@ -609,7 +633,7 @@ public class TutorialExamples {
 	    }
 	}
 	
-	private static void test27() throws Exception {
+	public static void test27() throws Exception {
 		// CIA Fact book
         AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
 	    System.out.println("Available catalogs " + server.listCatalogs());
@@ -653,11 +677,12 @@ public class TutorialExamples {
         elapsed = System.currentTimeMillis() - begin;
         System.out.println("Did " + count + "-row query in " + (elapsed / 1000) + "." + (elapsed % 1000) + " seconds.");
 	}
+	*/
 
 	
 	public static void main(String[] args) throws Exception {
 		List<Integer> choices = new ArrayList<Integer>();
-		int lastChoice = 14;
+		int lastChoice = 7;
 		for (int i = 1; i <= lastChoice; i++) {
 			choices.add(new Integer(i));
 		}
@@ -668,12 +693,12 @@ public class TutorialExamples {
 		for (Integer choice : choices) {
 			System.out.println("Running test " + choice);
 			switch(choice) {
-			case 1: test1(); break;
-			case 2: test2(); break;			
+			case 1: test1(true); break;
+			case 2: test2(true); break;			
 			case 3: test3(); break;			
 			case 4: test4(); break;						
 			case 5: test5(); break;									
-			case 6: test6(); break;	
+			case 6: test6(true); break;	
 			case 7: test7(); break;
 			case 8: test8(); break;			
 			case 9: test9(); break;	
@@ -683,10 +708,6 @@ public class TutorialExamples {
 			case 13: test13(); break;									
 			case 14: test14(); break;									
 			//case 15: test15(); break;									
-			case 16: test16(); break;									
-			
-			case 26: test26(); break;
-			case 27: test27(); break;			
 			default: throw new IllegalArgumentException("There is no test " + choice);
 			}
 		}
