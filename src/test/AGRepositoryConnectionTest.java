@@ -35,26 +35,33 @@ import org.openrdf.query.impl.DatasetImpl;
 import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
-import org.openrdf.repository.sail.AllegroRepository;
-import org.openrdf.repository.sail.AllegroSail;
-import org.openrdf.repository.sail.Catalog;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFHandlerException;
 import org.openrdf.rio.RDFParseException;
 import org.openrdf.rio.helpers.RDFHandlerBase;
 
+import com.franz.agraph.repository.AGCatalog;
+import com.franz.agraph.repository.AGRepository;
+import com.franz.agraph.repository.AGServer;
+
 public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 
 	private final String TEST_DIR_PREFIX = "./src/test/"; //System.getProperty("user.dir") + "\\";
+
+    public static final String SERVER_URL = "http://localhost:8080";
+    public static final String CATALOG_ID = "scratch";
+    public static final String USERNAME = "test";
+    public static final String PASSWORD = "xyzzy";
 	
 	public AGRepositoryConnectionTest(String name) {
 		super(name);
 	}
 
 	protected Repository createRepository() throws Exception {
-	    AllegroSail server = new AllegroSail("localhost", 8080);
-	    Catalog catalog = server.openCatalog("scratch");    
-	    AllegroRepository myRepository = catalog.getRepository("test2", AllegroRepository.RENEW);
+        AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
+        AGCatalog catalog = server.getCatalog(CATALOG_ID);
+	    AGRepository myRepository = catalog.createRepository("test2");
+	    // TODO: AllegroRepository.RENEW);
 	    return myRepository;
 	}
 

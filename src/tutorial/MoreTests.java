@@ -1,7 +1,6 @@
 package tutorial;
 
 import org.openrdf.model.Literal;
-import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.vocabulary.RDF;
@@ -11,12 +10,7 @@ import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.TupleQuery;
 import org.openrdf.query.TupleQueryResult;
 import org.openrdf.query.impl.DatasetImpl;
-import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.RepositoryResult;
-import org.openrdf.repository.sail.AllegroRepository;
-import org.openrdf.repository.sail.AllegroSail;
-import org.openrdf.repository.sail.Catalog;
 
 import test.AGRepositoryConnectionTest;
 

@@ -9,11 +9,12 @@ import org.openrdf.model.ValueFactory;
 import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.sail.AllegroRepository;
-import org.openrdf.repository.sail.AllegroSail;
-import org.openrdf.repository.sail.Catalog;
 
-import franz.exceptions.SoftException;
+import test.AGRepositoryConnectionTest;
+
+import com.franz.agraph.repository.AGCatalog;
+import com.franz.agraph.repository.AGRepository;
+import com.franz.agraph.repository.AGServer;
 
 public class LikeJUnits {
 		
@@ -25,20 +26,20 @@ public class LikeJUnits {
 	 * Tests getting the repository up.  Is called by the other tests to do the startup.
 	 */
 	public static Repository test1() throws RepositoryException {
-	    AllegroSail server = new AllegroSail("localhost", 8080);
+        AGServer server = new AGServer(AGRepositoryConnectionTest.SERVER_URL, AGRepositoryConnectionTest.USERNAME, AGRepositoryConnectionTest.PASSWORD);
 	    System.out.println("Available catalogs " + server.listCatalogs());
-	    Catalog catalog = server.openCatalog("scratch");    
-	    System.out.println("Available repositories in catalog '" + catalog.getName() + "': " +
-	    		catalog.listRepositories());    
-	    AllegroRepository myRepository = catalog.getRepository("agraph_test4", AllegroRepository.RENEW);
+	    AGCatalog catalog = server.getCatalog(AGRepositoryConnectionTest.CATALOG_ID);
+//	    System.out.println("Available repositories in catalog '" + catalog.getName() + "': " +
+//	    		catalog.listRepositories());    
+	    AGRepository myRepository = catalog.createRepository("agraph_test4");// AllegroRepository.RENEW);
 	    myRepository.initialize();
-	    System.out.println( "Repository " + myRepository.getName() + " is up!  It contains "
+	    System.out.println( "Repository " + myRepository.getRepositoryID() + " is up!  It contains "
 	    		+ myRepository.getConnection().size() + " statements.");
 	    return myRepository;
 	}
 
 	public static void test2() throws RepositoryException {
-	    AllegroRepository myRepository = (AllegroRepository)test1();	    
+	    AGRepository myRepository = (AGRepository)test1();
 	    RepositoryConnection conn = myRepository.getConnection();
 	    ValueFactory f = myRepository.getValueFactory();
 	    String exns = "http://example.org/people/";
@@ -64,7 +65,6 @@ public class LikeJUnits {
 			choices = new ArrayList<Integer>();
 			choices.add(11);
 		}
-		try {
 		for (Integer choice : choices) {
 			System.out.println("Running test " + choice);
 			switch(choice) {
@@ -85,9 +85,5 @@ public class LikeJUnits {
 			default: System.out.println("There is no choice for test " + choice);
 			}
 		}
-		} catch (Exception ex) {
-			System.out.println("Caught exception " + new SoftException(ex).getMessage());
-			ex.printStackTrace();
-		}	
 	}
 }
