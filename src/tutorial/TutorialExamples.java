@@ -27,71 +27,96 @@ import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
-import org.openrdf.repository.sail.AllegroRepository;
-import org.openrdf.repository.sail.AllegroRepositoryConnection;
-import org.openrdf.repository.sail.AllegroSail;
-import org.openrdf.repository.sail.AllegroTupleQueryResult;
-import org.openrdf.repository.sail.Catalog;
-import org.openrdf.repository.sail.JDBCResultSet;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.ntriples.NTriplesWriter;
 import org.openrdf.rio.rdfxml.RDFXMLWriter;
 
-import franz.exceptions.SoftException;
+import com.franz.agraph.repository.AGCatalog;
+import com.franz.agraph.repository.AGRepository;
+import com.franz.agraph.repository.AGRepositoryConnection;
+import com.franz.agraph.repository.AGServer;
+import com.franz.agraph.repository.AGValueFactory;
+import com.sun.org.apache.xml.internal.resolver.Catalog;
 
 public class TutorialExamples {
 
-	
-	public static void test0() {
-	    System.out.println("Hello World");
-	}
+    static private final String SERVER_URL = "http://localhost:8080";
+    static private final String CATALOG_ID = "scratch";
+    static private final String USERNAME = "test";
+    static private final String PASSWORD = "xyzzy";
 
-	/**
-	 * Tests getting the repository up.  Is called by the other tests to do the startup.
-	 */
-	public static Repository test1() throws RepositoryException {
-	    AllegroSail server = new AllegroSail("localhost", 8080);
-	    System.out.println("Available catalogs " + server.listCatalogs());
-	    Catalog catalog = server.openCatalog("scratch");    
-	    System.out.println("Available repositories in catalog '" + catalog.getName() + "': " +
-	    		catalog.listRepositories());    
-	    AllegroRepository myRepository = catalog.getRepository("agraph_test", AllegroRepository.RENEW);
-	    myRepository.initialize();
-	    System.out.println( "Repository " + myRepository.getName() + " is up!  It contains "
-	    		+ myRepository.getConnection().size() + " statements.");
-	    return myRepository;
-	}
-	
-	public static Repository test2() throws RepositoryException {
-		Repository myRepository = test1();
-	    ValueFactory f = myRepository.getValueFactory();
-	    // create some resources and literals to make statements out of
-	    URI alice = f.createURI("http://example.org/people/alice");
-	    URI bob = f.createURI("http://example.org/people/bob");
-	    //BNode bob = f.createBNode();
-	    URI name = f.createURI("http://example.org/ontology/name");
-	    URI person = f.createURI("http://example.org/ontology/Person");
-	    Literal bobsName = f.createLiteral("Bob");
-	    Literal alicesName = f.createLiteral("Alice");
+    static final String FOAF_NS = "http://xmlns.com/foaf/0.1/";
 
-	    RepositoryConnection conn = myRepository.getConnection();
-	    System.out.println("Triple count before inserts: " + conn.size());
-	    RepositoryResult<Statement> result = conn.getStatements(null, null, null, false, null);
-	    for (Statement s: result.asList()) System.out.println(s);
-	    // alice is a person
-	    conn.add(alice, RDF.TYPE, person);
-	    // alice's name is "Alice"
-	    conn.add(alice, name, alicesName);
-	    // bob is a person
-	    conn.add(bob, RDF.TYPE, person);
-	    // bob's name is "Bob":
-	    conn.add(bob, f.createURI("http://example.org/ontology/name"), bobsName);
-	    System.out.println("Triple count: " + conn.size());
-	    conn.remove(bob, name, bobsName);
-	    System.out.println("Triple count: " + conn.size());
-	    conn.add(bob, name, bobsName);
-	    return myRepository;
-	}
+	
+    public static AGRepositoryConnection test1() throws RepositoryException {
+        // Tests getting the repository up.
+        System.out.println("Starting example test1().");
+        AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
+        System.out.println("Available catalogs: " + (server.listCatalogs()));
+        AGCatalog catalog = server.getCatalog(CATALOG_ID);
+        System.out.println("Available repositories in catalog " +
+                (catalog.getCatalogName()) + ": " +
+                catalog.getAllRepositories());
+        AGRepository myRepository = catalog.createRepository(CATALOG_ID);
+        System.out.println("Got a repository.");
+        myRepository.initialize();
+        System.out.println("Initialized repository.");
+        AGRepositoryConnection conn = myRepository.getConnection();
+        System.out.println("Got a connection.");
+        conn.clear();  // remove previous triples, if any.
+        System.out.println("Cleared the connection.");
+        System.out.println("Repository " + (myRepository.getRepositoryID()) +
+                " is up! It contains " + (conn.size()) +
+                " statements."
+                );
+        // tidy up
+        //conn.close();
+        //myRepository.shutDown();
+        return conn;
+    }
+    
+    public static AGRepositoryConnection test2() throws RepositoryException {
+        // Asserts some statements and counts them.
+        AGRepositoryConnection conn = test1();
+        AGValueFactory vf = conn.getRepository().getValueFactory();
+        System.out.println("Starting example test2().");
+        // Create some resources and literals to make statements from.
+        URI alice = vf.createURI("http://example.org/alice");
+        URI bob = vf.createURI("http://example.org/bob");
+        URI name = vf.createURI("http://example.org/name");
+        URI person = vf.createURI("http://example.org/Person");
+        Literal bobsName = vf.createLiteral("Bob");
+        Literal alicesName = vf.createLiteral("Alice");
+        System.out.println("Triple count before inserts: " +
+                (conn.size()));
+        // Alice's name is "Alice"
+        conn.add(alice, name, alicesName);
+        // Alice is a person
+        conn.add(alice, RDF.TYPE, person);
+        //Bob's name is "Bob"
+        conn.add(bob, name, bobsName);
+        //Bob is a person, too.
+        conn.add(bob, RDF.TYPE, person);
+        System.out.println("Added four triples.");
+        System.out.println("Triple count after inserts: " +
+                (conn.size()));
+        RepositoryResult<Statement> result = conn.getStatements(null, null, null, false);
+        while (result.hasNext()) {
+            Statement st = result.next();
+            System.out.println(st);
+        }
+        conn.remove(bob, name, bobsName);
+        System.out.println("Removed one triple.");
+        System.out.println("Triple count after deletion: " +
+                (conn.size()));
+        // put it back so we can continue with other examples
+        conn.add(bob, name, bobsName);
+        return conn;
+        // tidy up
+        //conn.close();
+        //conn.getRepository().shutDown();
+
+    }
 	
 	private static void test3() throws Exception {
 	    RepositoryConnection conn = test2().getConnection();
@@ -579,7 +604,6 @@ public class TutorialExamples {
 		for (Integer choice : choices) {
 			System.out.println("Running test " + choice);
 			switch(choice) {
-			case 0: test0(); break;
 			case 1: test1(); break;
 			case 2: test2(); break;			
 			case 3: test3(); break;			
