@@ -48,14 +48,17 @@ public class TutorialExamples {
     static final String FOAF_NS = "http://xmlns.com/foaf/0.1/";
 
 	
+    /**
+     * Creating a Repository
+     */
     public static AGRepositoryConnection test1() throws RepositoryException {
-        // Tests getting the repository up.
+        // Tests getting the repository up. 
         System.out.println("Starting example test1().");
         AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
         System.out.println("Available catalogs: " + (server.listCatalogs()));
         AGCatalog catalog = server.getCatalog(CATALOG_ID);
-        System.out.println("Available repositories in catalog " +
-                (catalog.getCatalogName()) + ": " +
+        System.out.println("Available repositories in catalog " + 
+                (catalog.getCatalogName()) + ": " + 
                 catalog.getAllRepositories());
         AGRepository myRepository = catalog.createRepository(CATALOG_ID);
         System.out.println("Got a repository.");
@@ -67,7 +70,7 @@ public class TutorialExamples {
         System.out.println("Cleared the connection.");
         System.out.println("Repository " + (myRepository.getRepositoryID()) +
                 " is up! It contains " + (conn.size()) +
-                " statements."
+                " statements."              
                 );
         // tidy up
         //conn.close();
@@ -75,6 +78,9 @@ public class TutorialExamples {
         return conn;
     }
     
+    /**
+     * Asserting and Retracting Triples
+     */
     public static AGRepositoryConnection test2() throws RepositoryException {
         // Asserts some statements and counts them.
         AGRepositoryConnection conn = test1();
@@ -87,7 +93,7 @@ public class TutorialExamples {
         URI person = vf.createURI("http://example.org/Person");
         Literal bobsName = vf.createLiteral("Bob");
         Literal alicesName = vf.createLiteral("Alice");
-        System.out.println("Triple count before inserts: " +
+        System.out.println("Triple count before inserts: " + 
                 (conn.size()));
         // Alice's name is "Alice"
         conn.add(alice, name, alicesName);
@@ -95,10 +101,10 @@ public class TutorialExamples {
         conn.add(alice, RDF.TYPE, person);
         //Bob's name is "Bob"
         conn.add(bob, name, bobsName);
-        //Bob is a person, too.
+        //Bob is a person, too. 
         conn.add(bob, RDF.TYPE, person);
         System.out.println("Added four triples.");
-        System.out.println("Triple count after inserts: " +
+        System.out.println("Triple count after inserts: " + 
                 (conn.size()));
         RepositoryResult<Statement> result = conn.getStatements(null, null, null, false);
         while (result.hasNext()) {
@@ -107,7 +113,7 @@ public class TutorialExamples {
         }
         conn.remove(bob, name, bobsName);
         System.out.println("Removed one triple.");
-        System.out.println("Triple count after deletion: " +
+        System.out.println("Triple count after deletion: " + 
                 (conn.size()));
         // put it back so we can continue with other examples
         conn.add(bob, name, bobsName);
@@ -115,144 +121,203 @@ public class TutorialExamples {
         // tidy up
         //conn.close();
         //conn.getRepository().shutDown();
-
     }
-	
-	private static void test3() throws Exception {
-	    RepositoryConnection conn = test2().getConnection();
-	    try {
-	        String queryString = "SELECT ?s ?p ?o  WHERE {?s ?p ?o .}";
-	        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
-	        TupleQueryResult result = tupleQuery.evaluate();
-	        try {
-	            while (result.hasNext()) {
-	            	BindingSet bindingSet = result.next();
-	                Value s = bindingSet.getValue("s");
-	                Value p = bindingSet.getValue("p");
-	                Value o = bindingSet.getValue("o");             
-	                System.out.println("  " + s + " " + p + " " + o);
-	            }
-	        } finally {
-	            result.close();
-	        }
+    
+    /**
+     * A SPARQL Query
+     */
+    public static void test3() throws Exception {
+        AGRepositoryConnection conn = test2();
+        try {
+            String queryString = "SELECT ?s ?p ?o  WHERE {?s ?p ?o .}";
+            TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+            TupleQueryResult result = tupleQuery.evaluate();
+            try {
+                while (result.hasNext()) {
+                    BindingSet bindingSet = result.next();
+                    Value s = bindingSet.getValue("s");
+                    Value p = bindingSet.getValue("p");
+                    Value o = bindingSet.getValue("o");
+                    System.out.format("%s %s %s\n", s, p, o);
+                }
+            } finally {
+                result.close();
+            }
         } finally {
-	        conn.close();
-	    }	    
-	}
-	
-	private static void test4() throws RepositoryException {
-	    Repository myRepository = test2();
-	    RepositoryConnection conn = myRepository.getConnection();
-	    URI alice = myRepository.getValueFactory().createURI("http://example.org/people/alice");
-	    RepositoryResult<Statement> statements = conn.getStatements(alice, null, null, false, null);
-	    while (statements.hasNext())
-	        System.out.println(statements.next());
-	    System.out.println( "Same thing using JDBC:");
-	    JDBCResultSet resultSet = ((AllegroRepositoryConnection)conn).getJDBCStatements(alice, null, null, false);
-	    while (resultSet.next()) {
-	        System.out.println("   " + resultSet.getRow());
-	        System.out.println("   " + resultSet.getValue(2) + "   " + resultSet.getString(2)); 
-	    }
-	}
+            conn.close();
+        }
+    }
 
-	private static void test5() throws Exception {
-	    // Typed Literals
-	    Repository myRepository = test1();
-	    RepositoryConnection conn = myRepository.getConnection();
-	    ValueFactory f = myRepository.getValueFactory();
-	    conn.clear();
-	    String exns = "http://example.org/people/";
-	    URI alice = f.createURI("http://example.org/people/alice");
-	    URI age = f.createURI(exns, "age");
-	    URI weight = f.createURI(exns, "weight");    
-	    URI favoriteColor = f.createURI(exns, "favoriteColor");
-	    URI birthdate = f.createURI(exns, "birthdate");
-	    URI ted = f.createURI(exns, "Ted");
-	    Literal red = f.createLiteral("Red");
-	    Literal rouge = f.createLiteral("Rouge", "fr");
-	    Literal fortyTwo = f.createLiteral("42", XMLSchema.INT);
-	    Literal fortyTwoInteger = f.createLiteral("42", XMLSchema.LONG);    
-	    Literal fortyTwoUntyped = f.createLiteral("42");
-	    Literal date = f.createLiteral("1984-12-06", XMLSchema.DATE);     
-	    Literal time = f.createLiteral("1984-12-06", XMLSchema.DATETIME);         
-	    Statement stmt1 = f.createStatement(alice, age, fortyTwo);
-	    Statement stmt2 = f.createStatement(ted, age, fortyTwoUntyped);    
-	    conn.add(stmt1);
-	    conn.add(stmt2);
-	    conn.add(alice, weight, f.createLiteral("20.5"));
-	    conn.add(ted, weight, f.createLiteral("20.5", XMLSchema.FLOAT));
-	    conn.add(alice, favoriteColor, red);
-	    conn.add(ted, favoriteColor, rouge);
-	    conn.add(alice, birthdate, date);
-	    // CURRENTLY, THIS LINE CAUSES HTTPD SERVER TO BREAK, BUT ITS NOT THE CLIENT'S FAULT:
-	    conn.add(ted, birthdate, time);    
-	    for (Literal obj : new Literal[] {null, fortyTwo, fortyTwoUntyped, f.createLiteral("20.5",
-	    		                          XMLSchema.FLOAT), f.createLiteral("20.5"),
-	                red, rouge}) {
-	        System.out.println( "Retrieve triples matching " + obj + ".");
-	        RepositoryResult<Statement> statements = conn.getStatements(null, null, obj, false, null); 
-		    while (statements.hasNext()) {
-		        System.out.println(statements.next());
-	    	}
-	    }
-	    for (String obj : new String[]{"42", "\"42\"", "20.5", "\"20.5\"", "\"20.5\"^^xsd:float",
-	    		                       "\"Rouge\"@fr", "\"Rouge\"", "\"1984-12-06\"^^xsd:date"}) {
-	        System.out.println( "Query triples matching " + obj + ".");
-	        String queryString = "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = " + obj + ")}";
-	        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
-	        TupleQueryResult result = tupleQuery.evaluate();
-	        //try {
-	            while (result.hasNext()) {
-	            	BindingSet bindingSet = result.next();
-	                Value s = bindingSet.getValue("s");
-	                Value p = bindingSet.getValue("p");
-	                Value o = bindingSet.getValue("o");             
-	                System.out.println("  " + s + " " + p + " " + o);
-	            }
-	        //} finally {
+    /**
+     * Statement Matching
+     */
+    public static void test4() throws RepositoryException {
+        RepositoryConnection conn = test2();
+        Repository myRepository = conn.getRepository();
+        URI alice = myRepository.getValueFactory().createURI("http://example.org/people/alice");
+        RepositoryResult<Statement> statements = conn.getStatements(alice, null, null, false);
+        try {
+            statements.enableDuplicateFilter();
+            while (statements.hasNext()) {
+                System.out.println(statements.next());
+            }
+        } finally {
+            statements.close();
+        }
+        
+//        System.out.println( "Same thing using JDBC:");
+//        JDBCResultSet resultSet = ((AGRepositoryConnection)conn).getJDBCStatements(alice, null, null, false);
+//        while (resultSet.next()) {
+//            //System.out.println("   " + resultSet.getRow());
+//            System.out.println("   " + resultSet.getValue(2) + "   " + resultSet.getString(2)); 
+//        }
+    }
 
-	    }	    
-	}
-	
-	private static Repository test6() throws Exception {
-		AllegroRepository myRepository = (AllegroRepository)test1();
-	    RepositoryConnection conn = myRepository.getConnection();
-	    ValueFactory f = myRepository.getValueFactory();
-	    conn.clear(); 
-	    String path1 = "src/tutorial/vc-db-1.rdf";    
-	    String path2 = "src/tutorial/football.nt";            
-	    String baseURI = "http://example.org/example/local";
-	    Resource context = myRepository.getValueFactory().createURI("http://example.org#vcards");
-	    conn.setNamespace("vcd", "http://www.w3.org/2001/vcard-rdf/3.0#");
-	    // read football triples into the null context:
-	    ((AllegroRepositoryConnection)conn).add(new File(path2), baseURI, RDFFormat.NTRIPLES, false, null);
-	    // read vcards triples into the context 'context':
-	    ((AllegroRepositoryConnection)conn).add(new File(path1), baseURI, RDFFormat.RDFXML, false, context);
-	    myRepository.indexTriples(true);
-	    System.out.println("After loading, repository contains " + conn.size(context) + 
-	    		" vcard triples in context '" + context + "'\n    and   " +
-	    		conn.size(null) + " football triples in context 'null'."); 	    
-	    return myRepository;
-	}
-	
-	public static void test7 () throws Exception {    
-		RepositoryConnection conn = test6().getConnection();
-	    System.out.println( "Match all and print subjects and contexts");
-	    RepositoryResult<Statement> result = conn.getStatements(null, null, null, false); 
-	    while (result.hasNext()) {
-	    	Statement stmt = result.next();
-	        System.out.println(stmt.getSubject() + "  " + stmt.getContext());
-	    }	    
-	    System.out.println( "Same thing with SPARQL query");
-	    String queryString = "SELECT DISTINCT ?s ?c WHERE {graph ?c {?s ?p ?o .} }";
-	    TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
-	    TupleQueryResult qresult = tupleQuery.evaluate();	    
-	    while (qresult.hasNext()) {
-        	BindingSet bindingSet = qresult.next();
-        	System.out.println(bindingSet.getBinding("s") + "  " + bindingSet.getBinding("c"));
-        }	    	   
-	    conn.close();
-	}
+    /**
+     * Literal Values
+     */
+    public static void test5() throws Exception {
+        RepositoryConnection conn = test2();
+        Repository myRepository = conn.getRepository();
+        ValueFactory f = myRepository.getValueFactory();
+        conn.clear();
+        String exns = "http://example.org/people/";
+        URI alice = f.createURI("http://example.org/people/alice");
+        URI age = f.createURI(exns, "age");
+        URI weight = f.createURI(exns, "weight");    
+        URI favoriteColor = f.createURI(exns, "favoriteColor");
+        URI birthdate = f.createURI(exns, "birthdate");
+        URI ted = f.createURI(exns, "Ted");
+        Literal red = f.createLiteral("Red");
+        Literal rouge = f.createLiteral("Rouge", "fr");
+        Literal fortyTwo = f.createLiteral("42", XMLSchema.INT);
+        Literal fortyTwoInteger = f.createLiteral("42", XMLSchema.LONG);    
+        Literal fortyTwoUntyped = f.createLiteral("42");
+        Literal date = f.createLiteral("1984-12-06", XMLSchema.DATE);     
+        Literal time = f.createLiteral("1984-12-06T09:00:00", XMLSchema.DATETIME);         
+        Statement stmt1 = f.createStatement(alice, age, fortyTwo);
+        Statement stmt2 = f.createStatement(ted, age, fortyTwoUntyped);    
+        conn.add(stmt1);
+        conn.add(stmt2);
+        conn.add(alice, weight, f.createLiteral("20.5"));
+        conn.add(ted, weight, f.createLiteral("20.5", XMLSchema.FLOAT));
+        conn.add(alice, favoriteColor, red);
+        conn.add(ted, favoriteColor, rouge);
+        conn.add(alice, birthdate, date);
+        // CURRENTLY, THIS LINE CAUSES HTTPD SERVER TO BREAK, BUT ITS NOT THE CLIENT'S FAULT:
+        conn.add(ted, birthdate, time);    
+        for (Literal obj : new Literal[] {null, fortyTwo, fortyTwoUntyped, f.createLiteral("20.5",
+                                          XMLSchema.FLOAT), f.createLiteral("20.5"),
+                    red, rouge}) {
+            System.out.println( "Retrieve triples matching " + obj + ".");
+            RepositoryResult<Statement> statements = conn.getStatements(null, null, obj, false);
+            try {
+                while (statements.hasNext()) {
+                    System.out.println(statements.next());
+                }
+            } finally {
+                statements.close();
+            }
+        }
+        // SPARQL
+        for (String obj : new String[]{"42", "\"42\"", "20.5", "\"20.5\"", "\"20.5\"^^xsd:float",
+                                       "\"Rouge\"@fr", "\"Rouge\"", "\"1984-12-06\"^^xsd:date"}) {
+            System.out.println( "Query triples matching " + obj + ".");
+            String queryString = "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = " + obj + ")}";
+            TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+            TupleQueryResult result = tupleQuery.evaluate();
+            try {
+                while (result.hasNext()) {
+                    BindingSet bindingSet = result.next();
+                    Value s = bindingSet.getValue("s");
+                    Value p = bindingSet.getValue("p");
+                    Value o = bindingSet.getValue("o");
+                    System.out.println("  " + s + " " + p + " " + o);
+                }
+            } finally {
+                result.close();
+            }
+        }
+        {
+            // Search for date using date object in triple pattern.
+            System.out.println("Retrieve triples matching DATE object.");
+            RepositoryResult<Statement> statements = conn.getStatements(null, null, date, false);
+            try {
+                while (statements.hasNext()) {
+                    System.out.println(statements.next());
+                }
+            } finally {
+                statements.close();
+            }
+        }
+
+        {
+            System.out.println("Match triples having a specific DATE value.");
+            RepositoryResult<Statement> statements = conn.getStatements(null, null,
+                    f.createLiteral("\"1984-12-06\"^^<http://www.w3.org/2001/XMLSchema#date>"), false);
+            try {
+                while (statements.hasNext()) {
+                    System.out.println(statements.next());
+                }
+            } finally {
+                statements.close();
+            }
+        }
+    }
+    
+    /**
+     * Importing Triples
+     */
+    public static AGRepositoryConnection test6() throws Exception {
+        AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
+        AGCatalog catalog = server.getCatalog(CATALOG_ID);
+        AGRepository myRepository = catalog.createRepository(CATALOG_ID);
+        myRepository.initialize();
+        AGRepositoryConnection conn = myRepository.getConnection();
+        conn.clear(); // renew
+        // TODO: openDedicated
+        ValueFactory f = myRepository.getValueFactory();
+        String path1 = "src/tutorial/vc-db-1.rdf";    
+        String path2 = "src/tutorial/football.nt";            
+        String baseURI = "http://example.org/example/local";
+        Resource context = f.createURI("http://example.org#vcards");
+        conn.setNamespace("vcd", "http://www.w3.org/2001/vcard-rdf/3.0#");
+        // read vcards triples into the context 'context':
+        ((AGRepositoryConnection)conn).add(new File(path1), baseURI, RDFFormat.RDFXML, context);
+        // read football triples into the null context:
+        ((AGRepositoryConnection)conn).add(new File(path2), baseURI, RDFFormat.NTRIPLES);
+        System.out.println("After loading, repository contains " + conn.size(context) + 
+                " vcard triples in context '" + context + "'\n    and   " +
+                conn.size() + " football triples in context 'null'.");      
+        return conn;
+    }
+    
+    /**
+     * Importing Triples, query
+     */
+    public static void test7 () throws Exception {    
+        RepositoryConnection conn = test6();
+        System.out.println( "Match all and print subjects and contexts");
+        RepositoryResult<Statement> result = conn.getStatements(null, null, null, false);
+        // TODO: limit=25
+        for (int i = 0; i < 25 && result.hasNext(); i++) {
+            Statement stmt = result.next();
+            System.out.println(stmt.getSubject() + "  " + stmt.getContext());
+        }
+        result.close();
+        
+        System.out.println("Same thing with SPARQL query (can't retrieve triples in the null context)");
+        String queryString = "SELECT DISTINCT ?s ?c WHERE {graph ?c {?s ?p ?o .} }";
+        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        TupleQueryResult qresult = tupleQuery.evaluate();       
+        while (qresult.hasNext()) {
+            BindingSet bindingSet = qresult.next();
+            System.out.println(bindingSet.getBinding("s") + "  " + bindingSet.getBinding("c"));
+        }
+        qresult.close();
+        conn.close();
+    }
+
 
 	// Writing RDF or NTriples to a file
 	private static void test8 () throws Exception {    
