@@ -288,10 +288,10 @@ public class TutorialExamples {
         String baseURI = "http://example.org/example/local";
         Resource context = f.createURI("http://example.org#vcards");
         conn.setNamespace("vcd", "http://www.w3.org/2001/vcard-rdf/3.0#");
-        // read vcards triples into the context 'context':
-        ((AGRepositoryConnection)conn).add(new File(path1), baseURI, RDFFormat.RDFXML, context);
         // read football triples into the null context:
         ((AGRepositoryConnection)conn).add(new File(path2), baseURI, RDFFormat.NTRIPLES);
+        // read vcards triples into the context 'context':
+        ((AGRepositoryConnection)conn).add(new File(path1), baseURI, RDFFormat.RDFXML, context);
         System.out.println("After loading, repository contains " + conn.size(context) +
                 " vcard triples in context '" + context + "'\n    and   " +
                 conn.size() + " football triples in context 'null'.");
@@ -358,7 +358,9 @@ public class TutorialExamples {
 	    conn.close();
 	}
 
-	// Datasets and multiple contexts.
+	/**
+	 * Datasets and multiple contexts.
+	 */
 	public static void test10 () throws Exception {    
         RepositoryConnection conn = test1(false);
         Repository myRepository = conn.getRepository();
@@ -367,8 +369,8 @@ public class TutorialExamples {
 	    URI alice = f.createURI(exns, "alice");
 	    URI bob = f.createURI(exns, "bob");
 	    URI ted = f.createURI(exns, "ted");	    
+        URI person = f.createURI("http://example.org/ontology/Person");
 	    URI name = f.createURI("http://example.org/ontology/name");
-	    URI person = f.createURI("http://example.org/ontology/Person");
 	    Literal alicesName = f.createLiteral("Alice");
 	    Literal bobsName = f.createLiteral("Bob");
 	    Literal tedsName = f.createLiteral("Ted");	    
@@ -395,7 +397,8 @@ public class TutorialExamples {
 	    while (statements.hasNext()) {
 	    	System.out.println(statements.next());
 	    }
-	    
+
+	    // testing named graph query
 	    String queryString = "SELECT ?s ?p ?o ?c WHERE { GRAPH ?c {?s ?p ?o . } }";	    
 	    DatasetImpl ds = new DatasetImpl();
 	    ds.addNamedGraph(context1);
@@ -406,7 +409,7 @@ public class TutorialExamples {
 	    System.out.println("Query over contexts 1 and 2.");
 	    while (result.hasNext()) {
         	BindingSet bindingSet = result.next();
-        	System.out.println(bindingSet.getBinding("s") + "  " + bindingSet.getBinding("c"));
+            System.out.println(bindingSet.getBinding("s") + " " + bindingSet.getBinding("c"));
         }	
 	    
 	    queryString = "SELECT ?s ?p ?o WHERE {?s ?p ?o . }";
@@ -679,16 +682,23 @@ public class TutorialExamples {
 	}
 	*/
 
-	
+	/**
+	 * Usage: all
+	 * Usage: [1-14]+
+	 */
 	public static void main(String[] args) throws Exception {
 		List<Integer> choices = new ArrayList<Integer>();
-		int lastChoice = 7;
-		for (int i = 1; i <= lastChoice; i++) {
-			choices.add(new Integer(i));
-		}
-		if (false) {
-			choices = new ArrayList<Integer>();
-			choices.add(2);
+		if (args.length == 0) {
+		    // for choosing by editing this code
+		    choices.add(10);
+		} else if (args[0].equals("all")) {
+		    for (int i = 1; i <= 14; i++) {
+		        choices.add(i);
+		    }
+		} else {
+		    for (int i = 0; i < args.length; i++) {
+                choices.add(Integer.parseInt(args[i]));
+            }
 		}
 		for (Integer choice : choices) {
 			System.out.println("Running test " + choice);
