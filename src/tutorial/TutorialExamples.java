@@ -609,23 +609,6 @@ conn.clear(); // renew?
         rows.close();
     }
 
-    private static void printRows(RepositoryResult<Statement> rows) throws Exception {
-        while (rows.hasNext()) {
-            println(rows.next());
-        }
-        rows.close();
-    }
-
-    private static void printRows(String headerMsg, int limit, RepositoryResult<Statement> rows) throws Exception {
-        int count = 0;
-        while (count > limit && rows.hasNext()) {
-            println(rows.next());
-            count++;
-        }
-        println("Number of results: " + count);
-        rows.close();
-    }
-
     /**
      * Federated triple stores.
      */
@@ -905,23 +888,25 @@ rainbowConn.clear(); // renew?
         AGRepository myRepository = catalog.createRepository("agraph_test");
         myRepository.initialize();
         AGRepositoryConnection common = myRepository.getConnection();
-        common.clear();
-        
+        closeBeforeExit(common);
         AGRepositoryConnection dedicated = myRepository.getConnection();
+        closeBeforeExit(dedicated);
+        common.clear();
+        dedicated.clear();
 //        dedicated.openSession()  // open dedicated session 
         // The following paths are relative to os.getcwd(), the working directory.
         println("Current working directory is: " + new File(".").getAbsolutePath());
         //Load LasMis into common session, Kennedy into dedicated session.
-        String path1 = "./kennedy.ntriples";
-        String path2 = "./lesmis.rdf";
+        String path1 = "src/tutorial/kennedy.ntriples";
+        String path2 = "src/tutorial/lesmis.rdf";
         String baseURI = "http://example.org/example/local";
         // read kennedy triples into the dedicated session:
         println("Load 1214 kennedy.ntriples into dedicated session.");
-        dedicated.add(new File(path1), baseURI, RDFFormat.NTRIPLES);
+dedicated.add(new File(path1), baseURI, RDFFormat.NTRIPLES);
         // read lesmis triples into the common session:
         println("Load 916 lesmis triples into the common session.");
         common.add(new File(path2), baseURI, RDFFormat.RDFXML);
-
+        
         println("\nSince we have done neither a commit nor a rollback, queries directed");
         println("to one back end should not be able to retreive triples from the other connection.");
         println("\nAfter loading, there are:");
@@ -947,7 +932,7 @@ rainbowConn.clear(); // renew?
         printRows("\nUsing getStatements() on dedicated session; should find Kennedy:",
                 1, dedicated.getStatements(null, null, kennedy, false));
 // limit=1
-
+        
         // Rollback
         // Check for partitioning:
         //     Look for LesMis in common session, should find it.
@@ -988,11 +973,8 @@ rainbowConn.clear(); // renew?
                 1, dedicated.getStatements(null, null, kennedy, false));
         printRows("\nUsing getStatements() on dedicated session; should find Valjean:",
                 1, dedicated.getStatements(null, null, valjean, false));
-        dedicated.close();
-        common.close();
     }
-    
-    
+
     /*
     public static void test26() throws Exception {
         // Queries per second.
@@ -1101,7 +1083,7 @@ rainbowConn.clear(); // renew?
         List<Integer> choices = new ArrayList<Integer>();
         if (args.length == 0) {
             // for choosing by editing this code
-            choices.add(5);
+            choices.add(22);
         } else if (args[0].equals("all")) {
             for (int i = 1; i <= 14; i++) {
                 choices.add(i);
@@ -1111,32 +1093,38 @@ rainbowConn.clear(); // renew?
                 choices.add(Integer.parseInt(args[i]));
             }
         }
-        for (Integer choice : choices) {
-            println("Running test " + choice);
-            switch(choice) {
-            case 1: test1(true); break;
-            case 2: test2(true); break;            
-            case 3: test3(); break;            
-            case 4: test4(); break;                        
-            case 5: test5(); break;                                    
-            case 6: test6(true); break;    
-            case 7: test7(); break;
-            case 8: test8(); break;            
-            case 9: test9(); break;    
-            case 10: test10(); break;
-            case 11: test11(); break;            
-            case 12: test12(); break;                        
-            case 13: test13(); break;                                    
-            case 14: test14(); break;                                    
-            case 15: test15(); break;                                    
-            case 16: test16(); break;                                    
-            case 17: test17(); break;                                    
-            case 18: test18(); break;                                    
-            case 19: test19(); break;                                    
-            //case 20: test20(); break;
-            //case 21: test21(); break;            
-            case 22: test22(); break;                        
-            default: throw new IllegalArgumentException("There is no test " + choice);
+        try {
+            for (Integer choice : choices) {
+                println("Running test " + choice);
+                switch(choice) {
+                case 1: test1(true); break;
+                case 2: test2(true); break;            
+                case 3: test3(); break;            
+                case 4: test4(); break;                        
+                case 5: test5(); break;                                    
+                case 6: test6(true); break;    
+                case 7: test7(); break;
+                case 8: test8(); break;            
+                case 9: test9(); break;    
+                case 10: test10(); break;
+                case 11: test11(); break;            
+                case 12: test12(); break;                        
+                case 13: test13(); break;                                    
+                case 14: test14(); break;                                    
+                case 15: test15(); break;                                    
+                case 16: test16(); break;                                    
+                case 17: test17(); break;                                    
+                case 18: test18(); break;                                    
+                case 19: test19(); break;                                    
+                //case 20: test20(); break;
+                //case 21: test21(); break;            
+                case 22: test22(); break;                        
+                default: throw new IllegalArgumentException("There is no test " + choice);
+                }
+            }
+        } finally {
+            for (AGRepositoryConnection conn : toClose) {
+                close(conn);
             }
         }
     }
@@ -1144,4 +1132,40 @@ rainbowConn.clear(); // renew?
     public static void println(Object x) {
         System.out.println(x);
     }
+    
+    static void printRows(RepositoryResult<Statement> rows) throws Exception {
+        while (rows.hasNext()) {
+            println(rows.next());
+        }
+        rows.close();
+    }
+
+    static void printRows(String headerMsg, int limit, RepositoryResult<Statement> rows) throws Exception {
+        int count = 0;
+        while (count > limit && rows.hasNext()) {
+            println(rows.next());
+            count++;
+        }
+        println("Number of results: " + count);
+        rows.close();
+    }
+
+    static void close(AGRepositoryConnection conn) {
+        try {
+            conn.close();
+        } catch (Exception e) {
+            System.err.println("Error closing repository connection: " + e);
+            e.printStackTrace();
+        }
+    }
+    
+    private static List<AGRepositoryConnection> toClose = new ArrayList<AGRepositoryConnection>();
+    
+    /**
+     * This is just a quick mechanism to make sure all connections get closed.
+     */
+    private static void closeBeforeExit(AGRepositoryConnection conn) {
+        toClose.add(conn);
+    }
+    
 }
