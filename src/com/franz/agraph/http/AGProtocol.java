@@ -131,6 +131,16 @@ public class AGProtocol extends Protocol {
 	public static final String MAPPING_DATATYPE = "type";
 	
 	/**
+	 * Parameter name for the 'on' parameter of autoCommit.
+	 */
+	public static final String TYPE_PARAM_NAME = "type";
+	
+	/**
+	 * Parameter name for the 'on' parameter of autoCommit.
+	 */
+	public static final String PRIMITIVE_TYPE_PARAM_NAME = "primitiveType";
+	
+	/**
 	 * Relative location of the predicate mapping service.
 	 */
 	public static final String MAPPING_PREDICATE = "predicate";
@@ -165,5 +175,24 @@ public class AGProtocol extends Protocol {
 	public static final String getAutoCommitLocation(String sessionRoot) {
 		return getSessionURL(sessionRoot) + "/" + AUTOCOMMIT;
 	}
+
+	public static String getFreetextLocation(String sessionRoot) {
+		return sessionRoot + "/" + FREETEXT;
+	}
 	
+	public static String getFreetextPredicatesLocation(String sessionRoot) {
+		return getFreetextLocation(sessionRoot) + "/" + FTI_PREDICATES;
+	}
+
+	public static String getMappingLocation(String sessionRoot) {
+		return sessionRoot + "/" + MAPPING;
+	}
+	
+	public static String getDatatypeMappingLocation(String sessionRoot) {
+		return getMappingLocation(sessionRoot) + "/" + MAPPING_DATATYPE;
+	}
+	
+	public static String getPredicateMappingLocation(String sessionRoot) {
+		return getMappingLocation(sessionRoot) + "/" + MAPPING_PREDICATE;
+	}
 }

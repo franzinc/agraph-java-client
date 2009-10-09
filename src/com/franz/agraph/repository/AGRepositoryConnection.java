@@ -293,4 +293,17 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements 
 		}
 	}
 
+	
+	/************************************
+	 * AllegroGraph Extensions hereafter
+	 */
+	
+	public void registerFreetextPredicate(String predicate) throws RepositoryException {
+		getHttpRepoClient().registerFreetextPredicate(predicate);
+	}
+
+	// TODO: return RepositoryResult<URI> ?
+	public String[] getFreetextPredicates() throws RepositoryException {
+		return getHttpRepoClient().getFreetextPredicates();
+	}
 }

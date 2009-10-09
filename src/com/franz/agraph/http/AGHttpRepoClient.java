@@ -1,5 +1,6 @@
 package com.franz.agraph.http;
 
+import static com.franz.agraph.http.AGProtocol.AMOUNT_PARAM_NAME;
 import static com.franz.agraph.http.AGProtocol.getSessionURL;
 import static com.franz.agraph.http.AGProtocol.getSessionCloseURL;
 import static org.openrdf.http.protocol.Protocol.ACCEPT_PARAM_NAME;
@@ -42,6 +43,7 @@ import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFHandler;
 import org.openrdf.rio.RDFHandlerException;
 import org.openrdf.rio.RDFParseException;
+import org.openrdf.rio.ntriples.NTriplesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,7 +69,8 @@ public class AGHttpRepoClient {
 		this.repoconnection = repoconnection;
 		try {
 			sessionRoot = openSession(lifetimeInSeconds, true);
-			if (logger.isDebugEnabled()) logger.debug("openSession: {}", sessionRoot);
+			if (logger.isDebugEnabled())
+				logger.debug("openSession: {}", sessionRoot);
 		} catch (UnauthorizedException e) {
 			throw new RepositoryException(e);
 		} catch (IOException e) {
@@ -109,25 +112,27 @@ public class AGHttpRepoClient {
 	}
 
 	public String getServerURL() {
-		return getRepositoryConnection().getRepository().getCatalog().getServer().getServerURL();
+		return getRepositoryConnection().getRepository().getCatalog()
+				.getServer().getServerURL();
 	}
 
 	public String getRepositoryURL() {
 		return getRepositoryConnection().getRepository().getRepositoryURL();
 	}
-	
+
 	public AGHTTPClient getHTTPClient() {
 		return getRepositoryConnection().getRepository().getHTTPClient();
 	}
-	
+
 	private String openSession(long lifetime, boolean autoCommit)
 			throws IOException, RepositoryException, UnauthorizedException {
 		String url = getSessionURL(getRepositoryURL());
 		Header[] headers = new Header[0];
-		NameValuePair[] data = { new NameValuePair(
-				AGProtocol.LIFETIME_PARAM_NAME, Long.toString(lifetime)),
-				new NameValuePair(
-						AGProtocol.AUTOCOMMIT_PARAM_NAME, Boolean.toString(autoCommit))};
+		NameValuePair[] data = {
+				new NameValuePair(AGProtocol.LIFETIME_PARAM_NAME, Long
+						.toString(lifetime)),
+				new NameValuePair(AGProtocol.AUTOCOMMIT_PARAM_NAME, Boolean
+						.toString(autoCommit)) };
 		AGResponseHandler handler = new AGResponseHandler("");
 		try {
 			getHTTPClient().post(url, headers, data, null, handler);
@@ -145,7 +150,8 @@ public class AGHttpRepoClient {
 		NameValuePair[] params = new NameValuePair[0];
 		try {
 			getHTTPClient().post(url, headers, params, null, null);
-			if (logger.isDebugEnabled()) logger.debug("closeSession: {}", url);
+			if (logger.isDebugEnabled())
+				logger.debug("closeSession: {}", url);
 		} catch (RDFParseException e) {
 			// bug.
 			throw new RuntimeException(e);
@@ -157,9 +163,8 @@ public class AGHttpRepoClient {
 			throws IOException, RDFHandlerException, RepositoryException,
 			UnauthorizedException {
 		String uri = Protocol.getStatementsLocation(getSessionRoot());
-		Header[] headers = {
-				new Header(ACCEPT_PARAM_NAME, getPreferredRDFFormat()
-						.getDefaultMIMEType()) };
+		Header[] headers = { new Header(ACCEPT_PARAM_NAME,
+				getPreferredRDFFormat().getDefaultMIMEType()) };
 
 		List<NameValuePair> params = new ArrayList<NameValuePair>(5);
 		if (subj != null) {
@@ -230,7 +235,8 @@ public class AGHttpRepoClient {
 	public void setAutoCommit(boolean autoCommit) throws RepositoryException {
 		String url = AGProtocol.getAutoCommitLocation(getSessionRoot());
 		Header[] headers = {};
-		NameValuePair[] params = {new NameValuePair(AGProtocol.ON_PARAM_NAME, Boolean.toString(autoCommit))};
+		NameValuePair[] params = { new NameValuePair(AGProtocol.ON_PARAM_NAME,
+				Boolean.toString(autoCommit)) };
 		try {
 			getHTTPClient().post(url, headers, params, null, null);
 		} catch (HttpException e) {
@@ -371,9 +377,8 @@ public class AGHttpRepoClient {
 			throws IOException, TupleQueryResultHandlerException,
 			RepositoryException, UnauthorizedException {
 		String url = Protocol.getContextsLocation(getSessionRoot());
-		Header[] headers = {
-				new Header(ACCEPT_PARAM_NAME, getPreferredTQRFormat()
-						.getDefaultMIMEType()) };
+		Header[] headers = { new Header(ACCEPT_PARAM_NAME,
+				getPreferredTQRFormat().getDefaultMIMEType()) };
 		try {
 			getHTTPClient().get(
 					url,
@@ -421,9 +426,8 @@ public class AGHttpRepoClient {
 			throws IOException, TupleQueryResultHandlerException,
 			RepositoryException, UnauthorizedException {
 		String url = Protocol.getNamespacesLocation(getSessionRoot());
-		Header[] headers = {
-				new Header(ACCEPT_PARAM_NAME, getPreferredTQRFormat()
-						.getDefaultMIMEType()) };
+		Header[] headers = { new Header(ACCEPT_PARAM_NAME,
+				getPreferredTQRFormat().getDefaultMIMEType()) };
 		try {
 			getHTTPClient().get(
 					url,
@@ -542,4 +546,120 @@ public class AGHttpRepoClient {
 			}
 		}
 	}
+
+	public void registerFreetextPredicate(String predicate)
+			throws RepositoryException {
+		String url = AGProtocol.getFreetextPredicatesLocation(getSessionRoot());
+		String pred_nt = NTriplesUtil
+				.toNTriplesString(getRepositoryConnection().getValueFactory()
+						.createURI(predicate));
+		Header[] headers = {};
+		NameValuePair[] params = { new NameValuePair(
+				AGProtocol.PREDICATE_PARAM_NAME, pred_nt) };
+		try {
+			getHTTPClient().post(url, headers, params, null, null);
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (RDFParseException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+	}
+
+	public String[] getFreetextPredicates() throws RepositoryException {
+		String url = AGProtocol.getFreetextPredicatesLocation(getSessionRoot());
+		Header[] headers = new Header[0];
+		NameValuePair[] params = new NameValuePair[0];
+		AGResponseHandler handler = new AGResponseHandler("");
+		try {
+			getHTTPClient().get(url, headers, params, handler);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		}
+		return handler.getString().split("\n");
+	}
+
+	public void registerPredicateMapping(String predicate, String primitiveType)
+			throws RepositoryException {
+		String url = AGProtocol.getPredicateMappingLocation(getSessionRoot());
+		String pred_nt = NTriplesUtil
+				.toNTriplesString(getRepositoryConnection().getValueFactory()
+						.createURI(predicate));
+		String primtype_nt = NTriplesUtil
+		.toNTriplesString(getRepositoryConnection().getValueFactory()
+				.createURI(primitiveType));
+		Header[] headers = {};
+		NameValuePair[] params = { new NameValuePair(
+				AGProtocol.PREDICATE_PARAM_NAME, pred_nt),
+				new NameValuePair(AGProtocol.PRIMITIVE_TYPE_PARAM_NAME,
+						primtype_nt) };
+		try {
+			getHTTPClient().post(url, headers, params, null, null);
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (RDFParseException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+	}
+
+	public String[] getPredicateMappings() throws RepositoryException {
+		String url = AGProtocol.getPredicateMappingLocation(getSessionRoot());
+		Header[] headers = new Header[0];
+		NameValuePair[] params = new NameValuePair[0];
+		AGResponseHandler handler = new AGResponseHandler("");
+		try {
+			getHTTPClient().get(url, headers, params, handler);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		}
+		return handler.getString().split("\n");
+	}
+
+	public void registerDatatypeMapping(String datatype, String primitiveType)
+			throws RepositoryException {
+		String url = AGProtocol.getDatatypeMappingLocation(getSessionRoot());
+		String datatype_nt = NTriplesUtil
+				.toNTriplesString(getRepositoryConnection().getValueFactory()
+						.createURI(datatype));
+		String primtype_nt = NTriplesUtil
+				.toNTriplesString(getRepositoryConnection().getValueFactory()
+						.createURI(primitiveType));
+		Header[] headers = {};
+		NameValuePair[] params = {
+				new NameValuePair(AGProtocol.TYPE_PARAM_NAME, datatype_nt),
+				new NameValuePair(AGProtocol.PRIMITIVE_TYPE_PARAM_NAME,
+						primtype_nt) };
+		try {
+			getHTTPClient().post(url, headers, params, null, null);
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (RDFParseException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+	}
+
+	public String[] getDatatypeMappings() throws RepositoryException {
+		String url = AGProtocol.getPredicateMappingLocation(getSessionRoot());
+		Header[] headers = new Header[0];
+		NameValuePair[] params = new NameValuePair[0];
+		AGResponseHandler handler = new AGResponseHandler("");
+		try {
+			getHTTPClient().get(url, headers, params, handler);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		}
+		return handler.getString().split("\n");
+	}
+
 }

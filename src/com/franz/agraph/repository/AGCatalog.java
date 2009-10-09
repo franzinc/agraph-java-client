@@ -65,6 +65,15 @@ public class AGCatalog {
 		return new AGRepository(this, repositoryID);
 	}
 	
+	public void deleteRepository(String repositoryID) throws RepositoryException {
+		String repoURL = AGProtocol.getRepositoryLocation(getCatalogURL(), repositoryID);
+		try {
+			getHTTPClient().deleteRepository(repoURL);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+	}
+	
 	/**
 	 * 
 	 * 
