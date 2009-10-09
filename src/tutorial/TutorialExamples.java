@@ -40,6 +40,7 @@ public class TutorialExamples {
 
     static private final String SERVER_URL = "http://localhost:8080";
     static private final String CATALOG_ID = "scratch";
+    static private final String REPOSITORY_ID = "tutorial";
     static private final String USERNAME = "test";
     static private final String PASSWORD = "xyzzy";
 
@@ -57,7 +58,7 @@ public class TutorialExamples {
         System.out.println("Available repositories in catalog " + 
                 (catalog.getCatalogName()) + ": " + 
                 catalog.getAllRepositories());
-        AGRepository myRepository = catalog.createRepository(CATALOG_ID);
+        AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);
         System.out.println("Got a repository.");
         myRepository.initialize();
         System.out.println("Initialized repository.");
@@ -279,8 +280,7 @@ public class TutorialExamples {
         AGRepository myRepository = catalog.createRepository(CATALOG_ID);
         myRepository.initialize();
         AGRepositoryConnection conn = myRepository.getConnection();
-conn.clear(); // renew?
-// TODO: openDedicated
+        conn.clear();
         ValueFactory f = myRepository.getValueFactory();
         String path1 = "src/tutorial/vc-db-1.rdf";    
         String path2 = "src/tutorial/football.nt";            
@@ -442,7 +442,6 @@ conn.clear(); // renew?
 	    URI alice = f.createURI(exns, "alice");
 	    URI person = f.createURI(exns, "Person");
 	    conn.add(alice, RDF.TYPE, person);
-	    //myRepository.indexTriples(true);
 	    conn.setNamespace("ex", exns);
 	    //conn.removeNamespace("ex");
 	    String queryString = "SELECT ?s ?p ?o WHERE { ?s ?p ?o . FILTER ((?p = rdf:type) && (?o = ex:Person) ) }";
@@ -459,12 +458,11 @@ conn.clear(); // renew?
 	 * Text search
 	 */
 	public static void test12 () throws Exception {    
-        RepositoryConnection conn = test1(false);
-        AGRepository myRepository = (AGRepository) conn.getRepository();
-	    ValueFactory f = myRepository.getValueFactory();
+        AGRepositoryConnection conn = test1(false);
+	    ValueFactory f = conn.getValueFactory();
 	    String exns = "http://example.org/people/";
-	    //myRepository.registerFreeTextPredicate("http://example.org/people/name");
-// TODO    myRepository.registerFreeTextPredicate(exns + "fullname");
+	    conn.registerFreetextPredicate("http://example.org/people/name");
+	    conn.registerFreetextPredicate(exns + "fullname");
 	    URI alice = f.createURI(exns, "alice1");
 	    URI persontype = f.createURI(exns, "Person");
 	    URI fullname = f.createURI(exns, "fullname");    
