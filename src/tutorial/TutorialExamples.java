@@ -347,8 +347,9 @@ public class TutorialExamples {
             println("Writing to: " + outputFile2);
         }
         output = (outputFile2 != null) ? new FileOutputStream(outputFile2) : System.out;
-        RDFXMLWriter rdfxmlfWriter = new RDFXMLWriter(output);    
+        RDFXMLWriter rdfxmlfWriter = new RDFXMLWriter(output);
         conn.export(rdfxmlfWriter, context);
+        output.write('\n');
         conn.close();
     }
     
@@ -1088,7 +1089,7 @@ dedicated.add(new File(path1), baseURI, RDFFormat.NTRIPLES);
         }
         try {
             for (Integer choice : choices) {
-                println("Running test " + choice);
+                println("\nRunning test " + choice);
                 switch(choice) {
                 case 1: test1(true); break;
                 case 2: test2(true); break;            

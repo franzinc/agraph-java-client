@@ -69,7 +69,7 @@
 (defonce *catalog-id* "scratch")
 
 (def *agraph-java-tutorial-dir* (or (System/getProperty "com.franz.agraph.tutorial.dir")
-                                    (.getCanonicalPath (java.io.File. "../tutorial/"))))
+                                    (.getCanonicalPath (java.io.File. "./tutorial/"))))
 
 (defn printlns
   "println each item in a collection"

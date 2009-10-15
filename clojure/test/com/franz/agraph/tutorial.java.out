@@ -6,7 +6,7 @@ Got a repository.
 Initialized repository.
 Got a connection.
 Cleared the connection.
-Repository scratch is up! It contains 0 statements.
+Repository tutorial is up! It contains 0 statements.
 Running test 2
 Starting example test1().
 Available catalogs: null
@@ -15,7 +15,7 @@ Got a repository.
 Initialized repository.
 Got a connection.
 Cleared the connection.
-Repository scratch is up! It contains 0 statements.
+Repository tutorial is up! It contains 0 statements.
 Starting example test2().
 Triple count before inserts: 0
 Added four triples.
@@ -34,7 +34,7 @@ Got a repository.
 Initialized repository.
 Got a connection.
 Cleared the connection.
-Repository scratch is up! It contains 0 statements.
+Repository tutorial is up! It contains 0 statements.
 Starting example test2().
 Triple count before inserts: 0
 Added four triples.
@@ -57,7 +57,7 @@ Got a repository.
 Initialized repository.
 Got a connection.
 Cleared the connection.
-Repository scratch is up! It contains 0 statements.
+Repository tutorial is up! It contains 0 statements.
 Starting example test2().
 Triple count before inserts: 0
 Added four triples.
@@ -78,7 +78,7 @@ Got a repository.
 Initialized repository.
 Got a connection.
 Cleared the connection.
-Repository scratch is up! It contains 0 statements.
+Repository tutorial is up! It contains 0 statements.
 Starting example test2().
 Triple count before inserts: 0
 Added four triples.
@@ -127,4 +127,312 @@ Query triples matching "1984-12-06"^^xsd:date.
 Retrieve triples matching DATE object.
 (http://example.org/people/alice, http://example.org/people/birthdate, "1984-12-06"^^<http://www.w3.org/2001/XMLSchema#date>) [null]
 Match triples having a specific DATE value.
+Running test 6
+After loading, repository contains 16 vcard triples in context 'http://example.org#vcards'
+    and   44 football triples in context 'null'.
+Running test 7
+After loading, repository contains 16 vcard triples in context 'http://example.org#vcards'
+    and   44 football triples in context 'null'.
+Match all and print subjects and contexts
+http://purl.org/dc/terms/isPartOf  null
+http://ag.franz.com/demo#FootballTeam  null
+http://ag.franz.com/demo#europe  null
+http://ag.franz.com/demo#europe  null
+http://ag.franz.com/demo#netherlands  null
+http://ag.franz.com/demo#netherlands  null
+http://ag.franz.com/demo#netherlands  null
+http://ag.franz.com/demo#amsterdam  null
+http://ag.franz.com/demo#amsterdam  null
+http://ag.franz.com/demo#amsterdam  null
+http://ag.franz.com/demo#england  null
+http://ag.franz.com/demo#england  null
+http://ag.franz.com/demo#england  null
+http://ag.franz.com/demo#liverpooluk  null
+http://ag.franz.com/demo#liverpooluk  null
+http://ag.franz.com/demo#liverpooluk  null
+http://ag.franz.com/demo#londonuk  null
+http://ag.franz.com/demo#londonuk  null
+http://ag.franz.com/demo#londonuk  null
+http://ag.franz.com/demo#afcajax  null
+http://ag.franz.com/demo#afcajax  null
+http://ag.franz.com/demo#afcajax  null
+http://ag.franz.com/demo#liverpoolfc  null
+http://ag.franz.com/demo#liverpoolfc  null
+http://ag.franz.com/demo#liverpoolfc  null
+Same thing with SPARQL query (can't retrieve triples in the null context)
+s=http://somewhere/SarahJones/  c=http://example.org#vcards
+s=http://somewhere/JohnSmith/  c=http://example.org#vcards
+s=http://somewhere/MattJones/  c=http://example.org#vcards
+s=http://somewhere/RebeccaSmith/  c=http://example.org#vcards
+s=_:1305  c=http://example.org#vcards
+s=_:1306  c=http://example.org#vcards
+s=_:1307  c=http://example.org#vcards
+s=_:1308  c=http://example.org#vcards
+Running test 8
+After loading, repository contains 16 vcard triples in context 'http://example.org#vcards'
+    and   44 football triples in context 'null'.
+Writing to Standard Out instead of to a file
+<http://somewhere/JohnSmith/> <http://www.w3.org/2001/vcard-rdf/3.0#FN> "John Smith" .
+<http://somewhere/JohnSmith/> <http://www.w3.org/2001/vcard-rdf/3.0#N> _:1409 .
+_:1409 <http://www.w3.org/2001/vcard-rdf/3.0#Family> "Smith" .
+_:1409 <http://www.w3.org/2001/vcard-rdf/3.0#Given> "John" .
+<http://somewhere/RebeccaSmith/> <http://www.w3.org/2001/vcard-rdf/3.0#FN> "Becky Smith" .
+<http://somewhere/RebeccaSmith/> <http://www.w3.org/2001/vcard-rdf/3.0#N> _:1410 .
+_:1410 <http://www.w3.org/2001/vcard-rdf/3.0#Family> "Smith" .
+_:1410 <http://www.w3.org/2001/vcard-rdf/3.0#Given> "Rebecca" .
+<http://somewhere/SarahJones/> <http://www.w3.org/2001/vcard-rdf/3.0#FN> "Sarah Jones" .
+<http://somewhere/SarahJones/> <http://www.w3.org/2001/vcard-rdf/3.0#N> _:1411 .
+_:1411 <http://www.w3.org/2001/vcard-rdf/3.0#Family> "Jones" .
+_:1411 <http://www.w3.org/2001/vcard-rdf/3.0#Given> "Sarah" .
+<http://somewhere/MattJones/> <http://www.w3.org/2001/vcard-rdf/3.0#FN> "Matt Jones" .
+<http://somewhere/MattJones/> <http://www.w3.org/2001/vcard-rdf/3.0#N> _:1412 .
+_:1412 <http://www.w3.org/2001/vcard-rdf/3.0#Family> "Jones" .
+_:1412 <http://www.w3.org/2001/vcard-rdf/3.0#Given> "Matthew" .
+Writing to Standard Out instead of to a file
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+
+<rdf:Description rdf:about="http://somewhere/JohnSmith/">
+	<FN xmlns="http://www.w3.org/2001/vcard-rdf/3.0#">John Smith</FN>
+	<N xmlns="http://www.w3.org/2001/vcard-rdf/3.0#" rdf:nodeID="1409"/>
+</rdf:Description>
+
+<rdf:Description rdf:nodeID="1409">
+	<Family xmlns="http://www.w3.org/2001/vcard-rdf/3.0#">Smith</Family>
+	<Given xmlns="http://www.w3.org/2001/vcard-rdf/3.0#">John</Given>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://somewhere/RebeccaSmith/">
+	<FN xmlns="http://www.w3.org/2001/vcard-rdf/3.0#">Becky Smith</FN>
+	<N xmlns="http://www.w3.org/2001/vcard-rdf/3.0#" rdf:nodeID="1410"/>
+</rdf:Description>
+
+<rdf:Description rdf:nodeID="1410">
+	<Family xmlns="http://www.w3.org/2001/vcard-rdf/3.0#">Smith</Family>
+	<Given xmlns="http://www.w3.org/2001/vcard-rdf/3.0#">Rebecca</Given>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://somewhere/SarahJones/">
+	<FN xmlns="http://www.w3.org/2001/vcard-rdf/3.0#">Sarah Jones</FN>
+	<N xmlns="http://www.w3.org/2001/vcard-rdf/3.0#" rdf:nodeID="1411"/>
+</rdf:Description>
+
+<rdf:Description rdf:nodeID="1411">
+	<Family xmlns="http://www.w3.org/2001/vcard-rdf/3.0#">Jones</Family>
+	<Given xmlns="http://www.w3.org/2001/vcard-rdf/3.0#">Sarah</Given>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://somewhere/MattJones/">
+	<FN xmlns="http://www.w3.org/2001/vcard-rdf/3.0#">Matt Jones</FN>
+	<N xmlns="http://www.w3.org/2001/vcard-rdf/3.0#" rdf:nodeID="1412"/>
+</rdf:Description>
+
+<rdf:Description rdf:nodeID="1412">
+	<Family xmlns="http://www.w3.org/2001/vcard-rdf/3.0#">Jones</Family>
+	<Given xmlns="http://www.w3.org/2001/vcard-rdf/3.0#">Matthew</Given>
+</rdf:Description>
+
+</rdf:RDF>Running test 9
+After loading, repository contains 16 vcard triples in context 'http://example.org#vcards'
+    and   44 football triples in context 'null'.
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+
+<rdf:Description rdf:about="http://ag.franz.com/demo#arsenalfc">
+	<rdf:type rdf:resource="http://ag.franz.com/demo#FootballTeam"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://ag.franz.com/demo#liverpoolfc">
+	<rdf:type rdf:resource="http://ag.franz.com/demo#FootballTeam"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://ag.franz.com/demo#afcajax">
+	<rdf:type rdf:resource="http://ag.franz.com/demo#FootballTeam"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://ag.franz.com/demo#londonuk">
+	<rdf:type rdf:resource="http://ag.franz.com/demo#City"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://ag.franz.com/demo#liverpooluk">
+	<rdf:type rdf:resource="http://ag.franz.com/demo#City"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://ag.franz.com/demo#england">
+	<rdf:type rdf:resource="http://ag.franz.com/demo#Country"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://ag.franz.com/demo#amsterdam">
+	<rdf:type rdf:resource="http://ag.franz.com/demo#City"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://ag.franz.com/demo#netherlands">
+	<rdf:type rdf:resource="http://ag.franz.com/demo#Country"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://ag.franz.com/demo#europe">
+	<rdf:type rdf:resource="http://ag.franz.com/demo#Continent"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/dc/terms/isPartOf">
+	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#TransitiveProperty"/>
+</rdf:Description>
+
+</rdf:RDF>Running test 10
+Starting example test1().
+Available catalogs: null
+Available repositories in catalog scratch: null
+Got a repository.
+Initialized repository.
+Got a connection.
+Cleared the connection.
+Repository tutorial is up! It contains 0 statements.
+All triples in all contexts:
+(http://example.org/people/alice, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/ontology/Person) [http://example.org/people/cxt1]
+(http://example.org/people/alice, http://example.org/ontology/name, "Alice") [http://example.org/people/cxt1]
+(http://example.org/people/bob, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/ontology/Person) [http://example.org/people/cxt2]
+(http://example.org/people/bob, http://example.org/ontology/name, "Bob") [http://example.org/people/cxt2]
+(http://example.org/people/ted, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/ontology/Person) [null]
+(http://example.org/people/ted, http://example.org/ontology/name, "Ted") [null]
+Triples in contexts 1 or 2:
+(http://example.org/people/bob, http://example.org/ontology/name, "Bob") [http://example.org/people/cxt2]
+(http://example.org/people/bob, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/ontology/Person) [http://example.org/people/cxt2]
+(http://example.org/people/alice, http://example.org/ontology/name, "Alice") [http://example.org/people/cxt1]
+(http://example.org/people/alice, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/ontology/Person) [http://example.org/people/cxt1]
+Triples in contexts null or 2:
+(http://example.org/people/bob, http://example.org/ontology/name, "Bob") [http://example.org/people/cxt2]
+(http://example.org/people/bob, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/ontology/Person) [http://example.org/people/cxt2]
+(http://example.org/people/ted, http://example.org/ontology/name, "Ted") [null]
+(http://example.org/people/ted, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/ontology/Person) [null]
+Query over contexts 1 and 2.
+s=http://example.org/people/alice c=http://example.org/people/cxt1
+s=http://example.org/people/alice c=http://example.org/people/cxt1
+s=http://example.org/people/bob c=http://example.org/people/cxt2
+s=http://example.org/people/bob c=http://example.org/people/cxt2
+Query over the null context.
+[s=http://example.org/people/alice;p=http://www.w3.org/1999/02/22-rdf-syntax-ns#type;o=http://example.org/ontology/Person]
+[s=http://example.org/people/alice;p=http://example.org/ontology/name;o="Alice"]
+[s=http://example.org/people/bob;p=http://www.w3.org/1999/02/22-rdf-syntax-ns#type;o=http://example.org/ontology/Person]
+[s=http://example.org/people/bob;p=http://example.org/ontology/name;o="Bob"]
+[s=http://example.org/people/ted;p=http://www.w3.org/1999/02/22-rdf-syntax-ns#type;o=http://example.org/ontology/Person]
+[s=http://example.org/people/ted;p=http://example.org/ontology/name;o="Ted"]
+Running test 11
+Starting example test1().
+Available catalogs: null
+Available repositories in catalog scratch: null
+Got a repository.
+Initialized repository.
+Got a connection.
+Cleared the connection.
+Repository tutorial is up! It contains 0 statements.
+[s=http://example.org/people/alice;p=http://www.w3.org/1999/02/22-rdf-syntax-ns#type;o=http://example.org/people/Person]
+Running test 12
+Starting example test1().
+Available catalogs: null
+Available repositories in catalog scratch: null
+Got a repository.
+Initialized repository.
+Got a connection.
+Cleared the connection.
+Repository tutorial is up! It contains 0 statements.
+Query for match with ?s fti:match 'Alice' .
+Found 2 query results
+Query for match with ?s fti:match 'Ali*' .
+Found 2 query results
+Query for match with ?s fti:match '?l?c?' .
+Found 2 query results
+Running test 13
+Starting example test1().
+Available catalogs: null
+Available repositories in catalog scratch: null
+Got a repository.
+Initialized repository.
+Got a connection.
+Cleared the connection.
+Repository tutorial is up! It contains 0 statements.
+Starting example test2().
+Triple count before inserts: 0
+Added four triples.
+Triple count after inserts: 4
+(http://example.org/people/alice, http://example.org/ontology/name, "Alice") [null]
+(http://example.org/people/alice, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/ontology/Person) [null]
+(http://example.org/people/bob, http://example.org/ontology/name, "Bob") [null]
+(http://example.org/people/bob, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/ontology/Person) [null]
+Removed one triple.
+Triple count after deletion: 3
+[s=http://example.org/people/alice;p=http://example.org/ontology/name;o="Alice"]
+[s=http://example.org/people/alice;p=http://www.w3.org/1999/02/22-rdf-syntax-ns#type;o=http://example.org/ontology/Person]
+[s=http://example.org/people/bob;p=http://www.w3.org/1999/02/22-rdf-syntax-ns#type;o=http://example.org/ontology/Person]
+[s=http://example.org/people/bob;p=http://example.org/ontology/name;o="Bob"]
+Boolean result true
+Construct result[(http://example.org/people/alice, http://example.org/ontology/name, "Alice")]
+Describe result
+(http://example.org/people/alice, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/ontology/Person)
+(http://example.org/people/alice, http://example.org/ontology/name, "Alice")
+Running test 14
+Starting example test1().
+Available catalogs: null
+Available repositories in catalog scratch: null
+Got a repository.
+Initialized repository.
+Got a connection.
+Cleared the connection.
+Repository tutorial is up! It contains 0 statements.
+Starting example test2().
+Triple count before inserts: 0
+Added four triples.
+Triple count after inserts: 4
+(http://example.org/people/alice, http://example.org/ontology/name, "Alice") [null]
+(http://example.org/people/alice, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/ontology/Person) [null]
+(http://example.org/people/bob, http://example.org/ontology/name, "Bob") [null]
+(http://example.org/people/bob, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/ontology/Person) [null]
+Removed one triple.
+Triple count after deletion: 3
+Facts about Alice:
+[s=http://example.org/people/alice;p=http://www.w3.org/1999/02/22-rdf-syntax-ns#type;o=http://example.org/ontology/Person]
+[s=http://example.org/people/alice;p=http://example.org/ontology/name;o="Alice"]
+Facts about Bob:
+[s=http://example.org/people/bob;p=http://example.org/ontology/name;o="Bob"]
+[s=http://example.org/people/bob;p=http://www.w3.org/1999/02/22-rdf-syntax-ns#type;o=http://example.org/ontology/Person]
+Running test 15
+Starting example test15().
+Starting example test1().
+Available catalogs: null
+Available repositories in catalog scratch: null
+Got a repository.
+Initialized repository.
+Got a connection.
+Cleared the connection.
+Repository tutorial is up! It contains 0 statements.
+foo
+Running test 19
+Starting example test1().
+Available catalogs: null
+Available repositories in catalog scratch: null
+Got a repository.
+Initialized repository.
+Got a connection.
+Cleared the connection.
+Repository tutorial is up! It contains 0 statements.
+Children of Robert, inference OFF
+(http://example.org/people/robert, http://example.org/ontology/fatherOf, http://example.org/people/roberta) [null]
+Children of Robert, inference ON
+(http://example.org/people/robert, http://example.org/ontology/fatherOf, http://example.org/people/roberta) [null]
+(http://example.org/people/robert, http://example.org/ontology/fatherOf, http://example.org/people/bobby) [null]
+People with fathers, inference OFF
+People with fathers, inference ON
+(http://example.org/people/roberta, http://example.org/ontology/hasFather, http://example.org/people/robert) [null]
+(http://example.org/people/bobby, http://example.org/ontology/hasFather, http://example.org/people/bob) [null]
+People with parents, inference OFF
+People with parents, inference ON
+(http://example.org/people/robert, http://example.org/ontology/parentOf, http://example.org/people/roberta) [null]
+(http://example.org/people/bob, http://example.org/ontology/parentOf, http://example.org/people/bobby) [null]
+Who are the parents?  Inference ON.
+(http://example.org/people/robert, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/ontology/Parent) [null]
+(http://example.org/people/bob, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/ontology/Parent) [null]
+Who are the children?  Inference ON.
+(http://example.org/people/roberta, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://exmaple.org/ontology/Child) [null]
+(http://example.org/people/bobby, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://exmaple.org/ontology/Child) [null]
 tutorial/test6 and higher fail
