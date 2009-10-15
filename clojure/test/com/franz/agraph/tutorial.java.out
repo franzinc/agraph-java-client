@@ -1,0 +1,130 @@
+Running test 1
+Starting example test1().
+Available catalogs: null
+Available repositories in catalog scratch: null
+Got a repository.
+Initialized repository.
+Got a connection.
+Cleared the connection.
+Repository scratch is up! It contains 0 statements.
+Running test 2
+Starting example test1().
+Available catalogs: null
+Available repositories in catalog scratch: null
+Got a repository.
+Initialized repository.
+Got a connection.
+Cleared the connection.
+Repository scratch is up! It contains 0 statements.
+Starting example test2().
+Triple count before inserts: 0
+Added four triples.
+Triple count after inserts: 4
+(http://example.org/people/alice, http://example.org/ontology/name, "Alice") [null]
+(http://example.org/people/alice, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/ontology/Person) [null]
+(http://example.org/people/bob, http://example.org/ontology/name, "Bob") [null]
+(http://example.org/people/bob, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/ontology/Person) [null]
+Removed one triple.
+Triple count after deletion: 3
+Running test 3
+Starting example test1().
+Available catalogs: null
+Available repositories in catalog scratch: null
+Got a repository.
+Initialized repository.
+Got a connection.
+Cleared the connection.
+Repository scratch is up! It contains 0 statements.
+Starting example test2().
+Triple count before inserts: 0
+Added four triples.
+Triple count after inserts: 4
+(http://example.org/people/alice, http://example.org/ontology/name, "Alice") [null]
+(http://example.org/people/alice, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/ontology/Person) [null]
+(http://example.org/people/bob, http://example.org/ontology/name, "Bob") [null]
+(http://example.org/people/bob, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/ontology/Person) [null]
+Removed one triple.
+Triple count after deletion: 3
+http://example.org/people/alice http://example.org/ontology/name "Alice"
+http://example.org/people/alice http://www.w3.org/1999/02/22-rdf-syntax-ns#type http://example.org/ontology/Person
+http://example.org/people/bob http://www.w3.org/1999/02/22-rdf-syntax-ns#type http://example.org/ontology/Person
+http://example.org/people/bob http://example.org/ontology/name "Bob"
+Running test 4
+Starting example test1().
+Available catalogs: null
+Available repositories in catalog scratch: null
+Got a repository.
+Initialized repository.
+Got a connection.
+Cleared the connection.
+Repository scratch is up! It contains 0 statements.
+Starting example test2().
+Triple count before inserts: 0
+Added four triples.
+Triple count after inserts: 4
+(http://example.org/people/alice, http://example.org/ontology/name, "Alice") [null]
+(http://example.org/people/alice, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/ontology/Person) [null]
+(http://example.org/people/bob, http://example.org/ontology/name, "Bob") [null]
+(http://example.org/people/bob, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/ontology/Person) [null]
+Removed one triple.
+Triple count after deletion: 3
+(http://example.org/people/alice, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/ontology/Person) [null]
+(http://example.org/people/alice, http://example.org/ontology/name, "Alice") [null]
+Running test 5
+Starting example test1().
+Available catalogs: null
+Available repositories in catalog scratch: null
+Got a repository.
+Initialized repository.
+Got a connection.
+Cleared the connection.
+Repository scratch is up! It contains 0 statements.
+Starting example test2().
+Triple count before inserts: 0
+Added four triples.
+Triple count after inserts: 4
+(http://example.org/people/alice, http://example.org/ontology/name, "Alice") [null]
+(http://example.org/people/alice, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/ontology/Person) [null]
+(http://example.org/people/bob, http://example.org/ontology/name, "Bob") [null]
+(http://example.org/people/bob, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/ontology/Person) [null]
+Removed one triple.
+Triple count after deletion: 3
+Retrieve triples matching null.
+(http://example.org/people/alice, http://example.org/people/age, "42"^^<http://www.w3.org/2001/XMLSchema#int>) [null]
+(http://example.org/people/Ted, http://example.org/people/age, "42") [null]
+(http://example.org/people/alice, http://example.org/people/weight, "20.5") [null]
+(http://example.org/people/Ted, http://example.org/people/weight, "20.5"^^<http://www.w3.org/2001/XMLSchema#float>) [null]
+(http://example.org/people/alice, http://example.org/people/favoriteColor, "Red") [null]
+(http://example.org/people/Ted, http://example.org/people/favoriteColor, "Rouge"@fr) [null]
+(http://example.org/people/alice, http://example.org/people/birthdate, "1984-12-06"^^<http://www.w3.org/2001/XMLSchema#date>) [null]
+(http://example.org/people/Ted, http://example.org/people/birthdate, "1984-12-06T09:00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>) [null]
+Retrieve triples matching "42"^^<http://www.w3.org/2001/XMLSchema#int>.
+(http://example.org/people/alice, http://example.org/people/age, "42"^^<http://www.w3.org/2001/XMLSchema#int>) [null]
+Retrieve triples matching "42".
+(http://example.org/people/Ted, http://example.org/people/age, "42") [null]
+Retrieve triples matching "20.5"^^<http://www.w3.org/2001/XMLSchema#float>.
+(http://example.org/people/Ted, http://example.org/people/weight, "20.5"^^<http://www.w3.org/2001/XMLSchema#float>) [null]
+Retrieve triples matching "20.5".
+(http://example.org/people/alice, http://example.org/people/weight, "20.5") [null]
+Retrieve triples matching "Red".
+(http://example.org/people/alice, http://example.org/people/favoriteColor, "Red") [null]
+Retrieve triples matching "Rouge"@fr.
+(http://example.org/people/Ted, http://example.org/people/favoriteColor, "Rouge"@fr) [null]
+Query triples matching 42.
+  http://example.org/people/alice http://example.org/people/age "42"^^<http://www.w3.org/2001/XMLSchema#int>
+Query triples matching "42".
+  http://example.org/people/Ted http://example.org/people/age "42"
+Query triples matching 20.5.
+  http://example.org/people/Ted http://example.org/people/weight "20.5"^^<http://www.w3.org/2001/XMLSchema#float>
+Query triples matching "20.5".
+  http://example.org/people/alice http://example.org/people/weight "20.5"
+Query triples matching "20.5"^^xsd:float.
+  http://example.org/people/Ted http://example.org/people/weight "20.5"^^<http://www.w3.org/2001/XMLSchema#float>
+Query triples matching "Rouge"@fr.
+  http://example.org/people/Ted http://example.org/people/favoriteColor "Rouge"@fr
+Query triples matching "Rouge".
+Query triples matching "1984-12-06"^^xsd:date.
+Retrieve triples matching DATE object.
+(http://example.org/people/alice, http://example.org/people/birthdate, "1984-12-06"^^<http://www.w3.org/2001/XMLSchema#date>) [null]
+Match triples having a specific DATE value.
+tutorial/test6 and higher fail
