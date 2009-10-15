@@ -298,12 +298,40 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements 
 	 * AllegroGraph Extensions hereafter
 	 */
 	
-	public void registerFreetextPredicate(String predicate) throws RepositoryException {
+	public void registerFreetextPredicate(URI predicate) throws RepositoryException {
 		getHttpRepoClient().registerFreetextPredicate(predicate);
 	}
 
-	// TODO: return RepositoryResult<URI> ?
+	// TODO: return RepositoryResult<URI>?
 	public String[] getFreetextPredicates() throws RepositoryException {
 		return getHttpRepoClient().getFreetextPredicates();
 	}
+
+	public void registerPredicateMapping(URI predicate, URI datatype) throws RepositoryException {
+		getHttpRepoClient().registerPredicateMapping(predicate, datatype);
+	}
+	
+	// TODO: return RepositoryResult<Mapping>?
+	public String[] getPredicateMappings() throws RepositoryException {
+		return getHttpRepoClient().getPredicateMappings();
+	}
+	
+	public void registerDatatypeMapping(URI predicate, URI datatype) throws RepositoryException {
+		getHttpRepoClient().registerDatatypeMapping(predicate, datatype);
+	}
+	
+	// TODO: return RepositoryResult<Mapping>?
+	public String[] getDatatypeMappings() throws RepositoryException {
+		return getHttpRepoClient().getDatatypeMappings();
+	}
+	
+	public void addRules(String rules) throws RepositoryException {
+		getHttpRepoClient().addRules(rules);
+	}
+	
+	// TODO: specify RuleLanguage
+	public void addRules(InputStream rulestream) throws RepositoryException {
+		getHttpRepoClient().addRules(rulestream);
+	}
+	
 }

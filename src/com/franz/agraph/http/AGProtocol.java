@@ -121,6 +121,11 @@ public class AGProtocol extends Protocol {
 	public static final String FTI_PREDICATES = "predicates";
 	
 	/**
+	 * Parameter name for the 'on' parameter of autoCommit.
+	 */
+	public static final String FTI_PREDICATE_PARAM_NAME = "predicate";
+	
+	/**
 	 * Relative location of the mapping service.
 	 */
 	public static final String MAPPING = "mapping";
@@ -131,26 +136,62 @@ public class AGProtocol extends Protocol {
 	public static final String MAPPING_DATATYPE = "type";
 	
 	/**
-	 * Parameter name for the 'on' parameter of autoCommit.
+	 * Parameter name for the 'type' parameter for datatype mapping.
 	 */
 	public static final String TYPE_PARAM_NAME = "type";
 	
 	/**
-	 * Parameter name for the 'on' parameter of autoCommit.
+	 * Parameter name for the 'encodedType' parameter for mappings.
 	 */
-	public static final String PRIMITIVE_TYPE_PARAM_NAME = "primitiveType";
+	public static final String ENCODED_TYPE_PARAM_NAME = "encodedType";
 	
 	/**
 	 * Relative location of the predicate mapping service.
 	 */
 	public static final String MAPPING_PREDICATE = "predicate";
 	
+	/**
+	 * Relative location of the federated service.
+	 */
+	public static final String FEDERATED = "federated";
 	
 	/**
-	 * Location of the catalogs service
+	 * Parameter name for the 'url' parameter for federation.
 	 */
-	public static final String getCatalogsURL(String serverURL) {
+	public static final String URL_PARAM_NAME = "url";
+	
+	/**
+	 * Parameter name for the 'repo' parameter for federation
+	 */
+	public static final String REPO_PARAM_NAME = "repo";
+	
+	
+	/**
+	 * Location of the root catalog service
+	 */
+	public static final String getRootCatalogURL(String serverURL) {
+		return serverURL;
+	}
+	
+	/**
+	 * Location of the federated pseudo-catalog service
+	 */
+	public static final String getFederatedCatalogURL(String serverURL) {
+		return serverURL + "/" + FEDERATED;
+	}
+	
+	/**
+	 * Location of the named catalogs service
+	 */
+	public static final String getNamedCatalogsURL(String serverURL) {
 		return serverURL + "/" + CATALOGS;
+	}
+	
+	/**
+	 * Location of a named catalog
+	 */
+	public static final String getNamedCatalogLocation(String serverURL, String catalogName) {
+		return getNamedCatalogsURL(serverURL) + "/" + catalogName;
 	}
 	
 	/**
@@ -195,4 +236,30 @@ public class AGProtocol extends Protocol {
 	public static String getPredicateMappingLocation(String sessionRoot) {
 		return getMappingLocation(sessionRoot) + "/" + MAPPING_PREDICATE;
 	}
+	
+	public static String getFederatedLocation(String serverRoot) {
+		return serverRoot + "/" + FEDERATED;
+	}
+	
+	public static String getFederationLocation(String serverRoot, String federationName) {
+		return getFederatedLocation(serverRoot) + "/" + federationName;
+	}
+
+	public static String getFunctorLocation(String serverRoot) {
+		return serverRoot + "/" + FUNCTOR;
+	}
+
+	public static String getNamedCatalogRepositoriesLocation(String catalogURL) {
+		return catalogURL + "/" + REPOSITORIES;
+	}
+
+	public static String getRootCatalogRepositoriesLocation(String catalogURL) {
+		return catalogURL;
+	}
+
+	public static String getFederatedRepositoriesLocation(String catalogURL) {
+		// TODO Auto-generated method stub
+		return catalogURL;
+	}
+	
 }

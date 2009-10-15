@@ -18,6 +18,7 @@ public class AGRepository implements Repository {
 
 	private final AGCatalog catalog;
 	private final String repositoryID;
+	private final String catalogPrefixedRepositoryID;
 	private final String repositoryURL;
 	private final AGValueFactory vf;
 
@@ -31,7 +32,8 @@ public class AGRepository implements Repository {
 	public AGRepository(AGCatalog catalog, String repositoryID) {
 		this.catalog = catalog;
 		this.repositoryID = repositoryID;
-		repositoryURL = catalog.getCatalogURL() + "/" + AGProtocol.REPOSITORIES + "/" + repositoryID;
+		this.catalogPrefixedRepositoryID = catalog.getCatalogName() + ":" + repositoryID; // TODO: add to AGProtocol
+		repositoryURL = catalog.getRepositoryURL(repositoryID);
 		vf = new AGValueFactory(this);
 	}
 
@@ -43,6 +45,10 @@ public class AGRepository implements Repository {
 		return repositoryID;
 	}
 	
+	public String getCatalogPrefixedRepositoryID() {
+		return catalogPrefixedRepositoryID;
+	}
+
 	public String getRepositoryURL() {
 		return repositoryURL;
 	}

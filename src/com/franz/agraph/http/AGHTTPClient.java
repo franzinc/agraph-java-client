@@ -156,12 +156,13 @@ public class AGHTTPClient
 		}
 	}
 
-	public void put(String url, Header[] headers, RequestEntity requestEntity) throws IOException, AGHttpException, UnauthorizedException {
+	public void put(String url, Header[] headers, NameValuePair[] params, RequestEntity requestEntity) throws IOException, AGHttpException, UnauthorizedException {
 		PutMethod put = new PutMethod(url);
 		setDoAuthentication(put);
 		for (Header header : headers) {
 			put.addRequestHeader(header);
 		}
+		put.setQueryString(params);
 		if (requestEntity != null)
 			put.setRequestEntity(requestEntity);
 		try {
@@ -261,7 +262,8 @@ public class AGHTTPClient
 	public void putRepository(String repositoryURL) throws IOException,
 			RepositoryException, UnauthorizedException, AGHttpException {
 		Header[] headers = new Header[0];
-		put(repositoryURL,headers,null);
+		NameValuePair[] params = new NameValuePair[0];
+		put(repositoryURL,headers,params,null);
 	}
 
 	public void deleteRepository(String repositoryURL) throws IOException,
