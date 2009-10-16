@@ -290,7 +290,7 @@ public class TutorialExamples {
         conn.add(new File(path1), baseURI, RDFFormat.RDFXML, context);
         println("After loading, repository contains " + conn.size(context) +
                 " vcard triples in context '" + context + "'\n    and   " +
-                conn.size((Resource[])null) + " kennedy triples in context 'null'.");
+                conn.size((Resource)null) + " kennedy triples in context 'null'.");
         if (close) {
             conn.close();
             return null;
