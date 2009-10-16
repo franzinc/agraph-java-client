@@ -280,7 +280,7 @@ public class TutorialExamples {
         conn.clear();
         ValueFactory f = myRepository.getValueFactory();
         String path1 = "src/tutorial/vc-db-1.rdf";    
-        String path2 = "src/tutorial/football.nt";            
+        String path2 = "src/tutorial/kennedy.ntriples";            
         String baseURI = "http://example.org/example/local";
         Resource context = f.createURI("http://example.org#vcards");
         conn.setNamespace("vcd", "http://www.w3.org/2001/vcard-rdf/3.0#");
@@ -290,7 +290,7 @@ public class TutorialExamples {
         conn.add(new File(path1), baseURI, RDFFormat.RDFXML, context);
         println("After loading, repository contains " + conn.size(context) +
                 " vcard triples in context '" + context + "'\n    and   " +
-                conn.size() + " football triples in context 'null'.");
+                conn.size((Resource[])null) + " kennedy triples in context 'null'.");
         if (close) {
             conn.close();
             return null;
@@ -685,7 +685,7 @@ public class TutorialExamples {
         conn.setNamespace("kdy", "http://www.franz.com/simple#");
         conn.setNamespace("rltv", "http://www.franz.com/simple#");
 //        conn.setRuleLanguage(AGQueryLanguage.PROLOG);
-        String path = "./relative_rules.txt";
+        String path = "src/tutorial/relative_rules.txt";
         conn.addRules(new FileInputStream(path));
         String queryString = "(select (?person ?uncle) (uncle ?y ?x)(name ?x ?person)(name ?y ?uncle))";
         TupleQuery tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);

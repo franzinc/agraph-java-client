@@ -9,7 +9,6 @@ import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryException;
 
 import com.franz.agraph.http.AGHTTPClient;
-import com.franz.agraph.http.AGProtocol;
 
 /**
  *
@@ -32,7 +31,7 @@ public class AGRepository implements Repository {
 	public AGRepository(AGCatalog catalog, String repositoryID) {
 		this.catalog = catalog;
 		this.repositoryID = repositoryID;
-		this.catalogPrefixedRepositoryID = catalog.getCatalogName() + ":" + repositoryID; // TODO: add to AGProtocol
+		catalogPrefixedRepositoryID = catalog.getCatalogPrefixedRepositoryID(repositoryID);
 		repositoryURL = catalog.getRepositoryURL(repositoryID);
 		vf = new AGValueFactory(this);
 	}
@@ -48,7 +47,7 @@ public class AGRepository implements Repository {
 	public String getCatalogPrefixedRepositoryID() {
 		return catalogPrefixedRepositoryID;
 	}
-
+	
 	public String getRepositoryURL() {
 		return repositoryURL;
 	}

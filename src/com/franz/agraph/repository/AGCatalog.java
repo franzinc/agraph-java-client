@@ -70,6 +70,22 @@ public class AGCatalog {
 		return repositoriesURL;
 	}
 	
+	protected String getCatalogPrefixedRepositoryID(String repositoryID) {
+		String catalogPrefixedRepositoryID;
+		switch (getCatalogType()) {
+		case ROOT_CATALOG:
+			catalogPrefixedRepositoryID = repositoryID;
+			break;
+		case FEDERATED_CATALOG:
+		case NAMED_CATALOG:
+			catalogPrefixedRepositoryID = getCatalogName() + ":" + repositoryID;
+			break;
+		default:
+			throw new IllegalArgumentException("Invalid Catalog Type: "	+ catalogType);
+		}
+		return catalogPrefixedRepositoryID;
+	}
+
 	// TODO this should be part of AGProtocol.
 	public String getRepositoryURL(String repositoryID) {
 		return repositoriesURL + "/" + repositoryID;
