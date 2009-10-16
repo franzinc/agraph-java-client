@@ -5,6 +5,11 @@
 ;; (http://opensource.franz.com/preamble.html),
 ;; known as the LLGPL.
 
+;;
+;; WARNING: This agraph3 code is just experimental.
+;; com.franz.agraph is the current code, for AG 4.0
+;;
+
 ;; This lib wraps parts of com.franz.agbase, with
 ;; AllegroGraph 3.2, but this socket API is not
 ;; supported with 4.0.
@@ -13,7 +18,7 @@
 ;; To use, you need the agraph jar in the classpath.
 ;; (add-classpath "file:///.../agraph-fje-3.2/agraph-3-2.jar")
 
-(ns franz.agraph3.socket
+(ns com.franz.agraph3.socket
   (:import [com.franz.agbase AllegroGraphConnection AllegroGraph
             SPARQLQuery]))
 
@@ -67,7 +72,7 @@ Example: (with-agraph [conn {:port 4126}, ts (.open conn ts-name ds-dir)] (info 
   [[conn-sym {port :port}
     ts-sym init]
    & body]
-  `(with-openm [~conn-sym (connect ~port)
+  `(with-open2 [~conn-sym (connect ~port)
                 ~@(when ts-sym [ts-sym init])]
      ~@body))
 

@@ -5,13 +5,17 @@
 ;; (http://opensource.franz.com/preamble.html),
 ;; known as the LLGPL.
 
+;;
+;; WARNING: This agraph3 code is just experimental.
+;; com.franz.agraph is the current code, for AG 4.0
+;;
+
 ;; (add-classpath "file:///.../agraph-fje-3.2/agraph-3-2.jar")
 
 (ns com.franz.agraph3.socket-tutorial
   (:use [com.franz.agraph3.socket])
   (:import [com.franz.agbase AllegroGraphConnection AllegroGraph
-            SPARQLQuery])
-  )
+            SPARQLQuery]))
 
 (defn sparql-select
   [conn ds-dir]

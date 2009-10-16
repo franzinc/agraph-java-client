@@ -99,7 +99,6 @@
 
 ;;;; tests
 
-;; TODO: this fails
 (deftest catalog-scratch
   (is (some #{"scratch"} (map name (catalogs server)))))
 
@@ -134,10 +133,10 @@
         (test3)
         (test4)
         (test5)
-        (println "tutorial/test6 and higher failx")
+        (println "tutorial/test6 and higher fail")
         ;;(test-all)
         ))
-    (let [prevf (File. "./test/com/franz/agraph/tutorial.clj.out")]
+    (let [prevf (File. "./clojure/test/com/franz/agraph/tutorial.clj.out")]
       (is-each = (read-lines prevf) (read-lines outf)
                "line" (str (.getCanonicalPath prevf) " differs from "
                            (.getCanonicalPath outf))))))
@@ -153,9 +152,11 @@
       (let [out (PrintStream. outf)]
         (System/setOut out)
         (System/setErr out)
-        (TutorialExamples/main (into-array String (map str (range 1 6))))
-        (.println out "tutorial/test6 and higher fail")))
-    (let [prevf (File. "./test/com/franz/agraph/tutorial.java.out")]
+        ;(TutorialExamples/main (into-array String (map str (concat (range 1 16) [19]))))
+        (TutorialExamples/main (into-array String (map str (concat (range 1 5) (range 6 16) [19]))))
+        ;(TutorialExamples/main (into-array String (map str (concat [5]))))
+        ))
+    (let [prevf (File. "./clojure/test/com/franz/agraph/tutorial.java.out")]
       (is-each = (read-lines prevf) (read-lines outf)
                "line" (str (.getCanonicalPath prevf) " differs from "
                            (.getCanonicalPath outf))))))
