@@ -31,15 +31,16 @@ May be extended for differently named close methods."
   Calls close on all objects in open-stack, catches and prints any exceptions."
   [open-stack]
   (when (seq open-stack)
-    (try (close (first open-stack))
-         (catch Throwable e
-           (.printStackTrace e)))
+    (try
+      (close (first open-stack))
+      (catch Throwable e
+        (.printStackTrace e)))
     (recur (next open-stack))))
 
 (defn open
   "Register obj to be closed before the enclosing with-open exits.
-  Must be called within the context of with-open.
-  Returns the same obj."
+   Must be called within the context of with-open.
+   Returns the same obj."
   [obj]
   (when (and obj (not (some #{obj} *with-open-stack*)))
     (set! *with-open-stack* (conj *with-open-stack* obj)))

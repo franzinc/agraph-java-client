@@ -139,8 +139,8 @@
   (into-array Resource resources))
 
 (defn add!
-  "add a statement to a repository.
- Note: the openrdf java api for (.add) also supports adding files - see add-from!"
+  "Add a statement to a repository.
+   Note: the openrdf java api for (.add) also supports adding files; see add-from!"
   ([#^RepositoryConnection rcon
     subject
     #^URI predicate
@@ -163,11 +163,11 @@
   (doseq [st stmts] (add! rcon st contexts)))
 
 (defn add-from!
-  ;; different name from add! to make it less ambiguous
-  "add statements from a data file.
- See add!
- data: a File, InputStream, or URL.
- contexts: 0 or more Resource objects"
+  ;; Different name from add! to make it less ambiguous.
+  "Add statements from a data file.
+   See add!
+   data: a File, InputStream, or URL.
+   contexts: 0 or more Resource objects"
   [#^RepositoryConnection repos-conn
    data,
    #^String baseURI,
@@ -202,22 +202,24 @@
 
 (defn prepare-query!
   [#^Query query
-   {dataset :dataset
-    bindings :bindings
-    max-query-time :max-query-time
-    include-inferred :include-inferred}]
-  (when dataset (.setDataset query dataset))
-  (when-not (nil? include-inferred) (.setIncludeInferred query include-inferred)) 
-  (when max-query-time (.setMaxQueryTime query max-query-time))
-  (doseq [[name val] bindings] (.setSetBindings query name val)))
+   {:keys [dataset bindings max-query-time include-inferred]}]
+  (when dataset
+    (.setDataset query dataset))
+  (when-not (nil? include-inferred)
+    (.setIncludeInferred query include-inferred)) 
+  (when max-query-time
+    (.setMaxQueryTime query max-query-time))
+  (doseq [[#^String name val] bindings]
+    (.setSetBindings query name val)))
 
 (defn tuple-query
   "Returns a seq of maps (to-statement).
-  Must be called within a with-open2, and this will close the result seq.
-  qlang: QueryLanguage.
-  baseURI: optional.
-  bindings: optional, map of String names to Value objects.
-  prep: see prepare-query!."
+   Must be called within a with-open2, and this will close the result seq.
+  
+     qlang:    QueryLanguage.
+     baseURI:  optional.
+     bindings: optional, map of String names to Value objects.
+     prep:     see prepare-query!."
   [;#^RepositoryConnection
    rcon,
    qlang query
@@ -235,19 +237,16 @@
 
 (defn query-graph
   "Returns a seq of maps (to-statement).
-  Must be called within a with-open2, and this will close the result seq.
-  qlang: QueryLanguage.
-  baseURI: optional.
-  bindings: optional, map of String names to Value objects.
-  prep: see prepare-query!."
+   Must be called within a with-open2, and this will close the result seq.
+  
+     qlang:    QueryLanguage.
+     baseURI:  optional.
+     bindings: optional, map of String names to Value objects.
+     prep:     see prepare-query!."
   [;#^RepositoryConnection
    rcon,
    qlang query
-   {base-uri :base-uri
-    dataset :dataset
-    bindings :bindings
-    max-query-time :max-query-time
-    include-inferred :include-inferred
+   {:keys [base-uri dataset bindings max-query-time include-inferred]
     :as prep}]
   (let [q #^GraphQuery (if base-uri
                           (.prepareGraphQuery rcon qlang query base-uri)
@@ -257,18 +256,15 @@
 
 (defn query-boolean
   "Returns a boolean.
-  qlang: QueryLanguage.
-  baseURI: optional.
-  bindings: optional, map of String names to Value objects.
-  prep: see prepare-query!"
+  
+     qlang:    QueryLanguage.
+     baseURI:  optional.
+     bindings: optional, map of String names to Value objects.
+     prep:     see prepare-query!"
   [;#^RepositoryConnection
-   rcon,
+   rcon
    qlang query
-   {base-uri :base-uri
-    dataset :dataset
-    bindings :bindings
-    max-query-time :max-query-time
-    include-inferred :include-inferred,
+   {:keys [base-uri dataset bindings max-query-time include-inferred]
     :as prep}]
   (let [q #^BooleanQuery (if base-uri
                            (.prepareBooleanQuery rcon qlang query base-uri)
@@ -280,16 +276,17 @@
   "Returns a seq of maps (to-statement).
   Must be called within a with-open2, and this will close the result seq."
   [;#^RepositoryConnection
-   rcon,
-   #^Resource subj,
-   #^URI pred,
-   #^Value obj,
-   {#^Boolean include-inferred :include-inferred,
+   rcon
+   #^Resource subj
+   #^URI pred
+   #^Value obj
+   {#^Boolean include-inferred :include-inferred
     #^Boolean filter-dups :filter-dups}
    & contexts]
-  (let [#^RepositoryResult result (.getStatements rcon subj pred obj
-                                                  (if (nil? include-inferred) false include-inferred)
-                                                  (resource-array contexts))]
+  (let [#^RepositoryResult result
+        (.getStatements rcon subj pred obj
+                        (if (nil? include-inferred) false include-inferred)
+                        (resource-array contexts))]
     (open result)
     (when-not filter-dups (.enableDuplicateFilter result))
     (map to-statement (iteration-seq result))))
