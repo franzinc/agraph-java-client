@@ -61,10 +61,15 @@ May be extended for differently named close methods."
   Example: (with-open [] (... (open (FileReader. x))))"
   [bindings & body]
   `(binding [*with-open-stack* ()]
-     (let ~(into [] (apply concat (map (fn [[b v]]
-                                         (if (symbol? b)
-                                           [b `(open ~v)]
-                                           (throw (IllegalArgumentException. (str "with-open2: binding must be a symbol: " b)))))
-                                       (partition 2 bindings))))
-       (try ~@body
-            (finally (close-all *with-open-stack*))))))
+     (let ~(into []
+                 (mapcat (fn [[b v]]
+                           (if (symbol? b)
+                             [b `(open ~v)]
+                             (throw
+                               (IllegalArgumentException.
+                                 (str "with-open2: binding must be a symbol: " b)))))
+                         (partition 2 bindings)))
+       (try
+         ~@body
+         (finally
+           (close-all *with-open-stack*))))))
