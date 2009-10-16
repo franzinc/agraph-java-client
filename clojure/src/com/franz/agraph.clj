@@ -5,11 +5,13 @@
 ;; (http://opensource.franz.com/preamble.html),
 ;; known as the LLGPL.
 
-(ns com.franz.agraph
-  "Clojure client API to Franz AllegroGraph 4.0.
-  This API wraps the agraph-java-client API, which is an extension of the Sesame org.openrdf API.
-  Communication to server is through HTTP REST using JSON.
-  Uses the Franz Clojure wrapper of Sesame in com/franz/openrdf.clj."
+(ns 
+  #^{:author "Franz Inc <www.franz.com>, Mike Hinchey <mhinchey@franz.com>"
+     :doc "Clojure client API to Franz AllegroGraph 4.0.
+ This API wraps the agraph-java-client API, which is an extension of the Sesame org.openrdf API.
+ Communication with the server is through HTTP REST using JSON.
+ Uses the Franz Clojure wrapper of Sesame in com/franz/openrdf.clj."}
+  com.franz.agraph
   (:refer-clojure :exclude (name))
   (:import [clojure.lang Named]
            [com.franz.agraph.repository
@@ -22,8 +24,6 @@
            [org.openrdf.query QueryLanguage BindingSet Binding])
   (:use [clojure.contrib def]
         [com.franz util openrdf]))
-
-(alter-meta! *ns* assoc :author "Franz Inc <www.franz.com>, Mike Hinchey <mhinchey@franz.com>")
 
 (defmulti name
   "overrides clojure.core/name to make it an extensible method"
