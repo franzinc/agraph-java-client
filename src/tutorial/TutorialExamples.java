@@ -284,13 +284,13 @@ public class TutorialExamples {
         String baseURI = "http://example.org/example/local";
         Resource context = f.createURI("http://example.org#vcards");
         conn.setNamespace("vcd", "http://www.w3.org/2001/vcard-rdf/3.0#");
-        // read football triples into the null context:
-        conn.add(new File(path2), baseURI, RDFFormat.NTRIPLES);
         // read vcards triples into the context 'context':
         conn.add(new File(path1), baseURI, RDFFormat.RDFXML, context);
+        // read kennedy triples into the null context:
+        conn.add(new File(path2), baseURI, RDFFormat.NTRIPLES);
         println("After loading, repository contains " + conn.size(context) +
-                " vcard triples in context '" + context + "'\n    and   " +
-                conn.size((Resource)null) + " kennedy triples in context 'null'.");
+                " triples in context '" + context + "'\n    and " +
+                conn.size((Resource)null) + " triples in context 'null'.");
         if (close) {
             conn.close();
             return null;
@@ -489,7 +489,7 @@ public class TutorialExamples {
             int count = 0;
             while (result.hasNext()) {
                 BindingSet bindingSet = result.next();
-                if (count > 5) {
+                if (count < 5) {
                     println(bindingSet);
                 }
                 count += 1;
@@ -620,7 +620,7 @@ public class TutorialExamples {
         ValueFactory rf = redConn.getValueFactory();
         AGRepository greenRepo = catalog.createRepository("greenthings");
         greenRepo.initialize();
-        RepositoryConnection greenConn = redRepo.getConnection();
+        RepositoryConnection greenConn = greenRepo.getConnection();
         greenConn.clear();
         ValueFactory gf = greenConn.getValueFactory();
         AGServer server = myRepository.getCatalog().getServer();

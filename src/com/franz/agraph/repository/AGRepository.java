@@ -52,6 +52,10 @@ public class AGRepository implements Repository {
 		return repositoryURL;
 	}
 	
+	public boolean isFederation() {
+		return (AGCatalog.FEDERATED_CATALOG == getCatalog().getCatalogType());
+	}
+	
 	public AGValueFactory getValueFactory() {
 		return vf;
 	}
@@ -61,7 +65,7 @@ public class AGRepository implements Repository {
 	}
 	
 	public void initialize() throws RepositoryException {
-		vf.initialize();
+		if (!isFederation()) vf.initialize();
 		initialized = true;
 	}
 
