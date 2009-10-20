@@ -1079,7 +1079,7 @@ dedicated.add(new File(path1), baseURI, RDFFormat.NTRIPLES);
             // for choosing by editing this code
             choices.add(22);
         } else if (args[0].equals("all")) {
-            for (int i = 1; i <= 14; i++) {
+            for (int i = 1; i <= 19; i++) {
                 choices.add(i);
             }
         } else {
