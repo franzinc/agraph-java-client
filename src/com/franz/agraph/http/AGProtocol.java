@@ -141,9 +141,9 @@ public class AGProtocol extends Protocol {
 	public static final String TYPE_PARAM_NAME = "type";
 	
 	/**
-	 * Parameter name for the 'encodedType' parameter for mappings.
+	 * Parameter name for the 'encoding' parameter for mappings.
 	 */
-	public static final String ENCODED_TYPE_PARAM_NAME = "encodedType";
+	public static final String ENCODED_TYPE_PARAM_NAME = "encoding";
 	
 	/**
 	 * Relative location of the predicate mapping service.
