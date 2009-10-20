@@ -337,7 +337,7 @@ public class AGHttpRepoClient {
 			UnauthorizedException {
 		// Set Content-Length to -1 as we don't know it and we also don't want
 		// to cache
-		RequestEntity entity = new InputStreamRequestEntity(contents, -1,
+		RequestEntity entity = new InputStreamRequestEntity(contents, InputStreamRequestEntity.CONTENT_LENGTH_AUTO,
 				dataFormat.getDefaultMIMEType());
 		upload(entity, baseURI, overwrite, contexts);
 	}

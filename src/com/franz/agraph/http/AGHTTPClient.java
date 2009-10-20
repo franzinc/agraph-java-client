@@ -82,8 +82,9 @@ public class AGHTTPClient
 			post.addRequestHeader(header);
 		}
 		post.setQueryString(params);
-		if (requestEntity != null)
+		if (requestEntity != null) {
 			post.setRequestEntity(requestEntity);
+		}
 		try {
 			int httpCode = getHttpClient().executeMethod(post);
 			if (httpCode == HttpURLConnection.HTTP_OK) {

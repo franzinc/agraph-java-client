@@ -160,6 +160,7 @@ public class TutorialExamples {
      */
     public static void test4() throws RepositoryException {
         RepositoryConnection conn = test2(false);
+        closeBeforeExit(conn);
         Repository myRepository = conn.getRepository();
         URI alice = myRepository.getValueFactory().createURI("http://example.org/people/alice");
         RepositoryResult<Statement> statements = conn.getStatements(alice, null, null, false);
@@ -170,16 +171,17 @@ public class TutorialExamples {
             }
         } finally {
             statements.close();
+            myRepository.shutDown();
         }
-        conn.close();
-        myRepository.shutDown();
     }
 
     /**
      * Literal Values
      */
     public static void test5() throws Exception {
-        RepositoryConnection conn = test2(false);
+        RepositoryConnection conn = test1(false);
+        //RepositoryConnection conn = test2(false);
+        closeBeforeExit(conn);
         Repository myRepository = conn.getRepository();
         ValueFactory f = myRepository.getValueFactory();
         conn.clear();
@@ -192,13 +194,13 @@ public class TutorialExamples {
         URI ted = f.createURI(exns, "Ted");
         Literal red = f.createLiteral("Red");
         Literal rouge = f.createLiteral("Rouge", "fr");
-        Literal fortyTwo = f.createLiteral("42", XMLSchema.INT);
-        Literal fortyTwoInteger = f.createLiteral("42", XMLSchema.LONG);    
+        Literal fortyTwoInt = f.createLiteral("42", XMLSchema.INT);
+        Literal fortyTwoLong = f.createLiteral("42", XMLSchema.LONG);    
         Literal fortyTwoUntyped = f.createLiteral("42");
         Literal date = f.createLiteral("1984-12-06", XMLSchema.DATE);     
-        Literal time = f.createLiteral("1984-12-06T09:00:00", XMLSchema.DATETIME);         
-        Statement stmt1 = f.createStatement(alice, age, fortyTwo);
-        Statement stmt2 = f.createStatement(ted, age, fortyTwoUntyped);    
+        Literal time = f.createLiteral("1984-12-06T09:00:00", XMLSchema.DATETIME);
+        Statement stmt1 = f.createStatement(alice, age, fortyTwoInt);
+        Statement stmt2 = f.createStatement(ted, age, fortyTwoUntyped);
         conn.add(stmt1);
         conn.add(stmt2);
         conn.add(alice, weight, f.createLiteral("20.5"));
@@ -206,8 +208,9 @@ public class TutorialExamples {
         conn.add(alice, favoriteColor, red);
         conn.add(ted, favoriteColor, rouge);
         conn.add(alice, birthdate, date);
-        conn.add(ted, birthdate, time);    
-        for (Literal obj : new Literal[] {null, fortyTwo, fortyTwoUntyped, f.createLiteral("20.5",
+        conn.add(ted, birthdate, time);
+        println("Size=" + conn.size());
+        for (Literal obj : new Literal[] {null, fortyTwoInt, fortyTwoUntyped, f.createLiteral("20.5",
                                           XMLSchema.FLOAT), f.createLiteral("20.5"),
                     red, rouge}) {
             println( "Retrieve triples matching " + obj + ".");
@@ -264,7 +267,6 @@ public class TutorialExamples {
                 statements.close();
             }
         }
-        conn.close();
         myRepository.shutDown();
     }
     
@@ -277,10 +279,13 @@ public class TutorialExamples {
         AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);
         myRepository.initialize();
         AGRepositoryConnection conn = myRepository.getConnection();
+        if (close) {
+            closeBeforeExit(conn);
+        }
         conn.clear();
         ValueFactory f = myRepository.getValueFactory();
-        String path1 = "src/tutorial/vc-db-1.rdf";    
-        String path2 = "src/tutorial/kennedy.ntriples";            
+        String path1 = "src/tutorial/vc-db-1.rdf";
+        String path2 = "src/tutorial/kennedy.ntriples";
         String baseURI = "http://example.org/example/local";
         Resource context = f.createURI("http://example.org#vcards");
         conn.setNamespace("vcd", "http://www.w3.org/2001/vcard-rdf/3.0#");
@@ -290,9 +295,8 @@ public class TutorialExamples {
         conn.add(new File(path2), baseURI, RDFFormat.NTRIPLES);
         println("After loading, repository contains " + conn.size(context) +
                 " triples in context '" + context + "'\n    and " +
-                conn.size((Resource)null) + " triples in context 'null'.");
+                conn.size() + " triples in context 'null'.");
         if (close) {
-            conn.close();
             return null;
         }
         return conn;
@@ -616,17 +620,20 @@ public class TutorialExamples {
         AGRepository redRepo = catalog.createRepository("redthings");
         redRepo.initialize();
         RepositoryConnection redConn = redRepo.getConnection();
+        closeBeforeExit(redConn);
         redConn.clear();
         ValueFactory rf = redConn.getValueFactory();
         AGRepository greenRepo = catalog.createRepository("greenthings");
         greenRepo.initialize();
         RepositoryConnection greenConn = greenRepo.getConnection();
+        closeBeforeExit(greenConn);
         greenConn.clear();
         ValueFactory gf = greenConn.getValueFactory();
         AGServer server = myRepository.getCatalog().getServer();
         AGRepository rainbowRepo = server.createFederation("rainbowthings",redRepo, greenRepo);
         rainbowRepo.initialize();
         RepositoryConnection rainbowConn = rainbowRepo.getConnection();
+        closeBeforeExit(rainbowConn);
         String ex = "http://www.demo.com/example#";
         // add a few triples to the red and green stores:
         redConn.add(rf.createURI(ex+"mcintosh"), RDF.TYPE, rf.createURI(ex+"Apple"));
@@ -1075,11 +1082,12 @@ dedicated.add(new File(path1), baseURI, RDFFormat.NTRIPLES);
      */
     public static void main(String[] args) throws Exception {
         List<Integer> choices = new ArrayList<Integer>();
+        //args = new String[] {"6"};
         if (args.length == 0) {
             // for choosing by editing this code
-            choices.add(22);
+            choices.add(6);
         } else if (args[0].equals("all")) {
-            for (int i = 1; i <= 14; i++) {
+            for (int i = 1; i <= 19; i++) {
                 choices.add(i);
             }
         } else {
@@ -1095,10 +1103,10 @@ dedicated.add(new File(path1), baseURI, RDFFormat.NTRIPLES);
                 case 2: test2(true); break;            
                 case 3: test3(); break;            
                 case 4: test4(); break;                        
-                case 5: test5(); break;                                    
-                case 6: test6(true); break;    
+                case 5: test5(); break;
+                case 6: test6(true); break;
                 case 7: test7(); break;
-                case 8: test8(); break;            
+                case 8: test8(); break;
                 case 9: test9(); break;    
                 case 10: test10(); break;
                 case 11: test11(); break;            
@@ -1115,14 +1123,13 @@ dedicated.add(new File(path1), baseURI, RDFFormat.NTRIPLES);
                 case 22: test22(); break;                        
                 default: throw new IllegalArgumentException("There is no test " + choice);
                 }
+                closeAll();
             }
         } finally {
-            for (AGRepositoryConnection conn : toClose) {
-                close(conn);
-            }
+            closeAll();
         }
     }
-    
+
     public static void println(Object x) {
         System.out.println(x);
     }
@@ -1144,7 +1151,7 @@ dedicated.add(new File(path1), baseURI, RDFFormat.NTRIPLES);
         rows.close();
     }
 
-    static void close(AGRepositoryConnection conn) {
+    static void close(RepositoryConnection conn) {
         try {
             conn.close();
         } catch (Exception e) {
@@ -1153,13 +1160,21 @@ dedicated.add(new File(path1), baseURI, RDFFormat.NTRIPLES);
         }
     }
     
-    private static List<AGRepositoryConnection> toClose = new ArrayList<AGRepositoryConnection>();
+    private static List<RepositoryConnection> toClose = new ArrayList<RepositoryConnection>();
     
     /**
      * This is just a quick mechanism to make sure all connections get closed.
      */
-    private static void closeBeforeExit(AGRepositoryConnection conn) {
+    private static void closeBeforeExit(RepositoryConnection conn) {
         toClose.add(conn);
+    }
+    
+    private static void closeAll() {
+        while (toClose.isEmpty() == false) {
+            RepositoryConnection conn = toClose.get(0);
+            close(conn);
+            while (toClose.remove(conn)) {}
+        }
     }
     
 }
