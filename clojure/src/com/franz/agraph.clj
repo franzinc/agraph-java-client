@@ -5,13 +5,11 @@
 ;; (http://opensource.franz.com/preamble.html),
 ;; known as the LLGPL.
 
-(ns 
-  #^{:author "Franz Inc <www.franz.com>, Mike Hinchey <mhinchey@franz.com>"
-     :doc "Clojure client API to Franz AllegroGraph 4.0.
+(ns com.franz.agraph
+  "Clojure client API to Franz AllegroGraph 4.0.
  This API wraps the agraph-java-client API, which is an extension of the Sesame org.openrdf API.
  Communication with the server is through HTTP REST using JSON.
- Uses the Franz Clojure wrapper of Sesame in com/franz/openrdf.clj."}
-  com.franz.agraph
+ Uses the Franz Clojure wrapper of Sesame in com/franz/openrdf.clj."
   (:refer-clojure :exclude (name))
   (:import [clojure.lang Named]
            [com.franz.agraph.repository
@@ -24,6 +22,8 @@
            [org.openrdf.query QueryLanguage BindingSet Binding])
   (:use [clojure.contrib def]
         [com.franz util openrdf]))
+
+(alter-meta! *ns* assoc :author "Franz Inc <www.franz.com>, Mike Hinchey <mhinchey@franz.com>")
 
 (defmulti name
   "Shadows clojure.core/name to make it an extensible method."
@@ -48,16 +48,19 @@
 ;;      (AGServer. host port)))
 
 (defn catalogs
-  "Returns a seq of strings, each of which names a catalog."
-  [#^AGServer connection]
-  (seq (.listCatalogs connection)))
+  "Returns a seq of AGCatalogs objects."
+  [#^AGServer server]
+  (seq (.listCatalogs server)))
 
 (defn open-catalog
-  [connection name]
-  (.getCatalog connection name))
+  "Returns an AGCatalog."
+  {:tag AGCatalog}
+  [#^AGServer server name]
+  (.getCatalog server name))
 
 (defn repositories
-  [catalog]
+  "Returns a seq of AGRepository objects."
+  [#^AGCatalog catalog]
   (seq (.getAllRepositories catalog)))
 
 ;; (def #^{:private true} -access-verbs
@@ -71,7 +74,7 @@
 
 (defn repository
   "access-verb must be a keyword from the set of access-verbs."
-  [catalog name access-verb]
+  [#^AGCatalog catalog name access-verb]
   (open (.createRepository catalog #^String name
                            ;; TODO: (-access-verbs access-verb)
                            )))

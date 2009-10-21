@@ -38,19 +38,19 @@
 
 (let [convert-keys {"s" :s "o" :o "p" :p}]
   (defmethod to-statement BindingSet
-    [bset]
+    [#^BindingSet bset]
     #^{:type :statement}
     (loop [binds (iterator-seq (.iterator bset))
            result {}]
       (if (seq binds)
-        (let [#^Binding b #^Binding (first binds)]
+        (let [#^Binding b (first binds)]
           (recur (next binds)
                  (assoc result (get convert-keys (.getName b) (.getName b))
                         (.getValue b))))
         result))))
 
 (defmethod to-statement Statement
-  [obj]
+  [#^Statement obj]
   #^{:type :statement}
   (if (.getContext obj)
     (struct statement4
@@ -108,7 +108,7 @@
        (doseq [[#^String prefix #^String name] namespaces]
          (.setNamespace rcon prefix name))
        (when-not (nil? auto-commit)
-         (.setAutoCommit auto-commit))
+         (.setAutoCommit rcon #^Boolean auto-commit))
        rcon)))
 
 (defn repo-init
@@ -116,6 +116,10 @@
   [#^Repository repo]
   (.initialize repo)
   repo)
+
+(defn value-factory
+  [#^Repository repo]
+  (.getValueFactory repo))
 
 (defn literal
   {:tag Literal}
@@ -142,7 +146,7 @@
   "Add a statement to a repository.
    Note: the openrdf java api for (.add) also supports adding files; see add-from!"
   ([#^RepositoryConnection rcon
-    subject
+    #^Resource subject
     #^URI predicate
     #^Value object
     ;; TODO: how to pass contexts consistently?
@@ -196,10 +200,6 @@
    & contexts]
   (. repo-con (size (resource-array contexts))))
 
-(defn- assert-arg
-  [arg msg]
-  (when-not arg (throw (new IllegalArgumentException msg))))
-
 (defn prepare-query!
   [#^Query query
    {:keys [dataset bindings max-query-time include-inferred]}]
@@ -222,7 +222,8 @@
      prep:     see prepare-query!."
   [;#^RepositoryConnection
    rcon,
-   qlang query
+   qlang
+   query
    {base-uri :base-uri
     dataset :dataset
     bindings :bindings
@@ -230,8 +231,8 @@
     include-inferred :include-inferred
     :as prep}]
   (let [#^TupleQuery q (if base-uri
-                         (.prepareTupleQuery rcon qlang query base-uri)
-                         (.prepareTupleQuery rcon qlang query))]
+                         (.prepareTupleQuery #^RepositoryConnection rcon qlang query base-uri)
+                         (.prepareTupleQuery #^RepositoryConnection rcon qlang query))]
     (prepare-query! q prep)
     (map to-statement (iteration-seq (open (.evaluate q))))))
 
@@ -249,8 +250,8 @@
    {:keys [base-uri dataset bindings max-query-time include-inferred]
     :as prep}]
   (let [q #^GraphQuery (if base-uri
-                          (.prepareGraphQuery rcon qlang query base-uri)
-                          (.prepareGraphQuery rcon qlang query))]
+                          (.prepareGraphQuery #^RepositoryConnection rcon qlang query base-uri)
+                          (.prepareGraphQuery #^RepositoryConnection rcon qlang query))]
     (prepare-query! q prep)
     (map to-statement (iteration-seq (open (.evaluate q))))))
 
@@ -267,8 +268,8 @@
    {:keys [base-uri dataset bindings max-query-time include-inferred]
     :as prep}]
   (let [q #^BooleanQuery (if base-uri
-                           (.prepareBooleanQuery rcon qlang query base-uri)
-                           (.prepareBooleanQuery rcon qlang query))]
+                           (.prepareBooleanQuery #^RepositoryConnection rcon qlang query base-uri)
+                           (.prepareBooleanQuery #^RepositoryConnection rcon qlang query))]
     (prepare-query! q prep)
     ((.evaluate q))))
 

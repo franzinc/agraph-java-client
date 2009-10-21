@@ -33,6 +33,7 @@
            [org.openrdf.rio.ntriples NTriplesWriter]
            [org.openrdf.rio.rdfxml RDFXMLWriter]
            [org.openrdf.sail.memory MemoryStore]
+           [org.openrdf.repository RepositoryConnection]
            [org.openrdf.repository.sail SailRepository]
            )
   (:use [clojure.contrib def test-is]
@@ -48,20 +49,21 @@
 
 (declare server cat repo rcon vf)
 
-(defn with-agraph-server
+(defn with-agraph-test
   [f]
   (with-agraph [server1 *connection-params*
                 cat1 *catalog-id*
                 repo1 {:name *catalog-id* :access :renew}
                 rcon1]
+    (repo-size rcon1) ;; ensures the connection is really open
     (binding [server server1
               cat cat1
               repo repo1
               rcon rcon1
-              vf (.getValueFactory repo1)]
+              vf (value-factory repo1)]
       (f))))
 
-(use-fixtures :once with-agraph-server)
+(use-fixtures :once with-agraph-test)
 
 ;; to make sure any other opened things get closed with each test
 (use-fixtures :each (fn with-open2f [f]
@@ -72,10 +74,10 @@
   Example: (run-test catalog-scratch-repos)"
   [f]
   (binding [*test-out* *out*]
-    (with-agraph-server f)))
+    (with-agraph-test f)))
 
 (defn read-lines
-  [f]
+  [#^File f]
   (line-seq (open (BufferedReader. (open (FileReader. f))))))
 
 (defn test-not-each
@@ -204,7 +206,7 @@
               cat nil
               repo mem
               rcon (repo-connection mem)
-              vf (.getValueFactory mem)]
+              vf (value-factory mem)]
       (tutorial-test2-3))))
 
 (defn tutorial-test5
@@ -255,6 +257,6 @@
                               cat nil
                               repo mem
                               rcon (repo-connection mem)
-                              vf (.getValueFactory mem)]
+                              vf (value-factory mem)]
                       (tutorial-test5))]
     (is-each = ag-results mem-results "row" nil)))
