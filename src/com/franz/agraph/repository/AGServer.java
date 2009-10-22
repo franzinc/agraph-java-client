@@ -27,7 +27,7 @@ public class AGServer {
 		httpClient.setUsernameAndPassword(username, password);
 		rootCatalog = new AGCatalog(this,AGCatalog.ROOT_CATALOG);
 		federatedCatalog = new AGCatalog(this,AGCatalog.FEDERATED_CATALOG);
-		}
+	}
 	
 	public String getServerURL() {
 		return serverURL;

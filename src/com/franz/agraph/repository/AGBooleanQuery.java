@@ -25,13 +25,13 @@ public class AGBooleanQuery extends AGQuery implements BooleanQuery {
 					queryLanguage, queryString, dataset, includeInferred,
 					getBindingsArray());
 		} catch (HttpException e) {
-			new QueryEvaluationException(e);
+			throw new QueryEvaluationException(e);
 		} catch (RepositoryException e) {
-			new QueryEvaluationException(e);
+			throw new QueryEvaluationException(e);
 		} catch (RDFParseException e) {
-			new QueryEvaluationException(e);
+			throw new QueryEvaluationException(e);
 		} catch (IOException e) {
-			new QueryEvaluationException(e);
+			throw new QueryEvaluationException(e);
 		}
 		return handler.getBoolean();
 	}

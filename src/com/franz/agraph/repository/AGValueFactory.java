@@ -52,7 +52,6 @@ public class AGValueFactory extends ValueFactoryImpl {
 		try {
 			id = getNextBNodeId();
 		} catch (RepositoryException e) {
-			e.printStackTrace();
 			throw new IllegalStateException(e);
 		}
 		return NTriplesUtil.parseBNode(id, this);
