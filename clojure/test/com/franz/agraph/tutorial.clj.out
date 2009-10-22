@@ -146,4 +146,4 @@ Query triples matching "Rouge"@fr .
 {:o "Rouge"@fr, :p http://example.org/people/favoriteColor, :s http://example.org/people/Ted}
 Query triples matching "Rouge" .
 Query triples matching "1984-12-06"^^xsd:date .
-tutorial/test6 and higher failx
+tutorial/test6 and higher fail

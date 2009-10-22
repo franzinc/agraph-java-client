@@ -24,7 +24,6 @@
            [com.franz.agraph.repository
             AGCatalog AGQueryLanguage AGRepository
             AGRepositoryConnection AGServer AGValueFactory]
-           [tutorial TutorialExamples]
            [org.openrdf.model ValueFactory Resource Literal]
            [org.openrdf.model.vocabulary RDF XMLSchema]
            [org.openrdf.query QueryLanguage]
@@ -37,7 +36,7 @@
            [org.openrdf.repository.sail SailRepository]
            )
   (:use [clojure.contrib def test-is]
-        [com.franz util openrdf agraph]
+        [com.franz util openrdf agraph test]
         [com.franz.agraph tutorial]))
 
 (alter-meta! *ns* assoc :author "Franz Inc <www.franz.com>, Mike Hinchey <mhinchey@franz.com>")
@@ -66,8 +65,7 @@
 (use-fixtures :once with-agraph-test)
 
 ;; to make sure any other opened things get closed with each test
-(use-fixtures :each (fn with-open2f [f]
-                      (with-open2 [] (f))))
+(use-fixtures :each with-open2f)
 
 (defn run-test
   "run a single test function
@@ -75,29 +73,6 @@
   [f]
   (binding [*test-out* *out*]
     (with-agraph-test f)))
-
-(defn read-lines
-  [#^File f]
-  (line-seq (open (BufferedReader. (open (FileReader. f))))))
-
-(defn test-not-each
-  "Intended to be used only from is-each.
-  Returns nil if pred is true for every pair in col1 and col2, else return a nice message for is."
-  [pred col1 col2 each-name msg]
-  (loop [col1 col1
-         col2 col2
-         i 0]
-    (let [a (first col1)
-          b (first col2)]
-      (cond (and (nil? col1) (nil? col2)) nil
-            (pred a b) (recur (next col1) (next col2) (inc i))
-            :else [(str each-name "#" i " ") (list a b) msg]))))
-
-(defmacro is-each
-  "Test pred on interleaved pairs from col1 and col1, Fail on the first that is not pred."
-  ;; because reporting the entire set of pairs is to much info
-  [pred col1 col2 each-name msg]
-  `(is (not (test-not-each ~pred ~col1 ~col2 ~each-name ~msg))))
 
 ;;;; tests
 
@@ -110,58 +85,6 @@
 (deftest catalog-scratch-repo-clear
   (clear! rcon)
   (is (= 0 (repo-size rcon))))
-
-(deftest tutorial-output-clj
-  ;;; Captures output from tutorial and compares to saved previous
-  ;;; output. If changes to output are good, copy the tmp file to
-  ;;; test/tutorial.clj.out, and commit.
-  (clear! rcon)
-  (let [outf (File/createTempFile "agraph-tutorial.clj-" ".out")
-        server1 server
-        cat1 cat
-        repo1 repo
-        rcon1 rcon]
-    (println "Writing tutorial output to: " outf)
-    (with-open2 []
-      (binding [*out* (open (FileWriter. outf))
-                ag-server (fn [url u p] server1)
-                open-catalog (fn [c ct] cat1)
-                repository (fn [cat name access] repo1)
-                repo-init (fn [r] r)
-                ;repo-connection (fn [r args] rcon1)
-                ]
-        (test1)
-        (test2)
-        (test3)
-        (test4)
-        (test5)
-        (println "tutorial/test6 and higher fail")
-        ;;(test-all)
-        ))
-    (let [prevf (File. "./clojure/test/com/franz/agraph/tutorial.clj.out")]
-      (is-each = (read-lines prevf) (read-lines outf)
-               "line" (str (.getCanonicalPath prevf) " differs from "
-                           (.getCanonicalPath outf))))))
-
-(deftest tutorial-output-java
-  ;;; Captures output from tutorial and compares to saved previous
-  ;;; output. If changes to output are good, copy the tmp file to
-  ;;; test/tutorial.clj.out, and commit.
-  (clear! rcon)
-  (let [outf (File/createTempFile "agraph-tutorial.java-" ".out")]
-    (println "Writing tutorial output to: " outf)
-    (with-open2 []
-      (let [out (PrintStream. outf)]
-        (System/setOut out)
-        (System/setErr out)
-        ;(TutorialExamples/main (into-array String (map str (concat (range 1 16) [19]))))
-        (TutorialExamples/main (into-array String (map str (concat (range 1 5) (range 6 16) [19]))))
-        ;(TutorialExamples/main (into-array String (map str (concat [5]))))
-        ))
-    (let [prevf (File. "./clojure/test/com/franz/agraph/tutorial.java.out")]
-      (is-each = (read-lines prevf) (read-lines outf)
-               "line" (str (.getCanonicalPath prevf) " differs from "
-                           (.getCanonicalPath outf))))))
 
 (deftest tutorial-test2-3
   (clear! rcon)
