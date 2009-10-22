@@ -44,4 +44,31 @@
       </manifest>
     </jar>
   </target>
+
+  <macrodef name="run-java"
+            description="Run java class">
+      <attribute name="tasknamex" default="java"/>
+      <attribute name="classname"/>
+      <attribute name="arg"/>
+      <sequential>
+          <java classname="@{classname}" failonerror="true" taskname="@{tasknamex}"
+                fork="true">
+              <sysproperty key="org.apache.commons.logging.Log"
+                           value="org.apache.commons.logging.impl.NoOpLog"/>
+              <classpath>
+                  <path refid="classpath"/>
+                  <path location="classes"/>
+              </classpath>
+              <arg value="@{arg}"/>
+          </java>
+      </sequential>
+  </macrodef>
+
+  <target name="tutorial"
+          depends="compile_java"
+          description="Run tutorial example. Use -Dexample=5 for a specific example, default is all">
+      <property name="example" value="all"/>
+      <run-java tasknamex="tutorial" classname="tutorial.TutorialExamples" arg="${example}"/>
+  </target>
+
 </project>
