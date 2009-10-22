@@ -532,17 +532,19 @@ public class AGHttpRepoClient {
 		if (dataset != null) {
 			for (URI defaultGraphURI : dataset.getDefaultGraphs()) {
 				String param=Protocol.NULL_PARAM_VALUE;
-				if (defaultGraphURI!=null) {
+				if (defaultGraphURI==null) {
+					queryParams.add(new NameValuePair(Protocol.CONTEXT_PARAM_NAME, param));
+				} else {
 					param = defaultGraphURI.toString();
+					queryParams.add(new NameValuePair(Protocol.DEFAULT_GRAPH_PARAM_NAME, param));
 				}
-				queryParams.add(new NameValuePair(Protocol.DEFAULT_GRAPH_PARAM_NAME, param));
 			}
 			for (URI namedGraphURI : dataset.getNamedGraphs()) {
 				queryParams.add(new NameValuePair(
 						Protocol.NAMED_GRAPH_PARAM_NAME, namedGraphURI
 								.toString()));
 			}
-		} // TODO: no else here assumes AG's default dataset matches Sesame's, check this.
+		} // TODO: no else clause here assumes AG's default dataset matches Sesame's, confirm this.
 
 		for (int i = 0; i < bindings.length; i++) {
 			String paramName = Protocol.BINDING_PREFIX + bindings[i].getName();
