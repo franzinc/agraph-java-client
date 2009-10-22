@@ -38,19 +38,19 @@
 
 (let [convert-keys {"s" :s "o" :o "p" :p}]
   (defmethod to-statement BindingSet
-    [bset]
+    [#^BindingSet bset]
     #^{:type :statement}
     (loop [binds (iterator-seq (.iterator bset))
            result {}]
       (if (seq binds)
-        (let [#^Binding b #^Binding (first binds)]
+        (let [#^Binding b (first binds)]
           (recur (next binds)
                  (assoc result (get convert-keys (.getName b) (.getName b))
                         (.getValue b))))
         result))))
 
 (defmethod to-statement Statement
-  [obj]
+  [#^Statement obj]
   #^{:type :statement}
   (if (.getContext obj)
     (struct statement4
@@ -108,7 +108,7 @@
        (doseq [[#^String prefix #^String name] namespaces]
          (.setNamespace rcon prefix name))
        (when-not (nil? auto-commit)
-         (.setAutoCommit auto-commit))
+         (.setAutoCommit rcon #^Boolean auto-commit))
        rcon)))
 
 (defn repo-init
@@ -116,6 +116,10 @@
   [#^Repository repo]
   (.initialize repo)
   repo)
+
+(defn value-factory
+  [#^Repository repo]
+  (.getValueFactory repo))
 
 (defn literal
   {:tag Literal}
@@ -139,10 +143,10 @@
   (into-array Resource resources))
 
 (defn add!
-  "add a statement to a repository.
- Note: the openrdf java api for (.add) also supports adding files - see add-from!"
+  "Add a statement to a repository.
+   Note: the openrdf java api for (.add) also supports adding files; see add-from!"
   ([#^RepositoryConnection rcon
-    subject
+    #^Resource subject
     #^URI predicate
     #^Value object
     ;; TODO: how to pass contexts consistently?
@@ -163,11 +167,11 @@
   (doseq [st stmts] (add! rcon st contexts)))
 
 (defn add-from!
-  ;; different name from add! to make it less ambiguous
-  "add statements from a data file.
- See add!
- data: a File, InputStream, or URL.
- contexts: 0 or more Resource objects"
+  ;; Different name from add! to make it less ambiguous.
+  "Add statements from a data file.
+   See add!
+   data: a File, InputStream, or URL.
+   contexts: 0 or more Resource objects"
   [#^RepositoryConnection repos-conn
    data,
    #^String baseURI,
@@ -196,31 +200,30 @@
    & contexts]
   (. repo-con (size (resource-array contexts))))
 
-(defn- assert-arg
-  [arg msg]
-  (when-not arg (throw (new IllegalArgumentException msg))))
-
 (defn prepare-query!
   [#^Query query
-   {dataset :dataset
-    bindings :bindings
-    max-query-time :max-query-time
-    include-inferred :include-inferred}]
-  (when dataset (.setDataset query dataset))
-  (when-not (nil? include-inferred) (.setIncludeInferred query include-inferred)) 
-  (when max-query-time (.setMaxQueryTime query max-query-time))
-  (doseq [[name val] bindings] (.setSetBindings query name val)))
+   {:keys [dataset bindings max-query-time include-inferred]}]
+  (when dataset
+    (.setDataset query dataset))
+  (when-not (nil? include-inferred)
+    (.setIncludeInferred query include-inferred)) 
+  (when max-query-time
+    (.setMaxQueryTime query max-query-time))
+  (doseq [[#^String name val] bindings]
+    (.setSetBindings query name val)))
 
 (defn tuple-query
   "Returns a seq of maps (to-statement).
-  Must be called within a with-open2, and this will close the result seq.
-  qlang: QueryLanguage.
-  baseURI: optional.
-  bindings: optional, map of String names to Value objects.
-  prep: see prepare-query!."
+   Must be called within a with-open2, and this will close the result seq.
+  
+     qlang:    QueryLanguage.
+     baseURI:  optional.
+     bindings: optional, map of String names to Value objects.
+     prep:     see prepare-query!."
   [;#^RepositoryConnection
    rcon,
-   qlang query
+   qlang
+   query
    {base-uri :base-uri
     dataset :dataset
     bindings :bindings
@@ -228,51 +231,45 @@
     include-inferred :include-inferred
     :as prep}]
   (let [#^TupleQuery q (if base-uri
-                         (.prepareTupleQuery rcon qlang query base-uri)
-                         (.prepareTupleQuery rcon qlang query))]
+                         (.prepareTupleQuery #^RepositoryConnection rcon qlang query base-uri)
+                         (.prepareTupleQuery #^RepositoryConnection rcon qlang query))]
     (prepare-query! q prep)
     (map to-statement (iteration-seq (open (.evaluate q))))))
 
 (defn query-graph
   "Returns a seq of maps (to-statement).
-  Must be called within a with-open2, and this will close the result seq.
-  qlang: QueryLanguage.
-  baseURI: optional.
-  bindings: optional, map of String names to Value objects.
-  prep: see prepare-query!."
+   Must be called within a with-open2, and this will close the result seq.
+  
+     qlang:    QueryLanguage.
+     baseURI:  optional.
+     bindings: optional, map of String names to Value objects.
+     prep:     see prepare-query!."
   [;#^RepositoryConnection
    rcon,
    qlang query
-   {base-uri :base-uri
-    dataset :dataset
-    bindings :bindings
-    max-query-time :max-query-time
-    include-inferred :include-inferred
+   {:keys [base-uri dataset bindings max-query-time include-inferred]
     :as prep}]
   (let [q #^GraphQuery (if base-uri
-                          (.prepareGraphQuery rcon qlang query base-uri)
-                          (.prepareGraphQuery rcon qlang query))]
+                          (.prepareGraphQuery #^RepositoryConnection rcon qlang query base-uri)
+                          (.prepareGraphQuery #^RepositoryConnection rcon qlang query))]
     (prepare-query! q prep)
     (map to-statement (iteration-seq (open (.evaluate q))))))
 
 (defn query-boolean
   "Returns a boolean.
-  qlang: QueryLanguage.
-  baseURI: optional.
-  bindings: optional, map of String names to Value objects.
-  prep: see prepare-query!"
+  
+     qlang:    QueryLanguage.
+     baseURI:  optional.
+     bindings: optional, map of String names to Value objects.
+     prep:     see prepare-query!"
   [;#^RepositoryConnection
-   rcon,
+   rcon
    qlang query
-   {base-uri :base-uri
-    dataset :dataset
-    bindings :bindings
-    max-query-time :max-query-time
-    include-inferred :include-inferred,
+   {:keys [base-uri dataset bindings max-query-time include-inferred]
     :as prep}]
   (let [q #^BooleanQuery (if base-uri
-                           (.prepareBooleanQuery rcon qlang query base-uri)
-                           (.prepareBooleanQuery rcon qlang query))]
+                           (.prepareBooleanQuery #^RepositoryConnection rcon qlang query base-uri)
+                           (.prepareBooleanQuery #^RepositoryConnection rcon qlang query))]
     (prepare-query! q prep)
     ((.evaluate q))))
 
@@ -280,16 +277,17 @@
   "Returns a seq of maps (to-statement).
   Must be called within a with-open2, and this will close the result seq."
   [;#^RepositoryConnection
-   rcon,
-   #^Resource subj,
-   #^URI pred,
-   #^Value obj,
-   {#^Boolean include-inferred :include-inferred,
+   rcon
+   #^Resource subj
+   #^URI pred
+   #^Value obj
+   {#^Boolean include-inferred :include-inferred
     #^Boolean filter-dups :filter-dups}
    & contexts]
-  (let [#^RepositoryResult result (.getStatements rcon subj pred obj
-                                                  (if (nil? include-inferred) false include-inferred)
-                                                  (resource-array contexts))]
+  (let [#^RepositoryResult result
+        (.getStatements rcon subj pred obj
+                        (if (nil? include-inferred) false include-inferred)
+                        (resource-array contexts))]
     (open result)
     (when-not filter-dups (.enableDuplicateFilter result))
     (map to-statement (iteration-seq result))))

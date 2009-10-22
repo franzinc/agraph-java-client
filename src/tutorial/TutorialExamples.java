@@ -67,6 +67,7 @@ public class TutorialExamples {
         myRepository.initialize();
         println("Initialized repository.");
         AGRepositoryConnection conn = myRepository.getConnection();
+        closeBeforeExit(conn);
         println("Got a connection.");
         conn.clear();  // remove previous triples, if any.
         println("Cleared the connection.");
@@ -76,7 +77,6 @@ public class TutorialExamples {
                 );
         if (close) {
             // tidy up
-            conn.close();
             myRepository.shutDown();
             return null;
         }
@@ -180,8 +180,6 @@ public class TutorialExamples {
      */
     public static void test5() throws Exception {
         RepositoryConnection conn = test1(false);
-        //RepositoryConnection conn = test2(false);
-        closeBeforeExit(conn);
         Repository myRepository = conn.getRepository();
         ValueFactory f = myRepository.getValueFactory();
         conn.clear();
@@ -273,15 +271,13 @@ public class TutorialExamples {
     /**
      * Importing Triples
      */
-    public static AGRepositoryConnection test6(boolean close) throws Exception {
+    public static AGRepositoryConnection test6() throws Exception {
         AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
         AGCatalog catalog = server.getCatalog(CATALOG_ID);
         AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);
         myRepository.initialize();
         AGRepositoryConnection conn = myRepository.getConnection();
-        if (close) {
-            closeBeforeExit(conn);
-        }
+        closeBeforeExit(conn);
         conn.clear();
         ValueFactory f = myRepository.getValueFactory();
         String path1 = "src/tutorial/vc-db-1.rdf";
@@ -295,10 +291,7 @@ public class TutorialExamples {
         conn.add(new File(path2), baseURI, RDFFormat.NTRIPLES);
         println("After loading, repository contains " + conn.size(context) +
                 " triples in context '" + context + "'\n    and " +
-                conn.size() + " triples in context 'null'.");
-        if (close) {
-            return null;
-        }
+                conn.size((Resource)null) + " triples in context 'null'.");
         return conn;
     }
     
@@ -306,7 +299,7 @@ public class TutorialExamples {
      * Importing Triples, query
      */
     public static void test7() throws Exception {
-        RepositoryConnection conn = test6(false);
+        RepositoryConnection conn = test6();
         println("Match all and print subjects and contexts");
         RepositoryResult<Statement> result = conn.getStatements(null, null, null, false);
 // TODO: limit=25
@@ -325,12 +318,11 @@ public class TutorialExamples {
             println(bindingSet.getBinding("s") + "  " + bindingSet.getBinding("c"));
         }
         qresult.close();
-        conn.close();
     }
 
     // Writing RDF or NTriples to a file
     public static void test8() throws Exception {
-        RepositoryConnection conn = test6(false);
+        RepositoryConnection conn = test6();
         Repository myRepository = conn.getRepository();
         Resource context = myRepository.getValueFactory().createURI("http://example.org#vcards");
         String outputFile = "/tmp/temp.nt";
@@ -354,16 +346,14 @@ public class TutorialExamples {
         RDFXMLWriter rdfxmlfWriter = new RDFXMLWriter(output);
         conn.export(rdfxmlfWriter, context);
         output.write('\n');
-        conn.close();
     }
     
     /**
      * Writing the result of a statements match to a file.
      */
     public static void test9() throws Exception {    
-        RepositoryConnection conn = test6(false);
+        RepositoryConnection conn = test6();
         conn.exportStatements(null, RDF.TYPE, null, false, new RDFXMLWriter(System.out));
-        conn.close();
     }
 
     /**
@@ -418,7 +408,7 @@ public class TutorialExamples {
         while (result.hasNext()) {
             BindingSet bindingSet = result.next();
             println(bindingSet.getBinding("s") + " " + bindingSet.getBinding("c"));
-        }    
+        }
         
         queryString = "SELECT ?s ?p ?o WHERE {?s ?p ?o . }";
         ds = new DatasetImpl();
@@ -613,7 +603,7 @@ public class TutorialExamples {
      * Federated triple stores.
      */
     public static void test16() throws Exception {
-        AGRepositoryConnection conn = test6(false);
+        AGRepositoryConnection conn = test6();
         AGRepository myRepository = conn.getRepository();
         AGCatalog catalog = myRepository.getCatalog();
         // create two ordinary stores, and one federated store:
@@ -654,8 +644,7 @@ public class TutorialExamples {
      * Prolog queries
      */
     public static void test17() throws Exception {
-        AGRepositoryConnection conn = test6(false);
-        AGRepository myRepository = conn.getRepository();
+        AGRepositoryConnection conn = test6();
         conn.setNamespace("kdy", "http://www.franz.com/simple#");
 //        conn.setRuleLanguage(AGQueryLanguage.PROLOG);
         String rules1 =
@@ -682,14 +671,13 @@ public class TutorialExamples {
             println(f + " " + l);
         }
         result.close();
-        conn.close();
     }
 
     /**
      * Loading Prolog rules
      */
     public static void test18() throws Exception {
-        AGRepositoryConnection conn = test6(false);
+        AGRepositoryConnection conn = test6();
         conn.setNamespace("kdy", "http://www.franz.com/simple#");
         conn.setNamespace("rltv", "http://www.franz.com/simple#");
 //        conn.setRuleLanguage(AGQueryLanguage.PROLOG);
@@ -705,7 +693,6 @@ public class TutorialExamples {
             println(u + " is the uncle of " + p);
         }
         result.close();
-        conn.close();
     }
 
     /**
@@ -1085,7 +1072,7 @@ dedicated.add(new File(path1), baseURI, RDFFormat.NTRIPLES);
         //args = new String[] {"6"};
         if (args.length == 0) {
             // for choosing by editing this code
-            choices.add(6);
+            choices.add(10);
         } else if (args[0].equals("all")) {
             for (int i = 1; i <= 19; i++) {
                 choices.add(i);
@@ -1104,7 +1091,7 @@ dedicated.add(new File(path1), baseURI, RDFFormat.NTRIPLES);
                 case 3: test3(); break;            
                 case 4: test4(); break;                        
                 case 5: test5(); break;
-                case 6: test6(true); break;
+                case 6: test6(); break;
                 case 7: test7(); break;
                 case 8: test8(); break;
                 case 9: test9(); break;    

@@ -5,13 +5,11 @@
 ;; (http://opensource.franz.com/preamble.html),
 ;; known as the LLGPL.
 
-(ns 
-  #^{:author "Franz Inc <www.franz.com>, Mike Hinchey <mhinchey@franz.com>"
-     :doc "Clojure client API to Franz AllegroGraph 4.0.
+(ns com.franz.agraph
+  "Clojure client API to Franz AllegroGraph 4.0.
  This API wraps the agraph-java-client API, which is an extension of the Sesame org.openrdf API.
  Communication with the server is through HTTP REST using JSON.
- Uses the Franz Clojure wrapper of Sesame in com/franz/openrdf.clj."}
-  com.franz.agraph
+ Uses the Franz Clojure wrapper of Sesame in com/franz/openrdf.clj."
   (:refer-clojure :exclude (name))
   (:import [clojure.lang Named]
            [com.franz.agraph.repository
@@ -25,8 +23,10 @@
   (:use [clojure.contrib def]
         [com.franz util openrdf]))
 
+(alter-meta! *ns* assoc :author "Franz Inc <www.franz.com>, Mike Hinchey <mhinchey@franz.com>")
+
 (defmulti name
-  "overrides clojure.core/name to make it an extensible method"
+  "Shadows clojure.core/name to make it an extensible method."
   type)
 
 (defmethod name :default [x] (.getName x))
@@ -48,16 +48,19 @@
 ;;      (AGServer. host port)))
 
 (defn catalogs
-  "returns a seq of strings, the names of catalogs"
-  [#^AGServer connection]
-  (seq (.listCatalogs connection)))
+  "Returns a seq of AGCatalogs objects."
+  [#^AGServer server]
+  (seq (.listCatalogs server)))
 
 (defn open-catalog
-  [connection name]
-  (.getCatalog connection name))
+  "Returns an AGCatalog."
+  {:tag AGCatalog}
+  [#^AGServer server name]
+  (.getCatalog server name))
 
 (defn repositories
-  [catalog]
+  "Returns a seq of AGRepository objects."
+  [#^AGCatalog catalog]
   (seq (.getAllRepositories catalog)))
 
 ;; (def #^{:private true} -access-verbs
@@ -70,8 +73,8 @@
 (def lang-prolog (AGQueryLanguage/PROLOG))
 
 (defn repository
-  "access-verb: a keyword from the set of access-verbs"
-  [catalog name access-verb]
+  "access-verb must be a keyword from the set of access-verbs."
+  [#^AGCatalog catalog name access-verb]
   (open (.createRepository catalog #^String name
                            ;; TODO: (-access-verbs access-verb)
                            )))
@@ -81,22 +84,27 @@
   (AGServer. url username password))
 
 (defn with-agraph-fn
-  "catalog, repository, and repository-connection are optional - they are only opened if specified in the args.
-access: a keyword from the set of 'access-verbs.
-my-fn: a function of 4 args [conn cat repos repos-conn]
-catalog and rcon will be closed when this block exits.
-rcon-args: if nil, no rcon will be created, args passed to franz.openrdf/repo-connection."
-  [[{host :host port :port username :username password :password}
+  "catalog, repository, and repository-connection are optional: they are only
+   opened if specified in the arguments.
+  
+     access:    a keyword from the set of 'access-verbs.
+     my-fn:     a function of 4 args [conn cat repos repos-conn]
+                catalog and rcon will be closed when this block exits.
+     rcon-args: if nil, no rcon will be created. Arguments passed to
+                franz.openrdf/repo-connection."
+  [[{:keys [host port username password]}
     catalog-name
-    {repo-name :name repo-access :access}
+    {:keys [name access]}
     rcon-args]
    my-fn]
   (with-open2 []
     (let [conn (ag-server (str "http://" host ":" port) username password)]
       (if catalog-name
         (let [cat (open-catalog conn catalog-name)]
-          (with-open2 [repo (when repo-name (repo-init (repository cat repo-name repo-access)))
-                       rcon (when rcon-args (repo-connection repo rcon-args))]
+          (with-open2 [repo (when name
+                              (repo-init (repository cat name access)))
+                       rcon (when rcon-args
+                              (repo-connection repo rcon-args))]
             (my-fn conn cat repo rcon)))
         (my-fn conn nil nil nil)))))
 
@@ -123,15 +131,16 @@ Example: (with-agraph [conn {:host \"localhost\" :port 8080
        ~@body)))
 
 (defn add-from-server!
-  ;; different name from add-from! to make it less ambiguous
-  ;; This is an Allegro extension to the openrdf api.
-  "add statements from a data file on the server.
- See add-from!
- data: a File, InputStream, or URL.
- contexts: 0 or more Resource objects"
+  ;; Different name from add-from! to make it less ambiguous.
+  ;; This is an AllegroGraph extension to the openrdf api.
+  "Add statements from a data file on the server.
+   See add-from!.
+  
+     data:     a File, InputStream, or URL.
+     contexts: 0 or more Resource objects"
   [#^AGRepositoryConnection repos-conn
-   data,
-   #^String baseURI,
-   #^RDFFormat dataFormat,
+   data
+   #^String baseURI
+   #^RDFFormat dataFormat
    & contexts]
   (.add repos-conn data baseURI dataFormat true (resource-array contexts)))

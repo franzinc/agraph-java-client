@@ -74,7 +74,8 @@
 (defn printlns
   "println each item in a collection"
   [col]
-  (doall (map println col)))
+  (doseq [x col]
+    (println x)))
 
 (defn test1
   "lists catalogs and more info about the scratch catalog."
@@ -318,7 +319,7 @@
             booktype (uri f exns "Book")
             booktitle (uri f exns "title")
             wonderland (literal f "Alice in Wonderland")]
-        (.clear rcon (resource-array nil))
+        (clear! rcon (resource-array nil))
         (add-all! rcon [[alice RDF/TYPE persontype]
                         [alice fullname alicename]
                         [book RDF/TYPE booktype]
