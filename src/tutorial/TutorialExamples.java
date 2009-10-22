@@ -422,7 +422,7 @@ public class TutorialExamples {
         
         queryString = "SELECT ?s ?p ?o WHERE {?s ?p ?o . }";
         ds = new DatasetImpl();
-        // TODO: ds.addDefaultGraph(null);
+        ds.addDefaultGraph(null);
         tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         tupleQuery.setDataset(ds);
         result = tupleQuery.evaluate();    

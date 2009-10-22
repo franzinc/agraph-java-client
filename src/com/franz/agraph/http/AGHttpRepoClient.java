@@ -335,8 +335,10 @@ public class AGHttpRepoClient {
 			RDFFormat dataFormat, boolean overwrite, Resource... contexts)
 			throws IOException, RDFParseException, RepositoryException,
 			UnauthorizedException {
-		// Set Content-Length to -1 as we don't know it and we also don't want
-		// to cache
+		// TODO: research the ramifications of using CONTENT_LENGTH_AUTO here.
+		// Formerly we did this: "Set Content-Length to -1 as we don't know it and we also don't want
+		// to cache" per the original Sesame client, but this yielded "ran out of input" exceptions
+		// from the AG server for some users, but not for others.  TODO: understand why and explain.
 		RequestEntity entity = new InputStreamRequestEntity(contents, InputStreamRequestEntity.CONTENT_LENGTH_AUTO,
 				dataFormat.getDefaultMIMEType());
 		upload(entity, baseURI, overwrite, contexts);
@@ -527,16 +529,18 @@ public class AGHttpRepoClient {
 
 		if (dataset != null) {
 			for (URI defaultGraphURI : dataset.getDefaultGraphs()) {
-				queryParams.add(new NameValuePair(
-						Protocol.DEFAULT_GRAPH_PARAM_NAME, defaultGraphURI
-								.toString()));
+				String param=Protocol.NULL_PARAM_VALUE;
+				if (defaultGraphURI!=null) {
+					param = defaultGraphURI.toString();
+				}
+				queryParams.add(new NameValuePair(Protocol.DEFAULT_GRAPH_PARAM_NAME, param));
 			}
 			for (URI namedGraphURI : dataset.getNamedGraphs()) {
 				queryParams.add(new NameValuePair(
 						Protocol.NAMED_GRAPH_PARAM_NAME, namedGraphURI
 								.toString()));
 			}
-		}
+		} // TODO: no else here assumes AG's default dataset matches Sesame's, check this.
 
 		for (int i = 0; i < bindings.length; i++) {
 			String paramName = Protocol.BINDING_PREFIX + bindings[i].getName();
