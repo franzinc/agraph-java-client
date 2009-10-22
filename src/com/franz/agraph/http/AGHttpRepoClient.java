@@ -69,13 +69,15 @@ public class AGHttpRepoClient {
 			throws RepositoryException {
 		this.repoconnection = repoconnection;
 		try {
-			if (AGCatalog.FEDERATED_CATALOG == repoconnection.getRepository().getCatalog().getCatalogType()) {
+			/*if (AGCatalog.FEDERATED_CATALOG == repoconnection.getRepository().getCatalog().getCatalogType()) {
 				// use the shared session
 				sessionRoot = getRepositoryURL();
 			} else {
-				// use a dedicated session
+				// use a dedicated session in autoCommit mode
 				sessionRoot = openSession(lifetimeInSeconds, true);
-			}
+			}*/
+			// use a dedicated session in autoCommit mode
+			sessionRoot = openSession(lifetimeInSeconds, true);
 		} catch (UnauthorizedException e) {
 			throw new RepositoryException(e);
 		} catch (IOException e) {
