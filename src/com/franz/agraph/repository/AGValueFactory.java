@@ -9,7 +9,6 @@ import org.openrdf.http.protocol.UnauthorizedException;
 import org.openrdf.model.BNode;
 import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.repository.RepositoryException;
-import org.openrdf.rio.ntriples.NTriplesUtil;
 
 import com.franz.agraph.http.AGHTTPClient;
 
@@ -20,7 +19,7 @@ public class AGValueFactory extends ValueFactoryImpl {
 
 	private final AGRepository repository;
 	
-	private int blankNodeAmount = 100;
+	private int blankNodeAmount = 10;
 	private String[] blankNodeIds;
 	private int index = -1;
 	
@@ -42,48 +41,41 @@ public class AGValueFactory extends ValueFactoryImpl {
 		return getRepository().getHTTPClient();
 	}
 	
-	public void initialize() throws RepositoryException {
-		getBlankNodeIds();
-	}
-	
-	@Override
-	public synchronized BNode createBNode() {
-		String id;
-		try {
-			id = getNextBNodeId();
-		} catch (RepositoryException e) {
-			e.printStackTrace();
-			throw new IllegalStateException(e);
-		}
-		return NTriplesUtil.parseBNode(id, this);
-	}
 
-	@Override
-	public synchronized BNode createBNode(String id) {
-		return super.createBNode(id);
-	}
-
-	String getNextBNodeId() throws RepositoryException {
-		if (index==-1) {
-			throw new RepositoryException("Value Factory has no blank node ids.");
-		}
-		String id = blankNodeIds[index];
-		index++;
-		if (index==blankNodeAmount) {
-			getBlankNodeIds();
-		}
-		return id; 
-	}
-	
-	private void getBlankNodeIds() throws RepositoryException {
+	private void getBlankNodeIds() {
 		try {
 			blankNodeIds = getHTTPClient().getBlankNodes(getRepository().getRepositoryURL(),blankNodeAmount);
-			index = 0;
+			index = blankNodeIds.length - 1;
 		} catch (UnauthorizedException e) {
-			throw new RepositoryException(e);
+			// TODO: check on the proper exceptions to throw here
+			throw new IllegalStateException(e);
 		} catch (IOException e) {
-			throw new RepositoryException(e);
+			throw new IllegalStateException(e);
+		} catch (RepositoryException e) {
+			throw new IllegalStateException(e);
 		}		
 	}
 	
+	String getNextBNodeId() {
+		if (index==-1) {
+			getBlankNodeIds();
+		}
+		String id = blankNodeIds[index];
+		index--;
+		// TODO: parse using NTriplesUtil here to create BNode?
+		return id.substring(2);   // strip off leading '_:'; 
+	}
+	
+	@Override
+	public BNode createBNode(String nodeID) {
+		if (nodeID == null || "".equals(nodeID))
+			nodeID = getNextBNodeId();
+		return super.createBNode(nodeID);
+	}
+
+	@Override
+	public BNode createBNode() {
+		return createBNode(null);
+	}
+
 }
