@@ -6,11 +6,13 @@
 ;; known as the LLGPL.
 
 (ns com.franz.util
-  "Utility functions.")
+  "Utility functions."
+  (:use [clojure.contrib stacktrace]))
 
 (alter-meta! *ns* assoc :author "Franz Inc <www.franz.com>, Mike Hinchey <mhinchey@franz.com>")
 
 (defmulti close
+  ;; TODO: rename to close!
   "Used by with-closeable in a finally block to close objects.
 Methods are defined for java.io.Closeable and a default for (.close) by reflection.
 May be extended for differently named close methods."
@@ -34,7 +36,9 @@ May be extended for differently named close methods."
     (try
       (close (first open-stack))
       (catch Throwable e
-        (.printStackTrace e)))
+        (binding [*out* *err*]
+          (print "Ignoring exception from close: " e)
+          (print-cause-trace e))))
     (recur (next open-stack))))
 
 (defn open

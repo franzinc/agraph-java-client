@@ -59,13 +59,13 @@
               cat cat1
               repo repo1
               rcon rcon1
-              vf (value-factory repo1)]
+              vf (value-factory rcon1)]
       (f))))
 
 (use-fixtures :once with-agraph-test)
 
 ;; to make sure any other opened things get closed with each test
-(use-fixtures :each with-open2f)
+;(use-fixtures :each with-open2f)
 
 (defn run-test
   "run a single test function
@@ -124,12 +124,13 @@
 (deftest compare-mem-agraph
   ;; compare Sesame memory store to AGraph
   ;; test that Sesame passes tutorial-test2-3
-  (let [mem (repo-init (open (SailRepository. (MemoryStore.))))]
+  (let [mem (repo-init (open (SailRepository. (MemoryStore.))))
+        mcon (repo-connection mem)]
     (binding [server nil
               cat nil
               repo mem
-              rcon (repo-connection mem)
-              vf (value-factory mem)]
+              rcon mcon
+              vf (value-factory mcon)]
       (tutorial-test2-3))))
 
 (defn tutorial-test5
@@ -176,11 +177,12 @@
   ;; test they get the same results for tutorial-test5
   (let [ag-results (tutorial-test5)
         mem (repo-init (open (SailRepository. (MemoryStore.))))
+        mcon (repo-connection mem)
         mem-results (binding [server nil
                               cat nil
                               repo mem
-                              rcon (repo-connection mem)
-                              vf (value-factory mem)]
+                              rcon mcon
+                              vf (value-factory mcon)]
                       (tutorial-test5))]
     (is-each = ag-results mem-results "row" nil)))
 
@@ -192,3 +194,41 @@
                                  "WHERE { ?s ?p ?o . "
                                  "FILTER (xsd:int(?o) >= 30) }")
                             nil))))
+
+(deftest test6-baseuri
+  ;; testing bug: org.openrdf.rio.RDFParseException: URI "<http://example.org/example/local>" contains illegal character #\< at position 0.
+  (clear! rcon)
+  (let [vcards (new File *agraph-java-tutorial-dir* "/vc-db-1.rdf")
+        baseURI "http://example.org/example/local"
+        context (-> rcon value-factory (uri "http://example.org#vcards"))]
+    (add-from! rcon vcards baseURI RDFFormat/RDFXML context)
+    (is (= 16 (repo-size rcon context)))))
+
+(deftest test16-federation
+  (close rcon)
+  (let [ex "http://www.demo.com/example#"
+        rcon-args {:namespaces {"ex" ex}}
+        ;; create two ordinary stores, and one federated store: 
+        red-con (ag-repo-con cat "redthings" rcon-args)
+        green-con (ag-repo-con cat "greenthings" rcon-args)
+        rainbow-con (repo-federation server "rainbowthings"
+                                     [red-con green-con] rcon-args)
+        rf (value-factory red-con)
+        gf (value-factory green-con)
+        rbf (value-factory rainbow-con)]
+    (clear! red-con)
+    (clear! green-con)
+    ;; add a few triples to the red and green stores:
+    (doseq [[c f s o]
+            [[red-con rf "mcintosh" "Apple"]
+             [red-con rf "reddelicious" "Apple"]
+             [green-con gf "pippen" "Apple"]
+             [green-con gf "kermitthefrog" "Frog"]]]
+      (add! c (uri f (str ex s)) RDF/TYPE (uri rf (str ex o))))
+    ;; query each of the stores; observe that the federated one is the union of the other two:
+    (doseq [[kind rcon size] [["red" red-con 2]
+                              ["green" green-con 1]
+                              ["federated" rainbow-con 3]]]
+      (is (= size (count (tuple-query rcon QueryLanguage/SPARQL
+                                      "select ?s where { ?s rdf:type ex:Apple }"
+                                      nil)))))))
