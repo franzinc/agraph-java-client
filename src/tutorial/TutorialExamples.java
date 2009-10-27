@@ -868,14 +868,16 @@ public class TutorialExamples {
 
     /**
      * Transactions
+     * 
+     * TODO: rewrite transaction isolation checks for Sesame compliance.
      */
     public static void test22() throws Exception {
-        // Create common session and dedicated session.
         AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
         AGCatalog catalog = server.getCatalog(CATALOG_ID);
         AGRepository myRepository = catalog.createRepository("agraph_test");
         myRepository.initialize();
         AGValueFactory vf = myRepository.getValueFactory();
+        // Create conn1 (autoCommit) and conn2 (no autoCommit).
         AGRepositoryConnection conn1 = myRepository.getConnection();
         closeBeforeExit(conn1);
         AGRepositoryConnection conn2 = myRepository.getConnection();
@@ -894,11 +896,7 @@ public class TutorialExamples {
         println("\nAfter loading, there are:");
         println(conn1.size((Resource)null) + " lesmis triples in context 'null' from conn1.");
         println(conn2.size((Resource)null) + " kennedy triples in context 'null' from conn2;");
-        // Check for partitioning:
-        //    Look for Valjean in common session, should find it.
-        //    Look for Kennedy in common session, should not find it.
-        //    Look for Kennedy in dedicated session, should find it.
-        //    Look for Valjean in dedicated session, should not find it.
+        // Check transaction isolation semantics:
         Literal valjean = vf.createLiteral("Valjean");
         Literal kennedy = vf.createLiteral("Kennedy");
         printRows("\nUsing getStatements() on conn1; should find Valjean:",
@@ -915,11 +913,7 @@ public class TutorialExamples {
 // limit=1
         
         // Rollback
-        // Check for partitioning:
-        //     Look for LesMis in common session, should find it.
-        //     Look for Kennedy in common session, should not find it.
-        //     Look for Kennedy in dedicated session, should not find it.
-        //     Look for LesMis in dedicated session, should find it.
+        // Check transaction isolation semantics:
         println("\nRolling back contents of conn2.");
         conn2.rollback();
         println("There are now " + conn2.size() + " triples from conn2.");
@@ -931,18 +925,12 @@ public class TutorialExamples {
                 1, conn2.getStatements(null, null, kennedy, false));
         printRows("\nUsing getStatements() on conn2; should find Valjean:",
                 1, conn2.getStatements(null, null, valjean, false));
-        // Reload the Kennedy data into the dedicated session.
-        // Commit dedicated session.
-        // Check for partitioning:
-        //     Look for LesMis in common session, should find it.
-        //     Look for Kennedy in common session, should find it.
-        //     Look for Kennedy in dedicated session, should find it.
-        //     Look for LesMis in dedicated session, should find it.
-        // read kennedy triples into the dedicated session:
+        // Reload and Commit
         println("\nReload 1214 kennedy.ntriples into conn2.");
         conn2.add(new File("src/tutorial/kennedy.ntriples"), baseURI, RDFFormat.NTRIPLES);
         println("\nCommitting contents of conn2.");
         conn2.commit();
+        // Check transaction isolation semantics:
         printRows("\nUsing getStatements() on conn1; should find Valjean:",
                 1, conn1.getStatements(null, null, valjean, false));
         printRows("\nUsing getStatements() on conn1; should find Kennedys:",
@@ -1055,7 +1043,7 @@ public class TutorialExamples {
 
     /**
      * Usage: all
-     * Usage: [1-14]+
+     * Usage: [1-19,22]+
      */
     public static void main(String[] args) throws Exception {
         List<Integer> choices = new ArrayList<Integer>();
@@ -1067,6 +1055,7 @@ public class TutorialExamples {
             for (int i = 1; i <= 19; i++) {
                 choices.add(i);
             }
+            choices.add(22);
         } else {
             for (int i = 0; i < args.length; i++) {
                 choices.add(Integer.parseInt(args[i]));
