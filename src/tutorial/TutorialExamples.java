@@ -208,9 +208,9 @@ public class TutorialExamples {
         conn.add(alice, birthdate, date);
         conn.add(ted, birthdate, time);
         println("Size=" + conn.size());
-        for (Literal obj : new Literal[] {null, fortyTwoInt, fortyTwoUntyped, f.createLiteral("20.5",
-                                          XMLSchema.FLOAT), f.createLiteral("20.5"),
-                    red, rouge}) {
+        for (Literal obj : new Literal[] {null, fortyTwoInt, fortyTwoLong, fortyTwoUntyped,
+                f.createLiteral("48"), f.createLiteral("20.5", XMLSchema.FLOAT),
+                f.createLiteral("20.5"), red, rouge}) {
             println( "Retrieve triples matching " + obj + ".");
             RepositoryResult<Statement> statements = conn.getStatements(null, null, obj, false);
             try {
@@ -1069,7 +1069,6 @@ dedicated.add(new File(path1), baseURI, RDFFormat.NTRIPLES);
      */
     public static void main(String[] args) throws Exception {
         List<Integer> choices = new ArrayList<Integer>();
-        //args = new String[] {"6"};
         if (args.length == 0) {
             // for choosing by editing this code
             choices.add(10);

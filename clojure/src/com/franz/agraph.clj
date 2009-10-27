@@ -17,7 +17,7 @@
             AGRepositoryConnection AGServer AGValueFactory]
            [java.net URI]
            [org.openrdf.model ValueFactory Resource Literal Statement]
-           [org.openrdf.repository RepositoryConnection]
+           [org.openrdf.repository Repository RepositoryConnection]
            [org.openrdf.model.vocabulary RDF XMLSchema]
            [org.openrdf.query QueryLanguage BindingSet Binding])
   (:use [clojure.contrib def]
@@ -74,10 +74,30 @@
 
 (defn repository
   "access-verb must be a keyword from the set of access-verbs."
-  [#^AGCatalog catalog name access-verb]
-  (open (.createRepository catalog #^String name
-                           ;; TODO: (-access-verbs access-verb)
-                           )))
+  ([#^AGCatalog catalog name access-verb]
+     (open (.createRepository catalog #^String name
+                              ;; TODO: (-access-verbs access-verb)
+                              )))
+  ;; TODO: this may be confusing since it doesn't open a repository,
+  ;; only gets a reference.
+  ([#^Repository rcon]
+     (.getRepository rcon)))
+
+(defn ag-repo-con
+  ([#^AGCatalog catalog repo-name]
+     (repo-connection (repo-init (repository catalog repo-name nil))))
+  ([#^AGCatalog catalog repo-name rcon-args]
+     (repo-connection (repo-init (repository catalog repo-name nil)) rcon-args)))
+
+(defn repo-federation
+  "rcons: may be of type AGRepository or AGRepositoryConnection"
+  [#^AGServer server repo-name rcons rcon-args]
+  (-> (.createFederation server repo-name
+                         (into-array AGRepository (map #(cond (instance? AGRepository %) %
+                                                              (nil? %) nil
+                                                              :else (.getRepository #^AGRepositoryConnection %))
+                                                       rcons)))
+      open repo-init (repo-connection rcon-args)))
 
 (defn ag-server
   [url username password]

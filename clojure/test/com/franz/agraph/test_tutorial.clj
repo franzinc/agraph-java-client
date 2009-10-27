@@ -64,7 +64,7 @@
         (System/setOut out)
         (System/setErr out)
         ;(TutorialExamples/main (into-array String (map str (concat (range 1 16) [19]))))
-        (TutorialExamples/main (into-array String (map str (concat (range 1 5) (range 6 16) [19]))))
+        (TutorialExamples/main (into-array String (map str (concat (range 1 6) (range 7 16) [19]))))
         ;(TutorialExamples/main (into-array String (map str (concat [5]))))
         ))
     (let [prevf (File. "./clojure/test/com/franz/agraph/tutorial.java.out")]

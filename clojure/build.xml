@@ -80,12 +80,17 @@
 
   <target name="test"
           description="Run tests">
-      <run-clj expr="(use 'com.franz.test) (run-tests2 'com.franz.agraph.agtest)"/>
+      <run-clj expr="(use 'com.franz.test) (run-ant 'com.franz.agraph.agtest)"/>
   </target>
 
   <target name="test-tutorials"
           description="Run Tutorial examples for Java and Clojure, compare to previous known output.">
-      <run-clj expr="(use 'com.franz.test) (run-tests2 'com.franz.agraph.test-tutorial)"/>
+      <run-clj expr="(use 'com.franz.test) (run-ant 'com.franz.agraph.test-tutorial)"/>
+  </target> 
+
+  <target name="test-stress-conn"
+          description="Stress test connections.">
+      <run-clj expr="(use 'com.franz.test) (run-ant 'com.franz.agraph.stress-conn)"/>
   </target>
-  
+ 
 </project>

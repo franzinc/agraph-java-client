@@ -118,19 +118,22 @@
   repo)
 
 (defn value-factory
-  [#^Repository repo]
-  (.getValueFactory repo))
+  [#^RepositoryConnection rcon]
+  (.getValueFactory rcon))
 
 (defn literal
   {:tag Literal}
-  ([#^ValueFactory factory value]
-     (.createLiteral factory value))
-  ([#^ValueFactory factory value arg]
-     (.createLiteral factory value arg)))
+  ([#^ValueFactory vf value]
+     (condp instance? value
+       String (.createLiteral vf #^String value)
+       (.createLiteral vf value)
+       ))
+  ([#^ValueFactory vf value arg]
+     (.createLiteral vf value arg)))
 
 (defn uri
   {:tag URI}
-  ([factory uri]
+  ([#^ValueFactory factory uri]
      (.createURI factory uri))
   ([factory namespace local-name]
      (.createURI factory namespace local-name)))
@@ -172,12 +175,12 @@
    See add!
    data: a File, InputStream, or URL.
    contexts: 0 or more Resource objects"
-  [#^RepositoryConnection repos-conn
+  [#^RepositoryConnection rcon
    data,
    #^String baseURI,
    #^RDFFormat dataFormat,
    & contexts]
-  (.add repos-conn data baseURI dataFormat (resource-array contexts)))
+  (.add rcon data baseURI dataFormat (resource-array contexts)))
 
 (defn remove!
   [;; clojure compiler bug? error if this is hinted.
@@ -210,7 +213,7 @@
   (when max-query-time
     (.setMaxQueryTime query max-query-time))
   (doseq [[#^String name val] bindings]
-    (.setSetBindings query name val)))
+    (.setBinding query name val)))
 
 (defn tuple-query
   "Returns a seq of maps (to-statement).
@@ -289,5 +292,6 @@
                         (if (nil? include-inferred) false include-inferred)
                         (resource-array contexts))]
     (open result)
-    (when-not filter-dups (.enableDuplicateFilter result))
+    (when filter-dups
+      (.enableDuplicateFilter result))
     (map to-statement (iteration-seq result))))
