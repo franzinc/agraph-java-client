@@ -68,8 +68,10 @@
 
 (defonce *catalog-id* "scratch")
 
+(defonce *repository-id* "tutorial")
+
 (def *agraph-java-tutorial-dir* (or (System/getProperty "com.franz.agraph.tutorial.dir")
-                                    (.getCanonicalPath (java.io.File. "./tutorial/"))))
+                                    (.getCanonicalPath (java.io.File. "./src/tutorial/"))))
 
 (defn printlns
   "println each item in a collection"
@@ -85,7 +87,7 @@
     (let [catalog (open-catalog server *catalog-id*)]
       (println "Available repositories in catalog" (name catalog) ":"
                (repositories catalog))
-      (let [myRepository (repo-init (repository catalog *catalog-id* :renew))]
+      (let [myRepository (repo-init (repository catalog *repository-id* :renew))]
         (let [rcon (repo-connection myRepository)]
           (println "Repository" (name myRepository) "is up! It contains"
                    (repo-size rcon) "statements."))))))
@@ -95,7 +97,7 @@
   []
   (with-agraph [con *connection-params*
                 cat *catalog-id*
-                repo {:name *catalog-id* :access :renew}
+                repo {:name *repository-id* :access :renew}
                 rcon]
     (let [f (.getValueFactory repo)
           ;; create some resources and literals to make statements out of
@@ -141,7 +143,7 @@
   []
   (with-agraph [con *connection-params*
                 cat *catalog-id*
-                repo {:name *catalog-id* :access :renew}
+                repo {:name *repository-id* :access :renew}
                 rcon]
     (clear! rcon)
     (let [f (.getValueFactory rcon)
@@ -154,12 +156,12 @@
           ted (uri f exns "Ted")
           red (literal f "Red")
           rouge (literal f "Rouge" "fr")
-          fortyTwo (literal f "42" XMLSchema/INT)
-          fortyTwoInteger (literal f"42", XMLSchema/LONG)
+          fortyTwoInt (literal f "42" XMLSchema/INT)
+          fortyTwoLong (literal f "42" XMLSchema/LONG)
           fortyTwoUntyped (literal f "42")
           date (literal f "1984-12-06" XMLSchema/DATE)
           time (literal f "1984-12-06T09:00:00" XMLSchema/DATETIME)
-          stmt1 (.createStatement f alice age fortyTwo)
+          stmt1 (.createStatement f alice age fortyTwoInt)
           stmt2 (.createStatement f ted age fortyTwoUntyped)]
       (add-all! rcon
                 [stmt1
@@ -168,43 +170,38 @@
                  [ted weight (literal f "20.5" XMLSchema/FLOAT)]
                  [alice favoriteColor red]
                  [ted favoriteColor rouge]
-                 [alice birthdate date]])
+                 [alice birthdate date]
+                 [ted birthdate time]])
       
-      ;; CURRENTLY, THIS LINE CAUSES HTTPD SERVER TO BREAK, BUT ITS NOT THE CLIENT'S FAULT:
-      ;; TODO: what does python do here?
-      (add! rcon ted birthdate time)
-      
-      (doseq [obj [nil fortyTwo fortyTwoUntyped (literal f "20.5" XMLSchema/FLOAT)
+      (doseq [obj [nil fortyTwoInt fortyTwoLong fortyTwoUntyped
+                   (literal f "20.5" XMLSchema/FLOAT)
                    (literal f "20.5") red rouge]]
-        (println "Retrieve triples matching " obj ".")
-        (printlns (get-statements rcon nil nil obj nil))
+        (println "Retrieve triples matching" obj ".")
+        (printlns (get-statements rcon nil nil obj nil)))
       
       (doseq [obj ["42", "\"42\"", "20.5", "\"20.5\"", "\"20.5\"^^xsd:float"
                    "\"Rouge\"@fr", "\"Rouge\"", "\"1984-12-06\"^^xsd:date"]]
         (println "Query triples matching" obj ".")
         (printlns (tuple-query rcon QueryLanguage/SPARQL
-                               (str "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = " obj ")}") nil))
-        )))))
+                               (str "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = " obj ")}") nil)))
+      )))
 
 (defn test6
   []
   (with-agraph [con *connection-params*
                 cat *catalog-id*
-                repo {:name *catalog-id* :access :renew}
+                repo {:name *repository-id* :access :renew}
                 rcon {:namespaces {"vcd" "http://www.w3.org/2001/vcard-rdf/3.0#"}}]
     (clear! rcon)
-    (let [vcards (new File *agraph-java-tutorial-dir* "src/tutorial/vc-db-1.rdf")
-          football (new File *agraph-java-tutorial-dir* "src/tutorial/football.nt")
+    (let [vcards (new File *agraph-java-tutorial-dir* "/vc-db-1.rdf")
+          kennedy (new File *agraph-java-tutorial-dir* "/kennedy.ntriples")
           baseURI "http://example.org/example/local"
           context (-> repo .getValueFactory (uri "http://example.org#vcards"))]
-      ;; read football triples into the null context
-      (add-from! rcon football baseURI RDFFormat/NTRIPLES)
-      ;; read vcards triples into the context 'context'
       (add-from! rcon vcards baseURI RDFFormat/RDFXML context)
-      (.indexTriples repo true)
-      (println "After loading, repository contains "  (repo-size rcon context)
+      (add-from! rcon kennedy baseURI RDFFormat/NTRIPLES nil)
+      (println "After loading, repository contains " (repo-size rcon context)
                " vcard triples in context '" context "'\n    and   "
-               (repo-size rcon) " football triples in context 'nil'.")
+               (repo-size rcon nil) " kennedy triples in context 'nil'.")
       repo)))
 
 (defn test7
@@ -243,7 +240,7 @@
   []
   (with-agraph [con *connection-params*
                 cat *catalog-id*
-                repo {:name *catalog-id* :access :renew}
+                repo {:name *repository-id* :access :renew}
                 rcon]
     (let [f (.getValueFactory repo)
           exns "http://example.org/people/"
@@ -288,7 +285,7 @@
   []
   (with-agraph [con *connection-params*
                 cat *catalog-id*
-                repo {:name *catalog-id* :access :renew}
+                repo {:name *repository-id* :access :renew}
                 rcon]
     (let [f (.getValueFactory repo)
           exns "http://example.org/people/"
@@ -306,7 +303,7 @@
   []
   (with-agraph [con *connection-params*
                 cat *catalog-id*
-                repo {:name *catalog-id* :access :renew}
+                repo {:name *repository-id* :access :renew}
                 rcon]
     (let [f (.getValueFactory repo)
           exns "http://example.org/people/"]
@@ -375,36 +372,40 @@
 (defn test16
   "Federated triple stores."
   []
-  (with-agraph [con *connection-params*
+  (with-agraph [server *connection-params*
                 cat *catalog-id*]
     (let [ex "http://www.demo.com/example#"
           rcon-args {:namespaces {"ex" ex}}]
       ;; create two ordinary stores, and one federated store: 
-      (with-open2 [red-rep (repo-init (repository cat "redthings" :renew))
-                   red-con (repo-connection red-rep rcon-args)
-                   green-rep (repo-init (repository cat "greenthings" :renew))
-                   green-con (repo-connection green-rep rcon-args)
-                   rainbow-rep (repo-init (.addFederatedTripleStores
-                                           (repository cat "rainbowthings" :renew)
-                                           ["redthings" "greenthings"]))
-                   rainbow-con (repo-connection rainbow-rep rcon-args)]
-        (let [rf (.getValueFactory red-con)
-              gf (.getValueFactory green-con)
-              rbf (.getValueFactory rainbow-con)]
-          ;; add a few triples to the red and green stores:
-          (add! red-con (uri rf (str ex "mcintosh")) RDF/TYPE (uri rf (str ex "Apple")))
-          (add! red-con (uri rf (str ex "reddelicious")) RDF/TYPE (uri rf (str ex "Apple")))
-          (add! green-con (uri gf (str ex "pippin")) RDF/TYPE (uri gf (str ex "Apple")))
-          (add! green-con (uri gf (str ex "kermitthefrog")) RDF/TYPE (uri gf (str ex "Frog")))
-          
-          ;; query each of the stores; observe that the federated one is the union of the other two:
-          (doseq [[kind rcon] (map vector ["red" "green" "federated"]
-                                   [red-con green-con rainbow-con])]
-            (println)
-            (println kind "apples:")
-            (printlns (tuple-query rcon QueryLanguage/SPARQL
-                                   "select ?s where { ?s rdf:type ex:Apple }"
-                                   nil))))))))
+      (let [red-rep (repo-init (repository cat "redthings" :renew))
+            red-con (repo-connection red-rep rcon-args)
+            green-rep (repo-init (repository cat "greenthings" :renew))
+            green-con (repo-connection green-rep rcon-args)
+            rainbow-rep (repo-init (repo-federation server
+                                                    "rainbowthings"
+                                                    red-rep green-rep))
+            rainbow-con (repo-connection rainbow-rep rcon-args)
+            rf (value-factory red-con)
+            gf (value-factory green-con)
+            rbf (value-factory rainbow-con)]
+        (clear! red-con)
+        (clear! green-con)
+        ;; add a few triples to the red and green stores:
+        (doseq [[c f s o] [[red-con rf "mcintosh" "Apple"]
+                           [red-con rf "reddelicious" "Apple"]
+                           [green-con gf "pippen" "Apple"]
+                           [green-con gf "kermitthefrog" "Frog"]
+                           ]]
+          (add! c (uri f (str ex s)) RDF/TYPE (uri rf (str ex o))))
+        ;; query each of the stores; observe that the federated one is the union of the other two:
+        (doseq [[kind rcon] [["red" red-con]
+                             ["green" green-con]
+                             ["federated" rainbow-con]]]
+          (println)
+          (println kind "apples:")
+          (printlns (tuple-query rcon QueryLanguage/SPARQL
+                                 "select ?s where { ?s rdf:type ex:Apple }"
+                                 nil)))))))
 
 ;; (defn test17
 ;;   "Prolog queries"

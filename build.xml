@@ -28,6 +28,7 @@
   <target name="compile_java" depends="init"
           description="Compile Java sources.">
     <javac srcdir="${src}" destdir="${build}"
+           debug="true"
            includes="com/franz/agraph/repository/*.java tutorial/TutorialExamples.java"
            classpathref="classpath"/>
   </target>

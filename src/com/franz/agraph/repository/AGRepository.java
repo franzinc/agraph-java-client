@@ -65,7 +65,6 @@ public class AGRepository implements Repository {
 	}
 	
 	public void initialize() throws RepositoryException {
-		if (!isFederation()) vf.initialize();
 		initialized = true;
 	}
 

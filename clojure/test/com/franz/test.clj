@@ -15,13 +15,6 @@
 
 (alter-meta! *ns* assoc :author "Franz Inc <www.franz.com>, Mike Hinchey <mhinchey@franz.com>")
 
-(defn run-tests2
-  "Runs tests in given namespace with *test-out* bound so it works properly in slime."
-  [ns]
-  (require ns)
-  (binding [*test-out* *out*]
-    (run-tests ns)))
-
 (defn with-open2f
   "Calls f within the context of the with-open2 macro."
   [f]
@@ -49,3 +42,20 @@
   ;; because reporting the entire set of pairs is to much info
   [pred col1 col2 each-name msg]
   `(is (not (test-not-each ~pred ~col1 ~col2 ~each-name ~msg))))
+
+(defn run-ant
+  "Runs all defined tests, prints report to *err*, throw if failures. This works well for running in an ant java task."
+  [ns]
+  (require :reload-all ns)
+  (let [rpt report]
+    (binding [;; binding to *err* because, in ant, when the test target
+              ;; *out* doesn't print anything in some cases
+              *out* *err*
+              *test-out* *err*
+              report (fn report [m]
+                       (if (= :summary (:type m))
+                           (do (rpt m)
+                               (if (or (pos? (:fail m)) (pos? (:error m)))
+                                 (throw (new Exception (str (:fail m) " failures, " (:error m) " errors.")))))
+                           (rpt m)))]
+      (run-tests ns))))
