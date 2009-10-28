@@ -32,10 +32,12 @@
     <path location="${clojure.contrib.jar}"/>
   </path>
   
-  <target name="compile_clojure" depends="init"
+  <target name="compile-clojure" depends="init"
           description="Compile Clojure sources."
           if="hasclojure">
-    <java classname="clojure.lang.Compile" failonerror="true">
+    <java classname="clojure.lang.Compile"
+          failonerror="true" fork="true" taskname="clj-c">
+      <!-- fork because otherwise this fails when called by ../build.xml, classpath problem -->
       <classpath>
         <path refid="agclj-libs"/>
         <path location="src"/>
@@ -47,7 +49,7 @@
     </java>
   </target>
 
-  <target name="jar" description="Create jar file." depends="compile_clojure">
+  <target name="jar" description="Create jar file." depends="compile-clojure">
     <jar jarfile="${jarfile}">
       <!-- <fileset dir="${src}" includes="**/*.clj"/> -->
       <fileset dir="classes" includes="**/*.class"/>
@@ -81,6 +83,11 @@
   <target name="test"
           description="Run tests">
       <run-clj expr="(use 'com.franz.test) (run-ant 'com.franz.agraph.agtest)"/>
+  </target>
+
+  <target name="prepush"
+          description="Tests required before git push: clean, jar, test"
+          depends="clean, jar, test">
   </target>
 
   <target name="test-tutorials"

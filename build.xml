@@ -25,7 +25,7 @@
     <delete file="${jarfile}"/>
   </target>
 
-  <target name="compile_java" depends="init"
+  <target name="compile" depends="init"
           description="Compile Java sources.">
     <javac srcdir="${src}" destdir="${build}"
            debug="true"
@@ -37,13 +37,20 @@
     <classpath refid="classpath"/>
   </manifestclasspath>
   
-  <target name="jar" description="Create jar file." depends="compile_java">
+  <target name="jar"
+          description="Create jar file." depends="compile">
     <jar jarfile="${jarfile}">
       <fileset dir="${build}" includes="**/*.class"/>
       <manifest>
         <attribute name="Class-Path" value="${mf.path}"/>
       </manifest>
     </jar>
+  </target>
+  
+  <target name="prepush"
+          description="Tests required before git push: clean, build, and run Java and Clojure client tests"
+          depends="clean, jar">
+      <ant dir="clojure" target="prepush" inheritall="false"/>
   </target>
 
   <macrodef name="run-java"
@@ -66,7 +73,7 @@
   </macrodef>
 
   <target name="tutorial"
-          depends="compile_java"
+          depends="compile"
           description="Run tutorial example. Use -Dexample=5 for a specific example, default is all">
       <property name="example" value="all"/>
       <run-java tasknamex="tutorial" classname="tutorial.TutorialExamples" arg="${example}"/>
