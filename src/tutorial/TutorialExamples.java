@@ -53,16 +53,16 @@ public class TutorialExamples {
     /**
      * Creating a Repository
      */
-    public static AGRepositoryConnection test1(boolean close) throws RepositoryException {
+    public static AGRepositoryConnection example1(boolean close) throws RepositoryException {
         // Tests getting the repository up. 
-        println("Starting example test1().");
+        println("\nStarting example1().");
         AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
         println("Available catalogs: " + (server.listCatalogs()));
         AGCatalog catalog = server.getCatalog(CATALOG_ID);
         println("Available repositories in catalog " + 
                 (catalog.getCatalogName()) + ": " + 
                 catalog.getAllRepositories());
-        AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);
+        AGRepository myRepository = catalog.createRepository(CATALOG_ID);
         println("Got a repository.");
         myRepository.initialize();
         println("Initialized repository.");
@@ -86,11 +86,11 @@ public class TutorialExamples {
     /**
      * Asserting and Retracting Triples
      */
-    public static AGRepositoryConnection test2(boolean close) throws RepositoryException {
+    public static AGRepositoryConnection example2(boolean close) throws RepositoryException {
         // Asserts some statements and counts them.
-        AGRepositoryConnection conn = test1(false);
+        AGRepositoryConnection conn = example1(false);
         AGValueFactory vf = conn.getRepository().getValueFactory();
-        println("Starting example test2().");
+        println("\nStarting example2().");
         // Create some resources and literals to make statements from.
         URI alice = vf.createURI("http://example.org/people/alice");
         URI bob = vf.createURI("http://example.org/people/bob");
@@ -133,9 +133,10 @@ public class TutorialExamples {
     /**
      * A SPARQL Query
      */
-    public static void test3() throws Exception {
-        AGRepositoryConnection conn = test2(false);
-        try {
+    public static void example3() throws Exception {
+        AGRepositoryConnection conn = example2(false);
+        println("\nStarting example3().");
+       try {
             String queryString = "SELECT ?s ?p ?o  WHERE {?s ?p ?o .}";
             TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
             TupleQueryResult result = tupleQuery.evaluate();
@@ -158,10 +159,11 @@ public class TutorialExamples {
     /**
      * Statement Matching
      */
-    public static void test4() throws RepositoryException {
-        RepositoryConnection conn = test2(false);
+    public static void example4() throws RepositoryException {
+        RepositoryConnection conn = example2(false);
         closeBeforeExit(conn);
         Repository myRepository = conn.getRepository();
+        println("\nStarting example4().");
         URI alice = myRepository.getValueFactory().createURI("http://example.org/people/alice");
         RepositoryResult<Statement> statements = conn.getStatements(alice, null, null, false);
         try {
@@ -178,40 +180,43 @@ public class TutorialExamples {
     /**
      * Literal Values
      */
-    public static void test5() throws Exception {
-        RepositoryConnection conn = test1(false);
+    public static void example5() throws Exception {
+        RepositoryConnection conn = example2(false);
         Repository myRepository = conn.getRepository();
         ValueFactory f = myRepository.getValueFactory();
+        println("\nStarting example5().");
         conn.clear();
         String exns = "http://example.org/people/";
         URI alice = f.createURI("http://example.org/people/alice");
+        URI ted = f.createURI(exns, "ted");
         URI age = f.createURI(exns, "age");
         URI weight = f.createURI(exns, "weight");    
         URI favoriteColor = f.createURI(exns, "favoriteColor");
         URI birthdate = f.createURI(exns, "birthdate");
-        URI ted = f.createURI(exns, "Ted");
         Literal red = f.createLiteral("Red");
         Literal rouge = f.createLiteral("Rouge", "fr");
         Literal fortyTwoInt = f.createLiteral("42", XMLSchema.INT);
         Literal fortyTwoLong = f.createLiteral("42", XMLSchema.LONG);    
         Literal fortyTwoUntyped = f.createLiteral("42");
         Literal date = f.createLiteral("1984-12-06", XMLSchema.DATE);     
-        Literal time = f.createLiteral("1984-12-06T09:00:00", XMLSchema.DATETIME);
+        Literal time = f.createLiteral("1984-12-06T09:00:00", XMLSchema.DATETIME);  
+        Literal weightUntyped = f.createLiteral("120.5");
+        Literal weightFloat = f.createLiteral("120.5", XMLSchema.FLOAT);
         Statement stmt1 = f.createStatement(alice, age, fortyTwoInt);
-        Statement stmt2 = f.createStatement(ted, age, fortyTwoUntyped);
+        Statement stmt2 = f.createStatement(ted, age, fortyTwoLong);    
+        Statement stmt3 = f.createStatement(ted, age, fortyTwoUntyped);
         conn.add(stmt1);
         conn.add(stmt2);
-        conn.add(alice, weight, f.createLiteral("20.5"));
-        conn.add(ted, weight, f.createLiteral("20.5", XMLSchema.FLOAT));
+        conn.add(stmt3);
+        conn.add(alice, weight, weightFloat);
+        conn.add(ted, weight, weightUntyped);
         conn.add(alice, favoriteColor, red);
         conn.add(ted, favoriteColor, rouge);
         conn.add(alice, birthdate, date);
-        conn.add(ted, birthdate, time);
-        println("Size=" + conn.size());
-        for (Literal obj : new Literal[] {null, fortyTwoInt, fortyTwoLong, fortyTwoUntyped,
-                f.createLiteral("48"), f.createLiteral("20.5", XMLSchema.FLOAT),
-                f.createLiteral("20.5"), red, rouge}) {
-            println( "Retrieve triples matching " + obj + ".");
+        conn.add(ted, birthdate, time);    
+        for (Literal obj : new Literal[] {null, fortyTwoInt, fortyTwoLong, fortyTwoUntyped,  weightFloat, weightUntyped,
+                    red, rouge}) {
+            println( "\nRetrieve triples matching " + obj + ".");
             RepositoryResult<Statement> statements = conn.getStatements(null, null, obj, false);
             try {
                 while (statements.hasNext()) {
@@ -222,9 +227,9 @@ public class TutorialExamples {
             }
         }
         // SPARQL
-        for (String obj : new String[]{"42", "\"42\"", "20.5", "\"20.5\"", "\"20.5\"^^xsd:float",
+        for (String obj : new String[]{"42", "\"42\"", "120.5", "\"120.5\"", "\"120.5\"^^xsd:float",
                                        "\"Rouge\"@fr", "\"Rouge\"", "\"1984-12-06\"^^xsd:date"}) {
-            println( "Query triples matching " + obj + ".");
+            println( "\nQuery triples matching " + obj + ".");
             String queryString = "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = " + obj + ")}";
             TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
             TupleQueryResult result = tupleQuery.evaluate();
@@ -242,7 +247,7 @@ public class TutorialExamples {
         }
         {
             // Search for date using date object in triple pattern.
-            println("Retrieve triples matching DATE object.");
+            println("\nRetrieve triples matching DATE object.");
             RepositoryResult<Statement> statements = conn.getStatements(null, null, date, false);
             try {
                 while (statements.hasNext()) {
@@ -254,7 +259,7 @@ public class TutorialExamples {
         }
 
         {
-            println("Match triples having a specific DATE value.");
+            println("\nMatch triples having a specific DATE value.");
             RepositoryResult<Statement> statements = conn.getStatements(null, null,
                     f.createLiteral("\"1984-12-06\"^^<http://www.w3.org/2001/XMLSchema#date>"), false);
             try {
@@ -265,42 +270,70 @@ public class TutorialExamples {
                 statements.close();
             }
         }
+        {
+            // Search for time using datetime object in triple pattern.
+            println("\nRetrieve triples matching DATETIME object.");
+            RepositoryResult<Statement> statements = conn.getStatements(null, null, time, false);
+            try {
+                while (statements.hasNext()) {
+                    println(statements.next());
+                }
+            } finally {
+                statements.close();
+            }
+        }
+        {
+            println("\nMatch triples having a specific DATETIME value.");
+            RepositoryResult<Statement> statements = conn.getStatements(null, null,
+                    f.createLiteral("\"1984-12-06T09:00:00\"^^<http://www.w3.org/2001/XMLSchema#dateTime>"), false);
+            try {
+                while (statements.hasNext()) {
+                    println(statements.next());
+                }
+            } finally {
+                statements.close();
+            }
+        }
+
+        conn.close();
         myRepository.shutDown();
     }
     
     /**
      * Importing Triples
      */
-    public static AGRepositoryConnection test6() throws Exception {
+    
+    public static AGRepositoryConnection example6() throws Exception {
         AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
         AGCatalog catalog = server.getCatalog(CATALOG_ID);
-        AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);
+        AGRepository myRepository = catalog.createRepository(CATALOG_ID);
         myRepository.initialize();
         AGRepositoryConnection conn = myRepository.getConnection();
         closeBeforeExit(conn);
         conn.clear();
+        conn.setAutoCommit(false);  // dedicated session
         ValueFactory f = myRepository.getValueFactory();
-        String path1 = "src/tutorial/vc-db-1.rdf";
-        String path2 = "src/tutorial/kennedy.ntriples";
+        String path1 = "src/tutorial/vc-db-1.rdf";    
+        String path2 = "src/tutorial/kennedy.ntriples";            
         String baseURI = "http://example.org/example/local";
-        Resource context = f.createURI("http://example.org#vcards");
-        conn.setNamespace("vcd", "http://www.w3.org/2001/vcard-rdf/3.0#");
+        URI context = f.createURI("http://example.org#vcards");
         // read vcards triples into the context 'context':
         conn.add(new File(path1), baseURI, RDFFormat.RDFXML, context);
-        // read kennedy triples into the null context:
+        // read Kennedy triples into the null context:
         conn.add(new File(path2), baseURI, RDFFormat.NTRIPLES);
         println("After loading, repository contains " + conn.size(context) +
-                " triples in context '" + context + "'\n    and " +
-                conn.size((Resource)null) + " triples in context 'null'.");
+                " vcard triples in context '" + context + "'\n    and   " +
+                conn.size((Resource)null) + " kennedy triples in context 'null'.");
         return conn;
     }
+ 
     
     /**
      * Importing Triples, query
      */
-    public static void test7() throws Exception {
-        RepositoryConnection conn = test6();
-        println("Match all and print subjects and contexts");
+    public static void example7() throws Exception {
+        RepositoryConnection conn = example6();
+        println("\nMatch all and print subjects and contexts");
         RepositoryResult<Statement> result = conn.getStatements(null, null, null, false);
 // TODO: limit=25
         for (int i = 0; i < 25 && result.hasNext(); i++) {
@@ -309,8 +342,8 @@ public class TutorialExamples {
         }
         result.close();
         
-        println("Same thing with SPARQL query (can't retrieve triples in the null context)");
-        String queryString = "SELECT DISTINCT ?s ?c WHERE {graph ?c {?s ?p ?o .} }";
+        println("\nSame thing with SPARQL query (can't retrieve triples in the null context)");
+        String queryString = "SELECT ?s ?c WHERE {graph ?c {?s ?p ?o .} }";
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         TupleQueryResult qresult = tupleQuery.evaluate();       
         while (qresult.hasNext()) {
@@ -319,28 +352,29 @@ public class TutorialExamples {
         }
         qresult.close();
     }
-
-    // Writing RDF or NTriples to a file
-    public static void test8() throws Exception {
-        RepositoryConnection conn = test6();
+/*
+ * Writing RDF or NTriples to a file
+ */
+    public static void example8() throws Exception {
+        RepositoryConnection conn = example6();
         Repository myRepository = conn.getRepository();
-        Resource context = myRepository.getValueFactory().createURI("http://example.org#vcards");
+        URI context = myRepository.getValueFactory().createURI("http://example.org#vcards");
         String outputFile = "/tmp/temp.nt";
-        outputFile = null;
+//        outputFile = null;
         if (outputFile == null) {
-            println("Writing to Standard Out instead of to a file");
+            println("\nWriting n-triples to Standard Out instead of to a file");
         } else {
-            println("Writing to: " + outputFile);
+            println("\nWriting n-triples to: " + outputFile);
         }
         OutputStream output = (outputFile != null) ? new FileOutputStream(outputFile) : System.out;
         NTriplesWriter ntriplesWriter = new NTriplesWriter(output);
         conn.export(ntriplesWriter, context);
         String outputFile2 = "/tmp/temp.rdf";
-        outputFile2 = null;
+//        outputFile2 = null;
         if (outputFile2 == null) {
-            println("Writing to Standard Out instead of to a file");
+            println("\nWriting RDF to Standard Out instead of to a file");
         } else {
-            println("Writing to: " + outputFile2);
+            println("\nWriting RDF to: " + outputFile2);
         }
         output = (outputFile2 != null) ? new FileOutputStream(outputFile2) : System.out;
         RDFXMLWriter rdfxmlfWriter = new RDFXMLWriter(output);
@@ -351,16 +385,16 @@ public class TutorialExamples {
     /**
      * Writing the result of a statements match to a file.
      */
-    public static void test9() throws Exception {    
-        RepositoryConnection conn = test6();
+    public static void example9() throws Exception {    
+        RepositoryConnection conn = example6();
         conn.exportStatements(null, RDF.TYPE, null, false, new RDFXMLWriter(System.out));
     }
 
     /**
      * Datasets and multiple contexts.
      */
-    public static void test10 () throws Exception {
-        RepositoryConnection conn = test1(false);
+    public static void example10 () throws Exception {
+        RepositoryConnection conn = example1(false);
         Repository myRepository = conn.getRepository();
         ValueFactory f = myRepository.getValueFactory();
         String exns = "http://example.org/people/";
@@ -381,17 +415,17 @@ public class TutorialExamples {
         conn.add(ted, RDF.TYPE, person);
         conn.add(ted, name, tedsName);
         RepositoryResult<Statement> statements = conn.getStatements(null, null, null, false);
-        println("All triples in all contexts:");        
+        println("\nAll triples in all contexts:");        
         while (statements.hasNext()) {
             println(statements.next());            
         }
         statements = conn.getStatements(null, null, null, false, context1, context2);
-        println("Triples in contexts 1 or 2:");        
+        println("\nTriples in contexts 1 or 2:");        
         while (statements.hasNext()) {
             println(statements.next());
         }
         statements = conn.getStatements(null, null, null, false, null, context2);
-        println("Triples in contexts null or 2:");        
+        println("\nTriples in contexts null or 2:");        
         while (statements.hasNext()) {
             println(statements.next());
         }
@@ -404,11 +438,14 @@ public class TutorialExamples {
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         tupleQuery.setDataset(ds);
         TupleQueryResult result = tupleQuery.evaluate();    
-        println("Query over contexts 1 and 2.");
+        println("\nQuery over contexts 1 and 2.");
         while (result.hasNext()) {
             BindingSet bindingSet = result.next();
-            println(bindingSet.getBinding("s") + " " + bindingSet.getBinding("c"));
-        }
+            println(bindingSet.getBinding("s") + " " + 
+            		bindingSet.getBinding("p") + " " +
+            		bindingSet.getBinding("o") + " " +
+            		bindingSet.getBinding("c"));
+        }    
         
         queryString = "SELECT ?s ?p ?o WHERE {?s ?p ?o . }";
         ds = new DatasetImpl();
@@ -416,7 +453,7 @@ public class TutorialExamples {
         tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         tupleQuery.setDataset(ds);
         result = tupleQuery.evaluate();    
-        println("Query over the null context.");
+        println("\nQuery over the null context.");
         while (result.hasNext()) {
             println(result.next());
         }
@@ -426,8 +463,8 @@ public class TutorialExamples {
     /**
      * Namespaces
      */
-    public static void test11 () throws Exception {
-        RepositoryConnection conn = test1(false);
+    public static void example11 () throws Exception {
+        RepositoryConnection conn = example1(false);
         Repository myRepository = conn.getRepository();
 	    ValueFactory f = myRepository.getValueFactory();
 	    String exns = "http://example.org/people/";
@@ -440,7 +477,7 @@ public class TutorialExamples {
 	    TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
 	    TupleQueryResult result = tupleQuery.evaluate();  
 	    while (result.hasNext()) {
-        	System.out.println(result.next());
+        	println(result.next());
         }
 	    result.close();
 	    conn.close();
@@ -449,11 +486,12 @@ public class TutorialExamples {
 	/**
 	 * Text search
 	 */
-	public static void test12 () throws Exception {    
-        AGRepositoryConnection conn = test1(false);
+	public static void example12 () throws Exception {    
+        AGRepositoryConnection conn = example1(false);
 	    ValueFactory f = conn.getValueFactory();
 	    String exns = "http://example.org/people/";
-	    conn.registerFreetextPredicate(f.createURI("http://example.org/people/name"));
+	    conn.setNamespace("ex", exns);
+//	    conn.registerFreetextPredicate(f.createURI("http://example.org/people/name"));
 	    conn.registerFreetextPredicate(f.createURI(exns,"fullname"));
 	    URI alice = f.createURI(exns, "alice1");
 	    URI persontype = f.createURI(exns, "Person");
@@ -468,12 +506,14 @@ public class TutorialExamples {
 	    conn.add(alice, fullname, alicename);
 	    conn.add(book, RDF.TYPE, booktype);    
 	    conn.add(book, booktitle, wonderland); 
-	    conn.setNamespace("ex", exns);
 	    //conn.setNamespace('fti', "http://franz.com/ns/allegrograph/2.2/textindex/");  // is already built-in  
-	    String[] testMatches = {"?s fti:match 'Alice' .",
+	    /** Commented out following loop and replaced with individual examples
+	    *   that work better in the tutorial document. BDC
+	    */
+	    /*	    String[] testMatches = {"?s fti:match 'Alice' .",
 	            "?s fti:match 'Ali*' .",
 	            "?s fti:match '?l?c?' .",
-	            // TODO: "FILTER regex(?o, \"lic\")"
+	            "FILTER regex(?o, \"lic\")"
 	            };
 	    for (int i = 0; i < testMatches.length; i++) {
 	        String queryString = "SELECT ?s ?p ?o WHERE { ?s ?p ?o . " + testMatches[i] + " }";
@@ -491,17 +531,84 @@ public class TutorialExamples {
             println("Found " + count + " query results");
             result.close();
         }
-        conn.close();
+        */
+        println("\nWhole-word match for 'Alice'.");
+        String queryString = 
+        	"SELECT ?s ?p ?o " +
+        	"WHERE { ?s ?p ?o . ?s fti:match 'Alice' . }";
+        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        TupleQueryResult result = (TupleQueryResult)tupleQuery.evaluate();
+        int count = 0;
+        while (result.hasNext()) {
+            BindingSet bindingSet = result.next();
+            if (count < 5) {
+                println(bindingSet);
+            }
+            count += 1;
+        }
+        result.close();
+            
+        println("\nWildcard match for 'Ali*'.");
+        queryString = 
+        	"SELECT ?s ?p ?o " +
+        	"WHERE { ?s ?p ?o . ?s fti:match 'Ali*' . }";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = (TupleQueryResult)tupleQuery.evaluate();
+        count = 0;
+        while (result.hasNext()) {
+            BindingSet bindingSet = result.next();
+            if (count < 5) {
+                println(bindingSet);
+            }
+            count += 1;
+        }
+        result.close();
+            
+        println("\nWildcard match for '?l?ce?.");
+        queryString = 
+        	"SELECT ?s ?p ?o " +
+        	"WHERE { ?s ?p ?o . ?s fti:match '?l?c?' . }";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = (TupleQueryResult)tupleQuery.evaluate();
+        count = 0;
+        while (result.hasNext()) {
+            BindingSet bindingSet = result.next();
+            if (count < 5) {
+                println(bindingSet);
+            }
+            count += 1;
+        }
+        result.close();
+            
+        println("\nSubstring match for 'lic'.");
+        queryString = 
+        	"SELECT ?s ?p ?o " +
+        	"WHERE { ?s ?p ?o . FILTER regex(?o, \"lic\") }";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = (TupleQueryResult)tupleQuery.evaluate();
+        count = 0;
+        while (result.hasNext()) {
+            BindingSet bindingSet = result.next();
+            if (count < 5) {
+                println(bindingSet);
+            }
+            count += 1;
+        }
+        result.close();
+            
+            
+            conn.close();
     }
     
     
     /**
      * Ask, Construct, and Describe queries
      */ 
-    public static void test13 () throws Exception {
-        RepositoryConnection conn = test2(false);
+    public static void example13 () throws Exception {
+        RepositoryConnection conn = example2(false);
         conn.setNamespace("ex", "http://example.org/people/");
         conn.setNamespace("ont", "http://example.org/ontology/");
+        println("\nSELECT result:");
         String queryString = "select ?s ?p ?o where { ?s ?p ?o} ";
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         TupleQueryResult result = tupleQuery.evaluate();
@@ -512,7 +619,7 @@ public class TutorialExamples {
         queryString = "ask { ?s ont:name \"Alice\" } ";
         BooleanQuery booleanQuery = conn.prepareBooleanQuery(QueryLanguage.SPARQL, queryString);
         boolean truth = booleanQuery.evaluate(); 
-        println("Boolean result " + truth);
+        println("\nBoolean result: " + truth);
         queryString = "construct {?s ?p ?o} where { ?s ?p ?o . filter (?o = \"Alice\") } ";
         GraphQuery constructQuery = conn.prepareGraphQuery(QueryLanguage.SPARQL, queryString);
         GraphQueryResult gresult = constructQuery.evaluate(); 
@@ -520,11 +627,11 @@ public class TutorialExamples {
         while (gresult.hasNext()) {
             statements.add(gresult.next());
         }
-        println("Construct result" + statements);
+        println("\nConstruct result:\n" + statements);
         queryString = "describe ?s where { ?s ?p ?o . filter (?o = \"Alice\") } ";
         GraphQuery describeQuery = conn.prepareGraphQuery(QueryLanguage.SPARQL, queryString);
         gresult = describeQuery.evaluate(); 
-        println("Describe result");
+        println("\nDescribe result:");
         while (gresult.hasNext()) {
             println(gresult.next());
         }
@@ -535,8 +642,8 @@ public class TutorialExamples {
     /**
      * Parametric Queries
      */
-    public static void test14() throws Exception {
-        RepositoryConnection conn = test2(false);
+    public static void example14() throws Exception {
+        RepositoryConnection conn = example2(false);
         ValueFactory f = conn.getValueFactory();
         URI alice = f.createURI("http://example.org/people/alice");
         URI bob = f.createURI("http://example.org/people/bob");
@@ -544,13 +651,13 @@ public class TutorialExamples {
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         tupleQuery.setBinding("s", alice);
         TupleQueryResult result = tupleQuery.evaluate();
-        println("Facts about Alice:");            
+        println("\nFacts about Alice:");            
         while (result.hasNext()) {
             println(result.next());
         }
         result.close();
         tupleQuery.setBinding("s", bob);
-        println("Facts about Bob:");    
+        println("\nFacts about Bob:");    
         result = tupleQuery.evaluate();
         while (result.hasNext()) {
             println(result.next());
@@ -562,9 +669,9 @@ public class TutorialExamples {
     /**
      * Range matches
      */
-    public static void test15() throws Exception {
-        println("Starting example test15().");
-        AGRepositoryConnection conn = test1(false);
+    public static void example15() throws Exception {
+        println("Starting example15().");
+        AGRepositoryConnection conn = example1(false);
         ValueFactory f = conn.getValueFactory();
         conn.clear();
         String exns = "http://example.org/people/";
@@ -573,21 +680,49 @@ public class TutorialExamples {
         URI bob = f.createURI(exns, "bob");
         URI carol = f.createURI(exns, "carol");    
         URI age = f.createURI(exns, "age");    
-        // TODO: range queries in getstatements
-        //range = f.createRange(30, 50)
-        // range = conn.createRange(24, 42)  #this setting demonstrates that the limits are inclusive.
-        conn.registerPredicateMapping(age, XMLSchema.INT);
-        //conn.registerDatatypeMapping(XMLSchema.INT, "int"); // no longer needed, this should soon happen automatically in 4.0 
         conn.add(alice, age, f.createLiteral(42));
-        conn.add(bob, age, f.createLiteral(24));
+        conn.add(bob, age, f.createLiteral(45.1));
         conn.add(carol, age, f.createLiteral("39"));
-        println("foo");
-// TODO: let's show a SPARQL query to retrieve a range of ages instead of a getstatements
-//        RepositoryResult<Statement> rows = conn.getStatements(null, age, range);
-//        while (rows.hasNext()) {
-//            println(rows.next());
-//        }
-//        rows.close();
+
+        println("\nRange query for integers and floats.");
+        String queryString = 
+        	"SELECT ?s ?p ?o  " +
+        	"WHERE { ?s ?p ?o . " +
+        	"FILTER ((?o >= 30) && (?o <= 50)) }";
+        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        TupleQueryResult result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                Value o = bindingSet.getValue("o");
+                System.out.format("%s %s %s\n", s, p, o);
+            }
+        } finally {
+            result.close();
+        }
+        
+        println("\nRange query for integers, floats, and integers in strings.");
+        String queryString2 = 
+        	"PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> " +
+        	"SELECT ?s ?p ?o  " +
+        	"WHERE { ?s ?p ?o . " +
+        	"FILTER ((xsd:integer(?o) >= 30) && (xsd:integer(?o) <= 50)) }";
+        TupleQuery tupleQuery2 = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString2);
+        TupleQueryResult result2 = tupleQuery2.evaluate();
+        try {
+            while (result2.hasNext()) {
+                BindingSet bindingSet = result2.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                Value o = bindingSet.getValue("o");
+                System.out.format("%s %s %s\n", s, p, o);
+            }
+        } finally {
+            result2.close();
+        }
+
         conn.close();
     }
     
@@ -602,27 +737,27 @@ public class TutorialExamples {
     /**
      * Federated triple stores.
      */
-    public static void test16() throws Exception {
-        AGRepositoryConnection conn = test6();
+    public static void example16() throws Exception {
+        AGRepositoryConnection conn = example6();
         AGRepository myRepository = conn.getRepository();
         AGCatalog catalog = myRepository.getCatalog();
         // create two ordinary stores, and one federated store:
         AGRepository redRepo = catalog.createRepository("redthings");
         redRepo.initialize();
-        RepositoryConnection redConn = redRepo.getConnection();
+        AGRepositoryConnection redConn = redRepo.getConnection();
         closeBeforeExit(redConn);
         redConn.clear();
         ValueFactory rf = redConn.getValueFactory();
         AGRepository greenRepo = catalog.createRepository("greenthings");
         greenRepo.initialize();
-        RepositoryConnection greenConn = greenRepo.getConnection();
+        AGRepositoryConnection greenConn = greenRepo.getConnection();
         closeBeforeExit(greenConn);
         greenConn.clear();
         ValueFactory gf = greenConn.getValueFactory();
         AGServer server = myRepository.getCatalog().getServer();
         AGRepository rainbowRepo = server.createFederation("rainbowthings",redRepo, greenRepo);
         rainbowRepo.initialize();
-        RepositoryConnection rainbowConn = rainbowRepo.getConnection();
+        AGRepositoryConnection rainbowConn = rainbowRepo.getConnection();
         closeBeforeExit(rainbowConn);
         String ex = "http://www.demo.com/example#";
         // add a few triples to the red and green stores:
@@ -635,16 +770,16 @@ public class TutorialExamples {
         rainbowConn.setNamespace("ex", ex);
         String queryString = "select ?s where { ?s rdf:type ex:Apple }";
         // query each of the stores; observe that the federated one is the union of the other two:
-        pt("red", redConn.prepareTupleQuery(QueryLanguage.SPARQL, queryString).evaluate());
-        pt("green", greenConn.prepareTupleQuery(QueryLanguage.SPARQL, queryString).evaluate());
-        pt("federated", rainbowConn.prepareTupleQuery(QueryLanguage.SPARQL, queryString).evaluate());
+        pt("Red", redConn.prepareTupleQuery(QueryLanguage.SPARQL, queryString).evaluate());
+        pt("Green", greenConn.prepareTupleQuery(QueryLanguage.SPARQL, queryString).evaluate());
+        pt("Federated", rainbowConn.prepareTupleQuery(QueryLanguage.SPARQL, queryString).evaluate());
     }
 
     /**
      * Prolog queries
      */
-    public static void test17() throws Exception {
-        AGRepositoryConnection conn = test6();
+    public static void example17() throws Exception {
+        AGRepositoryConnection conn = example6();
         conn.setNamespace("kdy", "http://www.franz.com/simple#");
 //        conn.setRuleLanguage(AGQueryLanguage.PROLOG);
         String rules1 =
@@ -654,9 +789,8 @@ public class TutorialExamples {
             "(<-- (man ?person) ;; IF\n" +
             "     (q ?person !kdy:sex !kdy:male)\n" +
             "     (q ?person !rdf:type !kdy:person))";
-        println("Foo");
         conn.addRules(rules1);
-        println("Bar");
+        println("\nFirst and Last names of all \"men.\"");
         String queryString =
             "(select (?first ?last)\n" +
             "        (man ?person)\n" +
@@ -676,14 +810,18 @@ public class TutorialExamples {
     /**
      * Loading Prolog rules
      */
-    public static void test18() throws Exception {
-        AGRepositoryConnection conn = test6();
+    public static void example18() throws Exception {
+        AGRepositoryConnection conn = example6();
         conn.setNamespace("kdy", "http://www.franz.com/simple#");
         conn.setNamespace("rltv", "http://www.franz.com/simple#");
 //        conn.setRuleLanguage(AGQueryLanguage.PROLOG);
         String path = "src/tutorial/relative_rules.txt";
         conn.addRules(new FileInputStream(path));
-        String queryString = "(select (?person ?uncle) (uncle ?y ?x)(name ?x ?person)(name ?y ?uncle))";
+        String queryString = 
+        	"(select (?person ?uncle) " +
+        		"(uncle ?y ?x)" +
+        		"(name ?x ?person)" +
+        		"(name ?y ?uncle))";
         TupleQuery tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         TupleQueryResult result = tupleQuery.evaluate();     
         while (result.hasNext()) {
@@ -698,8 +836,8 @@ public class TutorialExamples {
     /**
      * RDFS++ Reasoning
      */
-    public static void test19() throws Exception {
-        AGRepositoryConnection conn = test1(false);
+    public static void example19() throws Exception {
+        AGRepositoryConnection conn = example1(false);
         // Examples of RDFS++ inference.  Was originally example 2A.
         ValueFactory f = conn.getValueFactory();
         URI robert = f.createURI("http://example.org/people/robert");
@@ -733,11 +871,11 @@ public class TutorialExamples {
         conn.add(bob, fatherOf, bobby);
         
         // List the children of Robert, with inference OFF.
-        println("Children of Robert, inference OFF");
+        println("/nChildren of Robert, inference OFF");
         printRows( conn.getStatements(robert, fatherOf, null, false) );
         // List the children of Robert with inference ON. The owl:sameAs
         // link combines the children of Bob with those of Robert.
-        println("Children of Robert, inference ON");
+        println("/nChildren of Robert, inference ON");
         printRows( conn.getStatements(robert, fatherOf, null, true) );
         // Remove the owl:sameAs link so we can try the next example.
         conn.remove(bob, OWL.SAMEAS, robert);
@@ -747,11 +885,11 @@ public class TutorialExamples {
         conn.add(hasFather, OWL.INVERSEOF, fatherOf);
         // Search for people who have fathers, even though there are no hasFather triples.
         // With inference OFF.
-        println("People with fathers, inference OFF");
+        println("/nPeople with fathers, inference OFF");
         printRows( conn.getStatements(null, hasFather, null, false) );
         // With inference ON. The owl:inverseOf link allows AllegroGraph to
         // deduce the inverse links.
-        println("People with fathers, inference ON");
+        println("/nPeople with fathers, inference ON");
         printRows( conn.getStatements(null, hasFather, null, true) );
         // Remove owl:inverseOf property.
         conn.remove(hasFather, OWL.INVERSEOF, fatherOf);
@@ -777,11 +915,11 @@ public class TutorialExamples {
         // Now search for inferred parentOf links.
         // Search for parentOf links, even though there are no parentOf triples.
         // With inference OFF.
-        println("People with parents, inference OFF");
+        println("/nPeople with parents, inference OFF");
         printRows( conn.getStatements(null, parentOf, null, false) );
         // With inference ON. The rdfs:subpropertyOf link allows AllegroGraph to 
         // deduce that fatherOf links imply parentOf links.
-        println("People with parents, inference ON");
+        println("/nPeople with parents, inference ON");
         printRows( conn.getStatements(null, parentOf, null, true) );
         conn.remove(fatherOf, RDFS.SUBPROPERTYOF, parentOf);
         
@@ -793,10 +931,10 @@ public class TutorialExamples {
         conn.add(fatherOf, RDFS.DOMAIN, parent);
         conn.add(fatherOf, RDFS.RANGE, child);
         // Now we can search for rdf:type parent.
-        println("Who are the parents?  Inference ON.");
+        println("/nWho are the parents?  Inference ON.");
         printRows( conn.getStatements(null, RDF.TYPE, parent, true) );
         // And we can search for rdf:type child.
-        println("Who are the children?  Inference ON.");
+        println("/nWho are the children?  Inference ON.");
         printRows( conn.getStatements(null, RDF.TYPE, child, true) );
         conn.close();
     }
@@ -805,12 +943,12 @@ public class TutorialExamples {
      * Geospatial Reasoning
      */
     /*
-    public static void test20() throws Exception {
-        AGRepositoryConnection conn = test1(false);
+    public static void example20() throws Exception {
+        AGRepositoryConnection conn = example1(false);
         ValueFactory f = conn.getValueFactory();
-        conn = test1(false);
+        conn = example1(false);
         conn.clear();
-        println("Starting example test20().");
+        println("Starting example20().");
         String exns = "http://example.org/people/";
         conn.setNamespace("ex", exns);
         URI alice = f.createURI(exns, "alice");
@@ -864,14 +1002,14 @@ public class TutorialExamples {
     }
     */
 
-// TODO: test21() Social Network Analysis Reasoning
+// TODO: example21() Social Network Analysis Reasoning
 
     /**
      * Transactions
      * 
      * TODO: rewrite transaction isolation checks for Sesame compliance.
      */
-    public static void test22() throws Exception {
+    public static void example22() throws Exception {
         AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
         AGCatalog catalog = server.getCatalog(CATALOG_ID);
         AGRepository myRepository = catalog.createRepository("agraph_test");
@@ -1062,39 +1200,39 @@ public class TutorialExamples {
         }
         try {
             for (Integer choice : choices) {
-                println("\nRunning test " + choice);
+                println("Running example " + choice);
                 switch(choice) {
-                case 1: test1(true); break;
-                case 2: test2(true); break;            
-                case 3: test3(); break;            
-                case 4: test4(); break;                        
-                case 5: test5(); break;
-                case 6: test6(); break;
-                case 7: test7(); break;
-                case 8: test8(); break;
-                case 9: test9(); break;    
-                case 10: test10(); break;
-                case 11: test11(); break;            
-                case 12: test12(); break;                        
-                case 13: test13(); break;                                    
-                case 14: test14(); break;                                    
-                case 15: test15(); break;                                    
-                case 16: test16(); break;                                    
-                case 17: test17(); break;                                    
-                case 18: test18(); break;                                    
-                case 19: test19(); break;                                    
-                //case 20: test20(); break;
-                //case 21: test21(); break;            
-                case 22: test22(); break;                        
-                default: throw new IllegalArgumentException("There is no test " + choice);
+                case 1: example1(true); break;
+                case 2: example2(true); break;            
+                case 3: example3(); break;            
+                case 4: example4(); break;                        
+                case 5: example5(); break;                                    
+                case 6: example6(); break;    
+                case 7: example7(); break;
+                case 8: example8(); break;            
+                case 9: example9(); break;    
+                case 10: example10(); break;
+                case 11: example11(); break;            
+                case 12: example12(); break;                        
+                case 13: example13(); break;                                    
+                case 14: example14(); break;                                    
+                case 15: example15(); break;                                    
+                case 16: example16(); break;                                    
+                case 17: example17(); break;                                    
+                case 18: example18(); break;                                    
+                case 19: example19(); break;                                    
+                //case 20: example20(); break;
+                //case 21: example21(); break;            
+                case 22: example22(); break;                        
+                default: throw new IllegalArgumentException("There is no example " + choice);
                 }
-                closeAll();
+                //closeAll();
             }
         } finally {
-            closeAll();
+            //closeAll();
         }
     }
-
+    
     public static void println(Object x) {
         System.out.println(x);
     }
