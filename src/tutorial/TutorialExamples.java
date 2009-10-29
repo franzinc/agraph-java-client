@@ -993,8 +993,6 @@ public class TutorialExamples {
 
     /**
      * Transactions
-     * 
-     * TODO: rewrite transaction isolation checks for Sesame compliance.
      */
     public static void example22() throws Exception {
         AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
@@ -1005,22 +1003,20 @@ public class TutorialExamples {
         // Create conn1 (autoCommit) and conn2 (no autoCommit).
         AGRepositoryConnection conn1 = myRepository.getConnection();
         closeBeforeExit(conn1);
+        conn1.clear();
         AGRepositoryConnection conn2 = myRepository.getConnection();
         closeBeforeExit(conn2);
-        conn1.clear();
-        conn2.clear();
         conn2.setAutoCommit(false);
         String baseURI = "http://example.org/example/local";
         conn1.add(new File("src/tutorial/lesmis.rdf"), baseURI, RDFFormat.RDFXML);
-        println("Loaded " + conn1.size() + " lesmis.rdf triples into conn1.");
+        println("Loaded " + conn1.size() + " lesmis.rdf triples via conn1.");
         conn2.add(new File("src/tutorial/kennedy.ntriples"), baseURI, RDFFormat.NTRIPLES);
-        println("Loaded " + conn2.size() + " kennedy.ntriples into conn2.");
+        println("Loaded " + conn2.size() + " kennedy.ntriples via conn2.");
         
-        println("\nSince we have done neither a commit nor a rollback, queries directed");
-        println("to one back end should not be able to retreive triples from the other connection.");
-        println("\nAfter loading, there are:");
-        println(conn1.size((Resource)null) + " lesmis triples in context 'null' from conn1.");
-        println(conn2.size((Resource)null) + " kennedy triples in context 'null' from conn2;");
+        println("\nSince conn1 is in autoCommit mode, lesmis.rdf triples are committed " +
+        		"and retrievable via conn2.  Since conn2 is not in autoCommit mode, and " +
+        		"no commit() has yet been issued on conn2, kennedy.rdf triples are not " +
+        		" retrievable via conn1.");
         // Check transaction isolation semantics:
         Literal valjean = vf.createLiteral("Valjean");
         Literal kennedy = vf.createLiteral("Kennedy");
@@ -1030,7 +1026,7 @@ public class TutorialExamples {
         printRows("\nUsing getStatements() on conn1; should not find Kennedy:",
                 1, conn1.getStatements(null, null, kennedy, false));
 // limit=1
-        printRows("\nUsing getStatements() on conn2; should not find Valjean:",
+        printRows("\nUsing getStatements() on conn2; should not find Valjean (until a rollback or commit occurs on conn2):",
                 1, conn2.getStatements(null, null, valjean, false));
 // limit=1
         printRows("\nUsing getStatements() on conn2; should find Kennedy:",
@@ -1041,7 +1037,7 @@ public class TutorialExamples {
         // Check transaction isolation semantics:
         println("\nRolling back contents of conn2.");
         conn2.rollback();
-        println("There are now " + conn2.size() + " triples from conn2.");
+        println("There are now " + conn2.size() + " triples visible via conn2.");
         printRows("\nUsing getStatements() on conn1; should find Valjean:",
                 1, conn1.getStatements(null, null, valjean, false));
         printRows("\nUsing getStatements() on conn1; should not find Kennedys:",
@@ -1051,10 +1047,14 @@ public class TutorialExamples {
         printRows("\nUsing getStatements() on conn2; should find Valjean:",
                 1, conn2.getStatements(null, null, valjean, false));
         // Reload and Commit
-        println("\nReload 1214 kennedy.ntriples into conn2.");
+        println("\nReload kennedy.ntriples into conn2.");
         conn2.add(new File("src/tutorial/kennedy.ntriples"), baseURI, RDFFormat.NTRIPLES);
+        println("There are now " + conn1.size() + " triples visible on conn1.");
+        println("There are now " + conn2.size() + " triples visible on conn2.");
         println("\nCommitting contents of conn2.");
         conn2.commit();
+        println("There are now " + conn1.size() + " triples visible on conn1.");
+        println("There are now " + conn2.size() + " triples visible on conn2.");
         // Check transaction isolation semantics:
         printRows("\nUsing getStatements() on conn1; should find Valjean:",
                 1, conn1.getStatements(null, null, valjean, false));
