@@ -1,82 +1,88 @@
-<project name="agraph-java-client" default="jar">
+<project name="agraph-java-client" default="clean-build">
+    
+    <!-- Library. -->
+    <property name="src" location="src"/>
+    <property name="lib" location="lib"/>
+    <property name="build" location="classes"/>
+    <property name="jarfile" location="agraph-java-client.jar"/>
+    
+    <path id="classpath">
+        <path location="${lib}/commons-codec-1.3.jar"/>
+        <path location="${lib}/commons-httpclient-3.1.jar"/>
+        <path location="${lib}/commons-logging-1.1.1.jar"/>
+        <path location="${lib}/openrdf-sesame-2.2.4-onejar.jar"/>
+        <path location="${lib}/slf4j-api-1.5.8.jar"/>
+        <path location="${lib}/slf4j-nop-1.5.8.jar"/>
+    </path>
+    
+    <target name="init">
+        <tstamp/>
+        <mkdir dir="${build}"/>
+    </target>
+    
+    <target name="clean"
+            description="Remove generated files and directories.">
+        <delete dir="${build}"/>
+        <delete file="${jarfile}"/>
+    </target>
 
-  <!-- Library. -->
-  <property name="src" location="src"/>
-  <property name="lib" location="lib"/>
-  <property name="build" location="classes"/>
-  <property name="jarfile" location="agraph-java-client.jar"/>
- 
-  <path id="classpath">
-    <path location="${lib}/commons-codec-1.3.jar"/>
-    <path location="${lib}/commons-httpclient-3.1.jar"/>
-    <path location="${lib}/commons-logging-1.1.1.jar"/>
-    <path location="${lib}/openrdf-sesame-2.2.4-onejar.jar"/>
-    <path location="${lib}/slf4j-api-1.5.8.jar"/>
-    <path location="${lib}/slf4j-nop-1.5.8.jar"/>
-  </path>
-  
-  <target name="init">
-    <tstamp/>
-    <mkdir dir="${build}"/>
-  </target>
-
-  <target name="clean" description="Remove generated files and directories.">
-    <delete dir="${build}"/>
-    <delete file="${jarfile}"/>
-  </target>
-
-  <target name="compile" depends="init"
-          description="Compile Java sources.">
-    <javac srcdir="${src}" destdir="${build}"
-           debug="true"
-           includes="com/franz/agraph/repository/*.java tutorial/TutorialExamples.java"
-           classpathref="classpath"/>
-  </target>
-
-  <manifestclasspath property="mf.path" jarfile="${jarfile}">
-    <classpath refid="classpath"/>
-  </manifestclasspath>
-  
-  <target name="jar"
-          description="Create jar file." depends="compile">
-    <jar jarfile="${jarfile}">
-      <fileset dir="${build}" includes="**/*.class"/>
-      <manifest>
-        <attribute name="Class-Path" value="${mf.path}"/>
-      </manifest>
-    </jar>
-  </target>
-  
-  <target name="prepush"
-          description="Tests required before git push: clean, build, and run Java and Clojure client tests"
-          depends="clean, jar">
-      <ant dir="clojure" target="prepush" inheritall="false"/>
-  </target>
-
-  <macrodef name="run-java"
-            description="Run java class">
-      <attribute name="tasknamex" default="java"/>
-      <attribute name="classname"/>
-      <attribute name="arg"/>
-      <sequential>
-          <java classname="@{classname}" failonerror="true" taskname="@{tasknamex}"
-                fork="true">
-              <sysproperty key="org.apache.commons.logging.Log"
-                           value="org.apache.commons.logging.impl.NoOpLog"/>
-              <classpath>
-                  <path refid="classpath"/>
-                  <path location="classes"/>
-              </classpath>
-              <arg value="@{arg}"/>
-          </java>
-      </sequential>
-  </macrodef>
-
-  <target name="tutorial"
-          depends="compile"
-          description="Run tutorial example. Use -Dexample=5 for a specific example, default is all">
-      <property name="example" value="all"/>
-      <run-java tasknamex="tutorial" classname="tutorial.TutorialExamples" arg="${example}"/>
-  </target>
-
+    <target name="compile" depends="init"
+            description="Compile Java sources.">
+        <javac srcdir="${src}" destdir="${build}"
+               debug="true"
+               includes="com/franz/agraph/repository/*.java tutorial/TutorialExamples.java"
+               classpathref="classpath"/>
+    </target>
+    
+    <manifestclasspath property="mf.path" jarfile="${jarfile}">
+        <classpath refid="classpath"/>
+    </manifestclasspath>
+    
+    <target name="build"
+            description="Create jar file."
+            depends="clean, compile">
+        <jar jarfile="${jarfile}">
+            <fileset dir="${build}" includes="**/*.class"/>
+            <manifest>
+                <attribute name="Class-Path" value="${mf.path}"/>
+            </manifest>
+        </jar>
+    </target>
+    
+    <target name="clean-build" depends="clean, build"
+            description="clean, and build jar">
+    </target>
+    
+    <target name="prepush"
+            description="Tests required before git push: clean, build, and run Java and Clojure client tests"
+            depends="clean-build">
+        <ant dir="clojure" target="prepush" inheritall="false"/>
+    </target>
+    
+    <macrodef name="run-java"
+              description="Run java class">
+        <attribute name="tasknamex" default="java"/>
+        <attribute name="classname"/>
+        <attribute name="arg"/>
+        <sequential>
+            <java classname="@{classname}" failonerror="true" taskname="@{tasknamex}"
+                  fork="true">
+                <sysproperty key="org.apache.commons.logging.Log"
+                             value="org.apache.commons.logging.impl.NoOpLog"/>
+                <classpath>
+                    <path refid="classpath"/>
+                    <path location="classes"/>
+                </classpath>
+                <arg value="@{arg}"/>
+            </java>
+        </sequential>
+    </macrodef>
+    
+    <target name="tutorial"
+            depends="compile"
+            description="Run tutorial example. Use -Dexample=5 for a specific example, default is all">
+        <property name="example" value="all"/>
+        <run-java tasknamex="tutorial" classname="tutorial.TutorialExamples" arg="${example}"/>
+    </target>
+    
 </project>
