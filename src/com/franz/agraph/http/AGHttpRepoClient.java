@@ -75,8 +75,8 @@ public class AGHttpRepoClient {
 				// use a dedicated session in autoCommit mode
 				sessionRoot = openSession(lifetimeInSeconds, true);
 			}*/
-			// use a dedicated session in autoCommit mode
-			sessionRoot = openSession(lifetimeInSeconds, true);
+			// use a dedicated session with appropriate autoCommit mode
+			sessionRoot = openSession(lifetimeInSeconds, repoconnection.isAutoCommit());
 		} catch (UnauthorizedException e) {
 			throw new RepositoryException(e);
 		} catch (IOException e) {

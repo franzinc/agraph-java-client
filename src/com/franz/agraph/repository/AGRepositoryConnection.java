@@ -39,12 +39,14 @@ import org.openrdf.rio.ntriples.NTriplesWriter;
 import com.franz.agraph.http.AGHttpRepoClient;
 
 /**
- * Implements the RepositoryConnection interface for AllegroGraph. 
+ * Implements the RepositoryConnection interface for AllegroGraph.
  */
-public class AGRepositoryConnection extends RepositoryConnectionBase implements RepositoryConnection {
+public class AGRepositoryConnection extends RepositoryConnectionBase implements
+		RepositoryConnection {
 
 	private final AGRepository repository;
 	private final AGHttpRepoClient repoclient;
+	private boolean autoCommit;
 
 	/**
 	 * @param repository
@@ -54,19 +56,14 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements 
 			throws RepositoryException {
 		super(repository);
 		this.repository = repository;
+		autoCommit = true;
 		repoclient = new AGHttpRepoClient(this);
 	}
 
-	/*@Override
-	protected void finalize() throws Throwable {
-		try {
-			if (isOpen()) {
-				close();
-			}
-		} finally {
-			super.finalize();
-		}
-	}*/
+	/*
+	 * @Override protected void finalize() throws Throwable { try { if
+	 * (isOpen()) { close(); } } finally { super.finalize(); } }
+	 */
 
 	@Override
 	public AGRepository getRepository() {
@@ -129,14 +126,31 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements 
 	@Override
 	public void setAutoCommit(boolean autoCommit) throws RepositoryException {
 		getHttpRepoClient().setAutoCommit(autoCommit);
+		this.autoCommit=autoCommit;  // TODO: get this state from the server?
 	}
-	
+
+	@Override
+	public boolean isAutoCommit() throws RepositoryException {
+		return autoCommit;  // TODO: get this state from the server?
+	}
+
 	public void commit() throws RepositoryException {
 		getHttpRepoClient().commit();
 	}
 
 	public void rollback() throws RepositoryException {
 		getHttpRepoClient().rollback();
+	}
+
+	/**
+	 * This method should do nothing, as the AllegroGraph server manages
+	 * autoCommit.
+	 */
+	@Override
+	protected void autoCommit() throws RepositoryException {
+		/*
+		 * if (isAutoCommit()) { commit(); }
+		 */
 	}
 
 	public void clearNamespaces() throws RepositoryException {
@@ -277,7 +291,7 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements 
 	}
 
 	public void removeNamespace(String prefix) throws RepositoryException {
-				getHttpRepoClient().removeNamespacePrefix(prefix);
+		getHttpRepoClient().removeNamespacePrefix(prefix);
 	}
 
 	public void setNamespace(String prefix, String name)
@@ -293,12 +307,12 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements 
 		}
 	}
 
-	
 	/************************************
 	 * AllegroGraph Extensions hereafter
 	 */
-	
-	public void registerFreetextPredicate(URI predicate) throws RepositoryException {
+
+	public void registerFreetextPredicate(URI predicate)
+			throws RepositoryException {
 		getHttpRepoClient().registerFreetextPredicate(predicate);
 	}
 
@@ -307,31 +321,33 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements 
 		return getHttpRepoClient().getFreetextPredicates();
 	}
 
-	public void registerPredicateMapping(URI predicate, URI datatype) throws RepositoryException {
+	public void registerPredicateMapping(URI predicate, URI datatype)
+			throws RepositoryException {
 		getHttpRepoClient().registerPredicateMapping(predicate, datatype);
 	}
-	
+
 	// TODO: return RepositoryResult<Mapping>?
 	public String[] getPredicateMappings() throws RepositoryException {
 		return getHttpRepoClient().getPredicateMappings();
 	}
-	
-	public void registerDatatypeMapping(URI predicate, URI datatype) throws RepositoryException {
+
+	public void registerDatatypeMapping(URI predicate, URI datatype)
+			throws RepositoryException {
 		getHttpRepoClient().registerDatatypeMapping(predicate, datatype);
 	}
-	
+
 	// TODO: return RepositoryResult<Mapping>?
 	public String[] getDatatypeMappings() throws RepositoryException {
 		return getHttpRepoClient().getDatatypeMappings();
 	}
-	
+
 	public void addRules(String rules) throws RepositoryException {
 		getHttpRepoClient().addRules(rules);
 	}
-	
+
 	// TODO: specify RuleLanguage
 	public void addRules(InputStream rulestream) throws RepositoryException {
 		getHttpRepoClient().addRules(rulestream);
 	}
-	
+
 }
