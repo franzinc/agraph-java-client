@@ -62,7 +62,7 @@ public class TutorialExamples {
         println("Available repositories in catalog " + 
                 (catalog.getCatalogName()) + ": " + 
                 catalog.getAllRepositories());
-        AGRepository myRepository = catalog.createRepository(CATALOG_ID);
+        AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);
         println("Got a repository.");
         myRepository.initialize();
         println("Initialized repository.");
@@ -190,20 +190,20 @@ public class TutorialExamples {
         URI alice = f.createURI("http://example.org/people/alice");
         URI ted = f.createURI(exns, "ted");
         URI age = f.createURI(exns, "age");
-        URI weight = f.createURI(exns, "weight");    
+        URI weight = f.createURI(exns, "weight");
         URI favoriteColor = f.createURI(exns, "favoriteColor");
         URI birthdate = f.createURI(exns, "birthdate");
         Literal red = f.createLiteral("Red");
         Literal rouge = f.createLiteral("Rouge", "fr");
         Literal fortyTwoInt = f.createLiteral("42", XMLSchema.INT);
-        Literal fortyTwoLong = f.createLiteral("42", XMLSchema.LONG);    
+        Literal fortyTwoLong = f.createLiteral("42", XMLSchema.LONG);
         Literal fortyTwoUntyped = f.createLiteral("42");
-        Literal date = f.createLiteral("1984-12-06", XMLSchema.DATE);     
-        Literal time = f.createLiteral("1984-12-06T09:00:00", XMLSchema.DATETIME);  
+        Literal date = f.createLiteral("1984-12-06", XMLSchema.DATE);
+        Literal time = f.createLiteral("1984-12-06T09:00:00", XMLSchema.DATETIME);
         Literal weightUntyped = f.createLiteral("120.5");
         Literal weightFloat = f.createLiteral("120.5", XMLSchema.FLOAT);
         Statement stmt1 = f.createStatement(alice, age, fortyTwoInt);
-        Statement stmt2 = f.createStatement(ted, age, fortyTwoLong);    
+        Statement stmt2 = f.createStatement(ted, age, fortyTwoLong);
         Statement stmt3 = f.createStatement(ted, age, fortyTwoUntyped);
         conn.add(stmt1);
         conn.add(stmt2);
@@ -213,7 +213,7 @@ public class TutorialExamples {
         conn.add(alice, favoriteColor, red);
         conn.add(ted, favoriteColor, rouge);
         conn.add(alice, birthdate, date);
-        conn.add(ted, birthdate, time);    
+        conn.add(ted, birthdate, time);
         for (Literal obj : new Literal[] {null, fortyTwoInt, fortyTwoLong, fortyTwoUntyped,  weightFloat, weightUntyped,
                     red, rouge}) {
             println( "\nRetrieve triples matching " + obj + ".");
@@ -306,7 +306,7 @@ public class TutorialExamples {
     public static AGRepositoryConnection example6() throws Exception {
         AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
         AGCatalog catalog = server.getCatalog(CATALOG_ID);
-        AGRepository myRepository = catalog.createRepository(CATALOG_ID);
+        AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);
         myRepository.initialize();
         AGRepositoryConnection conn = myRepository.getConnection();
         closeBeforeExit(conn);
@@ -326,7 +326,6 @@ public class TutorialExamples {
                 conn.size((Resource)null) + " kennedy triples in context 'null'.");
         return conn;
     }
- 
     
     /**
      * Importing Triples, query
@@ -457,7 +456,6 @@ public class TutorialExamples {
         while (result.hasNext()) {
             println(result.next());
         }
-        conn.close();
     }
     
     /**
@@ -480,7 +478,6 @@ public class TutorialExamples {
         	println(result.next());
         }
 	    result.close();
-	    conn.close();
 	}                                                   
 
 	/**
@@ -595,13 +592,9 @@ public class TutorialExamples {
             count += 1;
         }
         result.close();
-            
-            
-            conn.close();
-    }
-    
-    
-    /**
+	}
+	
+	/**
      * Ask, Construct, and Describe queries
      */ 
     public static void example13 () throws Exception {
@@ -636,7 +629,6 @@ public class TutorialExamples {
             println(gresult.next());
         }
         gresult.close();
-        conn.close();
     }
 
     /**
@@ -663,7 +655,6 @@ public class TutorialExamples {
             println(result.next());
         }
         result.close();
-        conn.close();
     }
 
     /**
@@ -722,8 +713,6 @@ public class TutorialExamples {
         } finally {
             result2.close();
         }
-
-        conn.close();
     }
     
     private static void pt(String kind, TupleQueryResult rows) throws Exception {
@@ -936,7 +925,6 @@ public class TutorialExamples {
         // And we can search for rdf:type child.
         println("/nWho are the children?  Inference ON.");
         printRows( conn.getStatements(null, RDF.TYPE, child, true) );
-        conn.close();
     }
     
     /**
@@ -998,7 +986,6 @@ public class TutorialExamples {
         println(polygon2);
         println("Locate entities within polygon2.");
         printRows( conn.getStatements(None, location, polygon2) );
-        conn.close();
     }
     */
 
@@ -1226,10 +1213,10 @@ public class TutorialExamples {
                 case 22: example22(); break;                        
                 default: throw new IllegalArgumentException("There is no example " + choice);
                 }
-                //closeAll();
+                closeAll();
             }
         } finally {
-            //closeAll();
+            closeAll();
         }
     }
     
