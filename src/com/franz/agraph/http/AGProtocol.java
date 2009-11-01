@@ -254,11 +254,10 @@ public class AGProtocol extends Protocol {
 	}
 
 	public static String getRootCatalogRepositoriesLocation(String catalogURL) {
-		return catalogURL;
+		return catalogURL + "/" + REPOSITORIES;
 	}
 
 	public static String getFederatedRepositoriesLocation(String catalogURL) {
-		// TODO Auto-generated method stub
 		return catalogURL;
 	}
 	
