@@ -26,7 +26,6 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 
 	public String TEST_DIR_PREFIX = System.getProperty("com.franz.agraph.test.dataDir", System.getProperty("user.dir") + System.getProperty("file.separator"));
 	public String SERVER_URL = System.getProperty("com.franz.agraph.test.serverURL","http://localhost:8080");
-	public String CATALOG_ID = System.getProperty("com.franz.agraph.test.catalogID","testcatalog");
 	public String USERNAME = System.getProperty("com.franz.agraph.test.username","test");
 	public String PASSWORD = System.getProperty("com.franz.agraph.test.password","xyzzy");
 
@@ -38,7 +37,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 
 	protected Repository createRepository() throws Exception {
 		AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
-		AGCatalog catalog = server.getCatalog(CATALOG_ID);
+		AGCatalog catalog = server.getRootCatalog();
 		AGRepository repo = catalog.createRepository("testRepo" + repoNumber);
 		return repo;
 	}
