@@ -58,7 +58,8 @@ public class TutorialExamples {
         println("\nStarting example1().");
         AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
         println("Available catalogs: " + (server.listCatalogs()));
-        AGCatalog catalog = server.getCatalog(CATALOG_ID);
+//        AGCatalog catalog = server.getCatalog(CATALOG_ID);   // open named catalog
+        AGCatalog catalog = server.getRootCatalog();          // open rootCatalog
         println("Available repositories in catalog " + 
                 (catalog.getCatalogName()) + ": " + 
                 catalog.getAllRepositories());
