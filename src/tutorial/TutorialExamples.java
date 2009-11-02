@@ -596,7 +596,7 @@ public class TutorialExamples {
         queryString = "construct {?s ?p ?o} where { ?s ?p ?o . filter (?o = \"Alice\") } ";
         GraphQuery constructQuery = conn.prepareGraphQuery(QueryLanguage.SPARQL, queryString);
         GraphQueryResult gresult = constructQuery.evaluate(); 
-        List statements = new ArrayList();
+        List<Statement> statements = new ArrayList<Statement>();
         while (gresult.hasNext()) {
             statements.add(gresult.next());
         }
