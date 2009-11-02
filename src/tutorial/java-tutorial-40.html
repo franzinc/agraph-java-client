@@ -230,10 +230,10 @@ this diagram:</p>
     public static AGRepositoryConnection example1(boolean close) throws RepositoryException {        // Tests getting the repository up. <br>        println(&quot;Starting example example1().&quot;);<br>        AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);<br>        println(&quot;Available catalogs: &quot; + (server.listCatalogs()));</pre>
 <p>This is the output so far:</p>
 <pre class="output">Starting example example1().<br>Available catalogs: null</pre>
-<p>In the next line of example1(), we use the server's <strong>getCatalog()</strong> method to create a client-side catalog object. This object has methods such as <strong>getCatalogName()</strong> and <strong>getAllRepositories()</strong> that we can use to investigate the catalogs on the AllegroGraph server. When we look inside the &quot;scratch&quot; catalog, we can see which repositories are available:</p>
-<pre class="input">        AGCatalog catalog = server.getCatalog(CATALOG_ID);<br>        println(&quot;Available repositories in catalog &quot; + <br>                (catalog.getCatalogName()) + &quot;: &quot; + <br>                catalog.getAllRepositories());</pre>
+<p>In the next line of example1(), we use the server's <strong>getRootCatalog()</strong> method to create a client-side catalog object connected to AllegroGraph's default rootCatalog, as defined in the AllegroGraph configuration file. The catalog object has methods such as <strong>getCatalogName()</strong> and <strong>getAllRepositories()</strong> that we can use to investigate the catalogs on the AllegroGraph server. When we look inside the root catalog, we can see which repositories are available:</p>
+<pre class="input">        AGCatalog catalog = server.getRootCatalog();<br>        println(&quot;Available repositories in catalog &quot; + <br>                (catalog.getCatalogName()) + &quot;: &quot; + <br>                catalog.getAllRepositories());</pre>
 <p>The corresponding output lists the available repositories.  (When you run the examples, you may see a different list of repositories.)</p>
-<pre class="output">Available repositories in catalog scratch: null</pre>
+<pre class="output">Available repositories in catalog /: null</pre>
 <p>The next step is to create a client-side repository object representing the respository we wish to open, by calling the
 <strong>getRepository()</strong> method of the catalog object. We have to provide the name of the desired repository (<strong>scratch</strong> in this case).</p>
 <pre class="input">        AGRepository myRepository = catalog.createRepository(CATALOG_ID);<br>        myRepository.initialize();</pre>
