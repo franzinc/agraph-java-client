@@ -62,7 +62,7 @@ public class TutorialExamples {
         println("Available repositories in catalog " + 
                 (catalog.getCatalogName()) + ": " + 
                 catalog.getAllRepositories());
-        //catalog.deleteRepository(REPOSITORY_ID);
+        catalog.deleteRepository(REPOSITORY_ID);
         AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);
         println("Got a repository.");
         myRepository.initialize();
@@ -71,8 +71,8 @@ public class TutorialExamples {
         closeBeforeExit(conn);
         println("Got a connection.");
         conn.clear();  // remove previous triples, if any.
-        conn.clearNamespaces();  // remove previous namespaces, if any.
-        conn.clearMappings();  // remove previous datatype and predicate mappings, if any.
+        // conn.clearNamespaces();  // remove namespaces (TODO: but not standard ones?)
+        // conn.clearMappings();  // remove datatype/predicate mappings (TODO: but not standard ones?)
         println("Cleared the connection.");
         println("Repository " + (myRepository.getRepositoryID()) +
                 " is up! It contains " + (conn.size()) +
