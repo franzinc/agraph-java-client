@@ -237,6 +237,9 @@ public class AGHTTPClient
 		} else {
 			method.setDoAuthentication(false);
 		}
+		// TODO probably doesn't belong here, need another method that
+		// HttpMethod objects pass through.
+		method.addRequestHeader(new Header("Connection", "keep-alive"));
 	}
 
 	protected final void releaseConnection(HttpMethod method) {
