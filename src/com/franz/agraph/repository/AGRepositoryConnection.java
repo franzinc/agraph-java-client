@@ -321,26 +321,41 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		return getHttpRepoClient().getFreetextPredicates();
 	}
 
-	public void registerPredicateMapping(URI predicate, URI datatype)
+	public void registerPredicateMapping(URI predicate, URI primtype)
 			throws RepositoryException {
-		getHttpRepoClient().registerPredicateMapping(predicate, datatype);
+		getHttpRepoClient().registerPredicateMapping(predicate, primtype);
 	}
 
+	public void deletePredicateMapping(URI predicate)
+	throws RepositoryException {
+		getHttpRepoClient().deletePredicateMapping(predicate);
+	}
+	
 	// TODO: return RepositoryResult<Mapping>?
 	public String[] getPredicateMappings() throws RepositoryException {
 		return getHttpRepoClient().getPredicateMappings();
 	}
 
-	public void registerDatatypeMapping(URI predicate, URI datatype)
+	// TODO: are all primtypes available as URI constants?
+	public void registerDatatypeMapping(URI datatype, URI primtype)
 			throws RepositoryException {
-		getHttpRepoClient().registerDatatypeMapping(predicate, datatype);
+		getHttpRepoClient().registerDatatypeMapping(datatype, primtype);
 	}
 
+	public void deleteDatatypeMapping(URI datatype)
+	throws RepositoryException {
+		getHttpRepoClient().deleteDatatypeMapping(datatype);
+	}
+	
 	// TODO: return RepositoryResult<Mapping>?
 	public String[] getDatatypeMappings() throws RepositoryException {
 		return getHttpRepoClient().getDatatypeMappings();
 	}
 
+	public void clearMappings() throws RepositoryException {
+		getHttpRepoClient().clearMappings();
+	}
+	
 	public void addRules(String rules) throws RepositoryException {
 		getHttpRepoClient().addRules(rules);
 	}

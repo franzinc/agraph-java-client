@@ -62,6 +62,7 @@ public class TutorialExamples {
         println("Available repositories in catalog " + 
                 (catalog.getCatalogName()) + ": " + 
                 catalog.getAllRepositories());
+        //catalog.deleteRepository(REPOSITORY_ID);
         AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);
         println("Got a repository.");
         myRepository.initialize();
@@ -70,6 +71,8 @@ public class TutorialExamples {
         closeBeforeExit(conn);
         println("Got a connection.");
         conn.clear();  // remove previous triples, if any.
+        conn.clearNamespaces();  // remove previous namespaces, if any.
+        conn.clearMappings();  // remove previous datatype and predicate mappings, if any.
         println("Cleared the connection.");
         println("Repository " + (myRepository.getRepositoryID()) +
                 " is up! It contains " + (conn.size()) +
@@ -503,33 +506,8 @@ public class TutorialExamples {
 	    conn.add(alice, fullname, alicename);
 	    conn.add(book, RDF.TYPE, booktype);    
 	    conn.add(book, booktitle, wonderland); 
-	    //conn.setNamespace('fti', "http://franz.com/ns/allegrograph/2.2/textindex/");  // is already built-in  
-	    /** Commented out following loop and replaced with individual examples
-	    *   that work better in the tutorial document. BDC
-	    */
-	    /*	    String[] testMatches = {"?s fti:match 'Alice' .",
-	            "?s fti:match 'Ali*' .",
-	            "?s fti:match '?l?c?' .",
-	            "FILTER regex(?o, \"lic\")"
-	            };
-	    for (int i = 0; i < testMatches.length; i++) {
-	        String queryString = "SELECT ?s ?p ?o WHERE { ?s ?p ?o . " + testMatches[i] + " }";
-            System.out.println("Query for match with " + testMatches[i]);
-            TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
-            TupleQueryResult result = (TupleQueryResult)tupleQuery.evaluate();
-            int count = 0;
-            while (result.hasNext()) {
-                BindingSet bindingSet = result.next();
-                if (count < 5) {
-                    println(bindingSet);
-                }
-                count += 1;
-            }
-            println("Found " + count + " query results");
-            result.close();
-        }
-        */
-        println("\nWhole-word match for 'Alice'.");
+
+	    println("\nWhole-word match for 'Alice'.");
         String queryString = 
         	"SELECT ?s ?p ?o " +
         	"WHERE { ?s ?p ?o . ?s fti:match 'Alice' . }";
@@ -582,6 +560,7 @@ public class TutorialExamples {
         	"SELECT ?s ?p ?o " +
         	"WHERE { ?s ?p ?o . FILTER regex(?o, \"lic\") }";
         tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        tupleQuery.setIncludeInferred(false); // TODO: remove when bug fixed.
         result = (TupleQueryResult)tupleQuery.evaluate();
         count = 0;
         while (result.hasNext()) {
@@ -681,6 +660,7 @@ public class TutorialExamples {
         	"WHERE { ?s ?p ?o . " +
         	"FILTER ((?o >= 30) && (?o <= 50)) }";
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        tupleQuery.setIncludeInferred(false); // TODO: remove when bug fixed.
         TupleQueryResult result = tupleQuery.evaluate();
         try {
             while (result.hasNext()) {
@@ -701,6 +681,7 @@ public class TutorialExamples {
         	"WHERE { ?s ?p ?o . " +
         	"FILTER ((xsd:integer(?o) >= 30) && (xsd:integer(?o) <= 50)) }";
         TupleQuery tupleQuery2 = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString2);
+        tupleQuery2.setIncludeInferred(false); // TODO: remove when bug fixed.
         TupleQueryResult result2 = tupleQuery2.evaluate();
         try {
             while (result2.hasNext()) {

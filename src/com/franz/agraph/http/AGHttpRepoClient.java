@@ -618,6 +618,20 @@ public class AGHttpRepoClient {
 		}
 	}
 
+	public void deletePredicateMapping(URI predicate) throws RepositoryException {
+		String url = AGProtocol.getPredicateMappingLocation(getSessionRoot());
+		String pred_nt = NTriplesUtil.toNTriplesString(predicate);
+		Header[] headers = {};
+		NameValuePair[] params = { new NameValuePair(AGProtocol.FTI_PREDICATE_PARAM_NAME, pred_nt) };
+		try {
+			getHTTPClient().delete(url, headers, params);
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+	}
+	
 	public String[] getPredicateMappings() throws RepositoryException {
 		String url = AGProtocol.getPredicateMappingLocation(getSessionRoot());
 		Header[] headers = new Header[0];
@@ -654,6 +668,21 @@ public class AGHttpRepoClient {
 		}
 	}
 
+	public void deleteDatatypeMapping(URI datatype)	throws RepositoryException {
+		String url = AGProtocol.getDatatypeMappingLocation(getSessionRoot());
+		String datatype_nt = NTriplesUtil.toNTriplesString(datatype);
+		Header[] headers = {};
+		NameValuePair[] params = {
+				new NameValuePair(AGProtocol.TYPE_PARAM_NAME, datatype_nt)};
+		try {
+			getHTTPClient().delete(url, headers, params);
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+	}
+	
 	public String[] getDatatypeMappings() throws RepositoryException {
 		String url = AGProtocol.getPredicateMappingLocation(getSessionRoot());
 		Header[] headers = new Header[0];
@@ -669,6 +698,19 @@ public class AGHttpRepoClient {
 		return handler.getString().split("\n");
 	}
 
+	public void clearMappings()	throws RepositoryException {
+		String url = AGProtocol.getMappingLocation(getSessionRoot());
+		Header[] headers = {};
+		NameValuePair[] params = {};
+		try {
+			getHTTPClient().delete(url, headers, params);
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+	}
+	
 	public void addRules(String rules) throws RepositoryException {
 		try {
 			InputStream rulestream = new ByteArrayInputStream(rules.getBytes("UTF-8"));
