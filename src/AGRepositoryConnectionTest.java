@@ -132,14 +132,13 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 	}
 
 	public void testSimpleTupleQueryUnicode() throws Exception {
-		// TODO: revert strangeUnicodeVarname to original value
-		testCon.add(alexander, name, strangeUnicodeVarname);
+		testCon.add(alexander, name, Александър);
 
 		StringBuilder queryBuilder = new StringBuilder();
 		queryBuilder.append(" PREFIX foaf: <" + FOAF_NS + ">");
 		queryBuilder.append(" SELECT ?person");
 		queryBuilder.append(" WHERE { ?person foaf:name '");
-		queryBuilder.append(strangeUnicodeVarname.getLabel()).append("' .}");
+		queryBuilder.append(Александър.getLabel()).append("' .}");
 
 		TupleQueryResult result = testCon.prepareTupleQuery(
 				QueryLanguage.SPARQL, queryBuilder.toString()).evaluate();
@@ -202,18 +201,17 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 	}
 
 	public void testPreparedTupleQueryUnicode() throws Exception {
-		// TODO: revert strangeUnicodeVarname to original value
-		testCon.add(alexander, name, strangeUnicodeVarname);
+		testCon.add(alexander, name, Александър);
 
 		StringBuilder queryBuilder = new StringBuilder();
 		queryBuilder.append(" PREFIX foaf: <" + FOAF_NS + ">");
 		queryBuilder.append(" SELECT ?person");
 		queryBuilder.append(" WHERE { ?person foaf:name '");
-		queryBuilder.append(strangeUnicodeVarname.getLabel()).append("' .}");
+		queryBuilder.append(Александър.getLabel()).append("' .}");
 
 		TupleQuery query = testCon.prepareTupleQuery(QueryLanguage.SPARQL,
 				queryBuilder.toString());
-		query.setBinding("name", strangeUnicodeVarname);
+		query.setBinding("name", Александър);
 
 		TupleQueryResult result = query.evaluate();
 
