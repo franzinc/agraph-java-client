@@ -46,7 +46,6 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 
 	private final AGRepository repository;
 	private final AGHttpRepoClient repoclient;
-	private boolean autoCommit;
 
 	/**
 	 * @param repository
@@ -56,7 +55,6 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 			throws RepositoryException {
 		super(repository);
 		this.repository = repository;
-		autoCommit = true;
 		repoclient = new AGHttpRepoClient(this);
 	}
 
@@ -126,12 +124,11 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	@Override
 	public void setAutoCommit(boolean autoCommit) throws RepositoryException {
 		getHttpRepoClient().setAutoCommit(autoCommit);
-		this.autoCommit=autoCommit;  // TODO: get this state from the server?
 	}
 
 	@Override
 	public boolean isAutoCommit() throws RepositoryException {
-		return autoCommit;  // TODO: get this state from the server?
+		return getHttpRepoClient().isAutoCommit();
 	}
 
 	public void commit() throws RepositoryException {
