@@ -265,7 +265,7 @@ public class TutorialExamples {
         {
             println("\nMatch triples having a specific DATE value.");
             RepositoryResult<Statement> statements = conn.getStatements(null, null,
-                    f.createLiteral("\"1984-12-06\"^^<http://www.w3.org/2001/XMLSchema#date>"), false);
+                    f.createLiteral("1984-12-06",XMLSchema.DATE), false);
             try {
                 while (statements.hasNext()) {
                     println(statements.next());
@@ -289,7 +289,7 @@ public class TutorialExamples {
         {
             println("\nMatch triples having a specific DATETIME value.");
             RepositoryResult<Statement> statements = conn.getStatements(null, null,
-                    f.createLiteral("\"1984-12-06T09:00:00\"^^<http://www.w3.org/2001/XMLSchema#dateTime>"), false);
+                    f.createLiteral("1984-12-06T09:00:00",XMLSchema.DATETIME), false);
             try {
                 while (statements.hasNext()) {
                     println(statements.next());
