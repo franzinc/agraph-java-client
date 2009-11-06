@@ -13,6 +13,7 @@ import org.openrdf.query.resultio.QueryResultIO;
 import org.openrdf.query.resultio.QueryResultParseException;
 import org.openrdf.query.resultio.TupleQueryResultFormat;
 import org.openrdf.query.resultio.TupleQueryResultParser;
+import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFHandler;
@@ -22,12 +23,10 @@ import org.openrdf.rio.RDFParser;
 import org.openrdf.rio.Rio;
 import org.openrdf.rio.UnsupportedRDFormatException;
 
-import com.franz.agraph.repository.AGRepository;
-
 // TODO: make this class abstract and subclass the distinct handlers when things stabilize
 public class AGResponseHandler {
 
-	private final AGRepository repository;
+	private final Repository repository;
 	private final RDFHandler rdfhandler;
 	private final TupleQueryResultHandler tqrhandler;
 	private final boolean bqrHandler;
@@ -41,7 +40,7 @@ public class AGResponseHandler {
 	private String requestMIMEType;
 	
 	// TODO: pass in the parser instead of the handler
-	public AGResponseHandler(AGRepository repository, RDFHandler rdfhandler, RDFFormat rdfformat) {
+	public AGResponseHandler(Repository repository, RDFHandler rdfhandler, RDFFormat rdfformat) {
 		this.repository = repository;
 		this.rdfhandler = rdfhandler;
 		this.tqrhandler = null;
@@ -52,7 +51,7 @@ public class AGResponseHandler {
 	}
 
 	// TODO: pass in the parser instead
-	public AGResponseHandler(AGRepository repository,
+	public AGResponseHandler(Repository repository,
 			TupleQueryResultHandler tqrhandler) {
 		this.repository = repository;
 		this.rdfhandler = null;

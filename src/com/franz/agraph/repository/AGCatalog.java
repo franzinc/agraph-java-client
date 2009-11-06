@@ -1,9 +1,13 @@
 package com.franz.agraph.repository;
 
 import java.io.IOException;
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.openrdf.repository.Repository;
+import org.openrdf.OpenRDFException;
+import org.openrdf.model.Value;
+import org.openrdf.query.BindingSet;
+import org.openrdf.query.TupleQueryResult;
 import org.openrdf.repository.RepositoryException;
 
 import com.franz.agraph.http.AGErrorType;
@@ -91,9 +95,20 @@ public class AGCatalog {
 		return repositoriesURL + "/" + repositoryID;
 	}
 	
-	// TODO
-	public Collection<AGRepository> getAllRepositories() {
-		return null;
+	public List<String> listRepositories() throws OpenRDFException {
+		String url = getRepositoriesURL();
+		TupleQueryResult tqresult = getHTTPClient().getTupleQueryResult(url);
+		List<String> result = new ArrayList<String>(5);
+        try {
+            while (tqresult.hasNext()) {
+                BindingSet bindingSet = tqresult.next();
+                Value id = bindingSet.getValue("id");
+                result.add(id.stringValue());
+            }
+        } finally {
+            tqresult.close();
+        }
+        return result;
 	}
 
 	public AGHTTPClient getHTTPClient() {
@@ -137,30 +152,4 @@ public class AGCatalog {
 		}
 	}
 
-	/**
-	 * 
-	 * 
-	 * @param args
-	 *            unused
-	 * @throws RepositoryException
-	 */
-	public static void main(String[] args) throws RepositoryException {
-		String serverURL = "http://localhost:4166";
-		String catalogID = "testcatalog";
-		String username = "bmillar";
-		String password = "xyzzy";
-
-		AGServer server = new AGServer(serverURL, username, password);
-		AGCatalog catalog = server.getCatalog(catalogID);
-
-		AGRepository repo = catalog.createRepository("foobar");
-		repo.initialize();
-
-		Collection<AGRepository> repos = catalog.getAllRepositories();
-		for (Repository r : repos) {
-			System.out.println(r);
-		}
-	}
-
-	
 }

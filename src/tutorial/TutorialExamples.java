@@ -27,7 +27,6 @@ import org.openrdf.query.TupleQueryResult;
 import org.openrdf.query.impl.DatasetImpl;
 import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.ntriples.NTriplesWriter;
@@ -53,21 +52,22 @@ public class TutorialExamples {
     /**
      * Creating a Repository
      */
-    public static AGRepositoryConnection example1(boolean close) throws RepositoryException {
+    public static AGRepositoryConnection example1(boolean close) throws Exception {
         // Tests getting the repository up. 
         println("\nStarting example1().");
         AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
-        println("Available catalogs: " + (server.listCatalogs()));
+        println("Available catalogs: " + server.listCatalogs());
 //        AGCatalog catalog = server.getCatalog(CATALOG_ID);   // open named catalog
         AGCatalog catalog = server.getRootCatalog();          // open rootCatalog
         println("Available repositories in catalog " + 
                 (catalog.getCatalogName()) + ": " + 
-                catalog.getAllRepositories());
+                catalog.listRepositories());
         catalog.deleteRepository(REPOSITORY_ID);
         AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);
         println("Got a repository.");
         myRepository.initialize();
         println("Initialized repository.");
+        println("Repository is writable? " + myRepository.isWritable());
         AGRepositoryConnection conn = myRepository.getConnection();
         closeBeforeExit(conn);
         println("Got a connection.");
@@ -90,7 +90,7 @@ public class TutorialExamples {
     /**
      * Asserting and Retracting Triples
      */
-    public static AGRepositoryConnection example2(boolean close) throws RepositoryException {
+    public static AGRepositoryConnection example2(boolean close) throws Exception {
         // Asserts some statements and counts them.
         AGRepositoryConnection conn = example1(false);
         AGValueFactory vf = conn.getRepository().getValueFactory();
@@ -163,7 +163,7 @@ public class TutorialExamples {
     /**
      * Statement Matching
      */
-    public static void example4() throws RepositoryException {
+    public static void example4() throws Exception {
         RepositoryConnection conn = example2(false);
         closeBeforeExit(conn);
         Repository myRepository = conn.getRepository();
@@ -728,6 +728,7 @@ public class TutorialExamples {
         AGServer server = myRepository.getCatalog().getServer();
         AGRepository rainbowRepo = server.createFederation("rainbowthings",redRepo, greenRepo);
         rainbowRepo.initialize();
+        println("Federation is writable? " + rainbowRepo.isWritable());
         AGRepositoryConnection rainbowConn = rainbowRepo.getConnection();
         closeBeforeExit(rainbowConn);
         String ex = "http://www.demo.com/example#";

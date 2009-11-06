@@ -337,7 +337,7 @@ public class AGHttpRepoClient {
 			}
 		};
 
-		upload(entity, baseURI, overwrite, contexts);
+		upload(entity, baseURI, overwrite, null, contexts);
 	}
 
 	public void upload(InputStream contents, String baseURI,
@@ -352,13 +352,19 @@ public class AGHttpRepoClient {
 		// from the AG server for some users, but not for others. TODO:
 		// understand why and explain.
 		RequestEntity entity = new InputStreamRequestEntity(contents,
-				InputStreamRequestEntity.CONTENT_LENGTH_AUTO, dataFormat
-						.getDefaultMIMEType());
-		upload(entity, baseURI, overwrite, contexts);
+				InputStreamRequestEntity.CONTENT_LENGTH_AUTO, // formerly: -1
+				dataFormat.getDefaultMIMEType());
+		upload(entity, baseURI, overwrite, null, contexts);
 	}
 
-	protected void upload(RequestEntity reqEntity, String baseURI,
+	/*public void upload(URI source, String baseURI, RDFFormat dataFormat, 
 			boolean overwrite, Resource... contexts) throws IOException,
+			RDFParseException, RepositoryException, UnauthorizedException {
+		upload(null, baseURI, dataFormat, overwrite, true, contexts);
+	}*/
+	
+	protected void upload(RequestEntity reqEntity, String baseURI,
+			boolean overwrite, String serverSideFile, Resource... contexts) throws IOException,
 			RDFParseException, RepositoryException, UnauthorizedException {
 		OpenRDFUtil.verifyContextNotNull(contexts);
 		String url = Protocol.getStatementsLocation(getSessionRoot());
@@ -371,9 +377,12 @@ public class AGHttpRepoClient {
 		if (baseURI != null && baseURI.trim().length() != 0) {
 			String encodedBaseURI = Protocol.encodeValue(new URIImpl(baseURI));
 			params.add(new NameValuePair(Protocol.BASEURI_PARAM_NAME,
-					encodedBaseURI
-			// baseURI // the workaround no longer needed.
-					));
+					encodedBaseURI));
+		}
+		if (serverSideFile != null && serverSideFile.trim().length() != 0) {
+			String encodedSSFile = Protocol.encodeValue(new URIImpl(serverSideFile));
+			params.add(new NameValuePair(AGProtocol.FILE_PARAM_NAME,
+					encodedSSFile));
 		}
 		if (overwrite == false) {
 			getHTTPClient().post(url, headers,

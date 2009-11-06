@@ -4,6 +4,7 @@
 package com.franz.agraph.http;
 
 import static com.franz.agraph.http.AGProtocol.AMOUNT_PARAM_NAME;
+import static org.openrdf.http.protocol.Protocol.ACCEPT_PARAM_NAME;
 import info.aduna.net.http.HttpClientUtil;
 
 import java.io.IOException;
@@ -28,9 +29,15 @@ import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 import org.openrdf.http.protocol.UnauthorizedException;
+import org.openrdf.query.TupleQueryResult;
+import org.openrdf.query.impl.TupleQueryResultBuilder;
+import org.openrdf.query.resultio.TupleQueryResultFormat;
+import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryException;
+import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.rio.RDFParseException;
 import org.openrdf.rio.UnsupportedRDFormatException;
+import org.openrdf.sail.memory.MemoryStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -277,6 +284,23 @@ public class AGHTTPClient
 		delete(repositoryURL, headers, params);
 	}
 
+	public TupleQueryResult getTupleQueryResult(String url) throws RepositoryException {
+		Header[] headers = { new Header(ACCEPT_PARAM_NAME, TupleQueryResultFormat.SPARQL.getDefaultMIMEType()) };
+		NameValuePair[] params = new NameValuePair[0];
+		Repository repo = new SailRepository( new MemoryStore() );
+		repo.initialize();
+		TupleQueryResultBuilder builder = new TupleQueryResultBuilder();
+		AGResponseHandler handler = new AGResponseHandler(repo,builder);
+		try {
+			get(url, headers, params, handler);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		}
+		return builder.getQueryResult();
+	}
+	
 	public String[] getBlankNodes(String repositoryURL, int amount)
 			throws IOException, RepositoryException, UnauthorizedException {
 		String url = AGProtocol.getBlankNodesURL(repositoryURL);

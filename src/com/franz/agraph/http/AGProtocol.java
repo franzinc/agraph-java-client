@@ -91,6 +91,11 @@ public class AGProtocol extends Protocol {
 	public static final String ON_PARAM_NAME = "on";
 	
 	/**
+	 * Parameter name for the 'file' parameter for statements.
+	 */
+	public static final String FILE_PARAM_NAME = "file";
+	
+	/**
 	 * Relative location of the commit service.
 	 */
 	public static final String COMMIT = "commit";
