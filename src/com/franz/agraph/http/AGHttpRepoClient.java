@@ -344,15 +344,8 @@ public class AGHttpRepoClient {
 			RDFFormat dataFormat, boolean overwrite, Resource... contexts)
 			throws IOException, RDFParseException, RepositoryException,
 			UnauthorizedException {
-		// TODO: research the ramifications of using CONTENT_LENGTH_AUTO here.
-		// Formerly we did this: "Set Content-Length to -1 as we don't know it
-		// and we also don't want
-		// to cache" per the original Sesame client, but this yielded "ran out
-		// of input" exceptions
-		// from the AG server for some users, but not for others. TODO:
-		// understand why and explain.
-		RequestEntity entity = new InputStreamRequestEntity(contents,
-				InputStreamRequestEntity.CONTENT_LENGTH_AUTO, // formerly: -1
+		// Set Content-Length to -1 as we don't know it and don't want to cache"
+		RequestEntity entity = new InputStreamRequestEntity(contents, -1,
 				dataFormat.getDefaultMIMEType());
 		upload(entity, baseURI, overwrite, null, contexts);
 	}
