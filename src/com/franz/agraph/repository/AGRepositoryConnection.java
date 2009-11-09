@@ -269,21 +269,46 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	 */
 	public AGQuery prepareQuery(QueryLanguage ql, String queryString,
 			String baseURI) {
+		// TODO: consider supporting this
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
+	public AGTupleQuery prepareTupleQuery(QueryLanguage ql, String queryString) {
+		return prepareTupleQuery(ql, queryString, null);
+	}
+
+	@Override
 	public AGTupleQuery prepareTupleQuery(QueryLanguage ql, String queryString,
 			String baseURI) {
+		// TODO: consider having the server parse and process the query, 
+		// throw MalformedQueryException, etc.
 		return new AGTupleQuery(this, ql, queryString, baseURI);
 	}
 
+	@Override
+	public AGGraphQuery prepareGraphQuery(QueryLanguage ql, String queryString) {
+		return prepareGraphQuery(ql, queryString, null);
+	}
+	
+	@Override
 	public AGGraphQuery prepareGraphQuery(QueryLanguage ql, String queryString,
 			String baseURI) {
+		// TODO: consider having the server parse and process the query, 
+		// throw MalformedQueryException, etc.
 		return new AGGraphQuery(this, ql, queryString, baseURI);
 	}
 
+	@Override
+	public AGBooleanQuery prepareBooleanQuery(QueryLanguage ql, String queryString) {
+		return prepareBooleanQuery(ql, queryString, null);
+	}
+	
+	@Override
 	public AGBooleanQuery prepareBooleanQuery(QueryLanguage ql,
 			String queryString, String baseURI) {
+		// TODO: consider having the server parse and process the query, 
+		// throw MalformedQueryException, etc.
 		return new AGBooleanQuery(this, ql, queryString, baseURI);
 	}
 

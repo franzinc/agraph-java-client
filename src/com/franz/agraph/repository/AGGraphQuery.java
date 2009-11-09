@@ -44,7 +44,7 @@ public class AGGraphQuery extends AGQuery implements GraphQuery {
 			httpCon.getHttpRepoClient().query(
 					new AGResponseHandler(httpCon.getRepository(), handler,
 							RDFFormat.NTRIPLES), queryLanguage, queryString,
-					dataset, includeInferred, getBindingsArray());
+					dataset, includeInferred, planner, getBindingsArray());
 		} catch (HttpException e) {
 			throw new QueryEvaluationException(e);
 		} catch (RepositoryException e) {

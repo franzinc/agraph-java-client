@@ -15,6 +15,9 @@ import org.openrdf.query.impl.AbstractQuery;
 
 public abstract class AGQuery extends AbstractQuery {
 
+	public static final String SPARQL_COVERAGE_PLANNER = "coverage";  // TODO confirm and add to protocol
+	public static final String SPARQL_IDENTITY_PLANNER = "identity";
+	
 	protected AGRepositoryConnection httpCon;
 
 	protected QueryLanguage queryLanguage;
@@ -23,6 +26,8 @@ public abstract class AGQuery extends AbstractQuery {
 
 	protected String baseURI;
 
+	protected String planner;
+	
 	public AGQuery(AGRepositoryConnection con, QueryLanguage ql, String queryString, String baseURI) {
 		this.httpCon = con;
 		this.queryLanguage = ql;
@@ -30,6 +35,14 @@ public abstract class AGQuery extends AbstractQuery {
 		this.baseURI = baseURI;
 	}
 
+	public String getPlanner() {
+		return planner;
+	}
+	
+	public void setPlanner(String planner) {
+		this.planner = planner;
+	}
+	
 	protected Binding[] getBindingsArray() {
 		BindingSet bindings = this.getBindings();
 

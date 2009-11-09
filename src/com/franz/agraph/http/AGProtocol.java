@@ -169,6 +169,11 @@ public class AGProtocol extends Protocol {
 	 * Parameter name for the 'repo' parameter for federation
 	 */
 	public static final String REPO_PARAM_NAME = "repo";
+
+	/**
+	 * Parameter name for the 'planner' to use during a query
+	 */
+	public static final String PLANNER_PARAM_NAME = "planner";
 	
 	
 	/**

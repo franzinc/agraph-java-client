@@ -79,7 +79,7 @@ public class AGResponseHandler {
 		this.bqrHandler = false;
 		this.longHandler = true;
 		this.stringHandler = false;
-		requestMIMEType = null;
+		requestMIMEType = "text/integer"; // TODO: add to AGProtocol
 	}
 
 	public AGResponseHandler(String s) {

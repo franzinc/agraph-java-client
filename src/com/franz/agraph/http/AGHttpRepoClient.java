@@ -512,7 +512,7 @@ public class AGHttpRepoClient {
 	}
 
 	public void query(AGResponseHandler handler, QueryLanguage ql,
-			String query, Dataset dataset, boolean includeInferred,
+			String query, Dataset dataset, boolean includeInferred, String planner,
 			Binding... bindings) throws HttpException, RepositoryException,
 			RDFParseException, IOException {
 		String url = getSessionRoot();
@@ -524,14 +524,14 @@ public class AGHttpRepoClient {
 					.getRequestMIMEType()));
 		}
 		List<NameValuePair> queryParams = getQueryMethodParameters(ql, query,
-				dataset, includeInferred, bindings);
+				dataset, includeInferred, planner, bindings);
 		getHTTPClient().post(url, headers.toArray(new Header[headers.size()]),
 				queryParams.toArray(new NameValuePair[queryParams.size()]),
 				null, handler);
 	}
 
 	protected List<NameValuePair> getQueryMethodParameters(QueryLanguage ql,
-			String query, Dataset dataset, boolean includeInferred,
+			String query, Dataset dataset, boolean includeInferred, String planner,
 			Binding... bindings) {
 		List<NameValuePair> queryParams = new ArrayList<NameValuePair>(
 				bindings.length + 10);
@@ -541,6 +541,7 @@ public class AGHttpRepoClient {
 		queryParams.add(new NameValuePair(Protocol.QUERY_PARAM_NAME, query));
 		queryParams.add(new NameValuePair(Protocol.INCLUDE_INFERRED_PARAM_NAME,
 				Boolean.toString(includeInferred)));
+		queryParams.add(new NameValuePair(AGProtocol.PLANNER_PARAM_NAME, planner));
 
 		if (dataset != null) {
 			for (URI defaultGraphURI : dataset.getDefaultGraphs()) {
@@ -572,7 +573,7 @@ public class AGHttpRepoClient {
 	}
 
 	public void close() throws RepositoryException {
-		if (true == usingDedicatedSession) {
+		if (usingDedicatedSession) {
 			try {
 				closeSession(sessionRoot);
 			} catch (IOException e) {
