@@ -541,7 +541,9 @@ public class AGHttpRepoClient {
 		queryParams.add(new NameValuePair(Protocol.QUERY_PARAM_NAME, query));
 		queryParams.add(new NameValuePair(Protocol.INCLUDE_INFERRED_PARAM_NAME,
 				Boolean.toString(includeInferred)));
-		queryParams.add(new NameValuePair(AGProtocol.PLANNER_PARAM_NAME, planner));
+		if (planner!=null) {
+			queryParams.add(new NameValuePair(AGProtocol.PLANNER_PARAM_NAME, planner));
+		}
 
 		if (dataset != null) {
 			for (URI defaultGraphURI : dataset.getDefaultGraphs()) {
