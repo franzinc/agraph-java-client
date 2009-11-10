@@ -43,9 +43,11 @@ public class TutorialExamples {
 
     static private final String SERVER_URL = "http://localhost:8080";
     static private final String CATALOG_ID = "scratch";
-    static private final String REPOSITORY_ID = "tutorial";
+    static private final String REPOSITORY_ID = "javatutorial";
     static private final String USERNAME = "test";
     static private final String PASSWORD = "xyzzy";
+//    static private final String USERNAME = "anonymous";
+//    static private final String PASSWORD = "";
 
     static final String FOAF_NS = "http://xmlns.com/foaf/0.1/";
 
@@ -713,20 +715,20 @@ public class TutorialExamples {
         AGRepository myRepository = conn.getRepository();
         AGCatalog catalog = myRepository.getCatalog();
         // create two ordinary stores, and one federated store:
-        AGRepository redRepo = catalog.createRepository("redthings");
+        AGRepository redRepo = catalog.createRepository("redthingsjv");
         redRepo.initialize();
         AGRepositoryConnection redConn = redRepo.getConnection();
         closeBeforeExit(redConn);
         redConn.clear();
         ValueFactory rf = redConn.getValueFactory();
-        AGRepository greenRepo = catalog.createRepository("greenthings");
+        AGRepository greenRepo = catalog.createRepository("greenthingsjv");
         greenRepo.initialize();
         AGRepositoryConnection greenConn = greenRepo.getConnection();
         closeBeforeExit(greenConn);
         greenConn.clear();
         ValueFactory gf = greenConn.getValueFactory();
         AGServer server = myRepository.getCatalog().getServer();
-        AGRepository rainbowRepo = server.createFederation("rainbowthings",redRepo, greenRepo);
+        AGRepository rainbowRepo = server.createFederation("rainbowthingsjv",redRepo, greenRepo);
         rainbowRepo.initialize();
         println("Federation is writable? " + rainbowRepo.isWritable());
         AGRepositoryConnection rainbowConn = rainbowRepo.getConnection();
@@ -1107,7 +1109,7 @@ public class TutorialExamples {
         // CIA Fact book
         AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
         println("Available catalogs " + server.listCatalogs());
-        AGCatalog catalog = server.getCatalog("scratch");
+        AGCatalog catalog = server.getCatalog(CATALOG_ID);
         println("Available repositories in catalog '" + catalog.getCatalogName() + "': " +
                 catalog.listRepositories());
         AGRepository myRepository = catalog.getRepository("agraph_test", AGRepository.ACCESS);
