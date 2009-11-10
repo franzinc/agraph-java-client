@@ -1,6 +1,5 @@
 package com.franz.agraph.http;
 
-import static com.franz.agraph.http.AGProtocol.getSessionCloseURL;
 import static com.franz.agraph.http.AGProtocol.getSessionURL;
 import static org.openrdf.http.protocol.Protocol.ACCEPT_PARAM_NAME;
 import info.aduna.io.IOUtil;
@@ -150,7 +149,7 @@ public class AGHttpRepoClient {
 
 	private void closeSession(String sessionRoot) throws IOException,
 			RepositoryException, UnauthorizedException {
-		String url = getSessionCloseURL(getSessionURL(sessionRoot));
+		String url = AGProtocol.getSessionCloseLocation(sessionRoot);
 		Header[] headers = new Header[0];
 		NameValuePair[] params = new NameValuePair[0];
 		try {
@@ -337,7 +336,7 @@ public class AGHttpRepoClient {
 			}
 		};
 
-		upload(entity, baseURI, overwrite, null, contexts);
+		upload(entity, baseURI, overwrite, null, null, null, contexts);
 	}
 
 	public void upload(InputStream contents, String baseURI,
@@ -347,21 +346,30 @@ public class AGHttpRepoClient {
 		// Set Content-Length to -1 as we don't know it and don't want to cache"
 		RequestEntity entity = new InputStreamRequestEntity(contents, -1,
 				dataFormat.getDefaultMIMEType());
-		upload(entity, baseURI, overwrite, null, contexts);
+		upload(entity, baseURI, overwrite, null, null, null, contexts);
 	}
 
-	/*public void upload(URI source, String baseURI, RDFFormat dataFormat, 
-			boolean overwrite, Resource... contexts) throws IOException,
+	public void load(URI source, String baseURI, RDFFormat dataFormat, 
+			Resource... contexts) throws IOException,
 			RDFParseException, RepositoryException, UnauthorizedException {
-		upload(null, baseURI, dataFormat, overwrite, true, contexts);
-	}*/
+		upload(null, baseURI, false, null, source, dataFormat, contexts);
+	}
+	
+	public void load(String serverAbsolutePath, String baseURI, RDFFormat dataFormat, 
+			Resource... contexts) throws IOException,
+			RDFParseException, RepositoryException, UnauthorizedException {
+		upload(null, baseURI, false, serverAbsolutePath, null, dataFormat, contexts);
+	}
 	
 	protected void upload(RequestEntity reqEntity, String baseURI,
-			boolean overwrite, String serverSideFile, Resource... contexts) throws IOException,
+			boolean overwrite, String serverSideFile, URI serverSideURL, RDFFormat dataFormat, Resource... contexts) throws IOException,
 			RDFParseException, RepositoryException, UnauthorizedException {
 		OpenRDFUtil.verifyContextNotNull(contexts);
 		String url = Protocol.getStatementsLocation(getSessionRoot());
-		Header[] headers = {};
+		List<Header> headers = new ArrayList<Header>(1);
+		if (dataFormat!=null) {
+			headers.add(new Header("Content-Type", dataFormat.getDefaultMIMEType()));
+		}
 		List<NameValuePair> params = new ArrayList<NameValuePair>(5);
 		for (String encodedContext : Protocol.encodeContexts(contexts)) {
 			params.add(new NameValuePair(Protocol.CONTEXT_PARAM_NAME,
@@ -373,16 +381,17 @@ public class AGHttpRepoClient {
 					encodedBaseURI));
 		}
 		if (serverSideFile != null && serverSideFile.trim().length() != 0) {
-			String encodedSSFile = Protocol.encodeValue(new URIImpl(serverSideFile));
-			params.add(new NameValuePair(AGProtocol.FILE_PARAM_NAME,
-					encodedSSFile));
+			params.add(new NameValuePair(AGProtocol.FILE_PARAM_NAME, serverSideFile));
 		}
-		if (overwrite == false) {
-			getHTTPClient().post(url, headers,
+		if (serverSideURL != null) {
+			params.add(new NameValuePair(AGProtocol.URL_PARAM_NAME,serverSideURL.stringValue()));
+		}
+		if (!overwrite) {
+			getHTTPClient().post(url, headers.toArray(new Header[headers.size()]),
 					params.toArray(new NameValuePair[params.size()]),
 					reqEntity, null);
 		} else {
-			// TODO: overwrite==true
+			// TODO: overwrite
 			throw new UnsupportedOperationException();
 		}
 	}
@@ -757,6 +766,49 @@ public class AGHttpRepoClient {
 		} catch (RDFParseException e) {
 			throw new RepositoryException(e);
 		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+	}
+
+	public String evalInServer(String lispForm) throws RepositoryException {
+		String result;
+		try {
+			InputStream stream = new ByteArrayInputStream(lispForm.getBytes("UTF-8"));
+			result = evalInServer(stream);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+		return result;
+	}
+	
+	public String evalInServer(InputStream stream) throws RepositoryException {
+		String url = AGProtocol.getEvalLocation(getSessionRoot());
+		Header[] headers = {};
+		NameValuePair[] params = {};
+		AGResponseHandler handler = new AGResponseHandler("");
+		try {
+			RequestEntity entity = new InputStreamRequestEntity(stream, -1,
+					null);
+			getHTTPClient().post(url, headers, params, entity, handler);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		} catch (RDFParseException e) {
+			throw new RepositoryException(e);
+		}
+		return handler.getString();
+	}
+
+	public void ping() throws RepositoryException {
+		String url = AGProtocol.getSessionPingLocation(getSessionRoot());
+		Header[] headers = {};
+		try {
+			getHTTPClient().get(url, headers, new NameValuePair[0],
+					null);
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
 	}

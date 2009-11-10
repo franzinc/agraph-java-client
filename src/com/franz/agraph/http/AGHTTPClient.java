@@ -130,7 +130,7 @@ public class AGHTTPClient
 		try {
 			int httpCode = getHttpClient().executeMethod(get);
 			if (httpCode == HttpURLConnection.HTTP_OK) {
-				handler.handleResponse(get);
+				if (handler!=null) handler.handleResponse(get);
 			} else if (httpCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
 				throw new UnauthorizedException();
 			} else if (!HttpClientUtil.is2xx(httpCode)) {
