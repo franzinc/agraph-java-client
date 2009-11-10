@@ -93,7 +93,7 @@ public class TutorialExamples {
 	    return myRepository;
 	}
 	
-	private static void test3() throws Exception {
+	public static void test3() throws Exception {
 	    RepositoryConnection conn = test2().getConnection();
 	    try {
 	        String queryString = "SELECT ?s ?p ?o  WHERE {?s ?p ?o .}";
@@ -115,7 +115,7 @@ public class TutorialExamples {
 	    }	    
 	}
 	
-	private static void test4() throws RepositoryException {
+	public static void test4() throws RepositoryException {
 	    Repository myRepository = test2();
 	    RepositoryConnection conn = myRepository.getConnection();
 	    URI alice = myRepository.getValueFactory().createURI("http://example.org/people/alice");
@@ -130,7 +130,7 @@ public class TutorialExamples {
 	    }
 	}
 
-	private static void test5() throws Exception {
+	public static void test5() throws Exception {
 	    // Typed Literals
 	    Repository myRepository = test1();
 	    RepositoryConnection conn = myRepository.getConnection();
@@ -189,7 +189,7 @@ public class TutorialExamples {
 	    }	    
 	}
 	
-	private static Repository test6() throws Exception {
+	public static Repository test6() throws Exception {
 		AllegroRepository myRepository = (AllegroRepository)test1();
 	    RepositoryConnection conn = myRepository.getConnection();
 	    ValueFactory f = myRepository.getValueFactory();
@@ -230,7 +230,7 @@ public class TutorialExamples {
 	}
 
 	// Writing RDF or NTriples to a file
-	private static void test8 () throws Exception {    
+	public static void test8 () throws Exception {    
 	    Repository myRepository = test6();
 	    RepositoryConnection conn = myRepository.getConnection();
 	    Resource context = myRepository.getValueFactory().createURI("http://example.org#vcards");
@@ -251,14 +251,14 @@ public class TutorialExamples {
 	}
 	
 	// Writing the result of a statements match to a file.
-	private static void test9 () throws Exception {    
+	public static void test9 () throws Exception {    
 	    Repository myRepository = test6();
 	    RepositoryConnection conn = myRepository.getConnection();
 	    conn.exportStatements(null, RDF.TYPE, null, false, new RDFXMLWriter(System.out));
 	}
 
 	// Datasets and multiple contexts.
-	private static void test10 () throws Exception {    
+	public static void test10 () throws Exception {    
 	    Repository myRepository = test1();	    
 	    RepositoryConnection conn = myRepository.getConnection();
 	    ValueFactory f = myRepository.getValueFactory();
@@ -322,7 +322,7 @@ public class TutorialExamples {
 	}
 	
 	// Namespaces
-	private static void test11 () throws Exception {    
+	public static void test11 () throws Exception {    
 	    AllegroRepository myRepository = (AllegroRepository)test1();	    
 	    RepositoryConnection conn = myRepository.getConnection();
 	    ValueFactory f = myRepository.getValueFactory();
@@ -342,7 +342,7 @@ public class TutorialExamples {
 	}                                                   
 
 	// Text search
-	private static void test12 () throws Exception {    
+	public static void test12 () throws Exception {    
 	    AllegroRepository myRepository = (AllegroRepository)test1();	    
 	    RepositoryConnection conn = myRepository.getConnection();
 	    ValueFactory f = myRepository.getValueFactory();
@@ -381,7 +381,7 @@ public class TutorialExamples {
 	
 	
     /** Ask, Construct, and Describe queries */ 
-    private static void test13 () throws Exception {    
+	public static void test13 () throws Exception {    
 	    RepositoryConnection conn = test2().getConnection();
 	    conn.setNamespace("ex", "http://example.org/people/");
 	    conn.setNamespace("ont", "http://example.org/ontology/");
@@ -413,7 +413,7 @@ public class TutorialExamples {
     }
 
     /** Parametric Queries */
-    private static void test14() throws Exception {
+	public static void test14() throws Exception {
     	RepositoryConnection conn = test2().getConnection();
         ValueFactory f = conn.getValueFactory();
         URI alice = f.createURI("http://example.org/people/alice");
@@ -434,7 +434,7 @@ public class TutorialExamples {
 	    }
     }
     
-	private static void pt(String kind, TupleQueryResult rows) throws Exception {
+	public static void pt(String kind, TupleQueryResult rows) throws Exception {
 		System.out.println("\n" + kind + " Apples:\t");
 		while (rows.hasNext()) {
 		  	System.out.println(rows.next());
@@ -442,7 +442,7 @@ public class TutorialExamples {
 	}
 
     /** Federated triple stores. */
-    private static void test16() throws Exception {        
+	public static void test16() throws Exception {        
     	Catalog catalog = new AllegroSail("localhost", 8080).openCatalog("scratch"); 
         // create two ordinary stores, and one federated store: 
     	RepositoryConnection redConn = catalog.getRepository("redthings", AllegroRepository.RENEW).init().getConnection();
@@ -468,7 +468,7 @@ public class TutorialExamples {
         pt("federated", rainbowConn.prepareTupleQuery(QueryLanguage.SPARQL, queryString).evaluate());
     }
 
-	private static void test26() throws Exception {
+	public static void test26() throws Exception {
 		// Queries per second.
 	    Repository myRepository = test6();
 	    RepositoryConnection conn = myRepository.getConnection();
@@ -520,7 +520,7 @@ public class TutorialExamples {
 	}
 	
 
-	private static void test27() throws Exception {
+	public static void test27() throws Exception {
 		// CIA Fact book
 	    AllegroSail server = new AllegroSail("localhost", 8080);
 	    System.out.println("Available catalogs " + server.listCatalogs());
