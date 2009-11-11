@@ -4,8 +4,6 @@
 package com.franz.agraph.repository;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.openrdf.model.Value;
 import org.openrdf.query.BindingSet;
@@ -15,7 +13,6 @@ import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryException;
 
 import com.franz.agraph.http.AGHTTPClient;
-import com.franz.agraph.http.AGProtocol;
 
 /**
  *
@@ -29,7 +26,6 @@ public class AGRepository implements Repository {
 	private final AGValueFactory vf;
 
 	private File dataDir;
-	private boolean initialized = false;
 
 	/*--------------*
 	 * Constructors *
@@ -72,7 +68,6 @@ public class AGRepository implements Repository {
 	}
 	
 	public void initialize() throws RepositoryException {
-		initialized = true;
 	}
 
 	public AGRepositoryConnection getConnection() throws RepositoryException {
@@ -118,7 +113,6 @@ public class AGRepository implements Repository {
 	}
 
 	public void shutDown() throws RepositoryException {
-		initialized = false;
 	}
 
 }
