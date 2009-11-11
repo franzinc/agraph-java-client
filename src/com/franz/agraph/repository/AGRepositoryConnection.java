@@ -75,6 +75,11 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	@Override
 	protected void addWithoutCommit(Resource subject, URI predicate,
 			Value object, Resource... contexts) throws RepositoryException {
+		/*try {
+			getHttpRepoClient().addStatements(subject, predicate, object, contexts);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}*/
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		NTriplesWriter writer = new NTriplesWriter(out);
 		try {
