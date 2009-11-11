@@ -98,9 +98,6 @@ public class AGHTTPClient
 				if (handler!=null) handler.handleResponse(post);
 			} else if (httpCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
 				throw new UnauthorizedException();
-			} else if (httpCode == HttpURLConnection.HTTP_UNSUPPORTED_TYPE) {
-				throw new UnsupportedRDFormatException(post
-						.getResponseBodyAsString());
 			} else if (!HttpClientUtil.is2xx(httpCode)) {
 				AGErrorInfo errInfo = getErrorInfo(post);
 				if (errInfo.getErrorType() == AGErrorType.MALFORMED_DATA) {
@@ -130,7 +127,7 @@ public class AGHTTPClient
 		try {
 			int httpCode = getHttpClient().executeMethod(get);
 			if (httpCode == HttpURLConnection.HTTP_OK) {
-				handler.handleResponse(get);
+				if (handler!=null) handler.handleResponse(get);
 			} else if (httpCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
 				throw new UnauthorizedException();
 			} else if (!HttpClientUtil.is2xx(httpCode)) {
@@ -193,11 +190,13 @@ public class AGHTTPClient
 	protected AGErrorInfo getErrorInfo(HttpMethod method) {
 		AGErrorInfo errorInfo;
 		try {
-			// TODO: handle the case where the server supplies
+			// TODO: check the case where the server supplies
 			// no error message
-			errorInfo = AGErrorInfo.parse(method.getResponseBodyAsString());
+			AGResponseHandler handler = new AGResponseHandler("");
+			handler.handleResponse(method);
+			errorInfo = AGErrorInfo.parse(handler.getString());
 			logger.warn("Server reports problem: {}", errorInfo.getErrorMessage());
-		} catch (IOException e) {
+		} catch (Exception e) {
 			logger.warn("Unable to retrieve error info from server");
 			errorInfo = new AGErrorInfo("Unable to retrieve error info from server");
 		}

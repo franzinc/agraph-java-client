@@ -75,6 +75,11 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	@Override
 	protected void addWithoutCommit(Resource subject, URI predicate,
 			Value object, Resource... contexts) throws RepositoryException {
+		/*try {
+			getHttpRepoClient().addStatements(subject, predicate, object, contexts);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}*/
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		NTriplesWriter writer = new NTriplesWriter(out);
 		try {
@@ -385,6 +390,38 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	// TODO: specify RuleLanguage
 	public void addRules(InputStream rulestream) throws RepositoryException {
 		getHttpRepoClient().addRules(rulestream);
+	}
+
+	public String evalInServer(String lispForm) throws RepositoryException {
+		return getHttpRepoClient().evalInServer(lispForm);
+	}
+
+	public String evalInServer(InputStream stream) throws RepositoryException {
+		return getHttpRepoClient().evalInServer(stream);
+	}
+	
+	public void load(URI source, String baseURI, RDFFormat dataFormat, Resource... contexts) throws RepositoryException {
+		try {
+			getHttpRepoClient().load(source, baseURI, dataFormat, contexts);
+		} catch (RDFParseException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+	}
+	
+	public void load(String absoluteServerPath, String baseURI, RDFFormat dataFormat, Resource... contexts) throws RepositoryException {
+		try {
+			getHttpRepoClient().load(absoluteServerPath, baseURI, dataFormat, contexts);
+		} catch (RDFParseException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+	}
+	
+	public void ping() throws RepositoryException {
+		getHttpRepoClient().ping();
 	}
 
 }
