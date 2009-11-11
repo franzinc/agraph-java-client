@@ -83,6 +83,7 @@ public class TutorialExamples {
                 );
         if (close) {
             // tidy up
+        	conn.close();
             myRepository.shutDown();
             return null;
         }
@@ -697,6 +698,7 @@ public class TutorialExamples {
         } finally {
             result2.close();
         }
+        conn.close();
     }
     
     private static void pt(String kind, TupleQueryResult rows) throws Exception {
@@ -779,6 +781,7 @@ public class TutorialExamples {
             println(f + " " + l);
         }
         result.close();
+        conn.close();
     }
 
     /**
@@ -845,11 +848,11 @@ public class TutorialExamples {
         conn.add(bob, fatherOf, bobby);
         
         // List the children of Robert, with inference OFF.
-        println("/nChildren of Robert, inference OFF");
+        println("\nChildren of Robert, inference OFF");
         printRows( conn.getStatements(robert, fatherOf, null, false) );
         // List the children of Robert with inference ON. The owl:sameAs
         // link combines the children of Bob with those of Robert.
-        println("/nChildren of Robert, inference ON");
+        println("\nChildren of Robert, inference ON");
         printRows( conn.getStatements(robert, fatherOf, null, true) );
         // Remove the owl:sameAs link so we can try the next example.
         conn.remove(bob, OWL.SAMEAS, robert);
@@ -859,11 +862,11 @@ public class TutorialExamples {
         conn.add(hasFather, OWL.INVERSEOF, fatherOf);
         // Search for people who have fathers, even though there are no hasFather triples.
         // With inference OFF.
-        println("/nPeople with fathers, inference OFF");
+        println("\nPeople with fathers, inference OFF");
         printRows( conn.getStatements(null, hasFather, null, false) );
         // With inference ON. The owl:inverseOf link allows AllegroGraph to
         // deduce the inverse links.
-        println("/nPeople with fathers, inference ON");
+        println("\nPeople with fathers, inference ON");
         printRows( conn.getStatements(null, hasFather, null, true) );
         // Remove owl:inverseOf property.
         conn.remove(hasFather, OWL.INVERSEOF, fatherOf);
@@ -889,11 +892,11 @@ public class TutorialExamples {
         // Now search for inferred parentOf links.
         // Search for parentOf links, even though there are no parentOf triples.
         // With inference OFF.
-        println("/nPeople with parents, inference OFF");
+        println("\nPeople with parents, inference OFF");
         printRows( conn.getStatements(null, parentOf, null, false) );
         // With inference ON. The rdfs:subpropertyOf link allows AllegroGraph to 
         // deduce that fatherOf links imply parentOf links.
-        println("/nPeople with parents, inference ON");
+        println("\nPeople with parents, inference ON");
         printRows( conn.getStatements(null, parentOf, null, true) );
         conn.remove(fatherOf, RDFS.SUBPROPERTYOF, parentOf);
         
@@ -905,10 +908,10 @@ public class TutorialExamples {
         conn.add(fatherOf, RDFS.DOMAIN, parent);
         conn.add(fatherOf, RDFS.RANGE, child);
         // Now we can search for rdf:type parent.
-        println("/nWho are the parents?  Inference ON.");
+        println("\nWho are the parents?  Inference ON.");
         printRows( conn.getStatements(null, RDF.TYPE, parent, true) );
         // And we can search for rdf:type child.
-        println("/nWho are the children?  Inference ON.");
+        println("\nWho are the children?  Inference ON.");
         printRows( conn.getStatements(null, RDF.TYPE, child, true) );
     }
     
@@ -1159,7 +1162,7 @@ public class TutorialExamples {
         List<Integer> choices = new ArrayList<Integer>();
         if (args.length == 0) {
             // for choosing by editing this code
-            choices.add(10);
+            choices.add(6);
         } else if (args[0].equals("all")) {
             for (int i = 1; i <= 19; i++) {
                 choices.add(i);

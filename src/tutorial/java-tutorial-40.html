@@ -222,29 +222,45 @@ this diagram:</p>
 
 <p>The example first connects to an AllegroGraph Server by providing the endpoint (host IP address and port number) of an already-launched AllegroGraph server. You'll also need a user name and password. This creates a client-side server object, which can access the AllegroGraph server's list of available catalogs through the <strong>listCatalogs()</strong> method:</p>
 <pre class="input">public class TutorialExamples {
-  static private final String SERVER_URL = &quot;http://localhost:8080&quot;;
-  static private final String CATALOG_ID = &quot;scratch&quot;;
-  static private final String USERNAME = &quot;user&quot;;
-  static private final String PASSWORD = &quot;password&quot;;
 
-    public static AGRepositoryConnection example1(boolean close) throws RepositoryException {        // Tests getting the repository up. <br>        println(&quot;Starting example example1().&quot;);<br>        AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);<br>        println(&quot;Available catalogs: &quot; + (server.listCatalogs()));</pre>
+    static private final String SERVER_URL = "http://localhost:8080";
+    static private final String CATALOG_ID = "scratch";
+    static private final String REPOSITORY_ID = "javatutorial";
+    static private final String USERNAME = "test";
+    static private final String PASSWORD = "xyzzy";
+
+    static final String FOAF_NS = "http://xmlns.com/foaf/0.1/";
+
+    /**
+     * Creating a Repository
+     */
+    public static AGRepositoryConnection example1(boolean close) throws Exception {
+        // Tests getting the repository up. 
+        println("\nStarting example1().");
+        AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
+        println("Available catalogs: " + server.listCatalogs());</pre>
 <p>This is the output so far:</p>
-<pre class="output">Starting example example1().<br>Available catalogs: null</pre>
+<pre class="output">Starting example example1().<br>Available catalogs: [/, scratch]</pre>
+<p>These examples use either the default root catalog (denoted as &quot;/&quot;) or a named catalog called &quot;scratch&quot;. </p>
 <p>In the next line of example1(), we use the server's <strong>getRootCatalog()</strong> method to create a client-side catalog object connected to AllegroGraph's default rootCatalog, as defined in the AllegroGraph configuration file. The catalog object has methods such as <strong>getCatalogName()</strong> and <strong>getAllRepositories()</strong> that we can use to investigate the catalogs on the AllegroGraph server. When we look inside the root catalog, we can see which repositories are available:</p>
-<pre class="input">        AGCatalog catalog = server.getRootCatalog();<br>        println(&quot;Available repositories in catalog &quot; + <br>                (catalog.getCatalogName()) + &quot;: &quot; + <br>                catalog.getAllRepositories());</pre>
+<pre class="input">        AGCatalog catalog = server.getRootCatalog();<br>        println(&quot;Available repositories in catalog &quot; + <br>                (catalog.getCatalogName()) + &quot;: &quot; + <br>                catalog.listRepositories());</pre>
 <p>The corresponding output lists the available repositories.  (When you run the examples, you may see a different list of repositories.)</p>
-<pre class="output">Available repositories in catalog /: null</pre>
+<pre class="output">Available repositories in catalog /: []</pre>
+<p>In the examples, we are careful to delete previous state before continuing. You probably would not do this in your actual application:</p>
+<pre class="input">         catalog.deleteRepository(REPOSITORY_ID); </pre>
 <p>The next step is to create a client-side repository object representing the respository we wish to open, by calling the
-<strong>getRepository()</strong> method of the catalog object. We have to provide the name of the desired repository (<strong>scratch</strong> in this case).</p>
-<pre class="input">        AGRepository myRepository = catalog.createRepository(CATALOG_ID);<br>        myRepository.initialize();</pre>
-<p>A new or renewed repository must be initialized, using the <strong>initialize()</strong> method of the repository object. If you try to initialize a respository twice you get a warning message in the Java window but no exception. </p>
-<p>The goal of all this object-building has been to create a client-side connection object, whose methods let us manipulate the triples of the repository. The repository object's <strong>getConnection()</strong> method returns this connection object. The function <strong>closeBeforeExit()</strong> maintains a list of connection objects and automatically cleans them up when the client exits. </p>
-<pre class="input">        AGRepositoryConnection conn = myRepository.getConnection();
-		closeBeforeExit(conn);<br>        println(&quot;Got a connection.&quot;);<br>        conn.clear();  // remove previous triples, if any.<br>        println(&quot;Cleared the connection.&quot;);<br>        println(&quot;Repository &quot; + (myRepository.getRepositoryID()) +<br>                &quot; is up! It contains &quot; + (conn.size()) +<br>                &quot; statements.&quot;              <br>                );</pre>
- <p>The <strong>size()</strong> method of the connection object returns how many triples are present. In the example1() function, this number should always be zero because we &quot;renewed&quot; the repository. This is the output in the Java window: </p>
-<pre class="output">   Repository tutorial is up! It contains 0 statements.</pre>
-<p>In its default mode, example1() closes the connection. It can optionally return the connection when called by another method, as will occur in several examples below. If you are done with the connection, closing it will free resources.</p>
-<pre class="input">         if (close) {
+  <strong>getRepository()</strong> method of the catalog object. We have to provide the name of the desired repository (REPOSITORY_ID in this case, which is bound to the string &quot;javatutorial&quot;). </p>
+<pre class="input">        AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);<br>        println(&quot;Got a repository.&quot;);<br>        myRepository.initialize();<br>        println(&quot;Initialized repository.&quot;);<br>        println(&quot;Repository is writable? &quot; + myRepository.isWritable());</pre>
+<p>A new or renewed repository must be initialized, using the <strong>initialize()</strong> method of the repository object. If you try to initialize a respository twice you get a warning message in the Java window but no exception. Finally we check to see that the repository is writable.</p>
+<pre class="output"> Got a repository.
+ Initialized repository.
+ Repository is writable? true </pre>
+<p>The goal of all this object-building has been to create a client-side <strong>repositoryConnection</strong> object, which we casually refer to as the &quot;connection&quot; or &quot;connection object.&quot; The repository object's <strong>getConnection()</strong> method returns this connection object. The function <strong>closeBeforeExit()</strong> maintains a list of connection objects and automatically cleans them up when the client exits. </p>
+<pre class="input">        AGRepositoryConnection conn = myRepository.getConnection();<br>        closeBeforeExit(conn);<br>        println(&quot;Got a connection.&quot;);<br>        conn.clear();  // remove previous triples, if any.<br><br>        println(&quot;Cleared the connection.&quot;);<br>        println(&quot;Repository &quot; + (myRepository.getRepositoryID()) +<br>                &quot; is up! It contains &quot; + (conn.size()) +<br>                &quot; statements.&quot;              <br>                );</pre>
+ <p>The <strong>size()</strong> method of the connection object returns how many triples are present. In the example1() function, this number should always be zero because we deleted, recreated, and cleared the repository. This is the output in the Java window: </p>
+ <pre class="output"> Got a connection.<br> Cleared the connection.<br> Repository javatutorial is up! It contains 0 statements.</pre>
+ <p>In its default mode, example1() closes the connection. It can optionally return the connection when called by another method, as will occur in several examples below. If you are done with the connection, closing it and shutting it down will free resources.</p>
+ <pre class="input">         if (close) {
              conn.close();
              myRepository.shutDown();
              return null;
@@ -271,7 +287,7 @@ and retractions.  When the context is omitted, triples are asserted/retracted
 to/from the background graph.  In the example below, facts about Alice and Bob
 reside in the background graph.
 </p>
-<p>The example2() function begins by calling example1() to create the appropriate connection object, which is bound to the variable <strong>conn</strong>. We will also need the repository's &quot;value factory&quot; object, because it has many useful methods. If we have the connection object, we can retrieve the repository object, and then the value factory. We will need both object in order to proceed. </p>
+<p>The example2() function begins by calling example1() to create the appropriate connection object, which is bound to the variable <strong>conn</strong>. We will also need the repository's &quot;value factory&quot; object, because it has many useful methods. If we have the connection object, we can retrieve its repository object, and then the value factory. We will need both objects in order to proceed. </p>
 <pre class="input">    public static AGRepositoryConnection example2(boolean close) throws RepositoryException {<br>        // Asserts some statements and counts them.<br>        AGRepositoryConnection conn = example1(false);<br>        AGValueFactory vf = conn.getRepository().getValueFactory();<br>        println(&quot;Starting example example2().&quot;);</pre>
  <p>The next step is to begin assembling the URIs we will need for the new triples. The valueFactory's <strong>createURI()</strong> method generates a URI from a string. These are the subject URIs identifying the resources &quot;Bob&quot; and &quot;Alice&quot;:</p>
  <pre class="input">        URI alice = vf.createURI(&quot;http://example.org/people/alice&quot;);<br>        URI bob = vf.createURI(&quot;http://example.org/people/bob&quot;);</pre>
@@ -306,8 +322,8 @@ reside in the background graph.
  <h2 id="A SPARQL Query">A SPARQL Query (example3()) &nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>SPARQL stands for  the &quot;<a href="http://www.w3.org/TR/rdf-sparql-query/">SPARQL Protocol and RDF Query Language</a>,&quot; a recommendation of the <a href="http://www.w3.org/">World Wide Web Consortium (W3C)</a>. SPARQL is a query language for retrieving RDF triples. </p>
  <p>Our next example illustrates how to evaluate a SPARQL query. This is the simplest query, the one that returns all triples. Note that example3() continues with the four triples created in example2(). </p>
- <pre class="input">    public static void example3() throws Exception {<br>        AGRepositoryConnection conn = example2(false);<br>        try {<br>            String queryString = &quot;SELECT ?s ?p ?o  WHERE {?s ?p ?o .}&quot;;</pre>
-<p>The SELECT clause returns the variables ?s, ?p and ?o. The variables are bound to the subject, predicate and object values of each triple that satisfies the WHERE clause. In this case the WHERE clause is unconstrained. The dot (.) in the fourth position signifies the end of the pattern. </p>
+ <pre class="input">    public static void example3() throws Exception {<br>        AGRepositoryConnection conn = example2(false);<br>        println(&quot;\nStarting example3().&quot;);<br>       try {<br>            String queryString = &quot;SELECT ?s ?p ?o  WHERE {?s ?p ?o .}&quot;;</pre>
+ <p>The SELECT clause returns the variables ?s, ?p and ?o. The variables are bound to the subject, predicate and object values of each triple that satisfies the WHERE clause. In this case the WHERE clause is unconstrained. The dot (.) in the fourth position signifies the end of the pattern. </p>
 <p>The connection object's <strong>prepareTupleQuery()</strong> method
   creates a query object that can be evaluated one or more times. (A &quot;tuple&quot; is an ordered sequence of data elements.)   The results are returned in a TupleQueryResult iterator that gives access to a sequence of bindingSets.</p>
 <pre class="input">            TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);<br>            TupleQueryResult result = tupleQuery.evaluate();</pre>
@@ -321,7 +337,7 @@ http://example.org/people/alice http://example.org/ontology/name "Alice"
 http://example.org/people/bob http://www.w3.org/1999/02/22-rdf-syntax-ns#type http://example.org/ontology/Person
 http://example.org/people/bob http://example.org/ontology/name "Bob"
 </pre>
-<p>The RepositoryConnection class is designed to be created for the duration of a sequence of updates and queries, and then closed. In practice, many AllegroGraph applications keep a connection open indefinitely. However, best practice dictates that the connection should be closed, as illustrated below. The same hygiene applies to the iterators that generate binding sets.</p>
+<p>The repositoryConnection class is designed to be created for the duration of a sequence of updates and queries, and then closed. In practice, many AllegroGraph applications keep a connection open indefinitely. However, best practice dictates that the connection should be closed, as illustrated below. The same hygiene applies to the iterators that generate binding sets.</p>
 <pre class="input">
         finally:
             result.close();
@@ -352,7 +368,7 @@ traditional Sesame syntax, and returns a Statement object at each iteration. Thi
 <h2 id="Literal Values">Literal Values (example5())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>The next example, <strong>example5()</strong>, illustrates some variations on what we have seen so far.  The example creates and asserts typed literal values, including  language-specific literals.</p>
 <p>First, example5() obtains a connection object from example1(). From the connection we can determine the respository and the repository's valueFactory. Then it clears the repository of all existing triples. </p>
-<pre class="input">    public static void example5() throws Exception {<br>        RepositoryConnection conn = example2(false);<br>        Repository myRepository = conn.getRepository();<br>        ValueFactory f = myRepository.getValueFactory();<br>        conn.clear();</pre>
+<pre class="input">    public static void example5() throws Exception {<br>        RepositoryConnection conn = example2(false);<br>        Repository myRepository = conn.getRepository();<br>        ValueFactory f = myRepository.getValueFactory();<br>        println(&quot;\nStarting example5().&quot;);<br>        conn.clear();</pre>
 <p>For sake of coding efficiency, it is good practice to create variables for namespace strings. We'll use this namespace again and again in the following lines. </p>
 <pre class="input">        String exns = &quot;http://example.org/people/&quot;;</pre>
 <p>The example creates new resources describing Alice and Ted. Apparently Bob was on vacation. These are URIs to use in the subject field of the triples. </p>
@@ -422,7 +438,7 @@ traditional Sesame syntax, and returns a Statement object at each iteration. Thi
 
 <p>And a DATETIME match without using a literal value object:</p>
 <pre class="input">           RepositoryResult&lt;Statement&gt; statements = conn.getStatements(null, null,<br>                    f.createLiteral(&quot;\&quot;1984-12-06T09:00:00\&quot;^^&lt;http://www.w3.org/2001/XMLSchema#dateTime&gt;&quot;), false);</pre>
-<pre class="output">Retrieve triples matching DATETIME object.<br>(http://example.org/people/ted, http://example.org/people/birthdate, &quot;1984-12-06T09:00:00&quot;^^&lt;http://www.w3.org/2001/XMLSchema#dateTime&gt;) [null]</pre>
+<pre class="output">Match triples having a specific DATETIME value.<br>(http://example.org/people/ted, http://example.org/people/birthdate, &quot;1984-12-06T09:00:00&quot;^^&lt;http://www.w3.org/2001/XMLSchema#dateTime&gt;) [null]</pre>
 <h2 id="Importing Triples">Importing Triples (example6() and example7()) &nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>
 The Java API client can load triples in either RDF/XML format or  NTriples format.  The example below calls the connection object's <strong>add()</strong> method to load 
@@ -455,13 +471,13 @@ an NTriples file, and <strong>addFile()</strong> to load  an RDF/XML file. Both 
 <p>The
   addFile() call includes an explicit context setting, so the fourth argument of
   each vcard triple will be the context named "/tutorial/vc_db_1_rdf".  </p>
-<p>The connection size() method takes an optional context argument.  With no
+<p>The <strong>connection size()</strong> method takes an optional context argument.  With no
     argument, it returns the total number of triples in the repository.  Below, it returns the number
     '16' for the named subgraph, and the number '28' for the null context
     (None) argument. </p>
-<p>The example6() function of TutorialExamples.java creates a <a href="#Transaction">dedicated session</a> connection to AllegroGraph, using methods you have seen before, plus the repositoryConnection object's <strong>openSession()</strong> method: </p>
-<pre class="input">    public static AGRepositoryConnection example6() throws Exception {<br>        AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);<br>        AGCatalog catalog = server.getCatalog(CATALOG_ID);<br>        AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);<br>        myRepository.initialize();<br>        AGRepositoryConnection conn = myRepository.getConnection();<br>        closeBeforeExit(conn);<br>        conn.clear();<br>        conn.setAutoCommit(false);  // dedicated session<br>        ValueFactory f = myRepository.getValueFactory();</pre>
-<p>The dedicated session is not immediately pertinent to the examples in this section, but will become important in later examples that reuse this connection to demonstrate <a href="#Prolog Rule Queries">Prolog Rules</a> and <a href="#Social Network Analysis">Social Network Analysis</a>. </p>
+<p>The example6() function of TutorialExamples.java creates a <a href="#Transaction">transaction</a> connection to AllegroGraph, using methods you have seen before, plus the repositoryConnection object's <strong>setAutoCommit()</strong> method: </p>
+<pre class="input">    public static AGRepositoryConnection example6() throws Exception {<br>        AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);<br>        AGCatalog catalog = server.getCatalog(CATALOG_ID);<br>        AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);<br>        myRepository.initialize();<br>        AGRepositoryConnection conn = myRepository.getConnection();<br>        closeBeforeExit(conn);<br>        conn.clear();<br>        conn.setAutoCommit(false);  // transaction session<br>        ValueFactory f = myRepository.getValueFactory();</pre>
+<p>The transaction session is not immediately pertinent to the examples in this section, but will become important in later examples that reuse this connection to demonstrate <a href="#Prolog Rule Queries">Prolog Rules</a> and <a href="#Social Network Analysis">Social Network Analysis</a>. </p>
 <p>The variables path1 and path2 are bound to the RDF/XML and NTriples files, respectively. You may have to redefine these paths depending on your platform and how you have set up the project. The data files are in the same directory as TutorialExamples.java.</p>
 <pre class="input">        String path1 = &quot;src/vc-db-1.rdf&quot;;    <br>        String path2 = &quot;src/kennedy.ntriples&quot;;   </pre>
 <p>Both examples need a base URI as one of the required arguments to the asserting methods: </p>
@@ -484,7 +500,7 @@ an NTriples file, and <strong>addFile()</strong> to load  an RDF/XML file. Both 
 <p>In this case, the loop prints out only the sixteen v-card triples from the #vcards context. The SPARQL query is not able to access the null context when a named context is also present. </p>
 <h2 id="Exporting Triples">Exporting Triples (example8() and example9()) &nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>The next examples show how to write triples out to a file in either NTriples format or RDF/XML format. The output of either format may be optionally redirected to standard output (the Java command window) for inspection.</p>
-<p>Example example8() begins by obtaining a connection object from example6(). This means the repository contains v-card triples in the <strong>#vcards</strong> context, and Kennedy family tree triples in the<strong> null </strong>context. </p>
+<p>Example example8() begins by obtaining a connection object from example6(). This means the repository contains v-card triples in the <strong>#vcards</strong> context, and Kennedy family tree triples in the<strong> null </strong>context (the default graph). </p>
 <pre class="input">    public static void example8() throws Exception {<br>        RepositoryConnection conn = example6(false);<br>        Repository myRepository = conn.getRepository();</pre>
 <p>In this example, we'll export the triples in the #vcards context. </p>
 <pre class="input">        URI context = myRepository.getValueFactory().createURI(&quot;http://example.org#vcards&quot;);</pre>
@@ -509,7 +525,7 @@ triples are "mixed together" in the file, the context information is not recover
 We have already seen contexts at work when loading and saving files.  In example10() we provide more realistic examples of contexts, and we introduce the dataset object. A dataset is a list of contexts that should all be searched simultaneously. </p>
 <p>To set up the example, we create six statements, and add two
   of each to three different contexts: context1, context2, and the null context. The process of setting up the six statements follows the same pattern as we used in the previous examples: </p>
-<pre class="input">        RepositoryConnection conn = example1(false);<br>        Repository myRepository = conn.getRepository();<br>        ValueFactory f = myRepository.getValueFactory();<br>        String exns = &quot;http://example.org/people/&quot;;<br>        URI alice = f.createURI(exns, &quot;alice&quot;);<br>        URI bob = f.createURI(exns, &quot;bob&quot;);<br>        URI ted = f.createURI(exns, &quot;ted&quot;);        <br>        URI person = f.createURI(&quot;http://example.org/ontology/Person&quot;);<br>        URI name = f.createURI(&quot;http://example.org/ontology/name&quot;);<br>        Literal alicesName = f.createLiteral(&quot;Alice&quot;);<br>        Literal bobsName = f.createLiteral(&quot;Bob&quot;);<br>        Literal tedsName = f.createLiteral(&quot;Ted&quot;);        <br>        URI context1 = f.createURI(exns, &quot;cxt1&quot;);      <br>        URI context2 = f.createURI(exns, &quot;cxt2&quot;);         <br>        conn.add(alice, RDF.TYPE, person, context1);<br>        conn.add(alice, name, alicesName, context1);<br>        conn.add(bob, RDF.TYPE, person, context2);<br>        conn.add(bob, name, bobsName, context2);<br>        conn.add(ted, RDF.TYPE, person);<br>        conn.add(ted, name, tedsName);</pre>
+<pre class="input">    public static void example10 () throws Exception {<br>        RepositoryConnection conn = example1(false);<br>        Repository myRepository = conn.getRepository();<br>        ValueFactory f = myRepository.getValueFactory();<br>        String exns = &quot;http://example.org/people/&quot;;<br>        URI alice = f.createURI(exns, &quot;alice&quot;);<br>        URI bob = f.createURI(exns, &quot;bob&quot;);<br>        URI ted = f.createURI(exns, &quot;ted&quot;);        <br>        URI person = f.createURI(&quot;http://example.org/ontology/Person&quot;);<br>        URI name = f.createURI(&quot;http://example.org/ontology/name&quot;);<br>        Literal alicesName = f.createLiteral(&quot;Alice&quot;);<br>        Literal bobsName = f.createLiteral(&quot;Bob&quot;);<br>        Literal tedsName = f.createLiteral(&quot;Ted&quot;);        <br>        URI context1 = f.createURI(exns, &quot;cxt1&quot;);      <br>        URI context2 = f.createURI(exns, &quot;cxt2&quot;);         <br>        conn.add(alice, RDF.TYPE, person, context1);<br>        conn.add(alice, name, alicesName, context1);<br>        conn.add(bob, RDF.TYPE, person, context2);<br>        conn.add(bob, name, bobsName, context2);<br>        conn.add(ted, RDF.TYPE, person);<br>        conn.add(ted, name, tedsName);</pre>
 <p>The first test uses getStatements() to return all triples in all contexts (context1, context2, and null). </p>
 <pre class="input">        RepositoryResult&lt;Statement&gt; statements = conn.getStatements(null, null, null, false);<br>        println(&quot;All triples in all contexts:&quot;);        <br>        while (statements.hasNext()) {<br>            println(statements.next());            <br>        }</pre>
 <p>The output of this loop is shown below. The context URIs are in the fourth position. Triples from the null context have [null] in the fourth position. </p>
@@ -527,7 +543,7 @@ We have already seen contexts at work when loading and saving files.  In example
 <p>The output of this loop contains four triples, as expected. </p>
 <pre class="output">Query over contexts 1 and 2.<br>s=http://example.org/people/alice p=http://www.w3.org/1999/02/22-rdf-syntax-ns#type o=http://example.org/ontology/Person c=http://example.org/people/cxt1<br>s=http://example.org/people/alice p=http://example.org/ontology/name o=&quot;Alice&quot; c=http://example.org/people/cxt1<br>s=http://example.org/people/bob p=http://www.w3.org/1999/02/22-rdf-syntax-ns#type o=http://example.org/ontology/Person c=http://example.org/people/cxt2<br>s=http://example.org/people/bob p=http://example.org/ontology/name o=&quot;Bob&quot; c=http://example.org/people/cxt2</pre>
 <p> Currently, its not possible to combine the null context with other contexts in a SPARQL query. Below, we illustrate how to evaluate a query against only the null context.</p>
-<pre class="input">        queryString = &quot;SELECT ?s ?p ?o WHERE {?s ?p ?o . }&quot;;<br>        ds = new DatasetImpl();<br>        // TODO: ds.addDefaultGraph(null);<br>        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);<br>        tupleQuery.setDataset(ds);<br>        result = tupleQuery.evaluate();    <br>        println(&quot;\nQuery over the null context.&quot;);<br>        while (result.hasNext()) {<br>            println(result.next());<br>        }</pre>
+<pre class="input">        queryString = &quot;SELECT ?s ?p ?o WHERE {?s ?p ?o . }&quot;;<br>        ds = new DatasetImpl();<br>        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);<br>        tupleQuery.setDataset(ds);<br>        result = tupleQuery.evaluate();    <br>        println(&quot;\nQuery over the null context.&quot;);<br>        while (result.hasNext()) {<br>            println(result.next());<br>        }</pre>
 
 <p>The output of this loop is:</p>
 <!-- TODO Java was returning six triples, should be two. -->
@@ -606,7 +622,7 @@ called the connection method <strong>registerFreeTextPredicate()</strong> to reg
 <pre class="input">	    conn.add(book, RDF.TYPE, booktype);    <br>	    conn.add(book, booktitle, wonderland); </pre>
 <p>Now we set up the SPARQL query that looks for triples containing &quot;Alice&quot; in the object position. </p>
 <p>The text match occurs through a &quot;magic&quot; predicate called <strong>fti:match</strong>. This is not an RDF &quot;predicate&quot; but a LISP &quot;predicate,&quot; meaning that it behaves as a true/false test. This predicate  has two arguments. One is  the subject URI of the resources to search. The other is the string pattern to search for, such as &quot;Alice&quot;. Only registered text predicates will be searched. Only full-word matches will be found. </p>
-<pre class="input">	    String queryString = <br>	        &quot;SELECT ?s ?p ?o &quot; +<br>	        &quot;WHERE { ?s ?p ?o . ?s fti:match 'Alice' . }&quot;;<br>        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);<br>        TupleQueryResult result = (TupleQueryResult)tupleQuery.evaluate();</pre>
+<pre class="input">	    String queryString = <br>	        &quot;SELECT ?s ?p ?o &quot; +<br>	        &quot;WHERE { ?s ?p ?o . ?s fti:match 'Alice' . }&quot;;</pre>
 <p>There is no need to include a prefix declaration for the 'fti' nickname. That is because 'fti' is included among the built-in namespace/nickname mappings in AllegroGraph.</p>
 <p>When we execute our SPARQL query, it matches the "Alice" within the literal "Alice B. Toklas" because that literal occurs in a triple having the registered <strong>fullname</strong> predicate, but it does not match the "Alice" in the literal "Alice in Wonderland" because the <strong>booktitle</strong> predicate was not registered for text indexing. This query returns <em>all triples</em> of a resource that had a successful match in at least one object value. </p>
 <pre class="input">        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);<br>        TupleQueryResult result = (TupleQueryResult)tupleQuery.evaluate();<br>        int count = 0;<br>        while (result.hasNext()) {<br>            BindingSet bindingSet = result.next();<br>            if (count &lt; 5) {<br>                println(bindingSet);<br>            }<br>            count += 1;<br>        }</pre>
@@ -634,7 +650,7 @@ called the connection method <strong>registerFreeTextPredicate()</strong> to reg
 <p>The example begins by borrowing a connection object from example2(). Then it registers two namespaces for use in the SPARQL queries.:
 <pre class="input">    public static void example13 () throws Exception {<br>        RepositoryConnection conn = example2(false);<br>        conn.setNamespace(&quot;ex&quot;, &quot;http://example.org/people/&quot;);<br>        conn.setNamespace(&quot;ont&quot;, &quot;http://example.org/ontology/&quot;);</pre>
 <p>The example begins with an unconstrained SELECT query so we can see what triples are available for matching. </p>
-<pre class="input">        String queryString = &quot;select ?s ?p ?o where { ?s ?p ?o} &quot;;<br>        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);<br>        TupleQueryResult result = tupleQuery.evaluate();<br>        while (result.hasNext()) {<br>            println(result.next());<br>        }<br>        result.close();</pre>
+<pre class="input">        println(&quot;\nSELECT result:&quot;);<br>        String queryString = &quot;select ?s ?p ?o where { ?s ?p ?o} &quot;;<br>        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);<br>        TupleQueryResult result = tupleQuery.evaluate();<br>        while (result.hasNext()) {<br>            println(result.next());<br>        }<br>        result.close();</pre>
 The output for the SELECT query was four triples about Alice and Bob:
 <pre class="output">SELECT result:<br>[s=http://example.org/people/alice;p=http://example.org/ontology/name;o=&quot;Alice&quot;]<br>[s=http://example.org/people/alice;p=http://www.w3.org/1999/02/22-rdf-syntax-ns#type;o=http://example.org/ontology/Person]<br>[s=http://example.org/people/bob;p=http://www.w3.org/1999/02/22-rdf-syntax-ns#type;o=http://example.org/ontology/Person]<br>[s=http://example.org/people/bob;p=http://example.org/ontology/name;o=&quot;Bob&quot;]</pre>
 <p>The ASK query returns a Boolean, depending on whether the triple pattern matched any triples. In this case it looks for any ont:name triplecontaining the value &quot;Alice.&quot; Note that the ASK query uses a different construction method than the SELECT query:<strong> prepareBooleanQuery()</strong>. </p>
@@ -723,7 +739,7 @@ Federated Apples: <br>[s=http://www.demo.com/example#reddelicious]<br>[s=http://
 <h2 id="Prolog Rule Queries">Prolog Rule Queries (example17())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>AllegroGraph Server lets us load Prolog backward-chaining rules to make query-writing simpler.&nbsp; The Prolog rules let us write the queries in terms of higher-level concepts.&nbsp; When a query refers to one of these concepts, Prolog rules become active in the background to determine if the concept is valid in the current context.&nbsp; </p>
 <p>For instance, in this example the query says that the matching resource must be a &quot;man&quot;.&nbsp; A Prolog rule examines the matching resources to see which of them are persons who are male.&nbsp; The query can proceed for those resources. The rules provide a level of abstraction that makes the queries simpler to express. </p>
-<p>The example17() example begins by borrowing a connection object from example example6(), which contains the Kennedy family tree.&nbsp; Note that example6() creates a <a href="#Transaction">dedicated session</a> for the rules to operate in, using the Connection object's <strong>openDedicated()</strong> method. Java rules cannot be loaded into the AllegroGraph common back end. </p>
+<p>The example17() example begins by borrowing a connection object from example example6(), which contains the Kennedy family tree.&nbsp; Note that example6() creates a <a href="#Transaction">transaction session</a> for the rules to operate in, using the Connection object's <strong>openDedicated()</strong> method. Java rules cannot be loaded into the AllegroGraph common back end. </p>
 <pre class="input">        conn.openSession(); # in example6()</pre>
 <p>This converts the connection to a &quot;dedicated&quot; session. After that step, all of the code is exactly the same as when using the common back end.</p>
 <pre class="input">    public static void example17() throws Exception {<br>        AGRepositoryConnection conn = example6(false);</pre>
@@ -731,7 +747,7 @@ Federated Apples: <br>[s=http://www.demo.com/example#reddelicious]<br>[s=http://
 <pre class="input">        conn.setNamespace(&quot;kdy&quot;, &quot;http://www.franz.com/simple#&quot;);</pre>
 <p>These are the &quot;man&quot; and &quot;woman&quot; rules.&nbsp; A resource represents a &quot;woman&quot; if the resource contains a sex = female triple and an rdf:type = person triple.&nbsp; A similar deduction identifies a &quot;man&quot;.&nbsp; The &quot;q&quot; at the beginning of each pattern simply stands for &quot;query&quot; and introduces a triple pattern. </p>
 <pre class="input">        String rules1 =<br>            &quot;(&lt;-- (woman ?person) ;; IF\n&quot; +<br>            &quot;     (q ?person !kdy:sex !kdy:female)\n&quot; +<br>            &quot;     (q ?person !rdf:type !kdy:person))\n&quot; +<br>            &quot;(&lt;-- (man ?person) ;; IF\n&quot; +<br>            &quot;     (q ?person !kdy:sex !kdy:male)\n&quot; +<br>            &quot;     (q ?person !rdf:type !kdy:person))&quot;;</pre>
-<p>The rules must be explicitly added to the dedicated session. </p>
+<p>The rules must be explicitly added to the connection. </p>
 <pre class="input">        conn.addRules(rules1);
 </pre>
 <p>This is the query.&nbsp; This query locates all the &quot;man&quot; resources, and retrieves their first and last names. </p>
@@ -742,8 +758,8 @@ Federated Apples: <br>[s=http://www.demo.com/example#reddelicious]<br>[s=http://
 <pre class="input">        while (result.hasNext()) {<br>            BindingSet bindingSet = result.next();<br>            Value f = bindingSet.getValue(&quot;first&quot;);<br>            Value l = bindingSet.getValue(&quot;last&quot;);<br>            println(f + &quot; &quot; + l);<br>        }<br>        result.close();</pre>
 <p>The output contains many names; there are just a few of them. </p>
 <pre class="output">&quot;Robert&quot; &quot;Kennedy&quot;<br>&quot;Alfred&quot; &quot;Tucker&quot;<br>&quot;Arnold&quot; &quot;Schwarzenegger&quot;<br>&quot;Paul&quot; &quot;Hill&quot;<br>&quot;John&quot; &quot;Kennedy&quot;</pre>
-<p>It is good form to close the dedicated session when you are finished with it.</p>
-<pre class="input">    conn.closeSession();</pre>
+<p>&nbsp;</p>
+
 <h2 id="Loading Prolog Rules">Loading Prolog Rules (example18())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>Example <strong>example18()</strong> demonstrates how to load a file of Prolog rules into the Java API of AllegroGraph Server.&nbsp; It also demonstrates how robust a rule-augmented system can become.&nbsp; The domain is the Kennedy family tree again, borrowed from example6().&nbsp; After loading a file of rules (<strong>relative_rules.txt</strong>), we'll pose a simple query.&nbsp; The query asks AllegroGraph to list all the uncles in the family tree, along with each of their nieces or nephews.&nbsp; This is the query:</p>
 <pre class="input">(select (?person ?uncle) &quot; +<br>	&quot;(uncle ?y ?x)&quot; +<br>	&quot;(name ?x ?person)&quot; +<br>	&quot;(name ?y ?uncle))&quot;;</pre>
@@ -763,7 +779,7 @@ Federated Apples: <br>[s=http://www.demo.com/example#reddelicious]<br>[s=http://
 <pre class="input">(&lt;-- (man ?person)<br>    (q ?person !rltv:sex !rltv:male)<br>    (q ?person !rdf:type !rltv:person))</pre>
 <p>A &quot;man&quot; is a person who is male.&nbsp; These patterns both match triples in the repository.&nbsp; </p>
 <p>The<strong> relative_rules.txt</strong> file contains many more Prolog rules describing relationships, including transitive relationships like &quot;ancestor&quot; and &quot;descendant.&quot; Please examine this file for more ideas about how to use rules with AllegroGraph. </p>
-<p>The <strong>example18()</strong> example begins by borrowing a connection object from example6(), which means the Kennedy family tree is already loaded into the repository, and we are dealing with a <a href="#Transaction">dedicated session</a>. &nbsp; </p>
+<p>The <strong>example18()</strong> example begins by borrowing a connection object from example6(), which means the Kennedy family tree is already loaded into the repository, and we are dealing with a <a href="#Transaction">transaction session</a>. &nbsp; </p>
 <pre class="input">    public static void example18() throws Exception {<br>        AGRepositoryConnection conn = example6(false);</pre>
 <p>We need these two namespaces because they are used in the query and in the file of rules. </p>
 <pre class="input">        conn.setNamespace(&quot;kdy&quot;, &quot;http://www.franz.com/simple#&quot;);<br>        conn.setNamespace(&quot;rltv&quot;, &quot;http://www.franz.com/simple#&quot;);</pre>
@@ -779,7 +795,7 @@ Federated Apples: <br>[s=http://www.demo.com/example#reddelicious]<br>[s=http://
 <pre class="input">        TupleQuery tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);<br>        TupleQueryResult result = tupleQuery.evaluate();     <br>        while (result.hasNext()) {<br>            BindingSet bindingSet = result.next();<br>            Value p = bindingSet.getValue(&quot;person&quot;);<br>            Value u = bindingSet.getValue(&quot;uncle&quot;);<br>            println(u + &quot; is the uncle of &quot; + p);<br>        }</pre>
 <p>The output of this loop (in part) looks like this:
 <pre class="output">&quot;{Edward} {Kennedy}&quot; is the uncle of &quot;{Robin} {Lawford}&quot;<br>&quot;{Edward} {Kennedy}&quot; is the uncle of &quot;{Stephen} {Smith}&quot;<br>&quot;{Edward} {Kennedy}&quot; is the uncle of &quot;{William} {Smith}&quot;<br>&quot;{Edward} {Kennedy}&quot; is the uncle of &quot;{Amanda} {Smith}&quot;<br>&quot;{Edward} {Kennedy}&quot; is the uncle of &quot;{Kym} {Smith}&quot;</pre>
-<p>As before, it is good form to free the dedicated session and the result object when you are finished with them.</p>
+<p>As before, it is good form to free the connection and the result object when you are finished with them.</p>
 <pre class="input">        result.close();<br>        conn.close();</pre>
 
 <h2 id="RDFS++ Inference">RDFS++ Inference (example19())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
@@ -808,11 +824,11 @@ Robert and Bob have links to the child resources:
 <pre class="input">        conn.add(bob, OWL.SAMEAS, robert);</pre>
 This is a simple getStatements() search asking for the children of Robert, with inference turned OFF. &quot;Inference&quot; <br>
 is the fifth parameter to getStatements(), defaulting to &quot;False&quot;. <br>
-<pre class="input">        println(&quot;/nChildren of Robert, inference OFF&quot;);<br>        printRows( conn.getStatements(robert, fatherOf, null, false) );</pre> 
+<pre class="input">        println(&quot;\nChildren of Robert, inference OFF&quot;);<br>        printRows( conn.getStatements(robert, fatherOf, null, false) );</pre> 
 <p>The search returns one triple, which is the link from Robert to his direct child, Roberta. </p>
 <pre class="output">Children of Robert, inference OFF<br>(http://example.org/people/robert, http://example.org/ontology/fatherOf, http://example.org/people/roberta) [null]</pre>
 <p>This is a getStatements() search with inference turned ON.&nbsp; This time we added the fifth parameter, True, to getStatements(). This turns on the inference engine. </p>
-<pre class="input">        println(&quot;/nChildren of Robert, inference ON&quot;);<br>        printRows( conn.getStatements(robert, fatherOf, null, true) );</pre>
+<pre class="input">        println(&quot;\nChildren of Robert, inference ON&quot;);<br>        printRows( conn.getStatements(robert, fatherOf, null, true) );</pre>
 <pre class="output">Children of Robert, inference ON<br>(http://example.org/people/robert, http://example.org/ontology/fatherOf, http://example.org/people/roberta) [null]<br>(http://example.org/people/robert, http://example.org/ontology/fatherOf, http://example.org/people/bobby) [null]</pre>
 <p>Note that with inference ON, Robert suddenly has two children because Bob's child has been included.&nbsp; Also note that the final triple (robert hasChild bobby) has been inferred.&nbsp; The inference engine has determined that this triple logically must be true, even though it does not appear in the repository. </p>
 <h3>InverseOf</h3>
@@ -828,10 +844,10 @@ is the fifth parameter to getStatements(), defaulting to &quot;False&quot;. <br>
 <pre class="input">        conn.add(hasFather, OWL.INVERSEOF, fatherOf);</pre>
 <p>First, we'll search for hasFather triples, leaving inference OFF to show that there are no such triples in the repository: </p>
 
-<pre class="input">        println(&quot;/nPeople with fathers, inference OFF&quot;);<br>        printRows( conn.getStatements(null, hasFather, null, false) );</pre>
+<pre class="input">        println(&quot;\nPeople with fathers, inference OFF&quot;);<br>        printRows( conn.getStatements(null, hasFather, null, false) );</pre>
 <pre class="output">People with fathers, inference OFF<br></pre>
 <p>Now we'll turn inference ON.&nbsp; This time, the AllegroGraph inference engine discovers two &quot;new&quot; hasFather triples. </p>
-<pre class="input">        println(&quot;/nPeople with fathers, inference ON&quot;);<br>        printRows( conn.getStatements(null, hasFather, null, true) );</pre>
+<pre class="input">        println(&quot;\nPeople with fathers, inference ON&quot;);<br>        printRows( conn.getStatements(null, hasFather, null, true) );</pre>
 <pre class="output">People with fathers, inference ON<br>(http://example.org/people/roberta, http://example.org/ontology/hasFather, http://example.org/people/robert) [null]<br>(http://example.org/people/bobby, http://example.org/ontology/hasFather, http://example.org/people/bob) [null]</pre>
 <p>Both of these triples are inferred by the inference engine.</p>
 <h3>SubPropertyOf</h3>
@@ -841,12 +857,12 @@ is the fifth parameter to getStatements(), defaulting to &quot;False&quot;. <br>
 <p>We'll need a parentOf URI to use as the new predicate.&nbsp; Then we'll add a triple saying that fatherOf is an rdfs:subPropertyOf the new predicate, parentOf:</p>
 <pre class="input">        URI parentOf = f.createURI(&quot;http://example.org/ontology/parentOf&quot;);<br>        conn.add(fatherOf, RDFS.SUBPROPERTYOF, parentOf);</pre>
 <p>If we now search for parentOf triples with inference OFF, we won't find any. No such triples exist in the repository. </p>
-<pre class="input">        println(&quot;/nPeople with parents, inference OFF&quot;);<br>        printRows( conn.getStatements(null, parentOf, null, false) );</pre>
+<pre class="input">        println(&quot;\nPeople with parents, inference OFF&quot;);<br>        printRows( conn.getStatements(null, parentOf, null, false) );</pre>
 <pre class="output">People with parents, inference OFF
 
 </pre>
 <p>With inference ON, however, AllegroGraph infers two new triples: </p>
-<pre class="input">        println(&quot;/nPeople with parents, inference ON&quot;);<br>        printRows( conn.getStatements(null, parentOf, null, true) );</pre>
+<pre class="input">        println(&quot;\nPeople with parents, inference ON&quot;);<br>        printRows( conn.getStatements(null, parentOf, null, true) );</pre>
 <pre class="output">People with parents, inference ON<br>(http://example.org/people/robert, http://example.org/ontology/parentOf, http://example.org/people/roberta) [null]<br>(http://example.org/people/bob, http://example.org/ontology/parentOf, http://example.org/people/bobby) [null]</pre>
 <p>The fact that two fatherOf triples exist means that two correponding parentOf triples must be valid.&nbsp; There they are.</p>
 <p>Before setting up the next example, we should clean up:</p>
@@ -859,10 +875,10 @@ is the fifth parameter to getStatements(), defaulting to &quot;False&quot;. <br>
 <pre class="input">        URI parent = f.createURI(&quot;http://example.org/ontology/Parent&quot;);<br>        URI child = f.createURI(&quot;http://exmaple.org/ontology/Child&quot;);</pre>
 <p>Now we add two triples defining the domain and rage of the fatherOf predicate: </p><pre class="input">        conn.add(fatherOf, RDFS.DOMAIN, parent);<br>        conn.add(fatherOf, RDFS.RANGE, child);</pre>
 <p>Now we'll search for resources of rdf:type Parent.&nbsp; The inference engine supplies the appropriate triples: </p>
-<pre class="input">        println(&quot;/nWho are the parents?  Inference ON.&quot;);<br>        printRows( conn.getStatements(null, RDF.TYPE, parent, true) );</pre>
+<pre class="input">        println(&quot;\nWho are the parents?  Inference ON.&quot;);<br>        printRows( conn.getStatements(null, RDF.TYPE, parent, true) );</pre>
 <pre class="output">Who are the parents?  Inference ON.<br>(http://example.org/people/robert, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/ontology/Parent) [null]<br>(http://example.org/people/bob, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/ontology/Parent) [null]</pre>
 <p>Bob and Robert are parents.&nbsp; Who are the children? </p>
-<pre class="input">        println(&quot;/nWho are the children?  Inference ON.&quot;);<br>        printRows( conn.getStatements(null, RDF.TYPE, child, true) );<br>        conn.close();</pre>
+<pre class="input">        println(&quot;\nWho are the children?  Inference ON.&quot;);<br>        printRows( conn.getStatements(null, RDF.TYPE, child, true) );<br>        conn.close();</pre>
 <pre class="output">Who are the children?  Inference ON.
 (&lt;http://example.org/people/bobby&gt;, &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#type&gt;, &lt;http://exmaple.org/ontology/Child&gt;)
 (&lt;http://example.org/people/roberta&gt;, &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#type&gt;, &lt;http://exmaple.org/ontology/Child&gt;)</pre>
@@ -1238,39 +1254,39 @@ Number of cliques: 2
 <h2 id="Transaction">Transaction (example22())</h2>
 <p>Triples are normally loaded one at a time in &quot;auto-commit&quot; mode. Each triple enters the triple store individually. It is possible that a batch of incoming triples, all describing the same resource, might be interrupted for some reason. An interrupted load can leave the triple store in an unknown state. </p>
 <p>In some applications we can't run the risk of having a resource that is incomplete.  To guard against this hazard, AllegroGraph can turn off auto-commit behavior and use &quot;transaction&quot; behavior instead. With auto-commit turned off, we can add triples until we have a complete set, a known state. If anything goes wrong to interrupt the load, we can roll the transaction back and start over. Otherwise, commit the transaction and all the triples enter the store at once. </p>
-<p>In order to use transaction semantics, the user account must have &quot;session&quot; privileges with AllegroGraph Server. This is an elevated level of privilege. </p>
+<p>In order to use transaction semantics, the user account must have &quot;:session&quot; privileges with AllegroGraph Server. This is an elevated level of privilege. AllegroGraph users are profiled through the </p>
 <p>In practice, transaction semantics require at least two connections to the triple store, one in auto-commit mode and one in transaction mode. Queries should be run against the auto-commit connection, where the resources are always in a known and complete state. The transaction connection is used for loading and commiting batches of triples. </p>
-<p>&quot;Commit&quot; means to make a batch of newly-loaded triples visible in the auto-commit connection. The two sessions are &quot;synched up&quot; by the commit. Any &quot;new&quot; triples added to either connection will suddenly be visible in both connections. </p>
+<p>&quot;Commit&quot; means to make a batch of newly-loaded triples visible in the auto-commit connection. The two sessions are &quot;synched up&quot; by the commit. Any &quot;new&quot; triples added to either connection will suddenly be visible in both connections after a commit. </p>
 <p>&quot;Rollback&quot; means to discard the recent additions to the transaction connection. This, too, synchs up the two sessions. After a rollback, the transaction connection &quot;sees&quot; exactly the same triples as the auto-commit connection does. </p>
 <p>&quot;Closing&quot; the transaction connection deletes all uncommitted triples, and all rules, generators and matrices that were created in that connection. Rules, generators and matrices cannot be committed. </p>
 <p>Example22() performs some simple data manipulations on a transaction connection to demonstrate the rollback and commit features. It begins by creating two connections to the repository. Then we turn one of them into a &quot;transaction&quot; connection by setting <strong>setAutoCommit()</strong> to <strong>false</strong>. </p>
 <pre class="input">    public static void example22() throws Exception {<br>        AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);<br>        AGCatalog catalog = server.getCatalog(CATALOG_ID);<br>        AGRepository myRepository = catalog.createRepository(&quot;agraph_test&quot;);<br>        myRepository.initialize();<br>        AGValueFactory vf = myRepository.getValueFactory();<br>        // Create conn1 (autoCommit) and conn2 (no autoCommit).<br>        AGRepositoryConnection conn1 = myRepository.getConnection();<br>        closeBeforeExit(conn1);<br>        conn1.clear();<br>        AGRepositoryConnection conn2 = myRepository.getConnection();<br>        closeBeforeExit(conn2);<br>        conn2.clear();<br>        conn2.setAutoCommit(false);</pre>
 <p>In this example,<strong> conn1</strong> is the auto-commit session, and <strong>conn2</strong> will be used for transactions. </p>
-<p>We'll reuse the Kennedy and Les Miserables data. The Les Miserables data goes in the common session, and the Kennedy data goes in the dedicated session. </p>
+<p>We'll reuse the Kennedy and Les Miserables data. The Les Miserables data goes in the auto-commit session, and the Kennedy data goes in the transaction session. </p>
 <pre class="input">        String baseURI = &quot;http://example.org/example/local&quot;;<br>        conn1.add(new File(&quot;src/tutorial/lesmis.rdf&quot;), baseURI, RDFFormat.RDFXML);<br>        println(&quot;Loaded &quot; + conn1.size() + &quot; lesmis.rdf triples into conn1.&quot;);<br>        conn2.add(new File(&quot;src/tutorial/kennedy.ntriples&quot;), baseURI, RDFFormat.NTRIPLES);<br>        println(&quot;Loaded &quot; + conn2.size() + &quot; kennedy.ntriples into conn2.&quot;);</pre>
-<p>The two sessions should now have independent content. When we look in the common session we should see only Les Miserables triples. The dedicated session could contain only Kennedy triples. We set up a series of simple tests similar to this one:</p>
+<p>The two sessions should now have independent content. When we look in the auto-commit session we should see only Les Miserables triples. The transaction session could contain only Kennedy triples. We set up a series of simple tests similar to this one:</p>
 <pre class="input">        Literal valjean = vf.createLiteral(&quot;Valjean&quot;);<br>        Literal kennedy = vf.createLiteral(&quot;Kennedy&quot;);<br>        printRows(&quot;\nUsing getStatements() on conn1 should find Valjean:&quot;,<br>                1, conn1.getStatements(null, null, valjean, false));</pre>
-<p>This test looks for our friend Valjean in the common session. He should be there. This is the output:</p>
+<p>This test looks for our friend Valjean in the auto-commit session. He should be there. This is the output:</p>
 <pre class="output">Using getStatements() on conn1 should find Valjean:<br>(http://www.franz.com/lesmis#character11, http://purl.org/dc/elements/1.1/title, &quot;Valjean&quot;) [null]<br>Number of results: 1</pre>
-<p>However, there should not be anyone in the common session named &quot;Kennedy.&quot; The code of the test is almost identical to that shown above, so we'll skip straight to the output.</p>
+<p>However, there should not be anyone in the auto-commit session named &quot;Kennedy.&quot; The code of the test is almost identical to that shown above, so we'll skip straight to the output.</p>
 <pre class="output">Using getStatements() on conn1 should not find Kennedy:<br>Number of results: 0</pre>
-<p>We should not see Valjean in the dedicated session:</p>
+<p>We should not see Valjean in the transaction session:</p>
 <pre class="output">Using getStatements() on conn2 should not find Valjean:<br>Number of results: 0</pre>
-<p>There should be a Kennedy (at least one) visible in the dedicated session. (We limited the output to one match.) </p>
+<p>There should be a Kennedy (at least one) visible in the transaction session. (We limited the output to one match.) </p>
 <pre class="output">Using getStatements() on conn2 should find Kennedy:<br>(http://www.franz.com/simple#person1, http://www.franz.com/simple#last-name, &quot;Kennedy&quot;) [null]<br>Number of results: 1</pre>
-<p>The next step in the demonstration is to roll back the data in the dedicated session. This will make the Kennedy data disappear. It will also make the Les Miserables data visible in both sessions. We'll perform the same four tests, with slightly different expectations.</p>
+<p>The next step in the demonstration is to roll back the data in the transaction session. This will make the Kennedy data disappear. It will also make the Les Miserables data visible in both sessions. We'll perform the same four tests, with slightly different expectations.</p>
 
 <p>First we roll back the transaction:</p>
 <pre class="input">        println(&quot;\nRolling back contents of conn2.&quot;);<br>        conn2.rollback();</pre>
-<p>Valjean is still visible in the common session:</p>
+<p>Valjean is still visible in the auto-commit session:</p>
 <pre class="output">Using getStatements() on conn1 should find Valjean:<br>(http://www.franz.com/lesmis#character11, http://purl.org/dc/elements/1.1/title, &quot;Valjean&quot;) [null]<br>Number of results: 1</pre>
-<p>There are still no Kennedys in the common session: </p>
+<p>There are still no Kennedys in the auto-commit session: </p>
 <pre class="output">Using getStatements() on conn1 should not find Kennedys:<br>Number of results: 0</pre>
-<p>There should be no Kennedys visible in the dedicated session:</p>
+<p>There should be no Kennedys visible in the transaction session:</p>
 <pre class="output">Using getStatements() on conn2 should not find Kennedys:<br>Number of results: 0</pre>
-<p>And finally, we should suddenly see Valjean in the dedicated session:</p>
+<p>And finally, we should suddenly see Valjean in the transaction session:</p>
 <pre class="output">Using getStatements() on conn2 should find Valjean:<br>(http://www.franz.com/lesmis#character11, http://purl.org/dc/elements/1.1/title, &quot;Valjean&quot;) [null]<br>Number of results: 1</pre>
-<p>The rollback has succeeded in deleting the uncommitted triples from the dedicated session. It has also refreshed or resynched the dedicated session with the common session.</p>
+<p>The rollback has succeeded in deleting the uncommitted triples from the transaction session. It has also refreshed or resynched the transaction session with the auto-commit session.</p>
 <p>To set up the next test, we have to reload the Kennedy triples. Then we'll perform a commit.  </p>
 <pre class="input">        println(&quot;\nReload 1214 kennedy.ntriples into conn2.&quot;);<br>        conn2.add(new File(&quot;src/tutorial/kennedy.ntriples&quot;), baseURI, RDFFormat.NTRIPLES);<br>        println(&quot;\nCommitting contents of conn2.&quot;);<br>        conn2.commit();</pre>
 <p>This should make both types of triples visible in both sessions. Here are the four tests:</p>
