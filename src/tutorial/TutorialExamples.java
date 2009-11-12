@@ -42,10 +42,12 @@ import com.franz.agraph.repository.AGValueFactory;
 public class TutorialExamples {
 
     static private final String SERVER_URL = "http://localhost:8080";
-    static private final String CATALOG_ID = "scratch";
+    static private final String CATALOG_ID = "java-tutorial";
     static private final String REPOSITORY_ID = "javatutorial";
     static private final String USERNAME = "test";
     static private final String PASSWORD = "xyzzy";
+    static private final String TEMPORARY_DIRECTORY = "";
+
 //    static private final String USERNAME = "anonymous";
 //    static private final String PASSWORD = "";
 
@@ -365,7 +367,7 @@ public class TutorialExamples {
         RepositoryConnection conn = example6();
         Repository myRepository = conn.getRepository();
         URI context = myRepository.getValueFactory().createURI("http://example.org#vcards");
-        String outputFile = "/tmp/temp.nt";
+        String outputFile = TEMPORARY_DIRECTORY + "temp.nt";
 //        outputFile = null;
         if (outputFile == null) {
             println("\nWriting n-triples to Standard Out instead of to a file");
@@ -375,7 +377,7 @@ public class TutorialExamples {
         OutputStream output = (outputFile != null) ? new FileOutputStream(outputFile) : System.out;
         NTriplesWriter ntriplesWriter = new NTriplesWriter(output);
         conn.export(ntriplesWriter, context);
-        String outputFile2 = "/tmp/temp.rdf";
+        String outputFile2 =  TEMPORARY_DIRECTORY + "temp.rdf";
 //        outputFile2 = null;
         if (outputFile2 == null) {
             println("\nWriting RDF to Standard Out instead of to a file");
