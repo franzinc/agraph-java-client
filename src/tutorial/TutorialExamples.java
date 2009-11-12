@@ -73,9 +73,10 @@ public class TutorialExamples {
         AGRepositoryConnection conn = myRepository.getConnection();
         closeBeforeExit(conn);
         println("Got a connection.");
-        conn.clear();  // remove previous triples, if any.
-        // conn.clearNamespaces();  // remove namespaces (TODO: but not standard ones?)
-        // conn.clearMappings();  // remove datatype/predicate mappings (TODO: but not standard ones?)
+        // TODO: these aren't needed if you delete the repository first.
+        //conn.clear();  // remove previous triples, if any.
+        //conn.clearNamespaces();  // remove namespaces, including rdf:, etc)
+        //conn.clearMappings();  // remove application-defined datatype/predicate mappings
         println("Cleared the connection.");
         println("Repository " + (myRepository.getRepositoryID()) +
                 " is up! It contains " + (conn.size()) +
@@ -563,7 +564,6 @@ public class TutorialExamples {
         	"SELECT ?s ?p ?o " +
         	"WHERE { ?s ?p ?o . FILTER regex(?o, \"lic\") }";
         tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
-        tupleQuery.setIncludeInferred(false); // TODO: remove when bug fixed.
         result = (TupleQueryResult)tupleQuery.evaluate();
         count = 0;
         while (result.hasNext()) {
@@ -663,7 +663,6 @@ public class TutorialExamples {
         	"WHERE { ?s ?p ?o . " +
         	"FILTER ((?o >= 30) && (?o <= 50)) }";
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
-        tupleQuery.setIncludeInferred(false); // TODO: remove when bug fixed.
         TupleQueryResult result = tupleQuery.evaluate();
         try {
             while (result.hasNext()) {
@@ -684,7 +683,6 @@ public class TutorialExamples {
         	"WHERE { ?s ?p ?o . " +
         	"FILTER ((xsd:integer(?o) >= 30) && (xsd:integer(?o) <= 50)) }";
         TupleQuery tupleQuery2 = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString2);
-        tupleQuery2.setIncludeInferred(false); // TODO: remove when bug fixed.
         TupleQueryResult result2 = tupleQuery2.evaluate();
         try {
             while (result2.hasNext()) {
