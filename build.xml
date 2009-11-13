@@ -4,12 +4,13 @@
     <property name="src" location="src"/>
     <property name="lib" location="lib"/>
     <property name="build" location="classes"/>
-    <property name="jarfile" location="agraph-java-client.jar"/>
+    <property name="jarfile" location="agraph.jar"/>
     
     <path id="classpath">
         <path location="${lib}/commons-codec-1.3.jar"/>
         <path location="${lib}/commons-httpclient-3.1.jar"/>
         <path location="${lib}/commons-logging-1.1.1.jar"/>
+        <path location="${lib}/json.jar"/>
         <path location="${lib}/openrdf-sesame-2.2.4-onejar.jar"/>
         <path location="${lib}/slf4j-api-1.5.8.jar"/>
         <path location="${lib}/slf4j-nop-1.5.8.jar"/>

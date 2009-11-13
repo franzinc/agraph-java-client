@@ -4,15 +4,20 @@
 package com.franz.agraph.repository;
 
 import info.aduna.iteration.CloseableIteratorIteration;
+import info.aduna.iteration.Iteration;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
+import org.apache.commons.httpclient.methods.RequestEntity;
+import org.json.JSONArray;
+import org.openrdf.OpenRDFUtil;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Namespace;
 import org.openrdf.model.Resource;
@@ -20,7 +25,6 @@ import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.model.impl.NamespaceImpl;
-import org.openrdf.model.impl.StatementImpl;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.QueryLanguage;
@@ -34,7 +38,7 @@ import org.openrdf.rio.RDFHandler;
 import org.openrdf.rio.RDFHandlerException;
 import org.openrdf.rio.RDFParseException;
 import org.openrdf.rio.helpers.StatementCollector;
-import org.openrdf.rio.ntriples.NTriplesWriter;
+import org.openrdf.rio.ntriples.NTriplesUtil;
 
 import com.franz.agraph.http.AGHttpRepoClient;
 
@@ -73,32 +77,104 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	}
 
 	@Override
-	protected void addWithoutCommit(Resource subject, URI predicate,
-			Value object, Resource... contexts) throws RepositoryException {
-		/*try {
-			getHttpRepoClient().addStatements(subject, predicate, object, contexts);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
-		}*/
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		NTriplesWriter writer = new NTriplesWriter(out);
+	public void add(Iterable<? extends Statement> statements,
+			Resource... contexts) throws RepositoryException {
+		OpenRDFUtil.verifyContextNotNull(contexts);
+		JSONArray rows=new JSONArray();
+		for (Statement st : statements) {
+				JSONArray row = new JSONArray().put(
+					NTriplesUtil.toNTriplesString(st.getSubject())).put(
+					NTriplesUtil.toNTriplesString(st.getPredicate())).put(
+					NTriplesUtil.toNTriplesString(st.getObject()));
+			rows.put(row);
+		}
+		if (rows==null) return;
+		InputStream in;
 		try {
-			writer.startRDF();
-			writer
-					.handleStatement(new StatementImpl(subject, predicate,
-							object));
-			writer.endRDF();
-			InputStream in = new ByteArrayInputStream(out.toByteArray());
-			// TODO: check whether using NTriples is lossy
-			addInputStreamOrReader(in, null, RDFFormat.NTRIPLES, contexts);
-		} catch (RDFHandlerException e) {
-			throw new RepositoryException(e);
+			in = new ByteArrayInputStream(rows.toString().getBytes("UTF-8"));
+			RequestEntity entity = new InputStreamRequestEntity(in, -1,
+					"application/json");
+			getHttpRepoClient().upload(entity, null, false, null, null, null,
+					contexts);
+		} catch (UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
 		} catch (RDFParseException e) {
-			// found a bug?
 			throw new RuntimeException(e);
 		} catch (IOException e) {
 			throw new RepositoryException(e);
 		}
+	}
+
+	@Override
+	public <E extends Exception> void add(Iteration<? extends Statement, E> statementIter,
+			Resource... contexts)
+		throws RepositoryException, E
+	{
+		OpenRDFUtil.verifyContextNotNull(contexts);
+		JSONArray rows=new JSONArray();
+		while (statementIter.hasNext()) {
+				Statement st = statementIter.next();
+				JSONArray row = new JSONArray().put(
+					NTriplesUtil.toNTriplesString(st.getSubject())).put(
+					NTriplesUtil.toNTriplesString(st.getPredicate())).put(
+					NTriplesUtil.toNTriplesString(st.getObject()));
+			rows.put(row);
+		}
+		if (rows==null) return;
+		InputStream in;
+		try {
+			in = new ByteArrayInputStream(rows.toString().getBytes("UTF-8"));
+			RequestEntity entity = new InputStreamRequestEntity(in, -1,
+					"application/json");
+			getHttpRepoClient().upload(entity, null, false, null, null, null,
+					contexts);
+		} catch (RepositoryException e) {
+			throw e;
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			// TODO: determine what is proper to throw here.
+			throw new RepositoryException(e);
+		}
+	}
+	
+	@Override
+	protected void addWithoutCommit(Resource subject, URI predicate,
+			Value object, Resource... contexts) throws RepositoryException {
+		JSONArray row = new JSONArray().put(
+				NTriplesUtil.toNTriplesString(subject)).put(
+				NTriplesUtil.toNTriplesString(predicate)).put(
+				NTriplesUtil.toNTriplesString(object));
+		JSONArray rows = new JSONArray().put(row);
+		InputStream in;
+		try {
+			in = new ByteArrayInputStream(rows.toString().getBytes("UTF-8"));
+			RequestEntity entity = new InputStreamRequestEntity(in, -1,
+					"application/json");
+			getHttpRepoClient().upload(entity, null, false, null, null, null,
+					contexts);
+		} catch (UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
+		} catch (RDFParseException e) {
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+		/*
+		 * try { getHttpRepoClient().addStatements(subject, predicate, object,
+		 * contexts); } catch (IOException e) { throw new
+		 * RepositoryException(e); } ByteArrayOutputStream out = new
+		 * ByteArrayOutputStream(); NTriplesWriter writer = new
+		 * NTriplesWriter(out); try { writer.startRDF(); writer
+		 * .handleStatement(new StatementImpl(subject, predicate, object));
+		 * writer.endRDF(); InputStream in = new
+		 * ByteArrayInputStream(out.toByteArray()); // TODO: check whether using
+		 * NTriples is lossy addInputStreamOrReader(in, null,
+		 * RDFFormat.NTRIPLES, contexts); } catch (RDFHandlerException e) {
+		 * throw new RepositoryException(e); } catch (RDFParseException e) { //
+		 * found a bug? throw new RuntimeException(e); } catch (IOException e) {
+		 * throw new RepositoryException(e); }
+		 */
 	}
 
 	@Override
@@ -286,7 +362,7 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	@Override
 	public AGTupleQuery prepareTupleQuery(QueryLanguage ql, String queryString,
 			String baseURI) {
-		// TODO: consider having the server parse and process the query, 
+		// TODO: consider having the server parse and process the query,
 		// throw MalformedQueryException, etc.
 		return new AGTupleQuery(this, ql, queryString, baseURI);
 	}
@@ -295,24 +371,25 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	public AGGraphQuery prepareGraphQuery(QueryLanguage ql, String queryString) {
 		return prepareGraphQuery(ql, queryString, null);
 	}
-	
+
 	@Override
 	public AGGraphQuery prepareGraphQuery(QueryLanguage ql, String queryString,
 			String baseURI) {
-		// TODO: consider having the server parse and process the query, 
+		// TODO: consider having the server parse and process the query,
 		// throw MalformedQueryException, etc.
 		return new AGGraphQuery(this, ql, queryString, baseURI);
 	}
 
 	@Override
-	public AGBooleanQuery prepareBooleanQuery(QueryLanguage ql, String queryString) {
+	public AGBooleanQuery prepareBooleanQuery(QueryLanguage ql,
+			String queryString) {
 		return prepareBooleanQuery(ql, queryString, null);
 	}
-	
+
 	@Override
 	public AGBooleanQuery prepareBooleanQuery(QueryLanguage ql,
 			String queryString, String baseURI) {
-		// TODO: consider having the server parse and process the query, 
+		// TODO: consider having the server parse and process the query,
 		// throw MalformedQueryException, etc.
 		return new AGBooleanQuery(this, ql, queryString, baseURI);
 	}
@@ -354,10 +431,10 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	}
 
 	public void deletePredicateMapping(URI predicate)
-	throws RepositoryException {
+			throws RepositoryException {
 		getHttpRepoClient().deletePredicateMapping(predicate);
 	}
-	
+
 	// TODO: return RepositoryResult<Mapping>?
 	public String[] getPredicateMappings() throws RepositoryException {
 		return getHttpRepoClient().getPredicateMappings();
@@ -369,11 +446,10 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		getHttpRepoClient().registerDatatypeMapping(datatype, primtype);
 	}
 
-	public void deleteDatatypeMapping(URI datatype)
-	throws RepositoryException {
+	public void deleteDatatypeMapping(URI datatype) throws RepositoryException {
 		getHttpRepoClient().deleteDatatypeMapping(datatype);
 	}
-	
+
 	// TODO: return RepositoryResult<Mapping>?
 	public String[] getDatatypeMappings() throws RepositoryException {
 		return getHttpRepoClient().getDatatypeMappings();
@@ -382,7 +458,7 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	public void clearMappings() throws RepositoryException {
 		getHttpRepoClient().clearMappings();
 	}
-	
+
 	public void addRules(String rules) throws RepositoryException {
 		getHttpRepoClient().addRules(rules);
 	}
@@ -399,8 +475,9 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	public String evalInServer(InputStream stream) throws RepositoryException {
 		return getHttpRepoClient().evalInServer(stream);
 	}
-	
-	public void load(URI source, String baseURI, RDFFormat dataFormat, Resource... contexts) throws RepositoryException {
+
+	public void load(URI source, String baseURI, RDFFormat dataFormat,
+			Resource... contexts) throws RepositoryException {
 		try {
 			getHttpRepoClient().load(source, baseURI, dataFormat, contexts);
 		} catch (RDFParseException e) {
@@ -409,17 +486,20 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 			throw new RepositoryException(e);
 		}
 	}
-	
-	public void load(String absoluteServerPath, String baseURI, RDFFormat dataFormat, Resource... contexts) throws RepositoryException {
+
+	public void load(String absoluteServerPath, String baseURI,
+			RDFFormat dataFormat, Resource... contexts)
+			throws RepositoryException {
 		try {
-			getHttpRepoClient().load(absoluteServerPath, baseURI, dataFormat, contexts);
+			getHttpRepoClient().load(absoluteServerPath, baseURI, dataFormat,
+					contexts);
 		} catch (RDFParseException e) {
 			throw new RepositoryException(e);
 		} catch (IOException e) {
 			throw new RepositoryException(e);
 		}
 	}
-	
+
 	public void ping() throws RepositoryException {
 		getHttpRepoClient().ping();
 	}

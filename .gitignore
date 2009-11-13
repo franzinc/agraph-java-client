@@ -1,5 +1,4 @@
 bin
 .*sw*
 *.class
-*.jar
 classes

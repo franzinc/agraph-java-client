@@ -29,7 +29,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 	public String USERNAME = System.getProperty("com.franz.agraph.test.username","test");
 	public String PASSWORD = System.getProperty("com.franz.agraph.test.password","xyzzy");
 
-	int repoNumber = 1;
+	int repoNumber = 2;
 
 	public AGRepositoryConnectionTest(String name) {
 		super(name);
