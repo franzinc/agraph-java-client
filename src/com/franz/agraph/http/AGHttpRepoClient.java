@@ -394,7 +394,7 @@ public class AGHttpRepoClient {
 				contexts);
 	}
 
-	protected void upload(RequestEntity reqEntity, String baseURI,
+	public void upload(RequestEntity reqEntity, String baseURI,
 			boolean overwrite, String serverSideFile, URI serverSideURL,
 			RDFFormat dataFormat, Resource... contexts) throws IOException,
 			RDFParseException, RepositoryException, UnauthorizedException {

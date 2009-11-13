@@ -38,7 +38,6 @@ import org.openrdf.model.BNode;
 import org.openrdf.model.Graph;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Namespace;
-import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
@@ -81,18 +80,12 @@ public abstract class RepositoryConnectionTest extends TestCase {
 
     protected ValueFactory vf;
 
-	//protected BNode bob;
+    protected BNode bob;
 
-	//protected BNode alice;
+    protected BNode alice;
 
-	//protected BNode alexander;
+    protected BNode alexander;
 
-	protected Resource bob;
-	
-	protected Resource alice;
-	
-	protected Resource alexander;
-	
     protected URI name;
 
     protected URI mbox;
@@ -134,13 +127,10 @@ public abstract class RepositoryConnectionTest extends TestCase {
 
         vf = testRepository.getValueFactory();
 
-		// Initialize values
-		//bob = vf.createBNode();
-		//alice = vf.createBNode();
-		//alexander = vf.createBNode();
-		bob = vf.createURI("http://example.org/bob");
-		alice = vf.createURI("http://example.org/alice");
-		alexander = vf.createURI("http://example.org/alexander");
+        // Initialize values
+        bob = vf.createBNode();
+        alice = vf.createBNode();
+        alexander = vf.createBNode();
 
         name = vf.createURI(FOAF_NS + "name");
         mbox = vf.createURI(FOAF_NS + "mbox");
@@ -1386,7 +1376,6 @@ public abstract class RepositoryConnectionTest extends TestCase {
         assertEquals(Arrays.asList(context2), testCon.getContextIDs().asList());
     }
 
-	@SuppressWarnings("deprecation")
     public void testXmlCalendarZ()
         throws Exception
     {
