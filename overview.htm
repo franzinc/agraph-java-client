@@ -1,0 +1,16 @@
+<body>
+A Java API to the AllegroGraph triple store implementation.
+<p>
+We provide adapters for Sesame 2.x and Jena 2.5.
+<h3>Compatibility Note</h3>
+This Java API is similar to the AllegroGraph Java API in earlier releases (3.1.1 and older),
+but it is significantly different in many details.  Existing Java programs will need to be
+modified substantially.
+<ul>
+<li>The primary public package is <code>com.franz.agbase</code>
+<li>New classes: ValueSetIterator, PrologSelectQuery
+<li>All the methods in AllegroGraph for making Prolog queries have been 
+eliminated in favor of the PrologSelectQuery class.
+<li>The ValueObject class hierarchy is completely separate form Sesame classes. 
+</ul>
+</body>
