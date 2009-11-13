@@ -48,9 +48,6 @@ public class TutorialExamples {
     static private final String PASSWORD = "xyzzy";
     static private final String TEMPORARY_DIRECTORY = "";
 
-//    static private final String USERNAME = "anonymous";
-//    static private final String PASSWORD = "";
-
     static final String FOAF_NS = "http://xmlns.com/foaf/0.1/";
 
     /**
@@ -61,7 +58,6 @@ public class TutorialExamples {
         println("\nStarting example1().");
         AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
         println("Available catalogs: " + server.listCatalogs());
-//        AGCatalog catalog = server.getCatalog(CATALOG_ID);   // open named catalog
         AGCatalog catalog = server.getRootCatalog();          // open rootCatalog
         println("Available repositories in catalog " + 
                 (catalog.getCatalogName()) + ": " + 
@@ -75,10 +71,6 @@ public class TutorialExamples {
         AGRepositoryConnection conn = myRepository.getConnection();
         closeBeforeExit(conn);
         println("Got a connection.");
-        // TODO: these aren't needed if you delete the repository first.
-        //conn.clear();  // remove previous triples, if any.
-        //conn.clearNamespaces();  // remove namespaces, including rdf:, etc)
-        //conn.clearMappings();  // remove application-defined datatype/predicate mappings
         println("Cleared the connection.");
         println("Repository " + (myRepository.getRepositoryID()) +
                 " is up! It contains " + (conn.size()) +
@@ -238,7 +230,7 @@ public class TutorialExamples {
         }
         // SPARQL
         for (String obj : new String[]{"42", "\"42\"", "120.5", "\"120.5\"", "\"120.5\"^^xsd:float",
-                                       "\"Rouge\"@fr", "\"Rouge\"", "\"1984-12-06\"^^xsd:date"}) {
+                                       "\"Rouge\"@fr", "\"Rouge\""}) {
             println( "\nQuery triples matching " + obj + ".");
             String queryString = "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = " + obj + ")}";
             TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
@@ -344,7 +336,6 @@ public class TutorialExamples {
         RepositoryConnection conn = example6();
         println("\nMatch all and print subjects and contexts");
         RepositoryResult<Statement> result = conn.getStatements(null, null, null, false);
-// TODO: limit=25
         for (int i = 0; i < 25 && result.hasNext(); i++) {
             Statement stmt = result.next();
             println(stmt.getSubject() + "  " + stmt.getContext());
@@ -480,7 +471,6 @@ public class TutorialExamples {
 	    URI person = f.createURI(exns, "Person");
 	    conn.add(alice, RDF.TYPE, person);
 	    conn.setNamespace("ex", exns);
-	    //conn.removeNamespace("ex");
 	    String queryString = "SELECT ?s ?p ?o WHERE { ?s ?p ?o . FILTER ((?p = rdf:type) && (?o = ex:Person) ) }";
 	    TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
 	    TupleQueryResult result = tupleQuery.evaluate();  
@@ -498,7 +488,6 @@ public class TutorialExamples {
 	    ValueFactory f = conn.getValueFactory();
 	    String exns = "http://example.org/people/";
 	    conn.setNamespace("ex", exns);
-//	    conn.registerFreetextPredicate(f.createURI("http://example.org/people/name"));
 	    conn.registerFreetextPredicate(f.createURI(exns,"fullname"));
 	    URI alice = f.createURI(exns, "alice1");
 	    URI persontype = f.createURI(exns, "Person");
@@ -678,26 +667,6 @@ public class TutorialExamples {
         } finally {
             result.close();
         }
-        
-        println("\nRange query for integers, floats, and integers in strings.");
-        String queryString2 = 
-        	"PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> " +
-        	"SELECT ?s ?p ?o  " +
-        	"WHERE { ?s ?p ?o . " +
-        	"FILTER ((xsd:integer(?o) >= 30) && (xsd:integer(?o) <= 50)) }";
-        TupleQuery tupleQuery2 = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString2);
-        TupleQueryResult result2 = tupleQuery2.evaluate();
-        try {
-            while (result2.hasNext()) {
-                BindingSet bindingSet = result2.next();
-                Value s = bindingSet.getValue("s");
-                Value p = bindingSet.getValue("p");
-                Value o = bindingSet.getValue("o");
-                System.out.format("%s %s %s\n", s, p, o);
-            }
-        } finally {
-            result2.close();
-        }
         conn.close();
     }
     
@@ -757,7 +726,6 @@ public class TutorialExamples {
     public static void example17() throws Exception {
         AGRepositoryConnection conn = example6();
         conn.setNamespace("kdy", "http://www.franz.com/simple#");
-//        conn.setRuleLanguage(AGQueryLanguage.PROLOG);
         String rules1 =
             "(<-- (woman ?person) ;; IF\n" +
             "     (q ?person !kdy:sex !kdy:female)\n" +
@@ -791,7 +759,6 @@ public class TutorialExamples {
         AGRepositoryConnection conn = example6();
         conn.setNamespace("kdy", "http://www.franz.com/simple#");
         conn.setNamespace("rltv", "http://www.franz.com/simple#");
-//        conn.setRuleLanguage(AGQueryLanguage.PROLOG);
         String path = "src/tutorial/relative_rules.txt";
         conn.addRules(new FileInputStream(path));
         String queryString = 
@@ -871,22 +838,6 @@ public class TutorialExamples {
         // Remove owl:inverseOf property.
         conn.remove(hasFather, OWL.INVERSEOF, fatherOf);
 
-//         Next 12 lines were for owl:inverseFunctionalProperty, but that isn't
-//         supported yet in AG.  Commenting them out. 
-//         Add fatherOf link from Robert to Bobby, giving Bobby two fathers. 
-//        conn.add(robert, fatherOf, bobby)
-//         Now make fatherOf a 'reverse functional property'
-//        conn.add(fatherOf, RDF.TYPE, OWL.INVERSEFUNCTIONALPROPERTY)
-//         Bob has how many children? 
-//         With inference OFF.
-//        print "Who is Bob the father of, inference OFF"
-//        for s in conn.getStatements(bob, fatherOf, None, None): print s    
-//         With inference ON. AllegroGraph knows that Bob and Robert must
-//         be the same person.
-//        print "Who is Bob the father of, inference ON"
-//        for s in conn.getStatements(bob, fatherOf, None, None, True): print s  
-//         Subproperty example.  We'll make fatherOf an rdfs:subpropertyOf parentOf.
-
         URI parentOf = f.createURI("http://example.org/ontology/parentOf");
         conn.add(fatherOf, RDFS.SUBPROPERTYOF, parentOf);
         // Now search for inferred parentOf links.
@@ -916,73 +867,9 @@ public class TutorialExamples {
     }
     
     /**
-     * Geospatial Reasoning
-     */
-    /*
-    public static void example20() throws Exception {
-        AGRepositoryConnection conn = example1(false);
-        ValueFactory f = conn.getValueFactory();
-        conn = example1(false);
-        conn.clear();
-        println("Starting example20().");
-        String exns = "http://example.org/people/";
-        conn.setNamespace("ex", exns);
-        URI alice = f.createURI(exns, "alice");
-        URI bob = f.createURI(exns, "bob");
-        URI carol = f.createURI(exns, "carol");
-//        conn.createRectangularSystem(scale=1, xMax=100, yMax=100);
-        URI location = f.createURI(exns, "location");
-        //conn.registerDatatypeMapping(predicate=location, nativeType="int")   
-        //conn.registerDatatypeMapping(predicate=location, nativeType="float")       
-        conn.add(alice, location, conn.createCoordinate(30,30));
-        conn.add(bob, location, conn.createCoordinate(40, 40));
-        conn.add(carol, location, conn.createCoordinate(50, 50)); 
-        Object box1 = conn.createBox(20, 40, 20, 40);
-        println(box1);
-        println("Find people located within box1.");
-        printRows( conn.getStatements(null, location, box1) );
-        circle1 = conn.createCircle(35, 35, radius=10);  
-        println(circle1);
-        println("Find people located within circle1.");
-        printRows( conn.getStatements(null, location, circle1) ); 
-        Object polygon1 = conn.createPolygon([(10,40), (50,10), (35,40), (50,70)]);
-        println(polygon1);
-        println("Find people located within polygon1.");
-        printRows( conn.getStatements(null, location, polygon1) );
-        // now we switch to a LatLong (spherical) coordinate system
-        //latLongGeoType = conn.createLatLongSystem(scale=5) #, unit='km')
-//        latLongGeoType = conn.createLatLongSystem(scale=5, unit='degree');
-        URI amsterdam = f.createURI(exns, "amsterdam");
-        URI london = f.createURI(exns, "london");
-        URI sanfrancisco = f.createURI(exns, "sanfrancisco");
-        URI salvador = f.createURI(exns, "salvador");
-        location = f.createURI(exns, "geolocation");
-    //    conn.registerDatatypeMapping(predicate=location, nativeType="float")
-        conn.add(amsterdam, location, conn.createCoordinate(52.366665, 4.883333));
-        conn.add(london, location, conn.createCoordinate(51.533333, -0.08333333));
-        conn.add(sanfrancisco, location, conn.createCoordinate(37.783333, -122.433334));
-        conn.add(salvador, location, conn.createCoordinate(13.783333, -88.45));
-        Object box2 = conn.createBox( 25.0, 50.0, -130.0, -70.0);
-        println(box2);
-        println("Locate entities within box2.");
-        printRows( conn.getStatements(null, location, box2) );
-        circle2 = conn.createCircle(19.3994, -99.08, 2000, "km");
-        println(circle2);
-        println("Locate entities within circle2.");
-        printRows( conn.getStatements(None, location, circle2) );
-        polygon2 = conn.createPolygon([(51.0, 2.00),(60.0, -5.0),(48.0,-12.5)]);
-        println(polygon2);
-        println("Locate entities within polygon2.");
-        printRows( conn.getStatements(None, location, polygon2) );
-    }
-    */
-
-// TODO: example21() Social Network Analysis Reasoning
-
-    /**
      * Transactions
      */
-    public static void example22() throws Exception {
+    public static void example20() throws Exception {
         AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
         AGCatalog catalog = server.getCatalog(CATALOG_ID);
         AGRepository myRepository = catalog.createRepository("agraph_test");
@@ -1010,19 +897,14 @@ public class TutorialExamples {
         Literal kennedy = vf.createLiteral("Kennedy");
         printRows("\nUsing getStatements() on conn1; should find Valjean:",
                 1, conn1.getStatements(null, null, valjean, false));
-// limit=1
         printRows("\nUsing getStatements() on conn1; should not find Kennedy:",
                 1, conn1.getStatements(null, null, kennedy, false));
-// limit=1
         printRows("\nUsing getStatements() on conn2; should not find Valjean (until a rollback or commit occurs on conn2):",
                 1, conn2.getStatements(null, null, valjean, false));
-// limit=1
         printRows("\nUsing getStatements() on conn2; should find Kennedy:",
                 1, conn2.getStatements(null, null, kennedy, false));
-// limit=1
         
         // Rollback
-        // Check transaction isolation semantics:
         println("\nRolling back contents of conn2.");
         conn2.rollback();
         println("There are now " + conn2.size() + " triples visible via conn2.");
@@ -1043,7 +925,6 @@ public class TutorialExamples {
         conn2.commit();
         println("There are now " + conn1.size() + " triples visible on conn1.");
         println("There are now " + conn2.size() + " triples visible on conn2.");
-        // Check transaction isolation semantics:
         printRows("\nUsing getStatements() on conn1; should find Valjean:",
                 1, conn1.getStatements(null, null, valjean, false));
         printRows("\nUsing getStatements() on conn1; should find Kennedys:",
@@ -1054,120 +935,19 @@ public class TutorialExamples {
                 1, conn2.getStatements(null, null, valjean, false));
     }
 
-    /*
-    public static void test26() throws Exception {
-        // Queries per second.
-        RepositoryConnection conn = test6();
-        Repository myRepository = conn.getRepository();
-        
-        int reps = 10;
-        
-        //TEMPORARY
-        URI context = myRepository.getValueFactory().createURI("http://example.org#vcards");
-        // END TEMPORARY
-        Resource[] contexts = new Resource[]{context, null};
-        Literal ajax = conn.getValueFactory().createLiteral("AFC Ajax");
-        int count = 0;
-        long begin = System.currentTimeMillis();
-        for (int i = 0; i < reps; i++) {
-            count = 0;            
-            JDBCResultSet resultSet = ((AGRepositoryConnection)conn).getJDBCStatements(null, null, ajax, false, contexts);
-            while (resultSet.next()) count++;
-        }
-        long elapsed = System.currentTimeMillis() - begin;
-        println("Did " + reps + " " + count + "-row matches in " + (elapsed / 1000) + "." + (elapsed % 1000) + " seconds.");
-     
-        begin = System.currentTimeMillis();
-        for (int i = 0; i < reps; i++) {
-            count = 0;
-            RepositoryResult statements = conn.getStatements(null, null, null, false);
-            while (statements.hasNext()) {
-                Statement st = (Statement)statements.next();
-                st.getSubject();
-                st.getPredicate();
-                st.getObject();
-                count++;
-            }
-        }
-        elapsed = System.currentTimeMillis() - begin;
-        println("Did " + reps + " " + count + "-row matches in " + (elapsed / 1000) + "." + (elapsed % 1000) + " seconds.");
-       
-        for (int size : new int[]{1, 5, 10, 100}) {
-            String queryString = "select ?x ?y ?z where {?x ?y ?z} limit " + size;
-            TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
-            begin = System.currentTimeMillis();
-            for (int i = 0; i < reps; i++) {
-                count = 0;
-                TupleQueryResult result = tupleQuery.evaluate(); 
-                while (result.hasNext()) {result.next(); count++;}
-            }
-            elapsed = System.currentTimeMillis() - begin;
-            println("Did " + reps + " " + count + "-row queries in " + (elapsed / 1000) + "." + (elapsed % 1000) + " seconds.");
-        }
-    }
-    */
-    
-    /*
-    public static void test27() throws Exception {
-        // CIA Fact book
-        AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
-        println("Available catalogs " + server.listCatalogs());
-        AGCatalog catalog = server.getCatalog(CATALOG_ID);
-        println("Available repositories in catalog '" + catalog.getCatalogName() + "': " +
-                catalog.listRepositories());
-        AGRepository myRepository = catalog.getRepository("agraph_test", AGRepository.ACCESS);
-        myRepository.initialize();
-        println( "Repository " + myRepository.getRepositoryID() + " is up!  It contains "
-                + myRepository.getConnection().size() + " statements.");
-        AGRepositoryConnection conn = myRepository.getConnection();
-        conn.clear();
-        if (conn.size() == 0) {
-            println("Reading CIA Fact Book file.");
-            String path1 = "/FRANZ_CONSULTING/data/ciafactbook.nt";  
-            String baseURI = "http://example.org/example/local";
-            conn.add(new File(path1), baseURI, RDFFormat.NTRIPLES);
-        }
-        myRepository.indexTriples(true);
-        long begin = System.currentTimeMillis();
-        int count = 0;
-        JDBCResultSet resultSet = ((AGRepositoryConnection)conn).getJDBCStatements(null, null, null, false);
-        while (resultSet.next()) {
-            resultSet.getString(0);
-            resultSet.getString(1);
-            resultSet.getString(2);
-            resultSet.getString(3);            
-            count++;
-        }
-        long elapsed = (System.currentTimeMillis() - begin);
-        println("Did " + count + "-row match in " + (elapsed / 1000) + "." + (elapsed % 1000) + " seconds.");
-        
-        String queryString = "select ?x ?y ?z where {?x ?y ?z} ";
-        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
-        begin = System.currentTimeMillis();
-        count = 0;
-        TupleQueryResult result = (TupleQueryResult)tupleQuery.evaluate();
-        result.setSkipIllegalTuples(true);
-        while (result.hasNext()) {result.next(); count++;}
-        println("Found " + result.getIllegalTuples().size() + " illegal query tuples.");
-        elapsed = System.currentTimeMillis() - begin;
-        println("Did " + count + "-row query in " + (elapsed / 1000) + "." + (elapsed % 1000) + " seconds.");
-    }
-    */
-
     /**
      * Usage: all
-     * Usage: [1-19,22]+
+     * Usage: [1-20]+
      */
     public static void main(String[] args) throws Exception {
         List<Integer> choices = new ArrayList<Integer>();
         if (args.length == 0) {
             // for choosing by editing this code
-            choices.add(6);
+            choices.add(1);
         } else if (args[0].equals("all")) {
-            for (int i = 1; i <= 19; i++) {
+            for (int i = 1; i <= 20; i++) {
                 choices.add(i);
             }
-            choices.add(22);
         } else {
             for (int i = 0; i < args.length; i++) {
                 choices.add(Integer.parseInt(args[i]));
@@ -1196,9 +976,7 @@ public class TutorialExamples {
                 case 17: example17(); break;                                    
                 case 18: example18(); break;                                    
                 case 19: example19(); break;                                    
-                //case 20: example20(); break;
-                //case 21: example21(); break;            
-                case 22: example22(); break;                        
+                case 20: example20(); break;
                 default: throw new IllegalArgumentException("There is no example " + choice);
                 }
                 closeAll();
