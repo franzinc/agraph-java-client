@@ -13,6 +13,7 @@
         <path location="${lib}/openrdf-sesame-2.2.4-onejar.jar"/>
         <path location="${lib}/slf4j-api-1.5.8.jar"/>
         <path location="${lib}/slf4j-nop-1.5.8.jar"/>
+        <path location="${lib}/junit-4.7.jar"/>
     </path>
     
     <target name="init">
@@ -30,7 +31,10 @@
             description="Compile Java sources.">
         <javac srcdir="${src}" destdir="${build}"
                debug="true"
-               includes="com/franz/agraph/repository/*.java tutorial/TutorialExamples.java"
+               includes="com/franz/agraph/repository/*.java
+                         tutorial/TutorialExamples.java
+                         *.java
+                         test/*.java"
                classpathref="classpath"/>
     </target>
     
@@ -42,7 +46,11 @@
             description="Create jar file."
             depends="clean, compile">
         <jar jarfile="${jarfile}">
-            <fileset dir="${build}" includes="**/*.class"/>
+            <fileset dir="${build}" includes="**/*.class">
+                <exclude name="tutorial/**"/>
+                <exclude name="test/**"/>
+                <exclude name="*.class"/>
+            </fileset>
             <manifest>
                 <attribute name="Class-Path" value="${mf.path}"/>
             </manifest>
@@ -77,6 +85,12 @@
             </java>
         </sequential>
     </macrodef>
+    
+    <target name="test-stress"
+            depends="compile"
+            description="Run test.TransactionStressTest">
+        <run-java tasknamex="stress" classname="test.TransactionStressTest" arg=""/>
+    </target>
     
     <target name="tutorial"
             depends="compile"

@@ -22,7 +22,7 @@ public class AGBooleanQuery extends AGQuery implements BooleanQuery {
 		AGResponseHandler handler = new AGResponseHandler(true);
 		try {
 			httpCon.getHttpRepoClient().query(handler,
-					queryLanguage, queryString, dataset, includeInferred,
+					queryLanguage, queryString, dataset, includeInferred, planner,
 					getBindingsArray());
 		} catch (HttpException e) {
 			throw new QueryEvaluationException(e);

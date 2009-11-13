@@ -39,7 +39,7 @@ public class AGTupleQuery extends AGQuery implements TupleQuery {
 		try {
 			httpCon.getHttpRepoClient().query(
 					new AGResponseHandler(httpCon.getRepository(), handler),
-					queryLanguage, queryString, dataset, includeInferred,
+					queryLanguage, queryString, dataset, includeInferred, planner,
 					getBindingsArray());
 		} catch (HttpException e) {
 			throw new QueryEvaluationException(e);
@@ -52,4 +52,22 @@ public class AGTupleQuery extends AGQuery implements TupleQuery {
 		}
 	}
 
+	public long count() throws QueryEvaluationException {
+		AGResponseHandler handler = new AGResponseHandler(0L);
+		try {
+			httpCon.getHttpRepoClient().query(
+					handler,
+					queryLanguage, queryString, dataset, includeInferred, planner,
+					getBindingsArray());
+		} catch (HttpException e) {
+			throw new QueryEvaluationException(e);
+		} catch (RepositoryException e) {
+			throw new QueryEvaluationException(e);
+		} catch (RDFParseException e) {
+			throw new QueryEvaluationException(e);
+		} catch (IOException e) {
+			throw new QueryEvaluationException(e);
+		}
+		return handler.getLong();
+	}
 }

@@ -1,6 +1,5 @@
 package com.franz.agraph.http;
 
-import static com.franz.agraph.http.AGProtocol.getSessionCloseURL;
 import static com.franz.agraph.http.AGProtocol.getSessionURL;
 import static org.openrdf.http.protocol.Protocol.ACCEPT_PARAM_NAME;
 import info.aduna.io.IOUtil;
@@ -150,7 +149,7 @@ public class AGHttpRepoClient {
 
 	private void closeSession(String sessionRoot) throws IOException,
 			RepositoryException, UnauthorizedException {
-		String url = getSessionCloseURL(getSessionURL(sessionRoot));
+		String url = AGProtocol.getSessionCloseLocation(sessionRoot);
 		Header[] headers = new Header[0];
 		NameValuePair[] params = new NameValuePair[0];
 		try {
@@ -208,6 +207,38 @@ public class AGHttpRepoClient {
 		}
 	}
 
+	public void addStatements(Resource subj, URI pred, Value obj,
+			Resource... contexts) throws IOException, RepositoryException,
+			UnauthorizedException {
+		String uri = Protocol.getStatementsLocation(getSessionRoot());
+		Header[] headers = { new Header("Content-Type", RDFFormat.NTRIPLES
+				.getDefaultMIMEType()) };
+		List<NameValuePair> params = new ArrayList<NameValuePair>(5);
+		if (subj != null) {
+			params.add(new NameValuePair(Protocol.SUBJECT_PARAM_NAME, Protocol
+					.encodeValue(subj)));
+		}
+		if (pred != null) {
+			params.add(new NameValuePair(Protocol.PREDICATE_PARAM_NAME,
+					Protocol.encodeValue(pred)));
+		}
+		if (obj != null) {
+			params.add(new NameValuePair(Protocol.OBJECT_PARAM_NAME, Protocol
+					.encodeValue(obj)));
+		}
+		for (String encodedContext : Protocol.encodeContexts(contexts)) {
+			params.add(new NameValuePair(Protocol.CONTEXT_PARAM_NAME,
+					encodedContext));
+		}
+		try {
+			getHTTPClient().post(uri, headers,
+					params.toArray(new NameValuePair[params.size()]), null,
+					null);
+		} catch (RDFParseException e) {
+			throw new RepositoryException(e);
+		}
+	}
+
 	public void deleteStatements(Resource subj, URI pred, Value obj,
 			Resource... contexts) throws RepositoryException {
 		String url = Protocol.getStatementsLocation(getSessionRoot());
@@ -261,9 +292,9 @@ public class AGHttpRepoClient {
 	}
 
 	public boolean isAutoCommit() throws RepositoryException {
-		return autoCommit;  // TODO: let the server track this?
+		return autoCommit; // TODO: let the server track this?
 	}
-	
+
 	public void commit() throws RepositoryException {
 		String url = getSessionRoot() + "/" + AGProtocol.COMMIT;
 		Header[] headers = {};
@@ -337,38 +368,43 @@ public class AGHttpRepoClient {
 			}
 		};
 
-		upload(entity, baseURI, overwrite, null, contexts);
+		upload(entity, baseURI, overwrite, null, null, null, contexts);
 	}
 
 	public void upload(InputStream contents, String baseURI,
 			RDFFormat dataFormat, boolean overwrite, Resource... contexts)
 			throws IOException, RDFParseException, RepositoryException,
 			UnauthorizedException {
-		// TODO: research the ramifications of using CONTENT_LENGTH_AUTO here.
-		// Formerly we did this: "Set Content-Length to -1 as we don't know it
-		// and we also don't want
-		// to cache" per the original Sesame client, but this yielded "ran out
-		// of input" exceptions
-		// from the AG server for some users, but not for others. TODO:
-		// understand why and explain.
-		RequestEntity entity = new InputStreamRequestEntity(contents,
-				InputStreamRequestEntity.CONTENT_LENGTH_AUTO, // formerly: -1
+		// Set Content-Length to -1 as we don't know it and don't want to cache"
+		RequestEntity entity = new InputStreamRequestEntity(contents, -1,
 				dataFormat.getDefaultMIMEType());
-		upload(entity, baseURI, overwrite, null, contexts);
+		upload(entity, baseURI, overwrite, null, null, null, contexts);
 	}
 
-	/*public void upload(URI source, String baseURI, RDFFormat dataFormat, 
-			boolean overwrite, Resource... contexts) throws IOException,
+	public void load(URI source, String baseURI, RDFFormat dataFormat,
+			Resource... contexts) throws IOException, RDFParseException,
+			RepositoryException, UnauthorizedException {
+		upload(null, baseURI, false, null, source, dataFormat, contexts);
+	}
+
+	public void load(String serverAbsolutePath, String baseURI,
+			RDFFormat dataFormat, Resource... contexts) throws IOException,
 			RDFParseException, RepositoryException, UnauthorizedException {
-		upload(null, baseURI, dataFormat, overwrite, true, contexts);
-	}*/
-	
+		upload(null, baseURI, false, serverAbsolutePath, null, dataFormat,
+				contexts);
+	}
+
 	protected void upload(RequestEntity reqEntity, String baseURI,
-			boolean overwrite, String serverSideFile, Resource... contexts) throws IOException,
+			boolean overwrite, String serverSideFile, URI serverSideURL,
+			RDFFormat dataFormat, Resource... contexts) throws IOException,
 			RDFParseException, RepositoryException, UnauthorizedException {
 		OpenRDFUtil.verifyContextNotNull(contexts);
 		String url = Protocol.getStatementsLocation(getSessionRoot());
-		Header[] headers = {};
+		List<Header> headers = new ArrayList<Header>(1);
+		if (dataFormat != null) {
+			headers.add(new Header("Content-Type", dataFormat
+					.getDefaultMIMEType()));
+		}
 		List<NameValuePair> params = new ArrayList<NameValuePair>(5);
 		for (String encodedContext : Protocol.encodeContexts(contexts)) {
 			params.add(new NameValuePair(Protocol.CONTEXT_PARAM_NAME,
@@ -380,16 +416,20 @@ public class AGHttpRepoClient {
 					encodedBaseURI));
 		}
 		if (serverSideFile != null && serverSideFile.trim().length() != 0) {
-			String encodedSSFile = Protocol.encodeValue(new URIImpl(serverSideFile));
 			params.add(new NameValuePair(AGProtocol.FILE_PARAM_NAME,
-					encodedSSFile));
+					serverSideFile));
 		}
-		if (overwrite == false) {
-			getHTTPClient().post(url, headers,
+		if (serverSideURL != null) {
+			params.add(new NameValuePair(AGProtocol.URL_PARAM_NAME,
+					serverSideURL.stringValue()));
+		}
+		if (!overwrite) {
+			getHTTPClient().post(url,
+					headers.toArray(new Header[headers.size()]),
 					params.toArray(new NameValuePair[params.size()]),
 					reqEntity, null);
 		} else {
-			// TODO: overwrite==true
+			// TODO: overwrite
 			throw new UnsupportedOperationException();
 		}
 	}
@@ -520,8 +560,8 @@ public class AGHttpRepoClient {
 
 	public void query(AGResponseHandler handler, QueryLanguage ql,
 			String query, Dataset dataset, boolean includeInferred,
-			Binding... bindings) throws HttpException, RepositoryException,
-			RDFParseException, IOException {
+			String planner, Binding... bindings) throws HttpException,
+			RepositoryException, RDFParseException, IOException {
 		String url = getSessionRoot();
 		List<Header> headers = new ArrayList<Header>(5);
 		headers.add(new Header("Content-Type", Protocol.FORM_MIME_TYPE
@@ -531,7 +571,7 @@ public class AGHttpRepoClient {
 					.getRequestMIMEType()));
 		}
 		List<NameValuePair> queryParams = getQueryMethodParameters(ql, query,
-				dataset, includeInferred, bindings);
+				dataset, includeInferred, planner, bindings);
 		getHTTPClient().post(url, headers.toArray(new Header[headers.size()]),
 				queryParams.toArray(new NameValuePair[queryParams.size()]),
 				null, handler);
@@ -539,7 +579,7 @@ public class AGHttpRepoClient {
 
 	protected List<NameValuePair> getQueryMethodParameters(QueryLanguage ql,
 			String query, Dataset dataset, boolean includeInferred,
-			Binding... bindings) {
+			String planner, Binding... bindings) {
 		List<NameValuePair> queryParams = new ArrayList<NameValuePair>(
 				bindings.length + 10);
 
@@ -548,6 +588,10 @@ public class AGHttpRepoClient {
 		queryParams.add(new NameValuePair(Protocol.QUERY_PARAM_NAME, query));
 		queryParams.add(new NameValuePair(Protocol.INCLUDE_INFERRED_PARAM_NAME,
 				Boolean.toString(includeInferred)));
+		if (planner != null) {
+			queryParams.add(new NameValuePair(AGProtocol.PLANNER_PARAM_NAME,
+					planner));
+		}
 
 		if (dataset != null) {
 			for (URI defaultGraphURI : dataset.getDefaultGraphs()) {
@@ -567,7 +611,7 @@ public class AGHttpRepoClient {
 								.toString()));
 			}
 		} // TODO: no else clause here assumes AG's default dataset matches
-			// Sesame's, confirm this.
+		// Sesame's, confirm this.
 
 		for (int i = 0; i < bindings.length; i++) {
 			String paramName = Protocol.BINDING_PREFIX + bindings[i].getName();
@@ -579,7 +623,7 @@ public class AGHttpRepoClient {
 	}
 
 	public void close() throws RepositoryException {
-		if (true == usingDedicatedSession) {
+		if (usingDedicatedSession) {
 			try {
 				closeSession(sessionRoot);
 			} catch (IOException e) {
@@ -762,6 +806,51 @@ public class AGHttpRepoClient {
 			throw new RepositoryException(e);
 		} catch (IOException e) {
 			throw new RepositoryException(e);
+		}
+	}
+
+	public String evalInServer(String lispForm) throws RepositoryException {
+		String result;
+		try {
+			InputStream stream = new ByteArrayInputStream(lispForm
+					.getBytes("UTF-8"));
+			result = evalInServer(stream);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+		return result;
+	}
+
+	public String evalInServer(InputStream stream) throws RepositoryException {
+		String url = AGProtocol.getEvalLocation(getSessionRoot());
+		Header[] headers = {};
+		NameValuePair[] params = {};
+		AGResponseHandler handler = new AGResponseHandler("");
+		try {
+			RequestEntity entity = new InputStreamRequestEntity(stream, -1,
+					null);
+			getHTTPClient().post(url, headers, params, entity, handler);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		} catch (RDFParseException e) {
+			throw new RepositoryException(e);
+		}
+		return handler.getString();
+	}
+
+	public void ping() throws RepositoryException {
+		if (usingDedicatedSession) {
+			String url = AGProtocol.getSessionPingLocation(getSessionRoot());
+			Header[] headers = {};
+			try {
+				getHTTPClient().get(url, headers, new NameValuePair[0], null);
+			} catch (HttpException e) {
+				throw new RepositoryException(e);
+			} catch (IOException e) {
+				throw new RepositoryException(e);
+			} catch (AGHttpException e) {
+				throw new RepositoryException(e);
+			}
 		}
 	}
 

@@ -42,10 +42,14 @@ import com.franz.agraph.repository.AGValueFactory;
 public class TutorialExamples {
 
     static private final String SERVER_URL = "http://localhost:8080";
-    static private final String CATALOG_ID = "scratch";
-    static private final String REPOSITORY_ID = "tutorial";
+    static private final String CATALOG_ID = "java-tutorial";
+    static private final String REPOSITORY_ID = "javatutorial";
     static private final String USERNAME = "test";
     static private final String PASSWORD = "xyzzy";
+    static private final String TEMPORARY_DIRECTORY = "";
+
+//    static private final String USERNAME = "anonymous";
+//    static private final String PASSWORD = "";
 
     static final String FOAF_NS = "http://xmlns.com/foaf/0.1/";
 
@@ -71,9 +75,10 @@ public class TutorialExamples {
         AGRepositoryConnection conn = myRepository.getConnection();
         closeBeforeExit(conn);
         println("Got a connection.");
-        conn.clear();  // remove previous triples, if any.
-        // conn.clearNamespaces();  // remove namespaces (TODO: but not standard ones?)
-        // conn.clearMappings();  // remove datatype/predicate mappings (TODO: but not standard ones?)
+        // TODO: these aren't needed if you delete the repository first.
+        //conn.clear();  // remove previous triples, if any.
+        //conn.clearNamespaces();  // remove namespaces, including rdf:, etc)
+        //conn.clearMappings();  // remove application-defined datatype/predicate mappings
         println("Cleared the connection.");
         println("Repository " + (myRepository.getRepositoryID()) +
                 " is up! It contains " + (conn.size()) +
@@ -81,6 +86,7 @@ public class TutorialExamples {
                 );
         if (close) {
             // tidy up
+        	conn.close();
             myRepository.shutDown();
             return null;
         }
@@ -362,7 +368,7 @@ public class TutorialExamples {
         RepositoryConnection conn = example6();
         Repository myRepository = conn.getRepository();
         URI context = myRepository.getValueFactory().createURI("http://example.org#vcards");
-        String outputFile = "/tmp/temp.nt";
+        String outputFile = TEMPORARY_DIRECTORY + "temp.nt";
 //        outputFile = null;
         if (outputFile == null) {
             println("\nWriting n-triples to Standard Out instead of to a file");
@@ -372,7 +378,7 @@ public class TutorialExamples {
         OutputStream output = (outputFile != null) ? new FileOutputStream(outputFile) : System.out;
         NTriplesWriter ntriplesWriter = new NTriplesWriter(output);
         conn.export(ntriplesWriter, context);
-        String outputFile2 = "/tmp/temp.rdf";
+        String outputFile2 =  TEMPORARY_DIRECTORY + "temp.rdf";
 //        outputFile2 = null;
         if (outputFile2 == null) {
             println("\nWriting RDF to Standard Out instead of to a file");
@@ -561,7 +567,6 @@ public class TutorialExamples {
         	"SELECT ?s ?p ?o " +
         	"WHERE { ?s ?p ?o . FILTER regex(?o, \"lic\") }";
         tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
-        tupleQuery.setIncludeInferred(false); // TODO: remove when bug fixed.
         result = (TupleQueryResult)tupleQuery.evaluate();
         count = 0;
         while (result.hasNext()) {
@@ -661,7 +666,6 @@ public class TutorialExamples {
         	"WHERE { ?s ?p ?o . " +
         	"FILTER ((?o >= 30) && (?o <= 50)) }";
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
-        tupleQuery.setIncludeInferred(false); // TODO: remove when bug fixed.
         TupleQueryResult result = tupleQuery.evaluate();
         try {
             while (result.hasNext()) {
@@ -682,7 +686,6 @@ public class TutorialExamples {
         	"WHERE { ?s ?p ?o . " +
         	"FILTER ((xsd:integer(?o) >= 30) && (xsd:integer(?o) <= 50)) }";
         TupleQuery tupleQuery2 = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString2);
-        tupleQuery2.setIncludeInferred(false); // TODO: remove when bug fixed.
         TupleQueryResult result2 = tupleQuery2.evaluate();
         try {
             while (result2.hasNext()) {
@@ -695,6 +698,7 @@ public class TutorialExamples {
         } finally {
             result2.close();
         }
+        conn.close();
     }
     
     private static void pt(String kind, TupleQueryResult rows) throws Exception {
@@ -713,20 +717,20 @@ public class TutorialExamples {
         AGRepository myRepository = conn.getRepository();
         AGCatalog catalog = myRepository.getCatalog();
         // create two ordinary stores, and one federated store:
-        AGRepository redRepo = catalog.createRepository("redthings");
+        AGRepository redRepo = catalog.createRepository("redthingsjv");
         redRepo.initialize();
         AGRepositoryConnection redConn = redRepo.getConnection();
         closeBeforeExit(redConn);
         redConn.clear();
         ValueFactory rf = redConn.getValueFactory();
-        AGRepository greenRepo = catalog.createRepository("greenthings");
+        AGRepository greenRepo = catalog.createRepository("greenthingsjv");
         greenRepo.initialize();
         AGRepositoryConnection greenConn = greenRepo.getConnection();
         closeBeforeExit(greenConn);
         greenConn.clear();
         ValueFactory gf = greenConn.getValueFactory();
         AGServer server = myRepository.getCatalog().getServer();
-        AGRepository rainbowRepo = server.createFederation("rainbowthings",redRepo, greenRepo);
+        AGRepository rainbowRepo = server.createFederation("rainbowthingsjv",redRepo, greenRepo);
         rainbowRepo.initialize();
         println("Federation is writable? " + rainbowRepo.isWritable());
         AGRepositoryConnection rainbowConn = rainbowRepo.getConnection();
@@ -777,6 +781,7 @@ public class TutorialExamples {
             println(f + " " + l);
         }
         result.close();
+        conn.close();
     }
 
     /**
@@ -843,11 +848,11 @@ public class TutorialExamples {
         conn.add(bob, fatherOf, bobby);
         
         // List the children of Robert, with inference OFF.
-        println("/nChildren of Robert, inference OFF");
+        println("\nChildren of Robert, inference OFF");
         printRows( conn.getStatements(robert, fatherOf, null, false) );
         // List the children of Robert with inference ON. The owl:sameAs
         // link combines the children of Bob with those of Robert.
-        println("/nChildren of Robert, inference ON");
+        println("\nChildren of Robert, inference ON");
         printRows( conn.getStatements(robert, fatherOf, null, true) );
         // Remove the owl:sameAs link so we can try the next example.
         conn.remove(bob, OWL.SAMEAS, robert);
@@ -857,11 +862,11 @@ public class TutorialExamples {
         conn.add(hasFather, OWL.INVERSEOF, fatherOf);
         // Search for people who have fathers, even though there are no hasFather triples.
         // With inference OFF.
-        println("/nPeople with fathers, inference OFF");
+        println("\nPeople with fathers, inference OFF");
         printRows( conn.getStatements(null, hasFather, null, false) );
         // With inference ON. The owl:inverseOf link allows AllegroGraph to
         // deduce the inverse links.
-        println("/nPeople with fathers, inference ON");
+        println("\nPeople with fathers, inference ON");
         printRows( conn.getStatements(null, hasFather, null, true) );
         // Remove owl:inverseOf property.
         conn.remove(hasFather, OWL.INVERSEOF, fatherOf);
@@ -887,11 +892,11 @@ public class TutorialExamples {
         // Now search for inferred parentOf links.
         // Search for parentOf links, even though there are no parentOf triples.
         // With inference OFF.
-        println("/nPeople with parents, inference OFF");
+        println("\nPeople with parents, inference OFF");
         printRows( conn.getStatements(null, parentOf, null, false) );
         // With inference ON. The rdfs:subpropertyOf link allows AllegroGraph to 
         // deduce that fatherOf links imply parentOf links.
-        println("/nPeople with parents, inference ON");
+        println("\nPeople with parents, inference ON");
         printRows( conn.getStatements(null, parentOf, null, true) );
         conn.remove(fatherOf, RDFS.SUBPROPERTYOF, parentOf);
         
@@ -903,10 +908,10 @@ public class TutorialExamples {
         conn.add(fatherOf, RDFS.DOMAIN, parent);
         conn.add(fatherOf, RDFS.RANGE, child);
         // Now we can search for rdf:type parent.
-        println("/nWho are the parents?  Inference ON.");
+        println("\nWho are the parents?  Inference ON.");
         printRows( conn.getStatements(null, RDF.TYPE, parent, true) );
         // And we can search for rdf:type child.
-        println("/nWho are the children?  Inference ON.");
+        println("\nWho are the children?  Inference ON.");
         printRows( conn.getStatements(null, RDF.TYPE, child, true) );
     }
     
@@ -1107,7 +1112,7 @@ public class TutorialExamples {
         // CIA Fact book
         AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
         println("Available catalogs " + server.listCatalogs());
-        AGCatalog catalog = server.getCatalog("scratch");
+        AGCatalog catalog = server.getCatalog(CATALOG_ID);
         println("Available repositories in catalog '" + catalog.getCatalogName() + "': " +
                 catalog.listRepositories());
         AGRepository myRepository = catalog.getRepository("agraph_test", AGRepository.ACCESS);
@@ -1157,7 +1162,7 @@ public class TutorialExamples {
         List<Integer> choices = new ArrayList<Integer>();
         if (args.length == 0) {
             // for choosing by editing this code
-            choices.add(10);
+            choices.add(6);
         } else if (args[0].equals("all")) {
             for (int i = 1; i <= 19; i++) {
                 choices.add(i);

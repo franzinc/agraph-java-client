@@ -1,6 +1,7 @@
 package com.franz.agraph.http;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HeaderElement;
@@ -23,7 +24,7 @@ import org.openrdf.rio.RDFParser;
 import org.openrdf.rio.Rio;
 import org.openrdf.rio.UnsupportedRDFormatException;
 
-// TODO: make this class abstract and subclass the distinct handlers when things stabilize
+// TODO: make this class abstract and subclass the distinct handlers
 public class AGResponseHandler {
 
 	private final Repository repository;
@@ -79,7 +80,7 @@ public class AGResponseHandler {
 		this.bqrHandler = false;
 		this.longHandler = true;
 		this.stringHandler = false;
-		requestMIMEType = null;
+		requestMIMEType = "text/integer"; // TODO: add to AGProtocol
 	}
 
 	public AGResponseHandler(String s) {
@@ -141,14 +142,16 @@ public class AGResponseHandler {
 				bqrresult = parser.parse(method.getResponseBodyAsStream());
 			} else if (true == longHandler) {
 				try {
-					String str = method.getResponseBodyAsString();
+					InputStream is = method.getResponseBodyAsStream();
+					String str = streamToString(is);
 					longresult = Long.parseLong(str);
 				} catch (NumberFormatException e) {
 					throw new RepositoryException(
 							"Server responded with invalid long value", e);
 				}
 			} else if (true == stringHandler) {
-				stringresult = method.getResponseBodyAsString();
+				InputStream is = method.getResponseBodyAsStream();
+				stringresult = streamToString(is);
 			} else {
 				throw new RuntimeException(
 						"Cannot handle response, unexpected type.");
@@ -197,4 +200,14 @@ public class AGResponseHandler {
 		return null;
 	}
 
+	protected static String streamToString(InputStream in) throws IOException {
+		// TODO: protect against buffering very large streams
+	    StringBuffer out = new StringBuffer();
+	    byte[] b = new byte[4096];
+	    for (int n; (n = in.read(b)) != -1;) {
+	        out.append(new String(b, 0, n));
+	    }
+	    return out.toString();
+	}
+	
 }

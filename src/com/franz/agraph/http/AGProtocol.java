@@ -169,6 +169,11 @@ public class AGProtocol extends Protocol {
 	 * Parameter name for the 'repo' parameter for federation
 	 */
 	public static final String REPO_PARAM_NAME = "repo";
+
+	/**
+	 * Parameter name for the 'planner' to use during a query
+	 */
+	public static final String PLANNER_PARAM_NAME = "planner";
 	
 	
 	/**
@@ -214,8 +219,12 @@ public class AGProtocol extends Protocol {
 		return serverLocation + "/" + SESSION;
 	}
 	
-	public static final String getSessionCloseURL(String sessionRoot) {
-		return sessionRoot + "/" + CLOSE;
+	public static final String getSessionCloseLocation(String sessionRoot) {
+		return getSessionURL(sessionRoot) + "/" + CLOSE;
+	}
+	
+	public static final String getSessionPingLocation(String sessionRoot) {
+		return getSessionURL(sessionRoot) + "/" + PING;
 	}
 	
 	public static final String getAutoCommitLocation(String sessionRoot) {
@@ -264,6 +273,10 @@ public class AGProtocol extends Protocol {
 
 	public static String getFederatedRepositoriesLocation(String catalogURL) {
 		return catalogURL;
+	}
+
+	public static String getEvalLocation(String sessionRoot) {
+		return sessionRoot + "/" + EVAL;
 	}
 	
 }
