@@ -46,7 +46,6 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 
 	private final AGRepository repository;
 	private final AGHttpRepoClient repoclient;
-	private boolean autoCommit;
 
 	/**
 	 * @param repository
@@ -56,7 +55,6 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 			throws RepositoryException {
 		super(repository);
 		this.repository = repository;
-		autoCommit = true;
 		repoclient = new AGHttpRepoClient(this);
 	}
 
@@ -126,12 +124,11 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	@Override
 	public void setAutoCommit(boolean autoCommit) throws RepositoryException {
 		getHttpRepoClient().setAutoCommit(autoCommit);
-		this.autoCommit=autoCommit;  // TODO: get this state from the server?
 	}
 
 	@Override
 	public boolean isAutoCommit() throws RepositoryException {
-		return autoCommit;  // TODO: get this state from the server?
+		return getHttpRepoClient().isAutoCommit();
 	}
 
 	public void commit() throws RepositoryException {
@@ -321,26 +318,41 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		return getHttpRepoClient().getFreetextPredicates();
 	}
 
-	public void registerPredicateMapping(URI predicate, URI datatype)
+	public void registerPredicateMapping(URI predicate, URI primtype)
 			throws RepositoryException {
-		getHttpRepoClient().registerPredicateMapping(predicate, datatype);
+		getHttpRepoClient().registerPredicateMapping(predicate, primtype);
 	}
 
+	public void deletePredicateMapping(URI predicate)
+	throws RepositoryException {
+		getHttpRepoClient().deletePredicateMapping(predicate);
+	}
+	
 	// TODO: return RepositoryResult<Mapping>?
 	public String[] getPredicateMappings() throws RepositoryException {
 		return getHttpRepoClient().getPredicateMappings();
 	}
 
-	public void registerDatatypeMapping(URI predicate, URI datatype)
+	// TODO: are all primtypes available as URI constants?
+	public void registerDatatypeMapping(URI datatype, URI primtype)
 			throws RepositoryException {
-		getHttpRepoClient().registerDatatypeMapping(predicate, datatype);
+		getHttpRepoClient().registerDatatypeMapping(datatype, primtype);
 	}
 
+	public void deleteDatatypeMapping(URI datatype)
+	throws RepositoryException {
+		getHttpRepoClient().deleteDatatypeMapping(datatype);
+	}
+	
 	// TODO: return RepositoryResult<Mapping>?
 	public String[] getDatatypeMappings() throws RepositoryException {
 		return getHttpRepoClient().getDatatypeMappings();
 	}
 
+	public void clearMappings() throws RepositoryException {
+		getHttpRepoClient().clearMappings();
+	}
+	
 	public void addRules(String rules) throws RepositoryException {
 		getHttpRepoClient().addRules(rules);
 	}

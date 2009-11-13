@@ -55,8 +55,12 @@ import com.franz.agraph.repository.AGRepositoryConnection;
 public class AGHttpRepoClient {
 
 	private final AGRepositoryConnection repoconnection;
-	private final String sessionRoot;
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+	// delay using a dedicated session until necessary
+	private boolean usingDedicatedSession = false;
+	private boolean autoCommit = true;
+	private String sessionRoot;
 
 	// TODO: choose proper defaults
 	private long lifetimeInSeconds = 3600;
@@ -67,21 +71,7 @@ public class AGHttpRepoClient {
 	public AGHttpRepoClient(AGRepositoryConnection repoconnection)
 			throws RepositoryException {
 		this.repoconnection = repoconnection;
-		try {
-			/*if (AGCatalog.FEDERATED_CATALOG == repoconnection.getRepository().getCatalog().getCatalogType()) {
-				// use the shared session
-				sessionRoot = getRepositoryURL();
-			} else {
-				// use a dedicated session in autoCommit mode
-				sessionRoot = openSession(lifetimeInSeconds, true);
-			}*/
-			// use a dedicated session with appropriate autoCommit mode
-			sessionRoot = openSession(lifetimeInSeconds, repoconnection.isAutoCommit());
-		} catch (UnauthorizedException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
-		}
+		sessionRoot = getRepositoryURL();
 	}
 
 	public AGRepositoryConnection getRepositoryConnection() {
@@ -130,25 +120,32 @@ public class AGHttpRepoClient {
 		return getRepositoryConnection().getRepository().getHTTPClient();
 	}
 
-	private String openSession(long lifetime, boolean autoCommit)
-			throws IOException, RepositoryException, UnauthorizedException {
-		String url = getSessionURL(getRepositoryURL());
-		Header[] headers = new Header[0];
-		NameValuePair[] data = {
-				new NameValuePair(AGProtocol.LIFETIME_PARAM_NAME, Long
-						.toString(lifetime)),
-				new NameValuePair(AGProtocol.AUTOCOMMIT_PARAM_NAME, Boolean
-						.toString(autoCommit)) };
-		AGResponseHandler handler = new AGResponseHandler("");
-		try {
-			getHTTPClient().post(url, headers, data, null, handler);
-		} catch (RDFParseException e) {
-			// bug.
-			throw new RuntimeException(e);
+	private void useDedicatedSession(boolean autoCommit)
+			throws RepositoryException, UnauthorizedException {
+		if (!usingDedicatedSession) {
+			String url = getSessionURL(getRepositoryURL());
+			Header[] headers = new Header[0];
+			NameValuePair[] data = {
+					new NameValuePair(AGProtocol.LIFETIME_PARAM_NAME, Long
+							.toString(lifetimeInSeconds)),
+					new NameValuePair(AGProtocol.AUTOCOMMIT_PARAM_NAME, Boolean
+							.toString(autoCommit)) };
+			AGResponseHandler handler = new AGResponseHandler("");
+			try {
+				getHTTPClient().post(url, headers, data, null, handler);
+			} catch (RDFParseException e) {
+				// bug.
+				throw new RuntimeException(e);
+			} catch (HttpException e) {
+				throw new RepositoryException(e);
+			} catch (IOException e) {
+				throw new RepositoryException(e);
+			}
+			if (logger.isDebugEnabled())
+				logger.debug("openSession: {}", sessionRoot);
+			sessionRoot = handler.getString();
+			usingDedicatedSession = true;
 		}
-		if (logger.isDebugEnabled())
-			logger.debug("openSession: {}", sessionRoot);
-		return handler.getString();
 	}
 
 	private void closeSession(String sessionRoot) throws IOException,
@@ -163,6 +160,9 @@ public class AGHttpRepoClient {
 		} catch (RDFParseException e) {
 			// bug.
 			throw new RuntimeException(e);
+		} finally {
+			usingDedicatedSession = false;
+			this.sessionRoot = getRepositoryURL();
 		}
 	}
 
@@ -241,12 +241,16 @@ public class AGHttpRepoClient {
 	}
 
 	public void setAutoCommit(boolean autoCommit) throws RepositoryException {
+		if (!autoCommit) {
+			useDedicatedSession(false);
+		}
 		String url = AGProtocol.getAutoCommitLocation(getSessionRoot());
 		Header[] headers = {};
 		NameValuePair[] params = { new NameValuePair(AGProtocol.ON_PARAM_NAME,
 				Boolean.toString(autoCommit)) };
 		try {
 			getHTTPClient().post(url, headers, params, null, null);
+			this.autoCommit = autoCommit; // TODO: let the server track this?
 		} catch (HttpException e) {
 			throw new RepositoryException(e);
 		} catch (RDFParseException e) {
@@ -256,6 +260,10 @@ public class AGHttpRepoClient {
 		}
 	}
 
+	public boolean isAutoCommit() throws RepositoryException {
+		return autoCommit;  // TODO: let the server track this?
+	}
+	
 	public void commit() throws RepositoryException {
 		String url = getSessionRoot() + "/" + AGProtocol.COMMIT;
 		Header[] headers = {};
@@ -329,7 +337,7 @@ public class AGHttpRepoClient {
 			}
 		};
 
-		upload(entity, baseURI, overwrite, contexts);
+		upload(entity, baseURI, overwrite, null, contexts);
 	}
 
 	public void upload(InputStream contents, String baseURI,
@@ -337,16 +345,26 @@ public class AGHttpRepoClient {
 			throws IOException, RDFParseException, RepositoryException,
 			UnauthorizedException {
 		// TODO: research the ramifications of using CONTENT_LENGTH_AUTO here.
-		// Formerly we did this: "Set Content-Length to -1 as we don't know it and we also don't want
-		// to cache" per the original Sesame client, but this yielded "ran out of input" exceptions
-		// from the AG server for some users, but not for others.  TODO: understand why and explain.
-		RequestEntity entity = new InputStreamRequestEntity(contents, InputStreamRequestEntity.CONTENT_LENGTH_AUTO,
+		// Formerly we did this: "Set Content-Length to -1 as we don't know it
+		// and we also don't want
+		// to cache" per the original Sesame client, but this yielded "ran out
+		// of input" exceptions
+		// from the AG server for some users, but not for others. TODO:
+		// understand why and explain.
+		RequestEntity entity = new InputStreamRequestEntity(contents,
+				InputStreamRequestEntity.CONTENT_LENGTH_AUTO, // formerly: -1
 				dataFormat.getDefaultMIMEType());
-		upload(entity, baseURI, overwrite, contexts);
+		upload(entity, baseURI, overwrite, null, contexts);
 	}
 
-	protected void upload(RequestEntity reqEntity, String baseURI,
+	/*public void upload(URI source, String baseURI, RDFFormat dataFormat, 
 			boolean overwrite, Resource... contexts) throws IOException,
+			RDFParseException, RepositoryException, UnauthorizedException {
+		upload(null, baseURI, dataFormat, overwrite, true, contexts);
+	}*/
+	
+	protected void upload(RequestEntity reqEntity, String baseURI,
+			boolean overwrite, String serverSideFile, Resource... contexts) throws IOException,
 			RDFParseException, RepositoryException, UnauthorizedException {
 		OpenRDFUtil.verifyContextNotNull(contexts);
 		String url = Protocol.getStatementsLocation(getSessionRoot());
@@ -359,9 +377,12 @@ public class AGHttpRepoClient {
 		if (baseURI != null && baseURI.trim().length() != 0) {
 			String encodedBaseURI = Protocol.encodeValue(new URIImpl(baseURI));
 			params.add(new NameValuePair(Protocol.BASEURI_PARAM_NAME,
-					encodedBaseURI
-					// baseURI // the workaround no longer needed.
-					));
+					encodedBaseURI));
+		}
+		if (serverSideFile != null && serverSideFile.trim().length() != 0) {
+			String encodedSSFile = Protocol.encodeValue(new URIImpl(serverSideFile));
+			params.add(new NameValuePair(AGProtocol.FILE_PARAM_NAME,
+					encodedSSFile));
 		}
 		if (overwrite == false) {
 			getHTTPClient().post(url, headers,
@@ -530,12 +551,14 @@ public class AGHttpRepoClient {
 
 		if (dataset != null) {
 			for (URI defaultGraphURI : dataset.getDefaultGraphs()) {
-				String param=Protocol.NULL_PARAM_VALUE;
-				if (defaultGraphURI==null) {
-					queryParams.add(new NameValuePair(Protocol.CONTEXT_PARAM_NAME, param));
+				String param = Protocol.NULL_PARAM_VALUE;
+				if (defaultGraphURI == null) {
+					queryParams.add(new NameValuePair(
+							Protocol.CONTEXT_PARAM_NAME, param));
 				} else {
 					param = defaultGraphURI.toString();
-					queryParams.add(new NameValuePair(Protocol.DEFAULT_GRAPH_PARAM_NAME, param));
+					queryParams.add(new NameValuePair(
+							Protocol.DEFAULT_GRAPH_PARAM_NAME, param));
 				}
 			}
 			for (URI namedGraphURI : dataset.getNamedGraphs()) {
@@ -543,7 +566,8 @@ public class AGHttpRepoClient {
 						Protocol.NAMED_GRAPH_PARAM_NAME, namedGraphURI
 								.toString()));
 			}
-		} // TODO: no else clause here assumes AG's default dataset matches Sesame's, confirm this.
+		} // TODO: no else clause here assumes AG's default dataset matches
+			// Sesame's, confirm this.
 
 		for (int i = 0; i < bindings.length; i++) {
 			String paramName = Protocol.BINDING_PREFIX + bindings[i].getName();
@@ -555,7 +579,7 @@ public class AGHttpRepoClient {
 	}
 
 	public void close() throws RepositoryException {
-		if (sessionRoot != null) {
+		if (true == usingDedicatedSession) {
 			try {
 				closeSession(sessionRoot);
 			} catch (IOException e) {
@@ -603,8 +627,8 @@ public class AGHttpRepoClient {
 		String pred_nt = NTriplesUtil.toNTriplesString(predicate);
 		String primtype_nt = NTriplesUtil.toNTriplesString(primitiveType);
 		Header[] headers = {};
-		NameValuePair[] params = { new NameValuePair(
-				AGProtocol.FTI_PREDICATE_PARAM_NAME, pred_nt),
+		NameValuePair[] params = {
+				new NameValuePair(AGProtocol.FTI_PREDICATE_PARAM_NAME, pred_nt),
 				new NameValuePair(AGProtocol.ENCODED_TYPE_PARAM_NAME,
 						primtype_nt) };
 		try {
@@ -612,6 +636,22 @@ public class AGHttpRepoClient {
 		} catch (HttpException e) {
 			throw new RepositoryException(e);
 		} catch (RDFParseException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+	}
+
+	public void deletePredicateMapping(URI predicate)
+			throws RepositoryException {
+		String url = AGProtocol.getPredicateMappingLocation(getSessionRoot());
+		String pred_nt = NTriplesUtil.toNTriplesString(predicate);
+		Header[] headers = {};
+		NameValuePair[] params = { new NameValuePair(
+				AGProtocol.FTI_PREDICATE_PARAM_NAME, pred_nt) };
+		try {
+			getHTTPClient().delete(url, headers, params);
+		} catch (HttpException e) {
 			throw new RepositoryException(e);
 		} catch (IOException e) {
 			throw new RepositoryException(e);
@@ -654,6 +694,21 @@ public class AGHttpRepoClient {
 		}
 	}
 
+	public void deleteDatatypeMapping(URI datatype) throws RepositoryException {
+		String url = AGProtocol.getDatatypeMappingLocation(getSessionRoot());
+		String datatype_nt = NTriplesUtil.toNTriplesString(datatype);
+		Header[] headers = {};
+		NameValuePair[] params = { new NameValuePair(
+				AGProtocol.TYPE_PARAM_NAME, datatype_nt) };
+		try {
+			getHTTPClient().delete(url, headers, params);
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+	}
+
 	public String[] getDatatypeMappings() throws RepositoryException {
 		String url = AGProtocol.getPredicateMappingLocation(getSessionRoot());
 		Header[] headers = new Header[0];
@@ -669,21 +724,37 @@ public class AGHttpRepoClient {
 		return handler.getString().split("\n");
 	}
 
+	public void clearMappings() throws RepositoryException {
+		String url = AGProtocol.getMappingLocation(getSessionRoot());
+		Header[] headers = {};
+		NameValuePair[] params = {};
+		try {
+			getHTTPClient().delete(url, headers, params);
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+	}
+
 	public void addRules(String rules) throws RepositoryException {
 		try {
-			InputStream rulestream = new ByteArrayInputStream(rules.getBytes("UTF-8"));
+			InputStream rulestream = new ByteArrayInputStream(rules
+					.getBytes("UTF-8"));
 			addRules(rulestream);
 		} catch (IOException e) {
 			throw new RepositoryException(e);
-		}		
+		}
 	}
-	
+
 	public void addRules(InputStream rulestream) throws RepositoryException {
+		useDedicatedSession(isAutoCommit());
 		String url = AGProtocol.getFunctorLocation(getSessionRoot());
 		Header[] headers = {};
 		NameValuePair[] params = {};
 		try {
-			RequestEntity entity = new InputStreamRequestEntity(rulestream, -1, null);
+			RequestEntity entity = new InputStreamRequestEntity(rulestream, -1,
+					null);
 			getHTTPClient().post(url, headers, params, entity, null);
 		} catch (HttpException e) {
 			throw new RepositoryException(e);
@@ -691,7 +762,7 @@ public class AGHttpRepoClient {
 			throw new RepositoryException(e);
 		} catch (IOException e) {
 			throw new RepositoryException(e);
-		}		
+		}
 	}
-		
+
 }

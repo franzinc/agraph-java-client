@@ -6,6 +6,10 @@ import java.util.List;
 
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.NameValuePair;
+import org.openrdf.OpenRDFException;
+import org.openrdf.model.Value;
+import org.openrdf.query.BindingSet;
+import org.openrdf.query.TupleQueryResult;
 import org.openrdf.repository.RepositoryException;
 
 import com.franz.agraph.http.AGErrorType;
@@ -45,9 +49,20 @@ public class AGServer {
 		return federatedCatalog;
 	}
 	
-	// TODO: tutorial will want this
-	public List<AGCatalog> listCatalogs () {
-		return null;
+	public List<String> listCatalogs() throws OpenRDFException {
+		String url = AGProtocol.getNamedCatalogsURL(serverURL);
+		TupleQueryResult tqresult = getHTTPClient().getTupleQueryResult(url);
+		List<String> result = new ArrayList<String>(5);
+        try {
+            while (tqresult.hasNext()) {
+                BindingSet bindingSet = tqresult.next();
+                Value id = bindingSet.getValue("id");
+                result.add(id.stringValue());
+            }
+        } finally {
+            tqresult.close();
+        }
+        return result;
 	}
 	
 	public AGCatalog getCatalog(String catalogID) {

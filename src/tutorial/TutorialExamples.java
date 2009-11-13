@@ -27,7 +27,6 @@ import org.openrdf.query.TupleQueryResult;
 import org.openrdf.query.impl.DatasetImpl;
 import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.ntriples.NTriplesWriter;
@@ -53,23 +52,28 @@ public class TutorialExamples {
     /**
      * Creating a Repository
      */
-    public static AGRepositoryConnection example1(boolean close) throws RepositoryException {
+    public static AGRepositoryConnection example1(boolean close) throws Exception {
         // Tests getting the repository up. 
         println("\nStarting example1().");
         AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
-        println("Available catalogs: " + (server.listCatalogs()));
-        AGCatalog catalog = server.getCatalog(CATALOG_ID);
+        println("Available catalogs: " + server.listCatalogs());
+//        AGCatalog catalog = server.getCatalog(CATALOG_ID);   // open named catalog
+        AGCatalog catalog = server.getRootCatalog();          // open rootCatalog
         println("Available repositories in catalog " + 
                 (catalog.getCatalogName()) + ": " + 
-                catalog.getAllRepositories());
+                catalog.listRepositories());
+        catalog.deleteRepository(REPOSITORY_ID);
         AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);
         println("Got a repository.");
         myRepository.initialize();
         println("Initialized repository.");
+        println("Repository is writable? " + myRepository.isWritable());
         AGRepositoryConnection conn = myRepository.getConnection();
         closeBeforeExit(conn);
         println("Got a connection.");
         conn.clear();  // remove previous triples, if any.
+        // conn.clearNamespaces();  // remove namespaces (TODO: but not standard ones?)
+        // conn.clearMappings();  // remove datatype/predicate mappings (TODO: but not standard ones?)
         println("Cleared the connection.");
         println("Repository " + (myRepository.getRepositoryID()) +
                 " is up! It contains " + (conn.size()) +
@@ -86,7 +90,7 @@ public class TutorialExamples {
     /**
      * Asserting and Retracting Triples
      */
-    public static AGRepositoryConnection example2(boolean close) throws RepositoryException {
+    public static AGRepositoryConnection example2(boolean close) throws Exception {
         // Asserts some statements and counts them.
         AGRepositoryConnection conn = example1(false);
         AGValueFactory vf = conn.getRepository().getValueFactory();
@@ -159,7 +163,7 @@ public class TutorialExamples {
     /**
      * Statement Matching
      */
-    public static void example4() throws RepositoryException {
+    public static void example4() throws Exception {
         RepositoryConnection conn = example2(false);
         closeBeforeExit(conn);
         Repository myRepository = conn.getRepository();
@@ -261,7 +265,7 @@ public class TutorialExamples {
         {
             println("\nMatch triples having a specific DATE value.");
             RepositoryResult<Statement> statements = conn.getStatements(null, null,
-                    f.createLiteral("\"1984-12-06\"^^<http://www.w3.org/2001/XMLSchema#date>"), false);
+                    f.createLiteral("1984-12-06",XMLSchema.DATE), false);
             try {
                 while (statements.hasNext()) {
                     println(statements.next());
@@ -285,7 +289,7 @@ public class TutorialExamples {
         {
             println("\nMatch triples having a specific DATETIME value.");
             RepositoryResult<Statement> statements = conn.getStatements(null, null,
-                    f.createLiteral("\"1984-12-06T09:00:00\"^^<http://www.w3.org/2001/XMLSchema#dateTime>"), false);
+                    f.createLiteral("1984-12-06T09:00:00",XMLSchema.DATETIME), false);
             try {
                 while (statements.hasNext()) {
                     println(statements.next());
@@ -503,33 +507,8 @@ public class TutorialExamples {
 	    conn.add(alice, fullname, alicename);
 	    conn.add(book, RDF.TYPE, booktype);    
 	    conn.add(book, booktitle, wonderland); 
-	    //conn.setNamespace('fti', "http://franz.com/ns/allegrograph/2.2/textindex/");  // is already built-in  
-	    /** Commented out following loop and replaced with individual examples
-	    *   that work better in the tutorial document. BDC
-	    */
-	    /*	    String[] testMatches = {"?s fti:match 'Alice' .",
-	            "?s fti:match 'Ali*' .",
-	            "?s fti:match '?l?c?' .",
-	            "FILTER regex(?o, \"lic\")"
-	            };
-	    for (int i = 0; i < testMatches.length; i++) {
-	        String queryString = "SELECT ?s ?p ?o WHERE { ?s ?p ?o . " + testMatches[i] + " }";
-            System.out.println("Query for match with " + testMatches[i]);
-            TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
-            TupleQueryResult result = (TupleQueryResult)tupleQuery.evaluate();
-            int count = 0;
-            while (result.hasNext()) {
-                BindingSet bindingSet = result.next();
-                if (count < 5) {
-                    println(bindingSet);
-                }
-                count += 1;
-            }
-            println("Found " + count + " query results");
-            result.close();
-        }
-        */
-        println("\nWhole-word match for 'Alice'.");
+
+	    println("\nWhole-word match for 'Alice'.");
         String queryString = 
         	"SELECT ?s ?p ?o " +
         	"WHERE { ?s ?p ?o . ?s fti:match 'Alice' . }";
@@ -582,6 +561,7 @@ public class TutorialExamples {
         	"SELECT ?s ?p ?o " +
         	"WHERE { ?s ?p ?o . FILTER regex(?o, \"lic\") }";
         tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        tupleQuery.setIncludeInferred(false); // TODO: remove when bug fixed.
         result = (TupleQueryResult)tupleQuery.evaluate();
         count = 0;
         while (result.hasNext()) {
@@ -616,7 +596,7 @@ public class TutorialExamples {
         queryString = "construct {?s ?p ?o} where { ?s ?p ?o . filter (?o = \"Alice\") } ";
         GraphQuery constructQuery = conn.prepareGraphQuery(QueryLanguage.SPARQL, queryString);
         GraphQueryResult gresult = constructQuery.evaluate(); 
-        List statements = new ArrayList();
+        List<Statement> statements = new ArrayList<Statement>();
         while (gresult.hasNext()) {
             statements.add(gresult.next());
         }
@@ -681,6 +661,7 @@ public class TutorialExamples {
         	"WHERE { ?s ?p ?o . " +
         	"FILTER ((?o >= 30) && (?o <= 50)) }";
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        tupleQuery.setIncludeInferred(false); // TODO: remove when bug fixed.
         TupleQueryResult result = tupleQuery.evaluate();
         try {
             while (result.hasNext()) {
@@ -701,6 +682,7 @@ public class TutorialExamples {
         	"WHERE { ?s ?p ?o . " +
         	"FILTER ((xsd:integer(?o) >= 30) && (xsd:integer(?o) <= 50)) }";
         TupleQuery tupleQuery2 = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString2);
+        tupleQuery2.setIncludeInferred(false); // TODO: remove when bug fixed.
         TupleQueryResult result2 = tupleQuery2.evaluate();
         try {
             while (result2.hasNext()) {
@@ -746,6 +728,7 @@ public class TutorialExamples {
         AGServer server = myRepository.getCatalog().getServer();
         AGRepository rainbowRepo = server.createFederation("rainbowthings",redRepo, greenRepo);
         rainbowRepo.initialize();
+        println("Federation is writable? " + rainbowRepo.isWritable());
         AGRepositoryConnection rainbowConn = rainbowRepo.getConnection();
         closeBeforeExit(rainbowConn);
         String ex = "http://www.demo.com/example#";
