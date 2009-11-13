@@ -1,0 +1,105 @@
+<project name="agraph-java-client" default="clean-build">
+    
+    <!-- Library. -->
+    <property name="src" location="src"/>
+    <property name="lib" location="lib"/>
+    <property name="build" location="classes"/>
+    <property name="jarfile" location="agraph-3.2.jar"/>
+    
+    <path id="classpath">
+        <path location="${lib}/log4j-1.2.12.jar"/>
+        <path location="${lib}/openrdf-sesame-2.2-onejar.jar"/>
+        <path location="${lib}/slf4j-api-1.4.3.jar"/>
+        <path location="${lib}/slf4j-log4j12-1.4.3.jar"/>
+        <!-- <path location="${lib}/junit-4.5.jar"/> -->
+    </path>
+    
+    <target name="init">
+        <tstamp/>
+        <mkdir dir="${build}"/>
+    </target>
+    
+    <target name="clean"
+            description="Remove generated files and directories.">
+        <delete dir="${build}"/>
+        <delete file="${jarfile}"/>
+    </target>
+
+    <target name="compile" depends="init"
+            description="Compile Java sources.">
+        <javac srcdir="${src}" destdir="${build}"
+               debug="true"
+               includes="com/franz/agsail/*.java
+                         com/franz/agbase/*.java
+                         com/knowledgereefsystems/agsail/AllegroSail.java"
+               classpathref="classpath"/>
+    </target>
+    
+    <manifestclasspath property="mf.path" jarfile="${jarfile}">
+        <classpath refid="classpath"/>
+    </manifestclasspath>
+    
+    <target name="build"
+            description="Create jar file."
+            depends="clean, compile">
+        <jar jarfile="${jarfile}">
+            <fileset dir="${build}" includes="**/*.class"/>
+            <manifest>
+                <attribute name="Class-Path" value="${mf.path}"/>
+            </manifest>
+        </jar>
+    </target>
+    
+    <target name="clean-build" depends="clean, build"
+            description="clean, and build jar">
+    </target>
+    
+    <target name="prepush"
+            description="Tests required before git push: clean, build, and run Java and Clojure client tests"
+            depends="clean-build">
+        <ant dir="clojure" target="prepush" inheritall="false"/>
+    </target>
+    
+    <macrodef name="run-java"
+              description="Run java class">
+        <attribute name="tasknamex" default="java"/>
+        <attribute name="classname"/>
+        <element name="args" implicit="true" optional="true"/>
+        <sequential>
+            <java classname="@{classname}" failonerror="true" taskname="@{tasknamex}"
+                  fork="true">
+                <sysproperty key="org.apache.commons.logging.Log"
+                             value="org.apache.commons.logging.impl.NoOpLog"/>
+                <classpath>
+                    <path refid="classpath"/>
+                    <path location="classes"/>
+                </classpath>
+                <args/>
+            </java>
+        </sequential>
+    </macrodef>
+    
+    <target name="tutorial"
+            depends="compile"
+            description="Run tutorial example.">
+        <javac srcdir="tutorial" destdir="${build}"
+               debug="true"
+               includes="*.java"
+               classpathref="classpath"/>
+        <run-java tasknamex="tutorial" classname="AGExample">
+            <arg value="-p"/><arg value="8080"/>
+            <arg value="-d"/><arg value="/tmp/ag32jee/scratch/"/>
+            <arg value="-n"/><arg value="tutorial"/>
+        </run-java>
+    </target>
+
+    <target name="dist"
+            depends="clean"
+            description="Zips source and jar">
+        <zip destfile="agraph-java-client-3.2.zip"
+             basedir="."
+             includes="*.*, src/**, test/**, tutorial/**, clojure/**, lib/**"
+             excludes=".git, *.zip, agraph-3.2.jar, clojure/classes"/>
+    </target>
+    
+</project>
