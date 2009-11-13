@@ -42,7 +42,7 @@ import com.franz.agraph.repository.AGValueFactory;
 public class TutorialExamples {
 
     static private final String SERVER_URL = "http://localhost:8080";
-    static private final String CATALOG_ID = "java-tutorial";
+    static private final String CATALOG_ID = "java-catalog";
     static private final String REPOSITORY_ID = "javatutorial";
     static private final String USERNAME = "test";
     static private final String PASSWORD = "xyzzy";
@@ -730,7 +730,7 @@ public class TutorialExamples {
         greenConn.clear();
         ValueFactory gf = greenConn.getValueFactory();
         AGServer server = myRepository.getCatalog().getServer();
-        AGRepository rainbowRepo = server.createFederation("rainbowthingsjv",redRepo, greenRepo);
+        AGRepository rainbowRepo = server.createFederation("rainbowthingsjv", redRepo, greenRepo);
         rainbowRepo.initialize();
         println("Federation is writable? " + rainbowRepo.isWritable());
         AGRepositoryConnection rainbowConn = rainbowRepo.getConnection();
