@@ -6,16 +6,12 @@ package com.franz.agraph.repository;
 import info.aduna.iteration.CloseableIteratorIteration;
 import info.aduna.iteration.Iteration;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
-import org.apache.commons.httpclient.methods.RequestEntity;
 import org.json.JSONArray;
 import org.openrdf.OpenRDFUtil;
 import org.openrdf.model.Literal;
@@ -25,6 +21,7 @@ import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.model.impl.NamespaceImpl;
+import org.openrdf.model.impl.StatementImpl;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.QueryLanguage;
@@ -77,104 +74,47 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	}
 
 	@Override
+	protected void addWithoutCommit(Resource subject, URI predicate,
+			Value object, Resource... contexts) throws RepositoryException {
+		Statement st = new StatementImpl(subject, predicate, object);
+		JSONArray rows = new JSONArray().put(encodeJSON(st,contexts));
+		getHttpRepoClient().uploadJSON(rows,contexts);
+	}
+
+	@Override
 	public void add(Iterable<? extends Statement> statements,
 			Resource... contexts) throws RepositoryException {
 		OpenRDFUtil.verifyContextNotNull(contexts);
 		JSONArray rows=new JSONArray();
 		for (Statement st : statements) {
-				JSONArray row = new JSONArray().put(
-					NTriplesUtil.toNTriplesString(st.getSubject())).put(
-					NTriplesUtil.toNTriplesString(st.getPredicate())).put(
-					NTriplesUtil.toNTriplesString(st.getObject()));
+				JSONArray row = encodeJSON(st, contexts);
 			rows.put(row);
 		}
-		if (rows==null) return;
-		InputStream in;
-		try {
-			in = new ByteArrayInputStream(rows.toString().getBytes("UTF-8"));
-			RequestEntity entity = new InputStreamRequestEntity(in, -1,
-					"application/json");
-			getHttpRepoClient().upload(entity, null, false, null, null, null,
-					contexts);
-		} catch (UnsupportedEncodingException e) {
-			throw new RuntimeException(e);
-		} catch (RDFParseException e) {
-			throw new RuntimeException(e);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
-		}
+		getHttpRepoClient().uploadJSON(rows, contexts);
 	}
 
 	@Override
 	public <E extends Exception> void add(Iteration<? extends Statement, E> statementIter,
 			Resource... contexts)
-		throws RepositoryException, E
+	throws RepositoryException, E
 	{
 		OpenRDFUtil.verifyContextNotNull(contexts);
 		JSONArray rows=new JSONArray();
 		while (statementIter.hasNext()) {
-				Statement st = statementIter.next();
-				JSONArray row = new JSONArray().put(
-					NTriplesUtil.toNTriplesString(st.getSubject())).put(
-					NTriplesUtil.toNTriplesString(st.getPredicate())).put(
-					NTriplesUtil.toNTriplesString(st.getObject()));
-			rows.put(row);
+			rows.put(encodeJSON(statementIter.next(), contexts));
 		}
-		if (rows==null) return;
-		InputStream in;
-		try {
-			in = new ByteArrayInputStream(rows.toString().getBytes("UTF-8"));
-			RequestEntity entity = new InputStreamRequestEntity(in, -1,
-					"application/json");
-			getHttpRepoClient().upload(entity, null, false, null, null, null,
-					contexts);
-		} catch (RepositoryException e) {
-			throw e;
-		} catch (RuntimeException e) {
-			throw e;
-		} catch (Exception e) {
-			// TODO: determine what is proper to throw here.
-			throw new RepositoryException(e);
-		}
+		getHttpRepoClient().uploadJSON(rows, contexts);
 	}
 	
-	@Override
-	protected void addWithoutCommit(Resource subject, URI predicate,
-			Value object, Resource... contexts) throws RepositoryException {
+	private JSONArray encodeJSON(Statement st, Resource... contexts) {
 		JSONArray row = new JSONArray().put(
-				NTriplesUtil.toNTriplesString(subject)).put(
-				NTriplesUtil.toNTriplesString(predicate)).put(
-				NTriplesUtil.toNTriplesString(object));
-		JSONArray rows = new JSONArray().put(row);
-		InputStream in;
-		try {
-			in = new ByteArrayInputStream(rows.toString().getBytes("UTF-8"));
-			RequestEntity entity = new InputStreamRequestEntity(in, -1,
-					"application/json");
-			getHttpRepoClient().upload(entity, null, false, null, null, null,
-					contexts);
-		} catch (UnsupportedEncodingException e) {
-			throw new RuntimeException(e);
-		} catch (RDFParseException e) {
-			throw new RuntimeException(e);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
+			NTriplesUtil.toNTriplesString(st.getSubject())).put(
+			NTriplesUtil.toNTriplesString(st.getPredicate())).put(
+			NTriplesUtil.toNTriplesString(st.getObject()));
+		if (contexts.length == 0 && st.getContext() != null) {
+			row.put(NTriplesUtil.toNTriplesString(st.getContext()));
 		}
-		/*
-		 * try { getHttpRepoClient().addStatements(subject, predicate, object,
-		 * contexts); } catch (IOException e) { throw new
-		 * RepositoryException(e); } ByteArrayOutputStream out = new
-		 * ByteArrayOutputStream(); NTriplesWriter writer = new
-		 * NTriplesWriter(out); try { writer.startRDF(); writer
-		 * .handleStatement(new StatementImpl(subject, predicate, object));
-		 * writer.endRDF(); InputStream in = new
-		 * ByteArrayInputStream(out.toByteArray()); // TODO: check whether using
-		 * NTriples is lossy addInputStreamOrReader(in, null,
-		 * RDFFormat.NTRIPLES, contexts); } catch (RDFHandlerException e) {
-		 * throw new RepositoryException(e); } catch (RDFParseException e) { //
-		 * found a bug? throw new RuntimeException(e); } catch (IOException e) {
-		 * throw new RepositoryException(e); }
-		 */
+		return row;
 	}
 
 	@Override
