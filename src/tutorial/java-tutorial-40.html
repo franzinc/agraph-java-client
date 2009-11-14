@@ -54,8 +54,8 @@ creating, querying and maintaining RDF data, and for managing the stored triples
       <li><a href="#Ask, Describe, and Construct Queries">Ask, Describe, and Construct Queries</a></li>
       <li><a href="#Parametric Queries">Parametric Queries</a></li>
       <li><a href="#Range Matches">Range Matches</a></li>
-      <li><a href="#Federated Repositories">Federated Repositories</a></li>  
-	  <li><a href="#Prolog Rule Queries">Prolog Rule Queries</a></li>
+<!--      <li><a href="#Federated Repositories">Federated Repositories</a></li>  
+-->	  <li><a href="#Prolog Rule Queries">Prolog Rule Queries</a></li>
       <li><a href="#Loading Prolog Rules">Loading Prolog Rules</a> </li>
       <li><a href="#RDFS++ Inference">RDFS++ Inference</a> </li>
 <!--      <li><a href="#Geospatial Search">Geospatial Search</a> </li>
@@ -712,7 +712,7 @@ http://example.org/people/bob http://example.org/people/age &quot;45.1&quot;^^&l
 http://example.org/people/carol http://example.org/people/age &quot;39&quot;  </pre>
 <p>This query picked up integer, double, and string values. </p>
 -->
-
+<!--
 <h2 id="Federated Repositories">Federated Repositories (example16())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>AllegroGraph lets you split up your triples among repositories on multiple servers and then search them all in parallel. To do this we query a single &quot;federated&quot; repository that automatically distributes the queries to the secondary repositories and combines the results. From the point of view of your Python code, it looks like you are working with a single repository. </p>
 <p>This example begins by defining a small output function that we'll use at the end of the lesson. It prints out responses from different repositories. This example is about red apples and green apples, so the output function talks about apples. </p>
@@ -739,6 +739,7 @@ http://example.org/people/carol http://example.org/people/age &quot;39&quot;  </
 <pre class="output">Red Apples:	<br>[s=http://www.demo.com/example#reddelicious]<br>[s=http://www.demo.com/example#mcintosh]<br>
 Green Apples: <br>[s=http://www.demo.com/example#pippin]<br>
 Federated Apples: <br>[s=http://www.demo.com/example#reddelicious]<br>[s=http://www.demo.com/example#mcintosh]<br>[s=http://www.demo.com/example#pippin]</pre>
+-->
 <h2 id="Prolog Rule Queries">Prolog Rule Queries (example17())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>AllegroGraph Server lets us load Prolog backward-chaining rules to make query-writing simpler.&nbsp; The Prolog rules let us write the queries in terms of higher-level concepts.&nbsp; When a query refers to one of these concepts, Prolog rules become active in the background to determine if the concept is valid in the current context.&nbsp; </p>
 <p>For instance, in this example the query says that the matching resource must be a &quot;man&quot;.&nbsp; A Prolog rule examines the matching resources to see which of them are persons who are male.&nbsp; The query can proceed for those resources. The rules provide a level of abstraction that makes the queries simpler to express. </p>
