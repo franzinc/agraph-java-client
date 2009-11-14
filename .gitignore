@@ -1,0 +1,6 @@
+bin
+.*sw*
+*.class
+*.jar
+classes
+eclipse

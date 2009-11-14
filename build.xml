@@ -4,14 +4,14 @@
     <property name="src" location="src"/>
     <property name="lib" location="lib"/>
     <property name="build" location="classes"/>
-    <property name="jarfile" location="agraph-3.2.jar"/>
+    <property name="jarfile" location="agraph-java-client-3.2.jar"/>
     
     <path id="classpath">
         <path location="${lib}/log4j-1.2.12.jar"/>
         <path location="${lib}/openrdf-sesame-2.2-onejar.jar"/>
         <path location="${lib}/slf4j-api-1.4.3.jar"/>
         <path location="${lib}/slf4j-log4j12-1.4.3.jar"/>
-        <!-- <path location="${lib}/junit-4.5.jar"/> -->
+        <path location="${lib}/junit-4.7.jar"/>
     </path>
     
     <target name="init">
@@ -23,6 +23,7 @@
             description="Remove generated files and directories.">
         <delete dir="${build}"/>
         <delete file="${jarfile}"/>
+        <ant dir="clojure" target="clean" inheritall="false"/>
     </target>
 
     <target name="compile" depends="init"

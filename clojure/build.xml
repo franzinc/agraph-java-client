@@ -8,7 +8,7 @@
     
     <!-- Library. -->
     <property name="lib" location="../lib"/>  <!-- AG Java client. -->
-    <property name="jarfile" location="agraph-clj.jar"/>
+    <property name="jarfile" location="agraph-clj-3.2.jar"/>
     
     <target name="init">
         <tstamp/>
@@ -28,6 +28,7 @@
         <path location="${lib}/log4j-1.2.12.jar"/>
         <path location="${lib}/openrdf-sesame-2.2-onejar.jar"/>
         <path location="${lib}/slf4j-log4j12-1.4.3.jar"/>
+        <path location="${lib}/../agraph-java-client-3.2.jar"/>
         <path location="${clojure.jar}"/>
         <path location="${clojure.contrib.jar}"/>
     </path>

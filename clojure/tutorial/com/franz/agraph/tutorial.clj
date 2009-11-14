@@ -211,7 +211,8 @@
                    *out*)
           writer (new RDFXMLWriter output)]
       (println "Writing RDFXML to" output)
-      (.export repo writer contexts))))
+      (.export repo writer contexts)
+      (println))))
 
 (defn example9
   "Writing the result of a statements match to a file."
@@ -425,5 +426,5 @@
   (example12)
   (example13)
   (example14)
-  (example16)
+  ;;(example16)
   )

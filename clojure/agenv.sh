@@ -7,7 +7,7 @@
 
 export AGRAPH_JAVA=$(readlink -f $(dirname "$0")/..)
 
-export CLOJURE_PROJECTS=$(readlink -f "$AGRAPH_JAVA/../..")
+export CLOJURE_PROJECTS=$(readlink -f "$AGRAPH_JAVA/../../..")
 
 export AGRAPH_CLOJURE=$AGRAPH_JAVA/clojure
 
