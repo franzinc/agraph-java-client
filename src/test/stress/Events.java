@@ -10,13 +10,9 @@ import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.RepositoryResult;
 import org.openrdf.rio.ntriples.NTriplesUtil;
-import org.openrdf.query.BindingSet;
 import org.openrdf.query.TupleQuery;
 import org.openrdf.query.TupleQueryResult;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryEvaluationException;
 
 import com.franz.agraph.repository.AGCatalog;
@@ -24,6 +20,7 @@ import com.franz.agraph.repository.AGQueryLanguage;
 import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
+import com.franz.agraph.repository.AGTupleQuery;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -58,20 +55,20 @@ public class Events {
 	    static private final String NS = "http://franz.com/events#";
 	
 	    // Number of worker processes
-	    static private final int LOAD_WORKERS = 10;
-	    static private final int QUERY_WORKERS = 10;
+	    static private final int LOAD_WORKERS = 25;
+	    static private final int QUERY_WORKERS = 16;
 	
 	    // Time to run queries in minutes
-	    static private final int QUERY_TIME = 1;
+	    static private final int QUERY_TIME = 10;
 	
 	    // Size of the Events
 	    static private final int EVENT_SIZE = 50;
 	
 	    // Events per commit in bulk load phase
-	    static private final int BULK_EVENTS = 200;
+	    static private final int BULK_EVENTS = 250;
 	
 	    // Goal store size
-	    static private final int SIZE = (int) Math.pow(10, 6);
+	    static private final int SIZE = (int) Math.pow(10, 8);
 	
 	    // The catalog name
 	    static private final String CATALOG = "tests";
@@ -144,28 +141,32 @@ public class Events {
     	}
     }
     
-    static RandomDate BaselineRange = new RandomDate(new GregorianCalendar(2008, Calendar.JANUARY, 1),
+    static private final RandomDate BaselineRange = new RandomDate(new GregorianCalendar(2008, Calendar.JANUARY, 1),
     		new GregorianCalendar(2008, Calendar.FEBRUARY, 1));
-    static RandomDate BulkRange = new RandomDate(BaselineRange.end,
+    static private final RandomDate BulkRange = new RandomDate(BaselineRange.end,
     		new GregorianCalendar(2009, Calendar.JANUARY, 1));
-    static RandomDate SmallCommitsRange = new RandomDate(BulkRange.end,
+    static private final RandomDate SmallCommitsRange = new RandomDate(BulkRange.end,
 			new GregorianCalendar(2009, Calendar.FEBRUARY, 1));
-    static RandomDate DeleteRangeOne = new RandomDate(BaselineRange.start,
-			new GregorianCalendar(2009, Calendar.JANUARY, 16));
-    static RandomDate DeleteRangeTwo = new RandomDate(DeleteRangeOne.end,
+    static private final RandomDate DeleteRangeOne = new RandomDate(BaselineRange.start,
+			new GregorianCalendar(2008, Calendar.JANUARY, 16));
+    static private final RandomDate DeleteRangeTwo = new RandomDate(DeleteRangeOne.end,
 	        BaselineRange.end);
-    static RandomDate FullDateRange = new RandomDate(BaselineRange.start,
+    static private final RandomDate FullDateRange = new RandomDate(BaselineRange.start,
 			SmallCommitsRange.end);
 
 	private static interface RandomCallback {
 		public Value makeValue();
 	}
 
+	private static Value CalendarToValue(GregorianCalendar calendar) {
+		return ThreadVars.valueFactory.get().createLiteral(ThreadVars.datatypeFactory.get().newXMLGregorianCalendar(calendar));
+	}
+	
 	private static class RandomCalendar implements RandomCallback {
 		static RandomDate dateMaker;
 
 		public Value makeValue() {
-			return ThreadVars.valueFactory.get().createLiteral(ThreadVars.datatypeFactory.get().newXMLGregorianCalendar(dateMaker.getRandom()));
+			return CalendarToValue(dateMaker.getRandom());
 		}
 	}
 	
@@ -471,7 +472,7 @@ public class Events {
 			Thread.currentThread().setName("loader(" + id + ")");
 			AGRepositoryConnection conn;
 			try {
-				conn = connect(true);
+				conn = connect(false);
 			} catch (RepositoryException e) {
 				e.printStackTrace();
 				return -1;
@@ -560,15 +561,15 @@ public class Events {
 			}
 
 			String startNT, endNT;
-			startNT = NTriplesUtil.toNTriplesString(vf.createLiteral(ThreadVars.datatypeFactory.get().newXMLGregorianCalendar(start)));
-			endNT = NTriplesUtil.toNTriplesString(vf.createLiteral(ThreadVars.datatypeFactory.get().newXMLGregorianCalendar(end)));
+			startNT = NTriplesUtil.toNTriplesString(CalendarToValue(start));
+			endNT = NTriplesUtil.toNTriplesString(CalendarToValue(end));
 			
 			// Perform the query in prolog
 			String queryString = String.format(
 					"(select (?event ?pred ?obj)" +
 					"(:use-planner nil)" +
 					"(q- ?event !%s (? !%s !%s) !%s)" +
-					"(q- ?event ?pred ?obj))", timestamp, startNT, endNT, customerNT);
+					"(q- ?event ?pred ?obj !%s))", timestamp, startNT, endNT, customerNT, customerNT);
 
 			int count = 0;
 
@@ -652,12 +653,93 @@ public class Events {
 		}
 	}	
 	
+	private static class Deleter implements Callable<Integer> {
+		private int id;
+		
+		public Deleter(int theId) {
+			id = theId;
+		}
+			    
+		public Integer call() {
+			Thread.currentThread().setName("deleter(" + id + ")");
+			AGRepositoryConnection conn;
+			try {
+				conn = connect(false);
+			} catch (RepositoryException e) {
+				e.printStackTrace();
+				return -1;
+			}
+			ValueFactory vf;
+	        ThreadVars.connection.set(conn);
+	        ThreadVars.valueFactory.set(vf = conn.getValueFactory());
+
+	        RandomDate range;
+	        
+	        if (id == 0) {
+	        	range = DeleteRangeOne;
+	        } else {
+	        	range = DeleteRangeTwo;
+	        }
+	        
+	        String timestamp = NTriplesUtil.toNTriplesString(vf.createURI(Defaults.NS, "EventTimeStamp"));
+	        int limit = (9 * (int) Math.pow(10,5))/Defaults.EVENT_SIZE;
+
+	        // interval is 1 day's worth of milliseconds.
+	        long interval = 24*60*60*1000;
+	        
+	        GregorianCalendar start, eod;
+	        start = range.start;
+	        eod = (GregorianCalendar) range.start.clone();
+	        eod.setTimeInMillis(eod.getTimeInMillis() + interval);
+
+			String startNT, eodNT, queryString;
+			startNT = NTriplesUtil.toNTriplesString(CalendarToValue(start));
+			eodNT = NTriplesUtil.toNTriplesString(CalendarToValue(eod));
+	        
+	        long events = 0, count;
+	        while (start.before(range.end)) {
+	            queryString = String.format("(select0 (?event)" +
+	            	"(:limit %d) (:count-only t)" +
+	            	"(q- ?event !%s (? !%s !%s))" +
+	            	"(lisp (delete-triples :s ?event)))", limit, timestamp, startNT, eodNT);
+
+			    AGTupleQuery tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
+	            try {
+	            	count = tupleQuery.count();
+	                events += count;
+
+	                if (count == 0) {
+	                    trace("Finished deleting %tF.", start);
+	                    start = eod;
+	        			startNT = NTriplesUtil.toNTriplesString(CalendarToValue(start));
+	        			eod = (GregorianCalendar) start.clone();
+	        	        eod.setTimeInMillis(eod.getTimeInMillis() + interval);
+	        			eodNT = NTriplesUtil.toNTriplesString(CalendarToValue(eod));
+	                }
+	            } catch (QueryEvaluationException e) {
+		            trace("Error executing query:\n%s\n", queryString);
+					e.printStackTrace();
+				}
+	        }
+
+	        trace("Found %d events (%d triples) to delete.", events, events * Defaults.EVENT_SIZE);
+	        
+		 	try {
+				conn.close();
+			} catch (RepositoryException e) {
+				e.printStackTrace();
+			}
+			
+			return 0;
+		}
+	}
+
 	public static class Monitor {
 		static public void start(String phase) {
 			try {
 			    // Execute a command with an argument that contains a space
 			    String[] commands = new String[]{"./monitor.sh", "start", phase};
-			    Process child = Runtime.getRuntime().exec(commands);
+			    Runtime.getRuntime().exec(commands);
 			} catch (IOException e) {
 				trace("./monitor.sh was not started.");
 			}
@@ -667,7 +749,7 @@ public class Events {
 			try {
 			    // Execute a command with an argument that contains a space
 			    String[] commands = new String[]{"./monitor.sh", "end"};
-			    Process child = Runtime.getRuntime().exec(commands);
+			    Runtime.getRuntime().exec(commands);
 			} catch (IOException e) {
 				trace("./monitor.sh was not stopped.");
 			}
@@ -712,7 +794,6 @@ public class Events {
 	    trace("Testing with %d loading, %d querying processes. Repository contains %d triples.", 
             Defaults.LOAD_WORKERS, Defaults.QUERY_WORKERS, triplesStart);
 
-        startTime = start = GregorianCalendar.getInstance();
 	    executor = Executors.newFixedThreadPool(Defaults.LOAD_WORKERS);
 	    tasks = new ArrayList<Callable<Integer>>(Defaults.LOAD_WORKERS);
 	    for (int task = 0; task < Defaults.LOAD_WORKERS; task++) {
@@ -720,6 +801,7 @@ public class Events {
 	    }
         trace("Phase 1: Baseline %d triple commits.", Defaults.EVENT_SIZE);
         Monitor.start("phase-1");
+        startTime = start = GregorianCalendar.getInstance();
 	    try {
 			List<Future<Integer>> futures = executor.invokeAll(tasks);
 			
@@ -731,8 +813,8 @@ public class Events {
 		} catch (ExecutionException e) {
 			e.printStackTrace();
 		}
-        Monitor.stop();
 		end = GregorianCalendar.getInstance();
+        Monitor.stop();
 		triplesEnd = conn.size();
 		triples = triplesEnd - triplesStart;
 		seconds = (end.getTimeInMillis() - start.getTimeInMillis()) / 1000.0;
@@ -742,12 +824,12 @@ public class Events {
 	    triplesStart = triplesEnd;
 
 	    RandomCalendar.dateMaker = BulkRange;
-        start = GregorianCalendar.getInstance();
 	    for (int task = 0; task < Defaults.LOAD_WORKERS; task++) {
 	    	tasks.set(task, new Loader(task, Defaults.SIZE*9/10, Defaults.BULK_EVENTS));
 	    }
         trace("Phase 2: Grow store to about %d triples.", Defaults.SIZE);
         Monitor.start("phase-2");
+        start = GregorianCalendar.getInstance();
 	    try {
 			List<Future<Integer>> futures = executor.invokeAll(tasks);
 
@@ -759,8 +841,8 @@ public class Events {
 		} catch (ExecutionException e) {
 			e.printStackTrace();
 		}
-        Monitor.stop();
 		end = GregorianCalendar.getInstance();
+        Monitor.stop();
 		triplesEnd = conn.size();
 		triples = triplesEnd - triplesStart;
 		seconds = (end.getTimeInMillis() - start.getTimeInMillis()) / 1000.0;
@@ -770,12 +852,12 @@ public class Events {
 	    triplesStart = triplesEnd;
 
 	    RandomCalendar.dateMaker = SmallCommitsRange;
-        start = GregorianCalendar.getInstance();
 	    for (int task = 0; task < Defaults.LOAD_WORKERS; task++) {
 	    	tasks.set(task, new Loader(task, Defaults.SIZE/10, 1));
 	    }
         trace("Phase 3: Perform %d triple commits.", Defaults.EVENT_SIZE);
         Monitor.start("phase-3");
+        start = GregorianCalendar.getInstance();
 	    try {
 			List<Future<Integer>> futures = executor.invokeAll(tasks);
 
@@ -787,8 +869,8 @@ public class Events {
 		} catch (ExecutionException e) {
 			e.printStackTrace();
 		}
-        Monitor.stop();
 		end = GregorianCalendar.getInstance();
+        Monitor.stop();
 		triplesEnd = conn.size();
 		triples = triplesEnd - triplesStart;
 		seconds = (end.getTimeInMillis() - start.getTimeInMillis()) / 1000.0;
@@ -802,7 +884,6 @@ public class Events {
 	    executor = Executors.newFixedThreadPool(Defaults.QUERY_WORKERS);
 	    
 	    RandomCalendar.dateMaker = FullDateRange;
-        start = GregorianCalendar.getInstance();
 	    List<Callable<QueryResult>> queriers = new ArrayList<Callable<QueryResult>>(Defaults.QUERY_WORKERS);
 	    for (int task = 0; task < Defaults.QUERY_WORKERS; task++) {
 	    	queriers.add(new Querier(task, Defaults.QUERY_TIME*60));
@@ -812,6 +893,7 @@ public class Events {
         Monitor.start("phase-4");
         int queries = 0;
         triples = 0;
+        start = GregorianCalendar.getInstance();
         try {
 			List<Future<QueryResult>> futures = executor.invokeAll(queriers);
 
@@ -825,17 +907,40 @@ public class Events {
 		} catch (ExecutionException e) {
 			e.printStackTrace();
 		}
-        Monitor.stop();
 		end = GregorianCalendar.getInstance();
+        Monitor.stop();
 		seconds = (end.getTimeInMillis() - start.getTimeInMillis()) / 1000.0;
         trace("%d total triples returned over %d queries in " +
         	"%f seconds (%f triples/second, %f queries/second, " +
         	"%d triples/query).", triples, queries, seconds, triples/seconds,
         	queries/seconds, triples/queries);
+        executor.shutdown();
         
+	    executor = Executors.newFixedThreadPool(2);
+	    tasks = new ArrayList<Callable<Integer>>(2);
+	    tasks.add(new Deleter(0));
+	    tasks.add(new Deleter(1));
         trace("Phase 5: Shrink store by 1 month.");
         Monitor.start("phase-5");
+        start = GregorianCalendar.getInstance();
+	    try {
+			List<Future<Integer>> futures = executor.invokeAll(tasks);
+
+			for (Future<Integer> furture : futures) {
+				furture.get();
+			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			e.printStackTrace();
+		}
+		end = GregorianCalendar.getInstance();
         Monitor.stop();
+		triplesEnd = conn.size();
+		triples = triplesEnd - triplesStart;
+		seconds = (end.getTimeInMillis() - start.getTimeInMillis()) / 1000.0;
+        trace("%d total triples processed in %f seconds (%f triples/second). " +
+        	"Store contains %d triples.", triples, seconds, triples/seconds, triplesEnd);
 
         double totalSeconds = (GregorianCalendar.getInstance().getTimeInMillis() - startTime.getTimeInMillis()) / 1000.0;
         triples = triplesEnd - triplesAtStart;
@@ -847,51 +952,3 @@ public class Events {
 	    repository.shutDown();
 	}
 }
-
-/**
-    def delete_phase(phase):
-        params = PHASE_PARAMS[phase]
-        timestamp = URI(namespace=OPT.NS, localname='EventTimeStamp'
-            ).toNTriples()
-        limit = 9*(10**5)/OPT.EVENT_SIZE
-
-        interval = timedelta(seconds=24*60*60)
-        start, end = params.date_range.start, params.date_range.end
-        eod = start + interval
-        start_nt = Literal(start).toNTriples()
-        eod_nt = Literal(eod).toNTriples()
-
-        events = 0
-        while start < end:
-            queryString = """
-                (select0 (?event)
-                  (:limit %d)
-                  (:count-only t)
-                  (q- ?event !%s (? !%s !%s))
-                  (lisp (delete-triples :s ?event)))""" % (
-                      limit, timestamp, start_nt, eod_nt)
-
-            try:
-                count = conn.prepareTupleQuery(QueryLanguage.PROLOG, queryString
-                    ).evaluate(count=True)
-
-                assert count <= limit
-                events += count
-
-                if count == 0:
-                    trace('loader(%d) [%s]: Finished deleting %s.', (
-                        proc_num, datetime.now(), start.date()))
-                    start = eod
-                    start_nt = Literal(start).toNTriples()
-                    eod = start + interval
-                    eod_nt = Literal(eod).toNTriples()
-            except Exception:
-                trace('loader(%d) [%s]: Error deleting triples...\n%s', (
-                    proc_num, datetime.now(), queryString))
-                traceback.print_exc()
-
-        trace('loader(%d) [%s]: Found %d events (%d triples) to delete.', (
-            proc_num, datetime.now(), events, events * OPT.EVENT_SIZE))
-        
-        loadq.task_done()
-**/
