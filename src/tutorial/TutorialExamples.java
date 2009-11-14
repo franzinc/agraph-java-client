@@ -869,7 +869,7 @@ public class TutorialExamples {
     /**
      * Transactions
      */
-    public static void example20() throws Exception {
+    public static void example22() throws Exception {
         AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
         AGCatalog catalog = server.getCatalog(CATALOG_ID);
         AGRepository myRepository = catalog.createRepository("agraph_test");
@@ -937,7 +937,7 @@ public class TutorialExamples {
 
     /**
      * Usage: all
-     * Usage: [1-20]+
+     * Usage: [1-19,22]+
      */
     public static void main(String[] args) throws Exception {
         List<Integer> choices = new ArrayList<Integer>();
@@ -945,9 +945,10 @@ public class TutorialExamples {
             // for choosing by editing this code
             choices.add(1);
         } else if (args[0].equals("all")) {
-            for (int i = 1; i <= 20; i++) {
+            for (int i = 1; i <= 19; i++) {
                 choices.add(i);
             }
+            choices.add(22);
         } else {
             for (int i = 0; i < args.length; i++) {
                 choices.add(Integer.parseInt(args[i]));
@@ -955,7 +956,7 @@ public class TutorialExamples {
         }
         try {
             for (Integer choice : choices) {
-                println("Running example " + choice);
+                println("\n** Running example " + choice);
                 switch(choice) {
                 case 1: example1(true); break;
                 case 2: example2(true); break;            
@@ -976,7 +977,7 @@ public class TutorialExamples {
                 case 17: example17(); break;                                    
                 case 18: example18(); break;                                    
                 case 19: example19(); break;                                    
-                case 20: example20(); break;
+                case 22: example22(); break;
                 default: throw new IllegalArgumentException("There is no example " + choice);
                 }
                 closeAll();
