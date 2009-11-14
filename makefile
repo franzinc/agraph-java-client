@@ -1,13 +1,40 @@
 # Standard Franz make rules forward to ant targets.
 
-default:
+default: FORCE
 	ant clean-build
 
-clean:
+clean: FORCE
 	ant clean
 
-prepush:
+prepush: FORCE
 	ant prepush
 
-build:
+build: FORCE
 	ant build
+
+###############################################################################
+## distribution building
+
+VERSION = 1.0m1
+
+DISTDIR = agraph-4.0m1-client-java-$(VERSION)
+
+TARNAME = $(DISTDIR).tar.gz
+
+TUTORIAL_FILES = kennedy.ntriples relative_rules.txt \
+		 vc-db-1.rdf lesmis.rdf TutorialExamples.java
+
+dist: FORCE
+	rm -f *.tar.gz
+	rm -fr $(DISTDIR)
+	mkdir -p $(DISTDIR)
+	cp -r dist/* $(DISTDIR)
+	mkdir -p $(DISTDIR)/src/tutorial
+	for f in $(TUTORIAL_FILES); do \
+	    echo copying src/tutorial/$$f...; \
+	    cp src/tutorial/$$f $(DISTDIR)/src/tutorial; \
+	done
+	tar -c -h -z --owner=root --group=root -f $(TARNAME) $(DISTDIR)
+#	rm -fr $(DISTDIR)
+
+FORCE:
