@@ -28,7 +28,6 @@ dist: FORCE
 	rm -f *.tar.gz
 	rm -fr $(DISTDIR)
 	mkdir -p $(DISTDIR)
-	cp build.xml $(DISTDIR)
 	cp -r dist/* dist/.[a-z]* $(DISTDIR)
 	mkdir -p $(DISTDIR)/src/tutorial
 	for f in $(TUTORIAL_FILES); do \
