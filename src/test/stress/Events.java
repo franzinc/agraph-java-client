@@ -737,8 +737,7 @@ public class Events {
 	public static class Monitor {
 		static public void start(String phase) {
 			try {
-			    // Execute a command with an argument that contains a space
-			    String[] commands = new String[]{"./monitor.sh", "start", phase};
+			    String[] commands = new String[]{"monitor.sh", "start", phase};
 			    Runtime.getRuntime().exec(commands);
 			} catch (IOException e) {
 				trace("./monitor.sh was not started.");
@@ -747,8 +746,7 @@ public class Events {
 		
 		static public void stop() {
 			try {
-			    // Execute a command with an argument that contains a space
-			    String[] commands = new String[]{"./monitor.sh", "end"};
+			    String[] commands = new String[]{"monitor.sh", "end"};
 			    Runtime.getRuntime().exec(commands);
 			} catch (IOException e) {
 				trace("./monitor.sh was not stopped.");
@@ -936,6 +934,7 @@ public class Events {
 		}
 		end = GregorianCalendar.getInstance();
         Monitor.stop();
+        executor.shutdown();
 		triplesEnd = conn.size();
 		triples = triplesEnd - triplesStart;
 		seconds = (end.getTimeInMillis() - start.getTimeInMillis()) / 1000.0;
