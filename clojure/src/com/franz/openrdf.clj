@@ -7,7 +7,6 @@
 
 (ns com.franz.openrdf
   "Clojure wrapper of the Sesame (org.openrdf) Java API. See http://www.openrdf.org/"
-  (:refer-clojure :exclude (name))
   (:import [clojure.lang Named]
            [java.net URI]
            [org.openrdf.model ValueFactory Resource Literal Statement]

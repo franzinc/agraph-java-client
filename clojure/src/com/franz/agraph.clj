@@ -12,9 +12,6 @@
  Uses the Franz Clojure wrapper of Sesame in com/franz/openrdf.clj."
   (:refer-clojure :exclude (name))
   (:import [com.knowledgereefsystems.agsail AllegroSail]
-           ;; [com.franz.agraph.repository
-           ;;  AGCatalog AGQueryLanguage AGRepository
-           ;;  AGRepositoryConnection AGServer AGValueFactory]
            [java.io File]
            [java.net URI]
            [org.openrdf.model ValueFactory Resource Literal Statement]
@@ -25,14 +22,6 @@
         [com.franz util openrdf]))
 
 (alter-meta! *ns* assoc :author "Franz Inc <www.franz.com>, Mike Hinchey <mhinchey@franz.com>")
-
-;; (defmethod name AGRepository [#^AGRepository x] (.getRepositoryID x))
-
-;; (defmethod name AGRepositoryConnection [#^AGRepositoryConnection x] (name (.getRepository x)))
-
-;; (defmethod name AGCatalog [#^AGCatalog x] (.getCatalogName x))
-
-;; (defmethod close AGCatalog [#^AGCatalog obj])
 
 (defn ag-repository
   [{:keys [host port db-dir repository]}]
@@ -45,7 +34,7 @@
   ([#^Repository rcon]
      (.getRepository rcon)))
 
-(defn ag-repo-con
+(defn agraph-repoconn
   ([{:keys [host port db-dir repository] :as connection-params}]
      (repo-connection (repo-init (ag-repository connection-params))))
   ([{:keys [host port db-dir repository] :as connection-params}

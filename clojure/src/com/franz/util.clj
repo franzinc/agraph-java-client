@@ -7,19 +7,9 @@
 
 (ns com.franz.util
   "Utility functions."
-  (:refer-clojure :exclude (name))
   (:use [clojure.contrib stacktrace]))
 
 (alter-meta! *ns* assoc :author "Franz Inc <www.franz.com>, Mike Hinchey <mhinchey@franz.com>")
-
-(defmulti name
-  "Shadows clojure.core/name to make it an extensible method."
-  type)
-
-(defmethod name :default [x] (.getName x))
-
-;; same as the clojure.core/name fn
-(defmethod name clojure.lang.Named [#^clojure.lang.Named x] (clojure.core/name x))
 
 (defmulti close
   ;; TODO: rename to close!
@@ -119,3 +109,5 @@ May be extended for differently named close methods."
 (defn read-lines
   [#^java.io.File f]
   (line-seq (open (java.io.BufferedReader. (open (java.io.FileReader. f))))))
+
+()
