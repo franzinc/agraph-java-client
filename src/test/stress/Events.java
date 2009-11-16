@@ -846,7 +846,7 @@ public class Events {
 		seconds = (end.getTimeInMillis() - start.getTimeInMillis()) / 1000.0;
         trace("%d total triples processed in %f seconds (%f triples/second, %f commits/second). " +
         	"Store contains %d triples.", triples, seconds, triples/seconds,
-	            triples/Defaults.EVENT_SIZE/seconds, triplesEnd);
+	            triples/Defaults.BULK_EVENTS/Defaults.EVENT_SIZE/seconds, triplesEnd);
 	    triplesStart = triplesEnd;
 
 	    RandomCalendar.dateMaker = SmallCommitsRange;
