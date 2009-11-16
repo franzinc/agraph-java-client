@@ -407,7 +407,7 @@ traditional Sesame syntax, and returns a Statement object at each iteration. Thi
 <p>What triples match &quot;Rouge&quot; declared as a French string? [Rouge] </p>
 <pre class="output"></p>Retrieve triples matching &quot;Rouge&quot;@fr.<br>(http://example.org/people/ted, http://example.org/people/favoriteColor, &quot;Rouge&quot;@fr) [null]</pre>
 <p>This loop builds and evaluates a SPARQL query instead of using getStatements(). It also shows examples of putting coded values into the search criteria without creating Literal objects as an intermediate step. It also shows how to use a BindingSet instead of a RepositoryResult object, and how to extract individual subject, predicate and object values from each returned triple. </p>
-<pre class="input"> for (String obj : new String[]{&quot;42&quot;, &quot;\&quot;42\&quot;&quot;, &quot;20.5&quot;, &quot;\&quot;20.5\&quot;&quot;, &quot;\&quot;20.5\&quot;^^xsd:float&quot;,<br>                                       &quot;\&quot;Rouge\&quot;@fr&quot;, &quot;\&quot;Rouge\&quot;&quot;, &quot;\&quot;1984-12-06\&quot;^^xsd:date&quot;}) {<br>            println( &quot;\nQuery triples matching &quot; + obj + &quot;.&quot;);<br>            String queryString = &quot;PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt; SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = &quot; + obj + &quot;)}&quot;;<br>            TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);<br>            TupleQueryResult result = tupleQuery.evaluate();<br>            try {<br>                while (result.hasNext()) {<br>                    BindingSet bindingSet = result.next();<br>                    Value s = bindingSet.getValue(&quot;s&quot;);<br>                    Value p = bindingSet.getValue(&quot;p&quot;);<br>                    Value o = bindingSet.getValue(&quot;o&quot;);<br>                    println(&quot;  &quot; + s + &quot; &quot; + p + &quot; &quot; + o);<br>                }</pre>
+<pre class="input"> for (String obj : new String[]{&quot;42&quot;, &quot;\&quot;42\&quot;&quot;, &quot;20.5&quot;, &quot;\&quot;20.5\&quot;&quot;, &quot;\&quot;20.5\&quot;^^xsd:float&quot;,<br>                                       &quot;\&quot;Rouge\&quot;@fr&quot;, &quot;\&quot;Rouge\&quot;&quot;}) {<br>            println( &quot;\nQuery triples matching &quot; + obj + &quot;.&quot;);<br>            String queryString = &quot;PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt; SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = &quot; + obj + &quot;)}&quot;;<br>            TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);<br>            TupleQueryResult result = tupleQuery.evaluate();<br>            try {<br>                while (result.hasNext()) {<br>                    BindingSet bindingSet = result.next();<br>                    Value s = bindingSet.getValue(&quot;s&quot;);<br>                    Value p = bindingSet.getValue(&quot;p&quot;);<br>                    Value o = bindingSet.getValue(&quot;o&quot;);<br>                    println(&quot;  &quot; + s + &quot; &quot; + p + &quot; &quot; + o);<br>                }</pre>
 <p>What triples match &quot;42&quot; (which is an int). We get both ints and longs. 
 <pre class="output">Query triples matching 42.<br>  http://example.org/people/alice http://example.org/people/age &quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#int&gt;<br>  http://example.org/people/ted http://example.org/people/age &quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#long&gt;</pre>
 <p>What triples match &quot;\&quot;42\&quot;&quot; (which is a string?) </p>
@@ -696,6 +696,7 @@ The DESCRIBE query returns a &quot;graph,&quot; meaning all triples of the match
 <p>The result object contains:</p>
 <pre class="output">Range query for integers and floats.<br>http://example.org/people/alice http://example.org/people/age &quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#int&gt;<br>http://example.org/people/bob http://example.org/people/age &quot;45.1&quot;^^&lt;http://www.w3.org/2001/XMLSchema#double&gt;</pre>
 <p>It has matched 42 and 45.1, but not &quot;39&quot;. </p>
+<!--
 <p>What if we want to pick up the odd values that were created as strings? SPARQL lets us cast the triple's object value as an integer before making the test. That query looks like this:</p>
 <pre class="input">         String queryString = 
          &quot;PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt; &quot; +
@@ -710,6 +711,8 @@ http://example.org/people/alice http://example.org/people/age &quot;42&quot;^^&l
 http://example.org/people/bob http://example.org/people/age &quot;45.1&quot;^^&lt;http://www.w3.org/2001/XMLSchema#double&gt;
 http://example.org/people/carol http://example.org/people/age &quot;39&quot;  </pre>
 <p>This query picked up integer, double, and string values. </p>
+-->
+
 <h2 id="Federated Repositories">Federated Repositories (example16())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>AllegroGraph lets you split up your triples among repositories on multiple servers and then search them all in parallel. To do this we query a single &quot;federated&quot; repository that automatically distributes the queries to the secondary repositories and combines the results. From the point of view of your Python code, it looks like you are working with a single repository. </p>
 <p>This example begins by defining a small output function that we'll use at the end of the lesson. It prints out responses from different repositories. This example is about red apples and green apples, so the output function talks about apples. </p>
@@ -1307,6 +1310,6 @@ Using getStatements() on conn2 should find Valjean:
 Number of results: 1</pre>
 <p>The Les Miserables triples are visible in both sessions. So too are the Kennedy triples. </p>
 <p>&nbsp;</p>
-<p><font color="#CCCCCC">November 9, 2009</font></p>
+<p><font color="#CCCCCC">November 14, 2009 Release 4.0m1</font></p>
 </body>
 </html>

@@ -21,6 +21,7 @@ import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.json.JSONArray;
 import org.openrdf.OpenRDFUtil;
 import org.openrdf.http.protocol.Protocol;
 import org.openrdf.http.protocol.UnauthorizedException;
@@ -381,6 +382,25 @@ public class AGHttpRepoClient {
 		upload(entity, baseURI, overwrite, null, null, null, contexts);
 	}
 
+	public void uploadJSON(JSONArray rows, Resource... contexts)
+			throws RepositoryException {
+		if (rows == null)
+			return;
+		InputStream in;
+		try {
+			in = new ByteArrayInputStream(rows.toString().getBytes("UTF-8"));
+			RequestEntity entity = new InputStreamRequestEntity(in, -1,
+					"application/json");
+			upload(entity, null, false, null, null, null, contexts);
+		} catch (UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
+		} catch (RDFParseException e) {
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+	}
+
 	public void load(URI source, String baseURI, RDFFormat dataFormat,
 			Resource... contexts) throws IOException, RDFParseException,
 			RepositoryException, UnauthorizedException {
@@ -394,7 +414,7 @@ public class AGHttpRepoClient {
 				contexts);
 	}
 
-	protected void upload(RequestEntity reqEntity, String baseURI,
+	public void upload(RequestEntity reqEntity, String baseURI,
 			boolean overwrite, String serverSideFile, URI serverSideURL,
 			RDFFormat dataFormat, Resource... contexts) throws IOException,
 			RDFParseException, RepositoryException, UnauthorizedException {
