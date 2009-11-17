@@ -15,6 +15,10 @@ import org.openrdf.rio.RDFParseException;
 
 import com.franz.agraph.http.AGResponseHandler;
 
+/**
+ * Implements the Sesame TupleQuery interface for AllegroGraph.
+ * 
+ */
 public class AGTupleQuery extends AGQuery implements TupleQuery {
 
 	public AGTupleQuery(AGRepositoryConnection con, QueryLanguage ql,

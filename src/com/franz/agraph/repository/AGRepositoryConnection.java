@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.franz.agraph.repository;
 
 import info.aduna.iteration.CloseableIteratorIteration;
@@ -40,7 +37,7 @@ import org.openrdf.rio.ntriples.NTriplesUtil;
 import com.franz.agraph.http.AGHttpRepoClient;
 
 /**
- * Implements the RepositoryConnection interface for AllegroGraph.
+ * Implements the Sesame RepositoryConnection interface for AllegroGraph.
  */
 public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		RepositoryConnection {
@@ -355,67 +352,171 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	 * AllegroGraph Extensions hereafter
 	 */
 
+	/**
+	 * Registers a predicate for free text indexing.  Once registered,
+	 * the objects of data added to the repository having this predicate
+	 * will be text indexed and searchable.  
+	 */
 	public void registerFreetextPredicate(URI predicate)
 			throws RepositoryException {
 		getHttpRepoClient().registerFreetextPredicate(predicate);
 	}
 
 	// TODO: return RepositoryResult<URI>?
+	/**
+	 * Gets the predicates that have been registered for text indexing.
+	 */
 	public String[] getFreetextPredicates() throws RepositoryException {
 		return getHttpRepoClient().getFreetextPredicates();
 	}
 
+	/**
+	 * Registers a predicate mapping from the predicate to a primitive datatype.
+	 * This can be useful in speeding up query performance and enabling range
+	 * queries over datatypes.  
+	 * 
+	 * Once registered, the objects of any data added via this connection that
+	 * have this predicate will be mapped to the primitive datatype.
+	 * 
+	 * For example, registering that predicate <http://example.org/age> is
+	 * mapped to XMLSchema.INT and adding the triple:
+	 * 
+	 * <http://example.org/Fred> <http://example.org/age> "24"
+	 * 
+	 * will result in the object being treated as having datatype "24"^^xsd:int.
+	 * 
+	 * @param predicate the predicate 
+	 * @param primtype
+	 * @throws RepositoryException
+	 */
 	public void registerPredicateMapping(URI predicate, URI primtype)
 			throws RepositoryException {
 		getHttpRepoClient().registerPredicateMapping(predicate, primtype);
 	}
 
+	/**
+	 * Deletes any predicate mapping associated with the given predicate.
+	 * 
+	 * @param predicate the predicate
+	 * @throws RepositoryException
+	 */
 	public void deletePredicateMapping(URI predicate)
 			throws RepositoryException {
 		getHttpRepoClient().deletePredicateMapping(predicate);
 	}
 
 	// TODO: return RepositoryResult<Mapping>?
+	/**
+	 * Gets the predicate mappings defined for this connection.
+	 */
 	public String[] getPredicateMappings() throws RepositoryException {
 		return getHttpRepoClient().getPredicateMappings();
 	}
 
 	// TODO: are all primtypes available as URI constants?
+	/**
+	 * Registers a datatype mapping from the datatype to a primitive datatype.
+	 * This can be useful in speeding up query performance and enabling range
+	 * queries over user datatypes.  
+	 * 
+	 * Once registered, the objects of any data added via this connection that
+	 * have this datatype will be mapped to the primitive datatype.
+	 * 
+	 * For example, registering that datatype <http://example.org/usertype> is
+	 * mapped to XMLSchema.INT and adding the triple:
+	 * 
+	 * <http://example.org/Fred> <http://example.org/age> "24"^^<http://example.org/usertype>
+	 *  
+	 * will result in the object being treated as having datatype "24"^^xsd:int.
+	 * 
+	 * @param datatype the user datatype
+	 * @param primtype the primitive type
+	 * @throws RepositoryException
+	 */
 	public void registerDatatypeMapping(URI datatype, URI primtype)
 			throws RepositoryException {
 		getHttpRepoClient().registerDatatypeMapping(datatype, primtype);
 	}
 
+	/**
+	 * Deletes any datatype mapping associated with the given datatype.
+	 * 
+	 * @param datatype the user datatype
+	 * @throws RepositoryException
+	 */
 	public void deleteDatatypeMapping(URI datatype) throws RepositoryException {
 		getHttpRepoClient().deleteDatatypeMapping(datatype);
 	}
 
 	// TODO: return RepositoryResult<Mapping>?
+	/**
+	 * Gets the datatype mappings defined for this connection.
+	 */
 	public String[] getDatatypeMappings() throws RepositoryException {
 		return getHttpRepoClient().getDatatypeMappings();
 	}
 
+	/**
+	 * Deletes all predicate and datatype mappings for this connection.
+	 *  
+	 * @throws RepositoryException
+	 */
 	public void clearMappings() throws RepositoryException {
 		getHttpRepoClient().clearMappings();
 	}
 
+	/**
+	 * Adds Prolog rules to be used on this connection.
+	 * 
+	 * @param rules a string of rules.
+	 * @throws RepositoryException
+	 */
 	public void addRules(String rules) throws RepositoryException {
 		getHttpRepoClient().addRules(rules);
 	}
 
 	// TODO: specify RuleLanguage
+	/**
+	 * Adds Prolog rules to be used on this connection.
+	 * 
+	 * @param rulestream a stream of rules.
+	 * @throws RepositoryException
+	 */
 	public void addRules(InputStream rulestream) throws RepositoryException {
 		getHttpRepoClient().addRules(rulestream);
 	}
 
+	/**
+	 * Evaluates a Lisp form on the server, and returns the result as a String.
+	 * 
+	 * @param lispForm the Lisp form to evaluate, in a String.
+	 * @return the result in a String.
+	 * @throws RepositoryException
+	 */
 	public String evalInServer(String lispForm) throws RepositoryException {
 		return getHttpRepoClient().evalInServer(lispForm);
 	}
 
+	/**
+	 * Evaluates a Lisp form on the server, and returns the result as a String.
+	 * 
+	 * @param stream the Lisp form to evaluate, in a stream.
+	 * @return the result in a String.
+	 * @throws RepositoryException
+	 */
 	public String evalInServer(InputStream stream) throws RepositoryException {
 		return getHttpRepoClient().evalInServer(stream);
 	}
 
+	/**
+	 * Instructs the server to fetch and load data from the specified URI.
+	 * 
+	 * @param source the URI to fetch and load.
+	 * @param baseURI the base URI for the source document.
+	 * @param dataFormat the RDF data format for the source document. 
+	 * @param contexts zero or more contexts into which data will be loaded.
+	 * @throws RepositoryException
+	 */
 	public void load(URI source, String baseURI, RDFFormat dataFormat,
 			Resource... contexts) throws RepositoryException {
 		try {
@@ -427,6 +528,15 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		}
 	}
 
+	/**
+	 * Instructs the server to load data from the specified server-side path.
+	 * 
+	 * @param absoluteServerPath the path to the server-side source file. 
+	 * @param baseURI  the base URI for the source document.
+	 * @param dataFormat the RDF data format for the source document. 
+	 * @param contexts zero or more contexts into which data will be loaded.
+	 * @throws RepositoryException
+	 */
 	public void load(String absoluteServerPath, String baseURI,
 			RDFFormat dataFormat, Resource... contexts)
 			throws RepositoryException {
@@ -440,6 +550,13 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		}
 	}
 
+	/**
+	 * Instructs the server to extend the life of this connection's dedicated
+	 * session, if it is using one.  Such connections that are idle for 3600 
+	 * seconds will be closed by the server.
+	 *   
+	 * @throws RepositoryException
+	 */
 	public void ping() throws RepositoryException {
 		getHttpRepoClient().ping();
 	}

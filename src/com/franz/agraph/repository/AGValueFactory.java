@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.franz.agraph.repository;
 
 import java.io.IOException;
@@ -13,7 +10,8 @@ import org.openrdf.repository.RepositoryException;
 import com.franz.agraph.http.AGHTTPClient;
 
 /**
- *
+ * Implements the Sesame ValueFactory interface for AllegroGraph.
+ * 
  */
 public class AGValueFactory extends ValueFactoryImpl {
 

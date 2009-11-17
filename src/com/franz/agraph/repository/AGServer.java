@@ -17,6 +17,9 @@ import com.franz.agraph.http.AGHTTPClient;
 import com.franz.agraph.http.AGHttpException;
 import com.franz.agraph.http.AGProtocol;
 
+/**
+ * The top-level class for interacting with an AllegroGraph server.
+ */
 public class AGServer {
 
 	private final String serverURL;
@@ -25,6 +28,14 @@ public class AGServer {
 	private final AGCatalog federatedCatalog;
 	
 	
+	/**
+	 * Creates an AGServer instance for interacting with an AllegroGraph
+	 * server at serverURL.
+	 *     
+	 * @param serverURL the URL of the server.
+	 * @param username a user id for authenticating with the server 
+	 * @param password a password for authenticating with the server  
+	 */
 	public AGServer(String serverURL, String username, String password) {
 		this.serverURL = serverURL;
 		httpClient = new AGHTTPClient(serverURL); 
@@ -33,22 +44,43 @@ public class AGServer {
 		federatedCatalog = new AGCatalog(this,AGCatalog.FEDERATED_CATALOG);
 	}
 	
+	/**
+	 * Returns the URL of this AllegroGraph server.
+	 * 
+	 * @return the URL of this AllegroGraph server. 
+	 */
 	public String getServerURL() {
 		return serverURL;
 	}
 	
-	public AGHTTPClient getHTTPClient() {
+	AGHTTPClient getHTTPClient() {
 		return httpClient;
 	}
 	
+	/**
+	 * Returns the root catalog for this AllegroGraph server.
+	 * 
+	 * @return the root catalog. 
+	 */
 	public AGCatalog getRootCatalog() {
 		return rootCatalog;
 	}
 	
+	/**
+	 * Returns the catalog housing all federations for this AllegroGraph server.
+	 * 
+	 * @return the federated catalog. 
+	 */
 	public AGCatalog getFederatedCatalog() {
 		return federatedCatalog;
 	}
 	
+	/**
+	 * Returns a List of catalog ids known to this AllegroGraph server.
+	 * 
+	 * @return List of catalog ids.
+	 * @throws OpenRDFException
+	 */
 	public List<String> listCatalogs() throws OpenRDFException {
 		String url = AGProtocol.getNamedCatalogsURL(serverURL);
 		TupleQueryResult tqresult = getHTTPClient().getTupleQueryResult(url);
@@ -65,10 +97,25 @@ public class AGServer {
         return result;
 	}
 	
+	/**
+	 * Gets the catalog instance for a given catalog id.
+	 * 
+	 * @param catalogID a catalog id.
+	 * @return the corresponding catalog instance.
+	 */
 	public AGCatalog getCatalog(String catalogID) {
 		return new AGCatalog(this, catalogID);
 	}
 
+	/**
+	 * Creates a federation over the specified component repositories,
+	 * naming it by federationName.
+	 *  
+	 * @param federationName the name of the federation.
+	 * @param repositories the component repositories.
+	 * @return the federation instance.
+	 * @throws RepositoryException
+	 */
 	public AGRepository createFederation(String federationName, AGRepository... repositories) 
 	throws RepositoryException {
 		String url = AGProtocol.getFederationLocation(getServerURL(), federationName); 
@@ -95,6 +142,12 @@ public class AGServer {
 		return new AGRepository(getFederatedCatalog(),federationName);
 	}
 	
+	/**
+	 * Deletes a federation by name.
+	 * 
+	 * @param federationName the name of the federation to delete.
+	 * @throws RepositoryException
+	 */
 	public void deleteFederation(String federationName)	throws RepositoryException {
 		String url = AGProtocol.getFederationLocation(getServerURL(), federationName); 
 		Header[] headers = new Header[0];

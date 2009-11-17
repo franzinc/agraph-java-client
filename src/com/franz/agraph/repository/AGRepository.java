@@ -15,7 +15,8 @@ import org.openrdf.repository.RepositoryException;
 import com.franz.agraph.http.AGHTTPClient;
 
 /**
- *
+ * Implements the Sesame Repository interface for AllegroGraph.
+ * 
  */
 public class AGRepository implements Repository {
 
@@ -31,6 +32,10 @@ public class AGRepository implements Repository {
 	 * Constructors *
 	 *--------------*/
 
+	/**
+	 * Creates an AGRepository instance for a repository having the given
+	 * repository id in the given catalog.  
+	 */
 	public AGRepository(AGCatalog catalog, String repositoryID) {
 		this.catalog = catalog;
 		this.repositoryID = repositoryID;
@@ -39,10 +44,20 @@ public class AGRepository implements Repository {
 		vf = new AGValueFactory(this);
 	}
 
+	/**
+	 * Gets the catalog to which this repository belongs.
+	 * 
+	 * @return the catalog.
+	 */
 	public AGCatalog getCatalog() {
 		return catalog;
 	}
 	
+	/**
+	 * Gets the repository id for this repository.
+	 * 
+	 * @return the repository id.
+	 */
 	public String getRepositoryID() {
 		return repositoryID;
 	}
@@ -51,10 +66,20 @@ public class AGRepository implements Repository {
 		return catalogPrefixedRepositoryID;
 	}
 	
+	/**
+	 * Gets the URL of this repository.
+	 * 
+	 * @return the URL of this repository.
+	 */
 	public String getRepositoryURL() {
 		return repositoryURL;
 	}
 	
+	/**
+	 * Returns true iff this repository is a federation.
+	 * 
+	 * @return true iff this repository is a federation.
+	 */
 	public boolean isFederation() {
 		return (AGCatalog.FEDERATED_CATALOG == getCatalog().getCatalogType());
 	}
@@ -74,10 +99,16 @@ public class AGRepository implements Repository {
 		return new AGRepositoryConnection(this);
 	}
 
+	/**
+	 * The dataDir is not currently applicable to AllegroGraph.
+	 */
 	public File getDataDir() {
 		return dataDir;
 	}
 
+	/**
+	 * Returns true iff this repository is writable.
+	 */
 	public boolean isWritable() throws RepositoryException {
 		String url = getCatalog().getRepositoriesURL();
 		TupleQueryResult tqresult = getHTTPClient().getTupleQueryResult(url);
@@ -107,6 +138,9 @@ public class AGRepository implements Repository {
         return result;
 	}
 
+	/**
+	 * The dataDir is not currently applicable to AllegroGraph. 
+	 */
 	public void setDataDir(File dataDir) {
 		// TODO: consider using this for client-side logging
 		this.dataDir = dataDir;

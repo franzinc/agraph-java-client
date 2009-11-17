@@ -12,10 +12,22 @@ import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.impl.AbstractQuery;
 
-
+/**
+ * An abstract query class common to Boolean, Graph and Tuple Queries.
+ * 
+ */
 public abstract class AGQuery extends AbstractQuery {
 
-	public static final String SPARQL_COVERAGE_PLANNER = "coverage";  // TODO confirm and add to protocol
+	/**
+	 * The default query planner for SPARQL.
+	 */
+	public static final String SPARQL_COVERAGE_PLANNER = "coverage";  // TODO add these to protocol
+	
+	/**
+	 * A query planner for SPARQL that processes queries without doing
+	 * and reordering of clauses or optimization, useful if the user
+	 * knows the best order for processing the query.
+	 */
 	public static final String SPARQL_IDENTITY_PLANNER = "identity";
 	
 	protected AGRepositoryConnection httpCon;
@@ -35,10 +47,20 @@ public abstract class AGQuery extends AbstractQuery {
 		this.baseURI = baseURI;
 	}
 
+	/**
+	 * Gets the query planner that processes the query.
+	 * 
+	 * @return the planner name.
+	 */
 	public String getPlanner() {
 		return planner;
 	}
 	
+	/**
+	 * Sets the query planner to use when processing the query.
+	 * 
+	 * @param planner the planner name.
+	 */
 	public void setPlanner(String planner) {
 		this.planner = planner;
 	}
