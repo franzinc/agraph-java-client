@@ -17,13 +17,28 @@ import org.openrdf.rio.helpers.StatementCollector;
 
 import com.franz.agraph.http.AGResponseHandler;
 
+/**
+ * Implements the Sesame GraphQuery interface for AllegroGraph.
+ * 
+ */
 public class AGGraphQuery extends AGQuery implements GraphQuery {
 
+	/**
+	 * Creates an AGGraphQuery instance for the given connection.
+	 * 
+	 * @param con the connection.
+	 * @param ql the query language.
+	 * @param queryString the query.
+	 * @param baseURI the base URI for the query.
+	 */
 	public AGGraphQuery(AGRepositoryConnection con, QueryLanguage ql,
 			String queryString, String baseURI) {
 		super(con, ql, queryString, baseURI);
 	}
 
+	/**
+	 * Evaluates the query and returns a GraphQueryResult.
+	 */
 	public GraphQueryResult evaluate() throws QueryEvaluationException {
 		try {
 			// TODO: make this efficient for large result sets
@@ -37,6 +52,9 @@ public class AGGraphQuery extends AGQuery implements GraphQuery {
 		}
 	}
 
+	/**
+	 * Evaluates the query and uses handler to process the result. 
+	 */
 	public void evaluate(RDFHandler handler) throws QueryEvaluationException,
 			RDFHandlerException {
 		try {

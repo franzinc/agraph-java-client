@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.franz.agraph.repository;
 
 import java.io.IOException;
@@ -13,13 +10,14 @@ import org.openrdf.repository.RepositoryException;
 import com.franz.agraph.http.AGHTTPClient;
 
 /**
- *
+ * Implements the Sesame ValueFactory interface for AllegroGraph.
+ * 
  */
 public class AGValueFactory extends ValueFactoryImpl {
 
 	private final AGRepository repository;
 	
-	private int blankNodeAmount = 10;
+	private int blankNodeAmount = 100;
 	private String[] blankNodeIds;
 	private int index = -1;
 	
@@ -29,10 +27,6 @@ public class AGValueFactory extends ValueFactoryImpl {
 		blankNodeIds = new String[blankNodeAmount];
 	}
 	
-	/*---------*
-	 * Methods *
-	 *---------*/
-
 	public AGRepository getRepository() {
 		return repository;
 	}
@@ -41,7 +35,6 @@ public class AGValueFactory extends ValueFactoryImpl {
 		return getRepository().getHTTPClient();
 	}
 	
-
 	private void getBlankNodeIds() {
 		try {
 			blankNodeIds = getHTTPClient().getBlankNodes(getRepository().getRepositoryURL(),blankNodeAmount);

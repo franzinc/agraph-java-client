@@ -1,18 +1,16 @@
-/**
- * 
- */
 package com.franz.agraph.repository;
 
 import info.aduna.iteration.CloseableIteratorIteration;
+import info.aduna.iteration.Iteration;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONArray;
+import org.openrdf.OpenRDFUtil;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Namespace;
 import org.openrdf.model.Resource;
@@ -34,12 +32,12 @@ import org.openrdf.rio.RDFHandler;
 import org.openrdf.rio.RDFHandlerException;
 import org.openrdf.rio.RDFParseException;
 import org.openrdf.rio.helpers.StatementCollector;
-import org.openrdf.rio.ntriples.NTriplesWriter;
+import org.openrdf.rio.ntriples.NTriplesUtil;
 
 import com.franz.agraph.http.AGHttpRepoClient;
 
 /**
- * Implements the RepositoryConnection interface for AllegroGraph.
+ * Implements the Sesame RepositoryConnection interface for AllegroGraph.
  */
 public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		RepositoryConnection {
@@ -75,30 +73,45 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	@Override
 	protected void addWithoutCommit(Resource subject, URI predicate,
 			Value object, Resource... contexts) throws RepositoryException {
-		/*try {
-			getHttpRepoClient().addStatements(subject, predicate, object, contexts);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
-		}*/
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		NTriplesWriter writer = new NTriplesWriter(out);
-		try {
-			writer.startRDF();
-			writer
-					.handleStatement(new StatementImpl(subject, predicate,
-							object));
-			writer.endRDF();
-			InputStream in = new ByteArrayInputStream(out.toByteArray());
-			// TODO: check whether using NTriples is lossy
-			addInputStreamOrReader(in, null, RDFFormat.NTRIPLES, contexts);
-		} catch (RDFHandlerException e) {
-			throw new RepositoryException(e);
-		} catch (RDFParseException e) {
-			// found a bug?
-			throw new RuntimeException(e);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
+		Statement st = new StatementImpl(subject, predicate, object);
+		JSONArray rows = new JSONArray().put(encodeJSON(st,contexts));
+		getHttpRepoClient().uploadJSON(rows,contexts);
+	}
+
+	@Override
+	public void add(Iterable<? extends Statement> statements,
+			Resource... contexts) throws RepositoryException {
+		OpenRDFUtil.verifyContextNotNull(contexts);
+		JSONArray rows=new JSONArray();
+		for (Statement st : statements) {
+				JSONArray row = encodeJSON(st, contexts);
+			rows.put(row);
 		}
+		getHttpRepoClient().uploadJSON(rows, contexts);
+	}
+
+	@Override
+	public <E extends Exception> void add(Iteration<? extends Statement, E> statementIter,
+			Resource... contexts)
+	throws RepositoryException, E
+	{
+		OpenRDFUtil.verifyContextNotNull(contexts);
+		JSONArray rows=new JSONArray();
+		while (statementIter.hasNext()) {
+			rows.put(encodeJSON(statementIter.next(), contexts));
+		}
+		getHttpRepoClient().uploadJSON(rows, contexts);
+	}
+	
+	private JSONArray encodeJSON(Statement st, Resource... contexts) {
+		JSONArray row = new JSONArray().put(
+			NTriplesUtil.toNTriplesString(st.getSubject())).put(
+			NTriplesUtil.toNTriplesString(st.getPredicate())).put(
+			NTriplesUtil.toNTriplesString(st.getObject()));
+		if (contexts.length == 0 && st.getContext() != null) {
+			row.put(NTriplesUtil.toNTriplesString(st.getContext()));
+		}
+		return row;
 	}
 
 	@Override
@@ -286,7 +299,7 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	@Override
 	public AGTupleQuery prepareTupleQuery(QueryLanguage ql, String queryString,
 			String baseURI) {
-		// TODO: consider having the server parse and process the query, 
+		// TODO: consider having the server parse and process the query,
 		// throw MalformedQueryException, etc.
 		return new AGTupleQuery(this, ql, queryString, baseURI);
 	}
@@ -295,24 +308,25 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	public AGGraphQuery prepareGraphQuery(QueryLanguage ql, String queryString) {
 		return prepareGraphQuery(ql, queryString, null);
 	}
-	
+
 	@Override
 	public AGGraphQuery prepareGraphQuery(QueryLanguage ql, String queryString,
 			String baseURI) {
-		// TODO: consider having the server parse and process the query, 
+		// TODO: consider having the server parse and process the query,
 		// throw MalformedQueryException, etc.
 		return new AGGraphQuery(this, ql, queryString, baseURI);
 	}
 
 	@Override
-	public AGBooleanQuery prepareBooleanQuery(QueryLanguage ql, String queryString) {
+	public AGBooleanQuery prepareBooleanQuery(QueryLanguage ql,
+			String queryString) {
 		return prepareBooleanQuery(ql, queryString, null);
 	}
-	
+
 	@Override
 	public AGBooleanQuery prepareBooleanQuery(QueryLanguage ql,
 			String queryString, String baseURI) {
-		// TODO: consider having the server parse and process the query, 
+		// TODO: consider having the server parse and process the query,
 		// throw MalformedQueryException, etc.
 		return new AGBooleanQuery(this, ql, queryString, baseURI);
 	}
@@ -338,69 +352,173 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	 * AllegroGraph Extensions hereafter
 	 */
 
+	/**
+	 * Registers a predicate for free text indexing.  Once registered,
+	 * the objects of data added to the repository having this predicate
+	 * will be text indexed and searchable.  
+	 */
 	public void registerFreetextPredicate(URI predicate)
 			throws RepositoryException {
 		getHttpRepoClient().registerFreetextPredicate(predicate);
 	}
 
 	// TODO: return RepositoryResult<URI>?
+	/**
+	 * Gets the predicates that have been registered for text indexing.
+	 */
 	public String[] getFreetextPredicates() throws RepositoryException {
 		return getHttpRepoClient().getFreetextPredicates();
 	}
 
+	/**
+	 * Registers a predicate mapping from the predicate to a primitive datatype.
+	 * This can be useful in speeding up query performance and enabling range
+	 * queries over datatypes.  
+	 * 
+	 * Once registered, the objects of any data added via this connection that
+	 * have this predicate will be mapped to the primitive datatype.
+	 * 
+	 * For example, registering that predicate <http://example.org/age> is
+	 * mapped to XMLSchema.INT and adding the triple:
+	 * 
+	 * <http://example.org/Fred> <http://example.org/age> "24"
+	 * 
+	 * will result in the object being treated as having datatype "24"^^xsd:int.
+	 * 
+	 * @param predicate the predicate 
+	 * @param primtype
+	 * @throws RepositoryException
+	 */
 	public void registerPredicateMapping(URI predicate, URI primtype)
 			throws RepositoryException {
 		getHttpRepoClient().registerPredicateMapping(predicate, primtype);
 	}
 
+	/**
+	 * Deletes any predicate mapping associated with the given predicate.
+	 * 
+	 * @param predicate the predicate
+	 * @throws RepositoryException
+	 */
 	public void deletePredicateMapping(URI predicate)
-	throws RepositoryException {
+			throws RepositoryException {
 		getHttpRepoClient().deletePredicateMapping(predicate);
 	}
-	
+
 	// TODO: return RepositoryResult<Mapping>?
+	/**
+	 * Gets the predicate mappings defined for this connection.
+	 */
 	public String[] getPredicateMappings() throws RepositoryException {
 		return getHttpRepoClient().getPredicateMappings();
 	}
 
 	// TODO: are all primtypes available as URI constants?
+	/**
+	 * Registers a datatype mapping from the datatype to a primitive datatype.
+	 * This can be useful in speeding up query performance and enabling range
+	 * queries over user datatypes.  
+	 * 
+	 * Once registered, the objects of any data added via this connection that
+	 * have this datatype will be mapped to the primitive datatype.
+	 * 
+	 * For example, registering that datatype <http://example.org/usertype> is
+	 * mapped to XMLSchema.INT and adding the triple:
+	 * 
+	 * <http://example.org/Fred> <http://example.org/age> "24"^^<http://example.org/usertype>
+	 *  
+	 * will result in the object being treated as having datatype "24"^^xsd:int.
+	 * 
+	 * @param datatype the user datatype
+	 * @param primtype the primitive type
+	 * @throws RepositoryException
+	 */
 	public void registerDatatypeMapping(URI datatype, URI primtype)
 			throws RepositoryException {
 		getHttpRepoClient().registerDatatypeMapping(datatype, primtype);
 	}
 
-	public void deleteDatatypeMapping(URI datatype)
-	throws RepositoryException {
+	/**
+	 * Deletes any datatype mapping associated with the given datatype.
+	 * 
+	 * @param datatype the user datatype
+	 * @throws RepositoryException
+	 */
+	public void deleteDatatypeMapping(URI datatype) throws RepositoryException {
 		getHttpRepoClient().deleteDatatypeMapping(datatype);
 	}
-	
+
 	// TODO: return RepositoryResult<Mapping>?
+	/**
+	 * Gets the datatype mappings defined for this connection.
+	 */
 	public String[] getDatatypeMappings() throws RepositoryException {
 		return getHttpRepoClient().getDatatypeMappings();
 	}
 
+	/**
+	 * Deletes all predicate and datatype mappings for this connection.
+	 *  
+	 * @throws RepositoryException
+	 */
 	public void clearMappings() throws RepositoryException {
 		getHttpRepoClient().clearMappings();
 	}
-	
+
+	/**
+	 * Adds Prolog rules to be used on this connection.
+	 * 
+	 * @param rules a string of rules.
+	 * @throws RepositoryException
+	 */
 	public void addRules(String rules) throws RepositoryException {
 		getHttpRepoClient().addRules(rules);
 	}
 
 	// TODO: specify RuleLanguage
+	/**
+	 * Adds Prolog rules to be used on this connection.
+	 * 
+	 * @param rulestream a stream of rules.
+	 * @throws RepositoryException
+	 */
 	public void addRules(InputStream rulestream) throws RepositoryException {
 		getHttpRepoClient().addRules(rulestream);
 	}
 
+	/**
+	 * Evaluates a Lisp form on the server, and returns the result as a String.
+	 * 
+	 * @param lispForm the Lisp form to evaluate, in a String.
+	 * @return the result in a String.
+	 * @throws RepositoryException
+	 */
 	public String evalInServer(String lispForm) throws RepositoryException {
 		return getHttpRepoClient().evalInServer(lispForm);
 	}
 
+	/**
+	 * Evaluates a Lisp form on the server, and returns the result as a String.
+	 * 
+	 * @param stream the Lisp form to evaluate, in a stream.
+	 * @return the result in a String.
+	 * @throws RepositoryException
+	 */
 	public String evalInServer(InputStream stream) throws RepositoryException {
 		return getHttpRepoClient().evalInServer(stream);
 	}
-	
-	public void load(URI source, String baseURI, RDFFormat dataFormat, Resource... contexts) throws RepositoryException {
+
+	/**
+	 * Instructs the server to fetch and load data from the specified URI.
+	 * 
+	 * @param source the URI to fetch and load.
+	 * @param baseURI the base URI for the source document.
+	 * @param dataFormat the RDF data format for the source document. 
+	 * @param contexts zero or more contexts into which data will be loaded.
+	 * @throws RepositoryException
+	 */
+	public void load(URI source, String baseURI, RDFFormat dataFormat,
+			Resource... contexts) throws RepositoryException {
 		try {
 			getHttpRepoClient().load(source, baseURI, dataFormat, contexts);
 		} catch (RDFParseException e) {
@@ -409,17 +527,36 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 			throw new RepositoryException(e);
 		}
 	}
-	
-	public void load(String absoluteServerPath, String baseURI, RDFFormat dataFormat, Resource... contexts) throws RepositoryException {
+
+	/**
+	 * Instructs the server to load data from the specified server-side path.
+	 * 
+	 * @param absoluteServerPath the path to the server-side source file. 
+	 * @param baseURI  the base URI for the source document.
+	 * @param dataFormat the RDF data format for the source document. 
+	 * @param contexts zero or more contexts into which data will be loaded.
+	 * @throws RepositoryException
+	 */
+	public void load(String absoluteServerPath, String baseURI,
+			RDFFormat dataFormat, Resource... contexts)
+			throws RepositoryException {
 		try {
-			getHttpRepoClient().load(absoluteServerPath, baseURI, dataFormat, contexts);
+			getHttpRepoClient().load(absoluteServerPath, baseURI, dataFormat,
+					contexts);
 		} catch (RDFParseException e) {
 			throw new RepositoryException(e);
 		} catch (IOException e) {
 			throw new RepositoryException(e);
 		}
 	}
-	
+
+	/**
+	 * Instructs the server to extend the life of this connection's dedicated
+	 * session, if it is using one.  Such connections that are idle for 3600 
+	 * seconds will be closed by the server.
+	 *   
+	 * @throws RepositoryException
+	 */
 	public void ping() throws RepositoryException {
 		getHttpRepoClient().ping();
 	}

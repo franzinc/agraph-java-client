@@ -15,6 +15,14 @@ import com.franz.agraph.http.AGHTTPClient;
 import com.franz.agraph.http.AGHttpException;
 import com.franz.agraph.http.AGProtocol;
 
+/**
+ * Implements the notion of a catalog in an AllegroGraph server. 
+ * 
+ * A catalog is a grouping of repositories.  The root catalog is the 
+ * default, unnamed catalog that is available with every server.  It
+ * is also possible to create any number of named catalogs.  There is 
+ * also a special catalog that groups federations in the server.
+ */
 public class AGCatalog {
 
 	private AGServer server;
@@ -27,6 +35,13 @@ public class AGCatalog {
 	public static final int FEDERATED_CATALOG = 1;
 	public static final int NAMED_CATALOG = 2;
 
+	/**
+	 * Creates an AGCatalog instance for a named catalog having catalogName
+	 * in the given server.
+	 * 
+	 * @param server the server housing this named catalog.
+	 * @param catalogName the name for this named catalog.
+	 */
 	public AGCatalog(AGServer server, String catalogName) {
 		this.server = server;
 		this.catalogName = catalogName;
@@ -35,6 +50,13 @@ public class AGCatalog {
 		repositoriesURL = AGProtocol.getNamedCatalogRepositoriesLocation(catalogURL);
 	}
 
+	/**
+	 * Creates an AGCatalog instance for a special catalog in the given server,
+	 * either the root catalog or the federated catalog.
+	 * 
+	 * @param server the server housing the catalog.
+	 * @param catalogType the type of the special catalog.
+	 */
 	public AGCatalog(AGServer server, int catalogType) {
 		switch (catalogType) {
 		case ROOT_CATALOG:
@@ -54,22 +76,48 @@ public class AGCatalog {
 		this.catalogType = catalogType;
 	}
 
+	/**
+	 * Returns the AGServer instance for this catalog.
+	 *  
+	 * @return the AGServer instance for this catalog.
+	 */
 	public AGServer getServer() {
 		return server;
 	}
 
+	/**
+	 * Returns the name of this catalog.  The root and federated catalog
+	 * also have names, "/" and "federated", respectively.
+	 * 
+	 * @return the name of this catalog.
+	 */
 	public String getCatalogName() {
 		return catalogName;
 	}
 
+	/**
+	 * Returns the type of this catalog.
+	 * 
+	 * @return the type of this catalog.
+	 */
 	public int getCatalogType() {
 		return catalogType;
 	}
 	
+	/**
+	 * Returns the URL of this catalog.
+	 * 
+	 * @return the URL of this catalog.
+	 */
 	public String getCatalogURL() {
 		return catalogURL;
 	}
 
+	/**
+	 * Returns the URL for accessing the repositories of this catalog.
+	 * 
+	 * @return the URL for accessing the repositories of this catalog.
+	 */
 	public String getRepositoriesURL() {
 		return repositoriesURL;
 	}
@@ -95,6 +143,12 @@ public class AGCatalog {
 		return repositoriesURL + "/" + repositoryID;
 	}
 	
+	/**
+	 * Returns a List of repository ids contained in this catalog.
+	 * 
+	 * @return a List of repository ids contained in this catalog.
+	 * @throws OpenRDFException
+	 */
 	public List<String> listRepositories() throws OpenRDFException {
 		String url = getRepositoriesURL();
 		TupleQueryResult tqresult = getHTTPClient().getTupleQueryResult(url);
@@ -116,9 +170,14 @@ public class AGCatalog {
 	}
 
 	/**
+	 * Returns an uninitialized AGRepository instance for the given 
+	 * repository id.
 	 * 
-	 * @param repositoryID
-	 * @return an uninitialized AGRepository
+	 * The repository is created if it does not exist.  If the
+	 * repository already exists, it is simply opened. 
+	 * 
+	 * @param repositoryID the id (the name) of the repository. 
+	 * @return an uninitialized AGRepository instance.
 	 * @throws RepositoryException
 	 */
 	public AGRepository createRepository(String repositoryID)
@@ -141,6 +200,12 @@ public class AGCatalog {
 		return new AGRepository(this, repositoryID);
 	}
 
+	/**
+	 * Deletes the repository with the given repository id.
+	 * 
+	 * @param repositoryID the name of the repository to delete.
+	 * @throws RepositoryException
+	 */
 	public void deleteRepository(String repositoryID)
 			throws RepositoryException {
 		String repoURL = AGProtocol.getRepositoryLocation(getCatalogURL(),
