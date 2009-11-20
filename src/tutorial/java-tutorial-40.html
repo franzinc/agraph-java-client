@@ -37,8 +37,8 @@ creating, querying and maintaining RDF data, and for managing the stored triples
     <td width="249"><ul>
       <li><a href="#Overview">Overview</a></li>
 <!--      <li><a href="#PrerequisitesWindows">Prerequisites (Windows)</a> </li>
-      <li><a href="#PrerequisitesLinux">Prerequisites (Linux)</a></li>
--->      <li><a href="#Terminology">Terminology</a></li>
+-->      <li><a href="#PrerequisitesLinux">Prerequisites (Linux)</a></li>
+      <li><a href="#Terminology">Terminology</a></li>
       <li><a href="#Creating a Repository">Creating a Repository</a></li>
       <li><a href="#Asserting and Retracting Triples">Asserting and Retracting Triples</a></li>
       <li><a href="#A SPARQL Query">A SPARQL Query</a></li>
@@ -132,54 +132,9 @@ In Windows XP, you can set an environment variable by
   <li>Start the ActivePython 2.5 PythonWin editor. Navigate this path:  <strong>Start</strong> button &gt; Programs &gt; ActiveState ActivePython 2.5 &gt;  PythonWin Editor. </li>
   <li>In the PythonWin editor, open the File menu, select Run, and browse to the location of the tutorial_examples_40.java file. It will be in the AllegroGraph\python subdirectory. Run this file. This loads and runs the Python tutorial examples.</li>
 </ol>
-<h2 id="PrerequisitesLinux">Prerequisites (Linux) &nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
-<p>The tutorial examples can be run on a Linux system, running AllegroGraph and Python on the same computer (&quot;localhost&quot;). The tutorial assumes that AllegroGraph and Python 2.5 have been installed and configured using this procedure:</p>
-<ol>
-  <li> There are two Linux versions of AllegroGraph: 32-bit (x86) and 64-bit (x86-64). This example uses the 64-bit version. AllegroGraph is distributed both as an RPM and a tar.gz file. This example uses the RPM file.&nbsp; <a href="http://www.franz.com/agraph/downloads/">Download the appropriate AllegroGraph Free Server Edition </a> as directed by <a href="mailto:support@franz.com">Franz customer support</a>. In this example, the file was agraph-4.0-1.x86_64.rpm. </li>
-  <li>
-    Use the Red Hat Package Manager (RPM) to install the AllegroGraph package.
-     
-<pre class="input"># rpm -i agraph-4.0-1.x86_64.rpm
-</pre>
-  </li>
-  <li>
-     Set up AllegroGraph as a service that runs automatically at startup.
-     
-       <pre class="input"># chkconfig --add agraph</pre>
-  </li>
-  <li>Start the AllegroGraph service.<br>
-    <pre class="input"># service agraph start</pre>
-  </li>
-  <li> Edit the agraph.cfg configuration file. 
-
-
- You'll find it in the agraph-fje-4.0 subdirectory.&nbsp; The rpm's default <br>
-&nbsp;&nbsp;&nbsp; location for this subdirectory is &quot;/usr/lib/agraph-fje-4.0&quot;.  Set the following parameters to the indicated values.
-      <pre>       :new-http-port 8080
-       :new-http-catalog ("/tmp/scratch")
-       :client-prolog t</pre>
-  </li>
-  <li>You'll have to restart the AllegroGraph Server to force it to load the edited configuration file. <br>
-    <pre class="input"># service agraph restart</pre>
-  </li>
-  <li>If Python is not pre-installed on your Linux system, you'll have to download and install it as a module. See the Python <a href="http://www.python.org/download/">download page.</a> </li>
-  <li>AllegroGraph requires the Python cjson and pycurl libraries. 
-
-
- Please see your distributions documentation on how to install these libraries.&nbsp; On a redhat-based distribution you can use the following: <br>
-    <pre class="input"># yum install python-cjson python-pycurl</pre>
-    or 
-
-
- on a debian based system:<br>
-    <pre class="input"># apt-get install python-cjson python-pycurl</pre>
-  If your distribution does not offer these libraries then installation from source is recommended. </li>
-  <li>To test the installation, navigate to the /agraph-fje-4.0/python/ directory and run the tutorial file.<br>
-    <pre class="input"># python tutorial_examples_40.java</pre>
-    The command window will fill with output from the example functions described below. 
-  </li>
-</ol> 
 -->
+<h2 id="PrerequisitesLinux">Prerequisites (Linux) &nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
+<p>The tutorial examples can be run on a Linux system, running AllegroGraph and the examples on the same computer (&quot;localhost&quot;). The tutorial assumes that AllegroGraph has been installed and configured using the procedure posted on <a href="http://www.franz.com/agraph/support/documentation/4.0m1/server-installation.html">this webpage</a>. </p>
 <h2 id="Terminology">Terminology&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>We need to clarify some terminology before proceeding. </p>
 <ul>
@@ -479,7 +434,7 @@ an NTriples file, and <strong>addFile()</strong> to load  an RDF/XML file. Both 
 <pre class="input">    public static AGRepositoryConnection example6() throws Exception {<br>        AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);<br>        AGCatalog catalog = server.getCatalog(CATALOG_ID);<br>        AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);<br>        myRepository.initialize();<br>        AGRepositoryConnection conn = myRepository.getConnection();<br>        closeBeforeExit(conn);<br>        conn.clear();<br>        conn.setAutoCommit(false);  // transaction session<br>        ValueFactory f = myRepository.getValueFactory();</pre>
 <p>The transaction session is not immediately pertinent to the examples in this section, but will become important in later examples that reuse this connection to demonstrate <a href="#Prolog Rule Queries">Prolog Rules</a> and <a href="#Social Network Analysis">Social Network Analysis</a>. </p>
 <p>The variables path1 and path2 are bound to the RDF/XML and NTriples files, respectively. You may have to redefine these paths depending on your platform and how you have set up the project. The data files are in the same directory as TutorialExamples.java.</p>
-<pre class="input">        String path1 = &quot;src/vc-db-1.rdf&quot;;    <br>        String path2 = &quot;src/kennedy.ntriples&quot;;   </pre>
+<pre class="input">        String path1 = &quot;src/java-vcards.rdf&quot;;    <br>        String path2 = &quot;src/java-kennedy.ntriples&quot;;   </pre>
 <p>Both examples need a base URI as one of the required arguments to the asserting methods: </p>
 <pre class="input">        String baseURI = &quot;http://example.org/example/local&quot;;</pre>
 <p>The NTriples about the vcards will be added to a specific context, so naturally we need a URI to identify that context. </p>
@@ -492,12 +447,12 @@ an NTriples file, and <strong>addFile()</strong> to load  an RDF/XML file. Both 
 <pre class="input">        println(&quot;After loading, repository contains &quot; + conn.size(context) +<br>                &quot; vcard triples in context '&quot; + context + &quot;'\n    and   &quot; +<br>                conn.size((Resource)null) + &quot; kennedy triples in context 'null'.&quot;);</pre>
 <p>The output of this report was:</p>
 <pre class="output">After loading, repository contains 16 vcard triples in context 'http://example.org#vcards'<br>    and   1214 kennedy triples in context 'null'.</pre>
-<p><strong>example7()</strong> borrows the same triples we loaded in example6(), above, and runs two unconstrained retrievals. The first uses getStatement, and prints out the subject URI and context of each triple. </p>
+<p><strong>Example7()</strong> borrows the same triples we loaded in example6(), above, and runs two unconstrained retrievals. The first uses getStatement, and prints out the subject URI and context of each triple. </p>
 <pre class="input">    public static void example7() throws Exception {<br>        RepositoryConnection conn = example6(false);<br>        println(&quot;\nMatch all and print subjects and contexts&quot;);<br>        RepositoryResult&lt;Statement&gt; result = conn.getStatements(null, null, null, false);<br>        for (int i = 0; i &lt; 25 &amp;&amp; result.hasNext(); i++) {<br>            Statement stmt = result.next();<br>            println(stmt.getSubject() + &quot;  &quot; + stmt.getContext());<br>        }<br>        result.close();</pre>
 <p>This loop prints out a mix of triples from the null context and from the #vcards context. In this case the output contained the 16 v-card triples plus another nine from the Kennedy data. We set a limit of 25 triples on the output because the Kennedy dataset contains over a thousand triples. </p>
-<p>The following loop, however, does not produce the same results. This is a SPARQL query that should match all available triples, printing out the subject and context of each triple: </p>
-<pre class="input">        println(&quot;\nSame thing with SPARQL query (can't retrieve triples in the null context)&quot;);<br>        String queryString = &quot;SELECT ?s ?c WHERE {graph ?c {?s ?p ?o .} }&quot;;<br>        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);<br>        TupleQueryResult qresult = tupleQuery.evaluate();       <br>        while (qresult.hasNext()) {<br>            BindingSet bindingSet = qresult.next();<br>            println(bindingSet.getBinding(&quot;s&quot;) + &quot;  &quot; + bindingSet.getBinding(&quot;c&quot;));<br>        }<br>        qresult.close();<br>        conn.close();</pre>
-<p>In this case, the loop prints out only the sixteen v-card triples from the #vcards context. The SPARQL query is not able to access the null context when a named context is also present. </p>
+<p>The following loop, however, does not produce the same results. This is a SPARQL query that should match all available triples, printing out the subject and context of each triple. We limited this query by using the DISTINCT keyword. Otherwise there would be many duplicate results. </p>
+<pre class="input">        println(&quot;\nSame thing with SPARQL query (can't retrieve triples in the null context)&quot;);<br>        String queryString = &quot;SELECT DISTINCT ?s ?c WHERE {graph ?c {?s ?p ?o .} }&quot;;<br>        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);<br>        TupleQueryResult qresult = tupleQuery.evaluate();       <br>        while (qresult.hasNext()) {<br>            BindingSet bindingSet = qresult.next();<br>            println(bindingSet.getBinding(&quot;s&quot;) + &quot;  &quot; + bindingSet.getBinding(&quot;c&quot;));<br>        }<br>        qresult.close();<br>        conn.close();</pre>
+<p>In this case, the loop prints out only v-card triples from the #vcards context. The SPARQL query is not able to access the null context when a named context is also present. </p>
 <h2 id="Exporting Triples">Exporting Triples (example8() and example9()) &nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>The next examples show how to write triples out to a file in either NTriples format or RDF/XML format. The output of either format may be optionally redirected to standard output (the Java command window) for inspection.</p>
 <p>Example example8() begins by obtaining a connection object from example6(). This means the repository contains v-card triples in the <strong>#vcards</strong> context, and Kennedy family tree triples in the<strong> null </strong>context (the default graph). </p>
@@ -1263,7 +1218,7 @@ Number of cliques: 2
 <pre class="input">    public static void example22() throws Exception {<br>        AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);<br>        AGCatalog catalog = server.getCatalog(CATALOG_ID);<br>        AGRepository myRepository = catalog.createRepository(&quot;agraph_test&quot;);<br>        myRepository.initialize();<br>        AGValueFactory vf = myRepository.getValueFactory();<br>        // Create conn1 (autoCommit) and conn2 (no autoCommit).<br>        AGRepositoryConnection conn1 = myRepository.getConnection();<br>        closeBeforeExit(conn1);<br>        conn1.clear();<br>        AGRepositoryConnection conn2 = myRepository.getConnection();<br>        closeBeforeExit(conn2);<br>        conn2.clear();<br>        conn2.setAutoCommit(false);</pre>
 <p>In this example,<strong> conn1</strong> is the auto-commit session, and <strong>conn2</strong> will be used for transactions. </p>
 <p>We'll reuse the Kennedy and Les Miserables data. The Les Miserables data goes in the auto-commit session, and the Kennedy data goes in the transaction session. </p>
-<pre class="input">        String baseURI = &quot;http://example.org/example/local&quot;;<br>        conn1.add(new File(&quot;src/tutorial/lesmis.rdf&quot;), baseURI, RDFFormat.RDFXML);<br>        println(&quot;Loaded &quot; + conn1.size() + &quot; lesmis.rdf triples into conn1.&quot;);<br>        conn2.add(new File(&quot;src/tutorial/kennedy.ntriples&quot;), baseURI, RDFFormat.NTRIPLES);<br>        println(&quot;Loaded &quot; + conn2.size() + &quot; kennedy.ntriples into conn2.&quot;);</pre>
+<pre class="input">        String baseURI = &quot;http://example.org/example/local&quot;;<br>        conn1.add(new File(&quot;src/tutorial/java-lesmis.rdf&quot;), baseURI, RDFFormat.RDFXML);<br>        println(&quot;Loaded &quot; + conn1.size() + &quot; java-lesmis.rdf triples into conn1.&quot;);<br>        conn2.add(new File(&quot;src/tutorial/java-kennedy.ntriples&quot;), baseURI, RDFFormat.NTRIPLES);<br>        println(&quot;Loaded &quot; + conn2.size() + &quot; java-kennedy.ntriples into conn2.&quot;);</pre>
 <p>The two sessions should now have independent content. When we look in the auto-commit session we should see only Les Miserables triples. The transaction session could contain only Kennedy triples. We set up a series of simple tests similar to this one:</p>
 <pre class="input">        Literal valjean = vf.createLiteral(&quot;Valjean&quot;);<br>        Literal kennedy = vf.createLiteral(&quot;Kennedy&quot;);<br>        printRows(&quot;\nUsing getStatements() on conn1 should find Valjean:&quot;,<br>                1, conn1.getStatements(null, null, valjean, false));</pre>
 <p>This test looks for our friend Valjean in the auto-commit session. He should be there. This is the output:</p>
@@ -1288,7 +1243,7 @@ Number of cliques: 2
 <pre class="output">Using getStatements() on conn2 should find Valjean:<br>(http://www.franz.com/lesmis#character11, http://purl.org/dc/elements/1.1/title, &quot;Valjean&quot;) [null]<br>Number of results: 1</pre>
 <p>The rollback has succeeded in deleting the uncommitted triples from the transaction session. It has also refreshed or resynched the transaction session with the auto-commit session.</p>
 <p>To set up the next test, we have to reload the Kennedy triples. Then we'll perform a commit.  </p>
-<pre class="input">        println(&quot;\nReload 1214 kennedy.ntriples into conn2.&quot;);<br>        conn2.add(new File(&quot;src/tutorial/kennedy.ntriples&quot;), baseURI, RDFFormat.NTRIPLES);<br>        println(&quot;\nCommitting contents of conn2.&quot;);<br>        conn2.commit();</pre>
+<pre class="input">        println(&quot;\nReload 1214 java-kennedy.ntriples into conn2.&quot;);<br>        conn2.add(new File(&quot;src/tutorial/java-kennedy.ntriples&quot;), baseURI, RDFFormat.NTRIPLES);<br>        println(&quot;\nCommitting contents of conn2.&quot;);<br>        conn2.commit();</pre>
 <p>This should make both types of triples visible in both sessions. Here are the four tests:</p>
 <pre class="output">Using getStatements() on conn1 should find Valjean:
 (http://www.franz.com/lesmis#character11, http://purl.org/dc/elements/1.1/title, "Valjean") [null]

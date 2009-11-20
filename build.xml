@@ -30,7 +30,7 @@
 
     <target name="compile" depends="init"
             description="Compile Java sources.">
-        <javac srcdir="${src}" destdir="${build}"
+        <javac srcdir="${src}" destdir="${build}" encoding="utf8"
                debug="true"
                includes="com/franz/agraph/repository/*.java
                          tutorial/TutorialExamples.java
