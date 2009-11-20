@@ -126,7 +126,7 @@ public class AGProtocol extends Protocol {
 	public static final String FTI_PREDICATES = "predicates";
 	
 	/**
-	 * Parameter name for the 'on' parameter of autoCommit.
+	 * Parameter name for the 'predicate' parameter for freetext.
 	 */
 	public static final String FTI_PREDICATE_PARAM_NAME = "predicate";
 	
@@ -174,7 +174,146 @@ public class AGProtocol extends Protocol {
 	 * Parameter name for the 'planner' to use during a query
 	 */
 	public static final String PLANNER_PARAM_NAME = "planner";
+		
+	/**
+	 * Relative location of the Geo service.
+	 */
+	public static final String GEO = "geo";
 	
+	/**
+	 * Relative location of the Geo Types service.
+	 */
+	public static final String TYPES = "types";
+	
+	/**
+	 * Relative location of the Geo Types Cartesian service.
+	 */
+	public static final String CARTESIAN = "cartesian";
+	
+	/**
+	 * Relative location of the Geo Types Spherical service.
+	 */
+	public static final String SPHERICAL = "spherical";
+	
+	/**
+	 * Parameter name for the 'stripWidth' of a Geo type
+	 */
+	public static final String STRIP_WIDTH_PARAM_NAME = "stripWidth";
+	
+	/**
+	 * Parameter name for the 'xmin' of a Geo type
+	 */
+	public static final String XMIN_PARAM_NAME = "xmin";
+	
+	/**
+	 * Parameter name for the 'xmax' of a Geo type
+	 */
+	public static final String XMAX_PARAM_NAME = "xmax";
+	
+	/**
+	 * Parameter name for the 'ymin' of a Geo type
+	 */
+	public static final String YMIN_PARAM_NAME = "ymin";
+	
+	/**
+	 * Parameter name for the 'ymax' of a Geo type
+	 */
+	public static final String YMAX_PARAM_NAME = "ymax";
+	
+	/**
+	 * Parameter name for the 'latmin' of a Geo type
+	 */
+	public static final String LATMIN_PARAM_NAME = "latmin";
+	
+	/**
+	 * Parameter name for the 'longmin' of a Geo type
+	 */
+	public static final String LONGMIN_PARAM_NAME = "longmin";
+	
+	/**
+	 * Parameter name for the 'latmax' of a Geo type
+	 */
+	public static final String LATMAX_PARAM_NAME = "latmax";
+	
+	/**
+	 * Parameter name for the 'longmax' of a Geo type
+	 */
+	public static final String LONGMAX_PARAM_NAME = "longmax";
+	
+	/**
+	 * Parameter name for the 'unit' of a Geo type
+	 */
+	public static final String UNIT_PARAM_NAME = "unit";
+	
+	/**
+	 * Parameter value 'degree' for the 'unit' of a Geo type
+	 */
+	public static final String DEGREE_PARAM_VALUE = "degree";
+	
+	/**
+	 * Parameter value 'radian' for the 'unit' of a Geo type
+	 */
+	public static final String RADIAN_PARAM_VALUE = "radian";
+	
+	/**
+	 * Parameter value 'km' for the 'unit' of a Geo type
+	 */
+	public static final String KM_PARAM_VALUE = "km";
+	
+	/**
+	 * Parameter value 'mile' for the 'unit' of a Geo type
+	 */
+	public static final String MILE_PARAM_VALUE = "mile";
+	
+	/**
+	 * Parameter name for the 'limit' on results returned.
+	 */
+	public static final String LIMIT_PARAM_NAME = "limit";
+	
+	/**
+	 * Relative location of the Geo Box service.
+	 */
+	public static final String BOX = "box";
+	
+	/**
+	 * Parameter name for the 'predicate' to search for in geo searches.
+	 */
+	public static final String GEO_PREDICATE_PARAM_NAME = "predicate";
+	
+	/**
+	 * Relative location of the Geo Circle service.
+	 */
+	public static final String CIRCLE = "circle";
+	
+	/**
+	 * Parameter name for the 'x' ordinate of a circle
+	 */
+	public static final String X_PARAM_NAME = "x";
+	
+	/**
+	 * Parameter name for the 'y' ordinate of a circle
+	 */
+	public static final String Y_PARAM_NAME = "y";
+	
+	/**
+	 * Parameter name for the 'radius' of a circle
+	 */
+	public static final String RADIUS_PARAM_NAME = "radius";
+	
+	/**
+	 * Relative location of the Geo Haversine service.
+	 */
+	public static final String HAVERSINE = "haversine";
+	
+	/**
+	 * Parameter name for the 'lat' ordinate of a haversine
+	 */
+	public static final String LAT_PARAM_NAME = "lat";
+	
+	/**
+	 * Parameter name for the 'lon' ordinate of a haversine
+	 */
+	public static final String LON_PARAM_NAME = "lon";
 	
 	/**
 	 * Location of the root catalog service
@@ -277,6 +416,34 @@ public class AGProtocol extends Protocol {
 
 	public static String getEvalLocation(String sessionRoot) {
 		return sessionRoot + "/" + EVAL;
+	}
+
+	public static String getGeoLocation(String sessionRoot) {
+		return sessionRoot + "/" + GEO;
+	}
+	
+	public static String getGeoTypesLocation(String sessionRoot) {
+		return getGeoLocation(sessionRoot) + "/" + TYPES;
+	}
+	
+	public static String getGeoTypesCartesianLocation(String sessionRoot) {
+		return getGeoTypesLocation(sessionRoot) + "/" + CARTESIAN;
+	}
+	
+	public static String getGeoTypesSphericalLocation(String sessionRoot) {
+		return getGeoTypesLocation(sessionRoot) + "/" + SPHERICAL;
+	}
+
+	public static String getGeoBoxLocation(String sessionRoot) {
+		return getGeoLocation(sessionRoot) + "/" + BOX;
+	}
+	
+	public static String getGeoCircleLocation(String sessionRoot) {
+		return getGeoLocation(sessionRoot) + "/" + CIRCLE;
+	}
+	
+	public static String getGeoHaversineLocation(String sessionRoot) {
+		return getGeoLocation(sessionRoot) + "/" + HAVERSINE;
 	}
 	
 }

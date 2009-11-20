@@ -874,4 +874,167 @@ public class AGHttpRepoClient {
 		}
 	}
 
+	public String[] getGeoTypes() throws RepositoryException {
+		String url = AGProtocol.getGeoTypesLocation(getSessionRoot());
+		Header[] headers = {};
+		AGResponseHandler handler = new AGResponseHandler("");
+		try {
+			getHTTPClient().get(url, headers, new NameValuePair[0], handler);
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		}
+		return handler.getString().split("\n");
+	}
+
+	public String registerCartesianType(float stripWidth, float xmin, float xmax,
+			float ymin, float ymax) throws RepositoryException {
+		String url = AGProtocol.getGeoTypesCartesianLocation(getSessionRoot());
+		Header[] headers = {};
+		NameValuePair[] params = {
+				new NameValuePair(AGProtocol.STRIP_WIDTH_PARAM_NAME, Float.toString(stripWidth)),
+				new NameValuePair(AGProtocol.XMIN_PARAM_NAME, Float.toString(xmin)),
+				new NameValuePair(AGProtocol.XMAX_PARAM_NAME, Float.toString(xmax)),
+				new NameValuePair(AGProtocol.YMIN_PARAM_NAME, Float.toString(ymin)),
+				new NameValuePair(AGProtocol.YMAX_PARAM_NAME, Float.toString(ymax))
+				};
+		AGResponseHandler handler = new AGResponseHandler("");
+		try {
+			getHTTPClient().post(url, headers, params, null, handler);
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (RDFParseException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+		return handler.getString();
+	}
+
+	public String registerSphericalType(float stripWidth, String unit, float latmin, float longmin,
+			float latmax, float longmax) throws RepositoryException {
+		String url = AGProtocol.getGeoTypesSphericalLocation(getSessionRoot());
+		Header[] headers = {};
+		NameValuePair[] params = {
+				new NameValuePair(AGProtocol.STRIP_WIDTH_PARAM_NAME, Float.toString(stripWidth)),
+				new NameValuePair(AGProtocol.UNIT_PARAM_NAME, unit),
+				new NameValuePair(AGProtocol.LATMIN_PARAM_NAME, Float.toString(latmin)),
+				new NameValuePair(AGProtocol.LONGMIN_PARAM_NAME, Float.toString(longmin)),
+				new NameValuePair(AGProtocol.LATMAX_PARAM_NAME, Float.toString(latmax)),
+				new NameValuePair(AGProtocol.LONGMAX_PARAM_NAME, Float.toString(longmax))
+		};
+		AGResponseHandler handler = new AGResponseHandler("");
+		try {
+			getHTTPClient().post(url, headers, params, null, handler);
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (RDFParseException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+		return handler.getString();
+	}
+	
+	public void getGeoBox(String type_uri, String predicate_uri, float xmin, float xmax,
+			float ymin, float ymax, int limit, boolean infer, AGResponseHandler handler) 
+	throws RepositoryException {
+		String url = AGProtocol.getGeoBoxLocation(getSessionRoot());
+		Header[] headers = { new Header(ACCEPT_PARAM_NAME,
+				getPreferredRDFFormat().getDefaultMIMEType()) };
+		List<NameValuePair> params = new ArrayList<NameValuePair>(7);
+		params.add(new NameValuePair(AGProtocol.TYPE_PARAM_NAME, type_uri));
+		params.add(new NameValuePair(AGProtocol.GEO_PREDICATE_PARAM_NAME, predicate_uri));
+		params.add(new NameValuePair(AGProtocol.XMIN_PARAM_NAME, Float.toString(xmin)));
+		params.add(new NameValuePair(AGProtocol.XMAX_PARAM_NAME, Float.toString(xmax)));
+		params.add(new NameValuePair(AGProtocol.YMIN_PARAM_NAME, Float.toString(ymin)));
+		params.add(new NameValuePair(AGProtocol.YMAX_PARAM_NAME, Float.toString(ymax)));
+		params.add(new NameValuePair(AGProtocol.INCLUDE_INFERRED_PARAM_NAME, Boolean.toString(infer)));
+		if (0!=limit) {
+			params.add(new NameValuePair(AGProtocol.LIMIT_PARAM_NAME, Integer.toString(limit)));
+		}
+		try {
+			getHTTPClient()
+			.get(
+					url,
+					headers,
+					params.toArray(new NameValuePair[params.size()]),
+					handler);
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+	}
+
+	public void getGeoCircle(String type_uri, String predicate_uri, float x, float y,
+			float radius, int limit, boolean infer, AGResponseHandler handler) 
+	throws RepositoryException {
+		String url = AGProtocol.getGeoCircleLocation(getSessionRoot());
+		Header[] headers = { new Header(ACCEPT_PARAM_NAME,
+				getPreferredRDFFormat().getDefaultMIMEType()) };
+		List<NameValuePair> params = new ArrayList<NameValuePair>(7);
+		params.add(new NameValuePair(AGProtocol.TYPE_PARAM_NAME, type_uri));
+		params.add(new NameValuePair(AGProtocol.GEO_PREDICATE_PARAM_NAME, predicate_uri));
+		params.add(new NameValuePair(AGProtocol.X_PARAM_NAME, Float.toString(x)));
+		params.add(new NameValuePair(AGProtocol.Y_PARAM_NAME, Float.toString(y)));
+		params.add(new NameValuePair(AGProtocol.RADIUS_PARAM_NAME, Float.toString(radius)));
+		params.add(new NameValuePair(AGProtocol.INCLUDE_INFERRED_PARAM_NAME, Boolean.toString(infer)));
+		if (0!=limit) {
+			params.add(new NameValuePair(AGProtocol.LIMIT_PARAM_NAME, Integer.toString(limit)));
+		}
+		try {
+			getHTTPClient()
+			.get(
+					url,
+					headers,
+					params.toArray(new NameValuePair[params.size()]),
+					handler);
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+	}
+
+	public void getGeoHaversine(String type_uri, String predicate_uri, float lat, float lon,
+			float radius, String unit, int limit, boolean infer, AGResponseHandler handler) 
+	throws RepositoryException {
+		String url = AGProtocol.getGeoHaversineLocation(getSessionRoot());
+		Header[] headers = { new Header(ACCEPT_PARAM_NAME,
+				getPreferredRDFFormat().getDefaultMIMEType()) };
+		List<NameValuePair> params = new ArrayList<NameValuePair>(7);
+		params.add(new NameValuePair(AGProtocol.TYPE_PARAM_NAME, type_uri));
+		params.add(new NameValuePair(AGProtocol.GEO_PREDICATE_PARAM_NAME, predicate_uri));
+		params.add(new NameValuePair(AGProtocol.LAT_PARAM_NAME, Float.toString(lat)));
+		params.add(new NameValuePair(AGProtocol.LON_PARAM_NAME, Float.toString(lon)));
+		params.add(new NameValuePair(AGProtocol.RADIUS_PARAM_NAME, Float.toString(radius)));
+		params.add(new NameValuePair(AGProtocol.UNIT_PARAM_NAME, unit));
+		params.add(new NameValuePair(AGProtocol.INCLUDE_INFERRED_PARAM_NAME, Boolean.toString(infer)));
+		if (0!=limit) {
+			params.add(new NameValuePair(AGProtocol.LIMIT_PARAM_NAME, Integer.toString(limit)));
+		}
+		try {
+			getHTTPClient()
+			.get(
+					url,
+					headers,
+					params.toArray(new NameValuePair[params.size()]),
+					handler);
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+	}
+	
 }

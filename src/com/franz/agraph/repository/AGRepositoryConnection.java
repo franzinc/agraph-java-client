@@ -35,6 +35,7 @@ import org.openrdf.rio.helpers.StatementCollector;
 import org.openrdf.rio.ntriples.NTriplesUtil;
 
 import com.franz.agraph.http.AGHttpRepoClient;
+import com.franz.agraph.http.AGResponseHandler;
 
 /**
  * Implements the Sesame RepositoryConnection interface for AllegroGraph.
@@ -74,40 +75,39 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	protected void addWithoutCommit(Resource subject, URI predicate,
 			Value object, Resource... contexts) throws RepositoryException {
 		Statement st = new StatementImpl(subject, predicate, object);
-		JSONArray rows = new JSONArray().put(encodeJSON(st,contexts));
-		getHttpRepoClient().uploadJSON(rows,contexts);
+		JSONArray rows = new JSONArray().put(encodeJSON(st, contexts));
+		getHttpRepoClient().uploadJSON(rows, contexts);
 	}
 
 	@Override
 	public void add(Iterable<? extends Statement> statements,
 			Resource... contexts) throws RepositoryException {
 		OpenRDFUtil.verifyContextNotNull(contexts);
-		JSONArray rows=new JSONArray();
+		JSONArray rows = new JSONArray();
 		for (Statement st : statements) {
-				JSONArray row = encodeJSON(st, contexts);
+			JSONArray row = encodeJSON(st, contexts);
 			rows.put(row);
 		}
 		getHttpRepoClient().uploadJSON(rows, contexts);
 	}
 
 	@Override
-	public <E extends Exception> void add(Iteration<? extends Statement, E> statementIter,
-			Resource... contexts)
-	throws RepositoryException, E
-	{
+	public <E extends Exception> void add(
+			Iteration<? extends Statement, E> statementIter,
+			Resource... contexts) throws RepositoryException, E {
 		OpenRDFUtil.verifyContextNotNull(contexts);
-		JSONArray rows=new JSONArray();
+		JSONArray rows = new JSONArray();
 		while (statementIter.hasNext()) {
 			rows.put(encodeJSON(statementIter.next(), contexts));
 		}
 		getHttpRepoClient().uploadJSON(rows, contexts);
 	}
-	
+
 	private JSONArray encodeJSON(Statement st, Resource... contexts) {
 		JSONArray row = new JSONArray().put(
-			NTriplesUtil.toNTriplesString(st.getSubject())).put(
-			NTriplesUtil.toNTriplesString(st.getPredicate())).put(
-			NTriplesUtil.toNTriplesString(st.getObject()));
+				NTriplesUtil.toNTriplesString(st.getSubject())).put(
+				NTriplesUtil.toNTriplesString(st.getPredicate())).put(
+				NTriplesUtil.toNTriplesString(st.getObject()));
 		if (contexts.length == 0 && st.getContext() != null) {
 			row.put(NTriplesUtil.toNTriplesString(st.getContext()));
 		}
@@ -353,9 +353,9 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	 */
 
 	/**
-	 * Registers a predicate for free text indexing.  Once registered,
-	 * the objects of data added to the repository having this predicate
-	 * will be text indexed and searchable.  
+	 * Registers a predicate for free text indexing. Once registered, the
+	 * objects of data added to the repository having this predicate will be
+	 * text indexed and searchable.
 	 */
 	public void registerFreetextPredicate(URI predicate)
 			throws RepositoryException {
@@ -373,7 +373,7 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	/**
 	 * Registers a predicate mapping from the predicate to a primitive datatype.
 	 * This can be useful in speeding up query performance and enabling range
-	 * queries over datatypes.  
+	 * queries over datatypes.
 	 * 
 	 * Once registered, the objects of any data added via this connection that
 	 * have this predicate will be mapped to the primitive datatype.
@@ -385,7 +385,8 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	 * 
 	 * will result in the object being treated as having datatype "24"^^xsd:int.
 	 * 
-	 * @param predicate the predicate 
+	 * @param predicate
+	 *            the predicate
 	 * @param primtype
 	 * @throws RepositoryException
 	 */
@@ -397,7 +398,8 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	/**
 	 * Deletes any predicate mapping associated with the given predicate.
 	 * 
-	 * @param predicate the predicate
+	 * @param predicate
+	 *            the predicate
 	 * @throws RepositoryException
 	 */
 	public void deletePredicateMapping(URI predicate)
@@ -417,7 +419,7 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	/**
 	 * Registers a datatype mapping from the datatype to a primitive datatype.
 	 * This can be useful in speeding up query performance and enabling range
-	 * queries over user datatypes.  
+	 * queries over user datatypes.
 	 * 
 	 * Once registered, the objects of any data added via this connection that
 	 * have this datatype will be mapped to the primitive datatype.
@@ -425,12 +427,15 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	 * For example, registering that datatype <http://example.org/usertype> is
 	 * mapped to XMLSchema.INT and adding the triple:
 	 * 
-	 * <http://example.org/Fred> <http://example.org/age> "24"^^<http://example.org/usertype>
-	 *  
+	 * <http://example.org/Fred> <http://example.org/age>
+	 * "24"^^<http://example.org/usertype>
+	 * 
 	 * will result in the object being treated as having datatype "24"^^xsd:int.
 	 * 
-	 * @param datatype the user datatype
-	 * @param primtype the primitive type
+	 * @param datatype
+	 *            the user datatype
+	 * @param primtype
+	 *            the primitive type
 	 * @throws RepositoryException
 	 */
 	public void registerDatatypeMapping(URI datatype, URI primtype)
@@ -441,7 +446,8 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	/**
 	 * Deletes any datatype mapping associated with the given datatype.
 	 * 
-	 * @param datatype the user datatype
+	 * @param datatype
+	 *            the user datatype
 	 * @throws RepositoryException
 	 */
 	public void deleteDatatypeMapping(URI datatype) throws RepositoryException {
@@ -458,7 +464,7 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 
 	/**
 	 * Deletes all predicate and datatype mappings for this connection.
-	 *  
+	 * 
 	 * @throws RepositoryException
 	 */
 	public void clearMappings() throws RepositoryException {
@@ -468,7 +474,8 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	/**
 	 * Adds Prolog rules to be used on this connection.
 	 * 
-	 * @param rules a string of rules.
+	 * @param rules
+	 *            a string of rules.
 	 * @throws RepositoryException
 	 */
 	public void addRules(String rules) throws RepositoryException {
@@ -479,7 +486,8 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	/**
 	 * Adds Prolog rules to be used on this connection.
 	 * 
-	 * @param rulestream a stream of rules.
+	 * @param rulestream
+	 *            a stream of rules.
 	 * @throws RepositoryException
 	 */
 	public void addRules(InputStream rulestream) throws RepositoryException {
@@ -489,7 +497,8 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	/**
 	 * Evaluates a Lisp form on the server, and returns the result as a String.
 	 * 
-	 * @param lispForm the Lisp form to evaluate, in a String.
+	 * @param lispForm
+	 *            the Lisp form to evaluate, in a String.
 	 * @return the result in a String.
 	 * @throws RepositoryException
 	 */
@@ -500,7 +509,8 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	/**
 	 * Evaluates a Lisp form on the server, and returns the result as a String.
 	 * 
-	 * @param stream the Lisp form to evaluate, in a stream.
+	 * @param stream
+	 *            the Lisp form to evaluate, in a stream.
 	 * @return the result in a String.
 	 * @throws RepositoryException
 	 */
@@ -511,10 +521,14 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	/**
 	 * Instructs the server to fetch and load data from the specified URI.
 	 * 
-	 * @param source the URI to fetch and load.
-	 * @param baseURI the base URI for the source document.
-	 * @param dataFormat the RDF data format for the source document. 
-	 * @param contexts zero or more contexts into which data will be loaded.
+	 * @param source
+	 *            the URI to fetch and load.
+	 * @param baseURI
+	 *            the base URI for the source document.
+	 * @param dataFormat
+	 *            the RDF data format for the source document.
+	 * @param contexts
+	 *            zero or more contexts into which data will be loaded.
 	 * @throws RepositoryException
 	 */
 	public void load(URI source, String baseURI, RDFFormat dataFormat,
@@ -531,10 +545,14 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	/**
 	 * Instructs the server to load data from the specified server-side path.
 	 * 
-	 * @param absoluteServerPath the path to the server-side source file. 
-	 * @param baseURI  the base URI for the source document.
-	 * @param dataFormat the RDF data format for the source document. 
-	 * @param contexts zero or more contexts into which data will be loaded.
+	 * @param absoluteServerPath
+	 *            the path to the server-side source file.
+	 * @param baseURI
+	 *            the base URI for the source document.
+	 * @param dataFormat
+	 *            the RDF data format for the source document.
+	 * @param contexts
+	 *            zero or more contexts into which data will be loaded.
 	 * @throws RepositoryException
 	 */
 	public void load(String absoluteServerPath, String baseURI,
@@ -552,13 +570,73 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 
 	/**
 	 * Instructs the server to extend the life of this connection's dedicated
-	 * session, if it is using one.  Such connections that are idle for 3600 
+	 * session, if it is using one. Such connections that are idle for 3600
 	 * seconds will be closed by the server.
-	 *   
+	 * 
 	 * @throws RepositoryException
 	 */
 	public void ping() throws RepositoryException {
 		getHttpRepoClient().ping();
 	}
 
+	// TODO: return RepositoryResult<URI>?
+	/**
+	 * Gets the Geospatial types that have been registered.
+	 */
+	public String[] getGeoTypes() throws RepositoryException {
+		return getHttpRepoClient().getGeoTypes();
+	}
+
+	/**
+	 * Registers a cartesian type.
+	 */
+	public URI registerCartesianType(float stripWidth, float xmin, float xmax,
+			float ymin, float ymax) throws RepositoryException {
+		String nTriplesURI = getHttpRepoClient().registerCartesianType(stripWidth,
+				xmin, xmax, ymin, ymax);
+		return NTriplesUtil.parseURI(nTriplesURI, getValueFactory());
+	}
+
+	/**
+	 * Registers a spherical type.
+	 */
+	public URI registerSphericalType(float stripWidth, String unit,
+			float latmin, float lonmin, float latmax, float lonmax)
+			throws RepositoryException {
+		String nTriplesURI = getHttpRepoClient().registerSphericalType(stripWidth,
+				unit, latmin, lonmin, latmax, lonmax);
+		return NTriplesUtil.parseURI(nTriplesURI, getValueFactory());
+	}
+
+	public RepositoryResult<Statement> getGeoBox(URI type,
+			URI predicate, float xmin, float xmax, float ymin,
+			float ymax, int limit, boolean infer) throws RepositoryException {
+		StatementCollector collector = new StatementCollector();
+		AGResponseHandler handler = new AGResponseHandler(getRepository(),
+				collector, getHttpRepoClient().getPreferredRDFFormat());
+		getHttpRepoClient().getGeoBox(type.toString(), predicate.toString(), xmin, xmax,
+				ymin, ymax, limit, infer, handler);
+		return createRepositoryResult(collector.getStatements());
+	}
+
+	public RepositoryResult<Statement> getGeoCircle(URI type,
+			URI predicate, float x, float y, float radius,
+			int limit, boolean infer) throws RepositoryException {
+		StatementCollector collector = new StatementCollector();
+		AGResponseHandler handler = new AGResponseHandler(getRepository(),
+				collector, getHttpRepoClient().getPreferredRDFFormat());
+		getHttpRepoClient().getGeoCircle(type.toString(), predicate.toString(), x, y, radius, limit, infer, handler);
+		return createRepositoryResult(collector.getStatements());
+	}
+	
+	public RepositoryResult<Statement> getGeoHaversine(URI type,
+			URI predicate, float lat, float lon, float radius,
+			String unit, int limit, boolean infer) throws RepositoryException {
+		StatementCollector collector = new StatementCollector();
+		AGResponseHandler handler = new AGResponseHandler(getRepository(),
+				collector, getHttpRepoClient().getPreferredRDFFormat());
+		getHttpRepoClient().getGeoHaversine(type.toString(), predicate.toString(), lat, lon, radius, unit, limit, infer, handler);
+		return createRepositoryResult(collector.getStatements());
+	}
+	
 }
