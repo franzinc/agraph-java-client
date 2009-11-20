@@ -315,8 +315,8 @@ public class TutorialExamples {
         conn.clear();
         conn.setAutoCommit(false);  // dedicated session
         ValueFactory f = myRepository.getValueFactory();
-        String path1 = "src/tutorial/vc-db-1.rdf";    
-        String path2 = "src/tutorial/kennedy.ntriples";            
+        String path1 = "src/tutorial/java-vcards.rdf";    
+        String path2 = "src/tutorial/java-kennedy.ntriples";            
         String baseURI = "http://example.org/example/local";
         URI context = f.createURI("http://example.org#vcards");
         // read vcards triples into the context 'context':
@@ -343,7 +343,7 @@ public class TutorialExamples {
         result.close();
         
         println("\nSame thing with SPARQL query (can't retrieve triples in the null context)");
-        String queryString = "SELECT ?s ?c WHERE {graph ?c {?s ?p ?o .} }";
+        String queryString = "SELECT DISTINCT ?s ?c WHERE {graph ?c {?s ?p ?o .} }";
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         TupleQueryResult qresult = tupleQuery.evaluate();       
         while (qresult.hasNext()) {
@@ -955,7 +955,7 @@ public class TutorialExamples {
     public static void example22() throws Exception {
         AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
         AGCatalog catalog = server.getCatalog(CATALOG_ID);
-        AGRepository myRepository = catalog.createRepository("agraph_test");
+        AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);
         myRepository.initialize();
         AGValueFactory vf = myRepository.getValueFactory();
         // Create conn1 (autoCommit) and conn2 (no autoCommit).
@@ -966,12 +966,12 @@ public class TutorialExamples {
         closeBeforeExit(conn2);
         conn2.setAutoCommit(false);
         String baseURI = "http://example.org/example/local";
-        conn1.add(new File("src/tutorial/lesmis.rdf"), baseURI, RDFFormat.RDFXML);
-        println("Loaded " + conn1.size() + " lesmis.rdf triples via conn1.");
-        conn2.add(new File("src/tutorial/kennedy.ntriples"), baseURI, RDFFormat.NTRIPLES);
-        println("Loaded " + conn2.size() + " kennedy.ntriples via conn2.");
+        conn1.add(new File("src/tutorial/java-lesmis.rdf"), baseURI, RDFFormat.RDFXML);
+        println("Loaded " + conn1.size() + " java-lesmis.rdf triples via conn1.");
+        conn2.add(new File("src/tutorial/java-kennedy.ntriples"), baseURI, RDFFormat.NTRIPLES);
+        println("Loaded " + conn2.size() + " java-kennedy.ntriples via conn2.");
         
-        println("\nSince conn1 is in autoCommit mode, lesmis.rdf triples are committed " +
+        println("\nSince conn1 is in autoCommit mode, java-lesmis.rdf triples are committed " +
         		"and retrievable via conn2.  Since conn2 is not in autoCommit mode, and " +
         		"no commit() has yet been issued on conn2, kennedy.rdf triples are not " +
         		" retrievable via conn1.");
@@ -1000,8 +1000,8 @@ public class TutorialExamples {
         printRows("\nUsing getStatements() on conn2; should find Valjean:",
                 1, conn2.getStatements(null, null, valjean, false));
         // Reload and Commit
-        println("\nReload kennedy.ntriples into conn2.");
-        conn2.add(new File("src/tutorial/kennedy.ntriples"), baseURI, RDFFormat.NTRIPLES);
+        println("\nReload java-kennedy.ntriples into conn2.");
+        conn2.add(new File("src/tutorial/java-kennedy.ntriples"), baseURI, RDFFormat.NTRIPLES);
         println("There are now " + conn1.size() + " triples visible on conn1.");
         println("There are now " + conn2.size() + " triples visible on conn2.");
         println("\nCommitting contents of conn2.");
