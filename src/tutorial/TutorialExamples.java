@@ -32,6 +32,7 @@ import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.ntriples.NTriplesWriter;
 import org.openrdf.rio.rdfxml.RDFXMLWriter;
 
+import com.franz.agraph.http.AGProtocol;
 import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGQueryLanguage;
 import com.franz.agraph.repository.AGRepository;
@@ -884,67 +885,60 @@ public class TutorialExamples {
         println("\nWho are the children?  Inference ON.");
         printRows( conn.getStatements(null, RDF.TYPE, child, true) );
     }
-        /**
+        
+    /**
      * Geospatial Reasoning
      */
-    /*
+    
     public static void example20() throws Exception {
         AGRepositoryConnection conn = example1(false);
-        ValueFactory f = conn.getValueFactory();
+        AGValueFactory vf = conn.getValueFactory();
         conn = example1(false);
         conn.clear();
         println("Starting example20().");
         String exns = "http://example.org/people/";
         conn.setNamespace("ex", exns);
-        URI alice = f.createURI(exns, "alice");
-        URI bob = f.createURI(exns, "bob");
-        URI carol = f.createURI(exns, "carol");
-//        conn.createRectangularSystem(scale=1, xMax=100, yMax=100);
-        URI location = f.createURI(exns, "location");
-        //conn.registerDatatypeMapping(predicate=location, nativeType="int")   
-        //conn.registerDatatypeMapping(predicate=location, nativeType="float")       
-        conn.add(alice, location, conn.createCoordinate(30,30));
-        conn.add(bob, location, conn.createCoordinate(40, 40));
-        conn.add(carol, location, conn.createCoordinate(50, 50)); 
-        Object box1 = conn.createBox(20, 40, 20, 40);
-        println(box1);
-        println("Find people located within box1.");
-        printRows( conn.getStatements(null, location, box1) );
-        circle1 = conn.createCircle(35, 35, radius=10);  
-        println(circle1);
-        println("Find people located within circle1.");
-        printRows( conn.getStatements(null, location, circle1) ); 
-        Object polygon1 = conn.createPolygon([(10,40), (50,10), (35,40), (50,70)]);
-        println(polygon1);
-        println("Find people located within polygon1.");
-        printRows( conn.getStatements(null, location, polygon1) );
-        // now we switch to a LatLong (spherical) coordinate system
-        //latLongGeoType = conn.createLatLongSystem(scale=5) #, unit='km')
-//        latLongGeoType = conn.createLatLongSystem(scale=5, unit='degree');
-        URI amsterdam = f.createURI(exns, "amsterdam");
-        URI london = f.createURI(exns, "london");
-        URI sanfrancisco = f.createURI(exns, "sanfrancisco");
-        URI salvador = f.createURI(exns, "salvador");
-        location = f.createURI(exns, "geolocation");
-    //    conn.registerDatatypeMapping(predicate=location, nativeType="float")
-        conn.add(amsterdam, location, conn.createCoordinate(52.366665, 4.883333));
-        conn.add(london, location, conn.createCoordinate(51.533333, -0.08333333));
-        conn.add(sanfrancisco, location, conn.createCoordinate(37.783333, -122.433334));
-        conn.add(salvador, location, conn.createCoordinate(13.783333, -88.45));
-        Object box2 = conn.createBox( 25.0, 50.0, -130.0, -70.0);
-        println(box2);
+        URI alice = vf.createURI(exns, "alice");
+        URI bob = vf.createURI(exns, "bob");
+        URI carol = vf.createURI(exns, "carol");
+        URI cartSystem = conn.registerCartesianType(1, 0, 100, 0, 100);
+        URI location = vf.createURI(exns, "location");
+		Literal alice_loc = vf.createLiteral("+30.0+30.0", cartSystem);
+		Literal bob_loc = vf.createLiteral("+40.0+40.0", cartSystem);
+		Literal coral_loc = vf.createLiteral("+50.0+50.0", cartSystem);
+		conn.add(alice, location, alice_loc);
+		conn.add(bob, location, bob_loc);
+		conn.add(carol, location, coral_loc);
+        println("Find people located within a rectangular region.");
+        printRows( conn.getGeoBox(cartSystem, location, 20, 40, 20, 40, 0, false) );
+        println("Find people located within a circular region.");
+        printRows( conn.getGeoCircle(cartSystem, location, 35, 35, 10, 0, false) ); 
+        //Object polygon1 = conn.createPolygon([(10,40), (50,10), (35,40), (50,70)]);
+        //println(polygon1);
+        //println("Find people located within a polygonal region.");
+        //printRows( conn.getStatements(null, location, polygon1) );
+        // now we switch to a Spherical (Lat/Long) coordinate system
+        URI sphericalSystemKM = conn.registerSphericalType(5, AGProtocol.KM_PARAM_VALUE);
+        //URI sphericalSystemDegree = conn.registerSphericalType(5, AGProtocol.DEGREE_PARAM_VALUE);
+        URI amsterdam = vf.createURI(exns, "amsterdam");
+        URI london = vf.createURI(exns, "london");
+        URI sanfrancisco = vf.createURI(exns, "sanfrancisco");
+        URI salvador = vf.createURI(exns, "salvador");
+        location = vf.createURI(exns, "geolocation");
+        conn.add(amsterdam, location, vf.createLiteral("+52.366665+4.883333",sphericalSystemKM));
+        conn.add(london, location, vf.createLiteral("+51.533333-0.08333333",sphericalSystemKM));
+        conn.add(sanfrancisco, location, vf.createLiteral("+37.783333-122.433334",sphericalSystemKM));
+        conn.add(salvador, location, vf.createLiteral("+13.783333-88.45",sphericalSystemKM));
         println("Locate entities within box2.");
-        printRows( conn.getStatements(null, location, box2) );
-        circle2 = conn.createCircle(19.3994, -99.08, 2000, "km");
-        println(circle2);
+        printRows( conn.getGeoBox(sphericalSystemKM, location, 25.0f, 50.0f, -130.0f, -70.0f, 0, false) );
         println("Locate entities within circle2.");
-        printRows( conn.getStatements(None, location, circle2) );
-        polygon2 = conn.createPolygon([(51.0, 2.00),(60.0, -5.0),(48.0,-12.5)]);
-        println(polygon2);
-        println("Locate entities within polygon2.");
-        printRows( conn.getStatements(None, location, polygon2) );
+        printRows( conn.getGeoCircle(sphericalSystemKM, location, 19.3994f, -99.08f, 2000, 0, false) );
+        //polygon2 = conn.createPolygon([(51.0, 2.00),(60.0, -5.0),(48.0,-12.5)]);
+        //println(polygon2);
+        //println("Locate entities within polygon2.");
+        //printRows( conn.getStatements(None, location, polygon2) );
     }
-    */
+    
 
 // TODO: example21() Social Network Analysis Reasoning
 
@@ -1028,7 +1022,7 @@ public class TutorialExamples {
             // for choosing by editing this code
             choices.add(1);
         } else if (args[0].equals("all")) {
-            for (int i = 1; i <= 19; i++) {
+            for (int i = 1; i <= 20; i++) {
                 choices.add(i);
             }
             choices.add(22);
@@ -1060,6 +1054,7 @@ public class TutorialExamples {
                 case 17: example17(); break;                                    
                 case 18: example18(); break;                                    
                 case 19: example19(); break;                                    
+                case 20: example20(); break;                                    
                 case 22: example22(); break;
                 default: throw new IllegalArgumentException("There is no example " + choice);
                 }

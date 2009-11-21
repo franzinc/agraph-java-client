@@ -72,6 +72,11 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	}
 
 	@Override
+	public AGValueFactory getValueFactory() {
+		return getRepository().getValueFactory();
+	}
+
+	@Override
 	protected void addWithoutCommit(Resource subject, URI predicate,
 			Value object, Resource... contexts) throws RepositoryException {
 		Statement st = new StatementImpl(subject, predicate, object);
@@ -608,6 +613,10 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		return NTriplesUtil.parseURI(nTriplesURI, getValueFactory());
 	}
 
+	public URI registerSphericalType(float stripWidth, String unit) throws RepositoryException {
+		return registerSphericalType(stripWidth,unit,-90,-180,90,180);
+	}
+	
 	public RepositoryResult<Statement> getGeoBox(URI type,
 			URI predicate, float xmin, float xmax, float ymin,
 			float ymax, int limit, boolean infer) throws RepositoryException {
