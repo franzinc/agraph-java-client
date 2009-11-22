@@ -909,14 +909,20 @@ public class TutorialExamples {
 		conn.add(alice, location, alice_loc);
 		conn.add(bob, location, bob_loc);
 		conn.add(carol, location, coral_loc);
-        println("Find people located within a rectangular region.");
-        printRows( conn.getGeoBox(cartSystem, location, 20, 40, 20, 40, 0, false) );
-        println("Find people located within a circular region.");
-        printRows( conn.getGeoCircle(cartSystem, location, 35, 35, 10, 0, false) ); 
-        //Object polygon1 = conn.createPolygon([(10,40), (50,10), (35,40), (50,70)]);
-        //println(polygon1);
-        //println("Find people located within a polygonal region.");
-        //printRows( conn.getStatements(null, location, polygon1) );
+        println("Find people located within box1.");
+        printRows( conn.getStatementsInBox(cartSystem, location, 20, 40, 20, 40, 0, false) );
+        println("Find people located within circle1.");
+        printRows( conn.getStatementsInCircle(cartSystem, location, 35, 35, 10, 0, false) ); 
+        URI polygon1 = vf.createURI("http://example.org/polygon1");
+        List<Literal> polygon1_points = new ArrayList<Literal>(4);
+        polygon1_points.add(vf.createLiteral("+10.0+40.0", cartSystem));
+        polygon1_points.add(vf.createLiteral("+50.0+10.0", cartSystem));
+        polygon1_points.add(vf.createLiteral("+35.0+40.0", cartSystem));
+        polygon1_points.add(vf.createLiteral("+50.0+70.0", cartSystem));
+        println(polygon1_points);
+        conn.registerPolygon(polygon1, polygon1_points);
+        println("Find people located within ploygon1.");
+        printRows( conn.getStatementsInPolygon(cartSystem, location, polygon1, 0, false) );
         // now we switch to a Spherical (Lat/Long) coordinate system
         URI sphericalSystemKM = conn.registerSphericalType(5, AGProtocol.KM_PARAM_VALUE);
         //URI sphericalSystemDegree = conn.registerSphericalType(5, AGProtocol.DEGREE_PARAM_VALUE);
@@ -930,13 +936,18 @@ public class TutorialExamples {
         conn.add(sanfrancisco, location, vf.createLiteral("+37.783333-122.433334",sphericalSystemKM));
         conn.add(salvador, location, vf.createLiteral("+13.783333-88.45",sphericalSystemKM));
         println("Locate entities within box2.");
-        printRows( conn.getGeoBox(sphericalSystemKM, location, 25.0f, 50.0f, -130.0f, -70.0f, 0, false) );
+        printRows( conn.getStatementsInBox(sphericalSystemKM, location, 25.0f, 50.0f, -130.0f, -70.0f, 0, false) );
         println("Locate entities within circle2.");
-        printRows( conn.getGeoCircle(sphericalSystemKM, location, 19.3994f, -99.08f, 2000, 0, false) );
-        //polygon2 = conn.createPolygon([(51.0, 2.00),(60.0, -5.0),(48.0,-12.5)]);
-        //println(polygon2);
-        //println("Locate entities within polygon2.");
-        //printRows( conn.getStatements(None, location, polygon2) );
+        printRows( conn.getStatementsInCircle(sphericalSystemKM, location, 19.3994f, -99.08f, 2000, 0, false) );
+        URI polygon2 = vf.createURI("http://example.org/polygon2");
+        List<Literal> polygon2_points = new ArrayList<Literal>(3);
+        polygon2_points.add(vf.createLiteral("+51.0+2.00", sphericalSystemKM));
+        polygon2_points.add(vf.createLiteral("+60.0-5.0", sphericalSystemKM));
+        polygon2_points.add(vf.createLiteral("+48.0-12.5", sphericalSystemKM));
+        println(polygon2_points);
+        conn.registerPolygon(polygon2, polygon2_points);
+        println("Locate entities within polygon2.");
+        printRows( conn.getStatementsInPolygon(sphericalSystemKM, location, polygon2, 0, false) );
     }
     
 

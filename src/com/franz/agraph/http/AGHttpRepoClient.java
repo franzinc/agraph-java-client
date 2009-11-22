@@ -939,6 +939,28 @@ public class AGHttpRepoClient {
 		return handler.getString();
 	}
 	
+	public void registerPolygon(String polygon, String... points) throws RepositoryException {
+		if (points.length<3) {
+			throw new IllegalArgumentException("A minimum of three points are required to register a polygon.");
+		}
+		String url = AGProtocol.getGeoPolygonLocation(getSessionRoot());
+		Header[] headers = {};
+		List<NameValuePair> params = new ArrayList<NameValuePair>(7);
+		params.add(new NameValuePair(AGProtocol.POLYGON_PARAM_NAME, polygon));
+		for (String point: points) {
+			params.add(new NameValuePair(AGProtocol.POINT_PARAM_NAME, point));
+		}
+		try {
+			getHTTPClient().post(url, headers, params.toArray(new NameValuePair[params.size()]), null, null);
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (RDFParseException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+	}
+	
 	public void getGeoBox(String type_uri, String predicate_uri, float xmin, float xmax,
 			float ymin, float ymax, int limit, boolean infer, AGResponseHandler handler) 
 	throws RepositoryException {
@@ -1004,8 +1026,7 @@ public class AGHttpRepoClient {
 		}
 	}
 
-	public void getGeoHaversine(String type_uri, String predicate_uri, float lat, float lon,
-			float radius, String unit, int limit, boolean infer, AGResponseHandler handler) 
+	public void getGeoHaversine(String type_uri, String predicate_uri, float lat, float lon, float radius, String unit, int limit, boolean infer, AGResponseHandler handler) 
 	throws RepositoryException {
 		String url = AGProtocol.getGeoHaversineLocation(getSessionRoot());
 		Header[] headers = { new Header(ACCEPT_PARAM_NAME,
@@ -1016,7 +1037,35 @@ public class AGHttpRepoClient {
 		params.add(new NameValuePair(AGProtocol.LAT_PARAM_NAME, Float.toString(lat)));
 		params.add(new NameValuePair(AGProtocol.LON_PARAM_NAME, Float.toString(lon)));
 		params.add(new NameValuePair(AGProtocol.RADIUS_PARAM_NAME, Float.toString(radius)));
-		params.add(new NameValuePair(AGProtocol.UNIT_PARAM_NAME, unit));
+		params.add(new NameValuePair(AGProtocol.INCLUDE_INFERRED_PARAM_NAME, Boolean.toString(infer)));
+		if (0!=limit) {
+			params.add(new NameValuePair(AGProtocol.LIMIT_PARAM_NAME, Integer.toString(limit)));
+		}
+		try {
+			getHTTPClient()
+			.get(
+					url,
+					headers,
+					params.toArray(new NameValuePair[params.size()]),
+					handler);
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+	}
+	
+	public void getGeoPolygon(String type_uri, String predicate_uri, String polygon, int limit, boolean infer, AGResponseHandler handler) 
+	throws RepositoryException {
+		String url = AGProtocol.getGeoHaversineLocation(getSessionRoot());
+		Header[] headers = { new Header(ACCEPT_PARAM_NAME,
+				getPreferredRDFFormat().getDefaultMIMEType()) };
+		List<NameValuePair> params = new ArrayList<NameValuePair>(7);
+		params.add(new NameValuePair(AGProtocol.TYPE_PARAM_NAME, type_uri));
+		params.add(new NameValuePair(AGProtocol.GEO_PREDICATE_PARAM_NAME, predicate_uri));
+		params.add(new NameValuePair(AGProtocol.POLYGON_PARAM_NAME, polygon));
 		params.add(new NameValuePair(AGProtocol.INCLUDE_INFERRED_PARAM_NAME, Boolean.toString(infer)));
 		if (0!=limit) {
 			params.add(new NameValuePair(AGProtocol.LIMIT_PARAM_NAME, Integer.toString(limit)));

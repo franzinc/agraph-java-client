@@ -316,6 +316,21 @@ public class AGProtocol extends Protocol {
 	public static final String LON_PARAM_NAME = "lon";
 	
 	/**
+	 * Relative location of the Geo Polygon registration service.
+	 */
+	public static final String POLYGON = "polygon";
+	
+	/**
+	 * Parameter name for the 'polygon' being registered
+	 */
+	public static final String POLYGON_PARAM_NAME = "polygon";
+	
+	/**
+	 * Parameter name for the 'point' of a polygon
+	 */
+	public static final String POINT_PARAM_NAME = "point";
+	
+	/**
 	 * Location of the root catalog service
 	 */
 	public static final String getRootCatalogURL(String serverURL) {
@@ -444,6 +459,10 @@ public class AGProtocol extends Protocol {
 	
 	public static String getGeoHaversineLocation(String sessionRoot) {
 		return getGeoLocation(sessionRoot) + "/" + HAVERSINE;
+	}
+	
+	public static String getGeoPolygonLocation(String sessionRoot) {
+		return getGeoLocation(sessionRoot) + "/" + POLYGON;
 	}
 	
 }

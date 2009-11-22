@@ -613,11 +613,24 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		return NTriplesUtil.parseURI(nTriplesURI, getValueFactory());
 	}
 
+	/**
+	 * Registers a polygon.
+	 */
+	public void registerPolygon(URI polygon, List<Literal> points)
+	throws RepositoryException {
+		String[] nTriplesPoints = new String[points.size()];
+		int i=0;
+		for (Literal point: points) {
+			nTriplesPoints[i] = NTriplesUtil.toNTriplesString(point);
+		}
+		getHttpRepoClient().registerPolygon(polygon.toString(), nTriplesPoints);
+	}
+	
 	public URI registerSphericalType(float stripWidth, String unit) throws RepositoryException {
 		return registerSphericalType(stripWidth,unit,-90,-180,90,180);
 	}
 	
-	public RepositoryResult<Statement> getGeoBox(URI type,
+	public RepositoryResult<Statement> getStatementsInBox(URI type,
 			URI predicate, float xmin, float xmax, float ymin,
 			float ymax, int limit, boolean infer) throws RepositoryException {
 		StatementCollector collector = new StatementCollector();
@@ -628,7 +641,7 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		return createRepositoryResult(collector.getStatements());
 	}
 
-	public RepositoryResult<Statement> getGeoCircle(URI type,
+	public RepositoryResult<Statement> getStatementsInCircle(URI type,
 			URI predicate, float x, float y, float radius,
 			int limit, boolean infer) throws RepositoryException {
 		StatementCollector collector = new StatementCollector();
@@ -645,6 +658,15 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		AGResponseHandler handler = new AGResponseHandler(getRepository(),
 				collector, getHttpRepoClient().getPreferredRDFFormat());
 		getHttpRepoClient().getGeoHaversine(type.toString(), predicate.toString(), lat, lon, radius, unit, limit, infer, handler);
+		return createRepositoryResult(collector.getStatements());
+	}
+	
+	public RepositoryResult<Statement> getStatementsInPolygon(URI type,
+			URI predicate, URI polygon, int limit, boolean infer) throws RepositoryException {
+		StatementCollector collector = new StatementCollector();
+		AGResponseHandler handler = new AGResponseHandler(getRepository(),
+				collector, getHttpRepoClient().getPreferredRDFFormat());
+		getHttpRepoClient().getGeoPolygon(type.toString(), predicate.toString(), polygon.toString(), limit, infer, handler);
 		return createRepositoryResult(collector.getStatements());
 	}
 	
