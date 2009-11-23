@@ -313,7 +313,7 @@ public class AGProtocol extends Protocol {
 	/**
 	 * Parameter name for the 'lon' ordinate of a haversine
 	 */
-	public static final String LON_PARAM_NAME = "lon";
+	public static final String LON_PARAM_NAME = "long";
 	
 	/**
 	 * Location of the root catalog service

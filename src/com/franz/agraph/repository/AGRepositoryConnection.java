@@ -623,8 +623,9 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		StatementCollector collector = new StatementCollector();
 		AGResponseHandler handler = new AGResponseHandler(getRepository(),
 				collector, getHttpRepoClient().getPreferredRDFFormat());
-		getHttpRepoClient().getGeoBox(type.toString(), predicate.toString(), xmin, xmax,
-				ymin, ymax, limit, infer, handler);
+		getHttpRepoClient().getGeoBox(NTriplesUtil.toNTriplesString(type),
+		                              NTriplesUtil.toNTriplesString(predicate),
+		                              xmin, xmax, ymin, ymax, limit, infer, handler);
 		return createRepositoryResult(collector.getStatements());
 	}
 
@@ -634,7 +635,9 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		StatementCollector collector = new StatementCollector();
 		AGResponseHandler handler = new AGResponseHandler(getRepository(),
 				collector, getHttpRepoClient().getPreferredRDFFormat());
-		getHttpRepoClient().getGeoCircle(type.toString(), predicate.toString(), x, y, radius, limit, infer, handler);
+		getHttpRepoClient().getGeoCircle(NTriplesUtil.toNTriplesString(type),
+		                                 NTriplesUtil.toNTriplesString(predicate),
+		                                 x, y, radius, limit, infer, handler);
 		return createRepositoryResult(collector.getStatements());
 	}
 	
@@ -644,7 +647,9 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		StatementCollector collector = new StatementCollector();
 		AGResponseHandler handler = new AGResponseHandler(getRepository(),
 				collector, getHttpRepoClient().getPreferredRDFFormat());
-		getHttpRepoClient().getGeoHaversine(type.toString(), predicate.toString(), lat, lon, radius, unit, limit, infer, handler);
+		getHttpRepoClient().getGeoHaversine(NTriplesUtil.toNTriplesString(type),
+		                                    NTriplesUtil.toNTriplesString(predicate),
+		                                    lat, lon, radius, unit, limit, infer, handler);
 		return createRepositoryResult(collector.getStatements());
 	}
 	
