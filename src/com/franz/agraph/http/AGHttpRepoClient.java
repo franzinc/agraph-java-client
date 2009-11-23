@@ -946,17 +946,17 @@ public class AGHttpRepoClient {
 		String url = AGProtocol.getGeoPolygonLocation(getSessionRoot());
 		Header[] headers = {};
 		List<NameValuePair> params = new ArrayList<NameValuePair>(7);
-		params.add(new NameValuePair(AGProtocol.POLYGON_PARAM_NAME, polygon));
+		params.add(new NameValuePair(AGProtocol.RESOURCE_PARAM_NAME, polygon));
 		for (String point: points) {
 			params.add(new NameValuePair(AGProtocol.POINT_PARAM_NAME, point));
 		}
 		try {
-			getHTTPClient().post(url, headers, params.toArray(new NameValuePair[params.size()]), null, null);
+			getHTTPClient().put(url, headers, params.toArray(new NameValuePair[params.size()]), null);
 		} catch (HttpException e) {
 			throw new RepositoryException(e);
-		} catch (RDFParseException e) {
-			throw new RepositoryException(e);
 		} catch (IOException e) {
+			throw new RepositoryException(e);
+		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
 	}
@@ -1059,7 +1059,7 @@ public class AGHttpRepoClient {
 	
 	public void getGeoPolygon(String type_uri, String predicate_uri, String polygon, int limit, boolean infer, AGResponseHandler handler) 
 	throws RepositoryException {
-		String url = AGProtocol.getGeoHaversineLocation(getSessionRoot());
+		String url = AGProtocol.getGeoPolygonLocation(getSessionRoot());
 		Header[] headers = { new Header(ACCEPT_PARAM_NAME,
 				getPreferredRDFFormat().getDefaultMIMEType()) };
 		List<NameValuePair> params = new ArrayList<NameValuePair>(7);

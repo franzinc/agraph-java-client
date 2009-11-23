@@ -313,7 +313,7 @@ public class AGProtocol extends Protocol {
 	/**
 	 * Parameter name for the 'lon' ordinate of a haversine
 	 */
-	public static final String LON_PARAM_NAME = "lon";
+	public static final String LON_PARAM_NAME = "long";
 	
 	/**
 	 * Relative location of the Geo Polygon registration service.
@@ -321,7 +321,12 @@ public class AGProtocol extends Protocol {
 	public static final String POLYGON = "polygon";
 	
 	/**
-	 * Parameter name for the 'polygon' being registered
+	 * Parameter name 'resource' for the polygon being registered
+	 */
+	public static final String RESOURCE_PARAM_NAME = "resource";
+	
+	/**
+	 * Parameter name for the 'polygon' being referenced
 	 */
 	public static final String POLYGON_PARAM_NAME = "polygon";
 	

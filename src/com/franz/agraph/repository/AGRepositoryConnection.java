@@ -613,6 +613,10 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		return NTriplesUtil.parseURI(nTriplesURI, getValueFactory());
 	}
 
+	public URI registerSphericalType(float stripWidth, String unit) throws RepositoryException {
+		return registerSphericalType(stripWidth,unit,-90,-180,90,180);
+	}
+	
 	/**
 	 * Registers a polygon.
 	 */
@@ -622,11 +626,7 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		for (Literal point: points) {
 			nTriplesPoints.add(NTriplesUtil.toNTriplesString(point));
 		}
-		getHttpRepoClient().registerPolygon(polygon.toString(), nTriplesPoints);
-	}
-	
-	public URI registerSphericalType(float stripWidth, String unit) throws RepositoryException {
-		return registerSphericalType(stripWidth,unit,-90,-180,90,180);
+		getHttpRepoClient().registerPolygon(NTriplesUtil.toNTriplesString(polygon), nTriplesPoints);
 	}
 	
 	public RepositoryResult<Statement> getStatementsInBox(URI type,
@@ -635,8 +635,9 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		StatementCollector collector = new StatementCollector();
 		AGResponseHandler handler = new AGResponseHandler(getRepository(),
 				collector, getHttpRepoClient().getPreferredRDFFormat());
-		getHttpRepoClient().getGeoBox(type.toString(), predicate.toString(), xmin, xmax,
-				ymin, ymax, limit, infer, handler);
+		getHttpRepoClient().getGeoBox(NTriplesUtil.toNTriplesString(type),
+		                              NTriplesUtil.toNTriplesString(predicate),
+		                              xmin, xmax, ymin, ymax, limit, infer, handler);
 		return createRepositoryResult(collector.getStatements());
 	}
 
@@ -646,7 +647,9 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		StatementCollector collector = new StatementCollector();
 		AGResponseHandler handler = new AGResponseHandler(getRepository(),
 				collector, getHttpRepoClient().getPreferredRDFFormat());
-		getHttpRepoClient().getGeoCircle(type.toString(), predicate.toString(), x, y, radius, limit, infer, handler);
+		getHttpRepoClient().getGeoCircle(NTriplesUtil.toNTriplesString(type),
+		                                 NTriplesUtil.toNTriplesString(predicate),
+		                                 x, y, radius, limit, infer, handler);
 		return createRepositoryResult(collector.getStatements());
 	}
 	
@@ -656,7 +659,9 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		StatementCollector collector = new StatementCollector();
 		AGResponseHandler handler = new AGResponseHandler(getRepository(),
 				collector, getHttpRepoClient().getPreferredRDFFormat());
-		getHttpRepoClient().getGeoHaversine(type.toString(), predicate.toString(), lat, lon, radius, unit, limit, infer, handler);
+		getHttpRepoClient().getGeoHaversine(NTriplesUtil.toNTriplesString(type),
+		                                    NTriplesUtil.toNTriplesString(predicate),
+		                                    lat, lon, radius, unit, limit, infer, handler);
 		return createRepositoryResult(collector.getStatements());
 	}
 	
@@ -665,7 +670,7 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		StatementCollector collector = new StatementCollector();
 		AGResponseHandler handler = new AGResponseHandler(getRepository(),
 				collector, getHttpRepoClient().getPreferredRDFFormat());
-		getHttpRepoClient().getGeoPolygon(type.toString(), predicate.toString(), polygon.toString(), limit, infer, handler);
+		getHttpRepoClient().getGeoPolygon(NTriplesUtil.toNTriplesString(type), NTriplesUtil.toNTriplesString(predicate), NTriplesUtil.toNTriplesString(polygon), limit, infer, handler);
 		return createRepositoryResult(collector.getStatements());
 	}
 	
