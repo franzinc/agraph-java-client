@@ -939,8 +939,8 @@ public class AGHttpRepoClient {
 		return handler.getString();
 	}
 	
-	public void registerPolygon(String polygon, String... points) throws RepositoryException {
-		if (points.length<3) {
+	public void registerPolygon(String polygon, List<String> points) throws RepositoryException {
+		if (points.size()<3) {
 			throw new IllegalArgumentException("A minimum of three points are required to register a polygon.");
 		}
 		String url = AGProtocol.getGeoPolygonLocation(getSessionRoot());
@@ -1085,5 +1085,51 @@ public class AGHttpRepoClient {
 			throw new RepositoryException(e);
 		}
 	}
+	
+	public void registerSNAGenerator(String generator, List<String> objectOfs, List<String> subjectOfs, List<String> undirecteds, String query) throws RepositoryException {
+		String url = AGProtocol.getSNAGeneratorLocation(getSessionRoot(), generator);
+		Header[] headers = {};
+		List<NameValuePair> params = new ArrayList<NameValuePair>(7);
+		for (String objectOf: objectOfs) {
+			params.add(new NameValuePair(AGProtocol.OBJECTOF_PARAM_NAME, objectOf));
+		}
+		for (String subjectOf: subjectOfs) {
+			params.add(new NameValuePair(AGProtocol.SUBJECTOF_PARAM_NAME, subjectOf));
+		}
+		for (String undirected: undirecteds) {
+			params.add(new NameValuePair(AGProtocol.UNDIRECTED_PARAM_NAME, undirected));
+		}
+		params.add(new NameValuePair(AGProtocol.QUERY_PARAM_NAME, query));
+		try {
+			getHTTPClient().put(url, headers, params.toArray(new NameValuePair[params.size()]), null);
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		} // TODO: need an RDFParseException for query param?
+	}
+	
+	public void registerSNANeighborMatrix(String matrix, String generator, List<String> groups, int depth) throws RepositoryException {
+		String url = AGProtocol.getSNANeighborMatrixLocation(getSessionRoot(), matrix);
+		Header[] headers = {};
+		List<NameValuePair> params = new ArrayList<NameValuePair>(7);
+		params.add(new NameValuePair(AGProtocol.GENERATOR_PARAM_NAME, generator));
+		for (String group: groups) {
+			params.add(new NameValuePair(AGProtocol.SUBJECTOF_PARAM_NAME, group));
+		}
+		params.add(new NameValuePair(AGProtocol.DEPTH_PARAM_NAME, Integer.toString(depth)));
+		try {
+			getHTTPClient().put(url, headers, params.toArray(new NameValuePair[params.size()]), null);
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		} // TODO: need an RDFParseException for query param?
+	}
+	
 	
 }

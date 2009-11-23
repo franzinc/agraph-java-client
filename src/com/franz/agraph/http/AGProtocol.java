@@ -331,6 +331,41 @@ public class AGProtocol extends Protocol {
 	public static final String POINT_PARAM_NAME = "point";
 	
 	/**
+	 * Relative location of the SNA Generators registration service.
+	 */
+	public static final String SNA_GENERATORS = "snaGenerators";
+	
+	/**
+	 * Parameter name for the 'objectOf' predicates in the generator
+	 */
+	public static final String OBJECTOF_PARAM_NAME = "objectOf";
+	
+	/**
+	 * Parameter name for the 'subjectOf' predicates in the generator
+	 */
+	public static final String SUBJECTOF_PARAM_NAME = "subjectOf";
+	
+	/**
+	 * Parameter name for the 'undirected' predicates in the generator
+	 */
+	public static final String UNDIRECTED_PARAM_NAME = "undirected";
+	
+	/**
+	 * Relative location of the SNA Neighbor Matrices registration service.
+	 */
+	public static final String NEIGHBOR_MATRICES = "neighborMatrices";
+	
+	/**
+	 * Parameter name for the 'generator' for the neighbor matrix
+	 */
+	public static final String GENERATOR_PARAM_NAME = "generator";
+	
+	/**
+	 * Parameter name for the 'depth' for the neighbor matrix
+	 */
+	public static final String DEPTH_PARAM_NAME = "depth";
+	
+	/**
 	 * Location of the root catalog service
 	 */
 	public static final String getRootCatalogURL(String serverURL) {
@@ -463,6 +498,26 @@ public class AGProtocol extends Protocol {
 	
 	public static String getGeoPolygonLocation(String sessionRoot) {
 		return getGeoLocation(sessionRoot) + "/" + POLYGON;
+	}
+	
+	public static String getSNAGeneratorsLocation(String sessionRoot) {
+		return sessionRoot + "/" + SNA_GENERATORS;
+	}
+
+	public static String getSNAGeneratorLocation(String sessionRoot,
+			String generator) {
+		return getSNAGeneratorsLocation(sessionRoot) + "/" + generator;
+	}
+
+	public static String getSNANeighborMatricesLocation(String sessionRoot) {
+		return sessionRoot + "/" + NEIGHBOR_MATRICES;
+	}
+	
+
+	public static String getSNANeighborMatrixLocation(String sessionRoot,
+			String matrix) {
+		// TODO Auto-generated method stub
+		return getSNANeighborMatricesLocation(sessionRoot) + "/" + matrix;
 	}
 	
 }

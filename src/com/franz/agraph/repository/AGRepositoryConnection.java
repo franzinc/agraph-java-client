@@ -618,10 +618,9 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	 */
 	public void registerPolygon(URI polygon, List<Literal> points)
 	throws RepositoryException {
-		String[] nTriplesPoints = new String[points.size()];
-		int i=0;
+		List<String> nTriplesPoints = new ArrayList<String>(points.size());
 		for (Literal point: points) {
-			nTriplesPoints[i] = NTriplesUtil.toNTriplesString(point);
+			nTriplesPoints.add(NTriplesUtil.toNTriplesString(point));
 		}
 		getHttpRepoClient().registerPolygon(polygon.toString(), nTriplesPoints);
 	}
@@ -670,4 +669,27 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		return createRepositoryResult(collector.getStatements());
 	}
 	
+	public void registerSNAGenerator(String generator, List<URI> objectOfs, List<URI> subjectOfs, List<URI> undirecteds, String query) throws RepositoryException {
+		List<String> objOfs = new ArrayList<String>(3);
+		for (URI objectOf: objectOfs) {
+			objOfs.add(NTriplesUtil.toNTriplesString(objectOf));
+		}
+		List<String> subjOfs = new ArrayList<String>(3);
+		for (URI subjectOf: subjectOfs) {
+			subjOfs.add(NTriplesUtil.toNTriplesString(subjectOf));
+		}
+		List<String> undirs = new ArrayList<String>(3);
+		for (URI undirected: undirecteds) {
+			undirs.add(NTriplesUtil.toNTriplesString(undirected));
+		}
+		getHttpRepoClient().registerSNAGenerator(generator, objOfs, subjOfs, undirs, query);
+	}
+	
+	public void registerSNANeighborMatrix(String matrix, String generator, List<URI> groups, int depth) throws RepositoryException {
+		List<String> grps = new ArrayList<String>(3);
+		for (URI group: groups) {
+			grps.add(NTriplesUtil.toNTriplesString(group));
+		}
+		getHttpRepoClient().registerSNANeighborMatrix(matrix, generator, grps, depth);
+	}
 }
