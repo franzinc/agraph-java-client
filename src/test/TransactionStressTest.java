@@ -5,18 +5,15 @@ import java.util.Random;
 
 import junit.framework.TestCase;
 
-import org.openrdf.model.Literal;
-import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.RepositoryResult;
-import org.openrdf.query.TupleQueryResult;
-import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.query.QueryLanguage;
+import org.openrdf.query.TupleQueryResult;
+import org.openrdf.repository.RepositoryException;
+import org.openrdf.repository.RepositoryResult;
 
 import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGRepository;
@@ -105,7 +102,7 @@ public class TransactionStressTest extends TestCase {
         conn.clear();  // remove previous triples, if any.
 
         try {
-            LinkedList<Worker> workers = new LinkedList();
+            LinkedList<Worker> workers = new LinkedList<Worker>();
             for (int i = 0; i < WORKERS; i++) {
                 Worker w = new Worker(i * PER, (i + 1) * PER);
                 workers.add(w);
