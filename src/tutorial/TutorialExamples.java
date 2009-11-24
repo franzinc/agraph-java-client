@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.openrdf.model.Literal;
@@ -353,15 +354,16 @@ public class TutorialExamples {
         }
         qresult.close();
     }
-/*
- * Writing RDF or NTriples to a file
- */
+
+    /**
+     * Writing RDF or NTriples to a file
+     */
     public static void example8() throws Exception {
         RepositoryConnection conn = example6();
         Repository myRepository = conn.getRepository();
         URI context = myRepository.getValueFactory().createURI("http://example.org#vcards");
         String outputFile = TEMPORARY_DIRECTORY + "temp.nt";
-//        outputFile = null;
+        // outputFile = null;
         if (outputFile == null) {
             println("\nWriting n-triples to Standard Out instead of to a file");
         } else {
@@ -371,7 +373,7 @@ public class TutorialExamples {
         NTriplesWriter ntriplesWriter = new NTriplesWriter(output);
         conn.export(ntriplesWriter, context);
         String outputFile2 =  TEMPORARY_DIRECTORY + "temp.rdf";
-//        outputFile2 = null;
+        // outputFile2 = null;
         if (outputFile2 == null) {
             println("\nWriting RDF to Standard Out instead of to a file");
         } else {
@@ -951,8 +953,83 @@ public class TutorialExamples {
     }
     
 
-// TODO: example21() Social Network Analysis Reasoning
+    /**
+     * Social Network Analysis
+     */
+    public static void example21() throws Exception {
+    	AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
+    	AGCatalog catalog = server.getCatalog(CATALOG_ID);
+    	catalog.deleteRepository(REPOSITORY_ID);
+    	AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);
+    	myRepository.initialize();
+    	AGValueFactory vf = myRepository.getValueFactory();
+    	AGRepositoryConnection conn = myRepository.getConnection();
+    	closeBeforeExit(conn);
+    	conn.add(new File("src/tutorial/java-lesmis.rdf"), null, RDFFormat.RDFXML);
+    	println("Loaded " + conn.size() + " java-lesmis.rdf triples.");
+    	
+        // Create URIs for relationship predicates.
+    	String lmns = "http://www.franz.com/lesmis#";
+        conn.setNamespace("lm", lmns);
+        URI knows = vf.createURI(lmns, "knows");
+        URI barelyKnows = vf.createURI(lmns, "barely_knows");
+        URI knowsWell = vf.createURI(lmns, "knows_well");
 
+        // Create URIs for some characters.
+        URI valjean = vf.createURI(lmns, "character11");
+        //URI bossuet = vf.createURI(lmns, "character64");
+
+        // Create some generators
+        //print "\nSNA generators known (should be none): '%s'" % (conn.listSNAGenerators())
+        List<URI> intimates = new ArrayList<URI>(1);
+        Collections.addAll(intimates, knowsWell);
+        conn.registerSNAGenerator("intimates", null, null, intimates, null);
+        List<URI> associates = new ArrayList<URI>(2);
+        Collections.addAll(associates, knowsWell, knows);
+        conn.registerSNAGenerator("associates", null, null, associates, null);
+        List<URI> everyone = new ArrayList<URI>(3);
+        Collections.addAll(everyone, knowsWell, knows, barelyKnows);
+        conn.registerSNAGenerator("everyone", null, null, everyone, null);
+        println("Created three generators.");
+
+        // Create neighbor matrix.
+        List<URI> startNodes = new ArrayList<URI>(1);
+        startNodes.add(valjean);
+        conn.registerSNANeighborMatrix("matrix1", "intimates", startNodes, 2);
+        conn.registerSNANeighborMatrix("matrix2", "associates", startNodes, 5);
+        conn.registerSNANeighborMatrix("matrix3", "everyone", startNodes, 2);
+        println("Created three matrices.");
+        
+        // Explore Valjean's ego group.
+        println("\nValjean's ego group members (using associates).");
+        String queryString = "(select (?member ?name)" +
+          "(ego-group-member !lm:character11 1 associates ?member)" +
+          "(q ?member !dc:title ?name))";
+        TupleQuery tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
+        TupleQueryResult result = tupleQuery.evaluate();
+        while (result.hasNext()) {
+            BindingSet bindingSet = result.next();
+            Value p = bindingSet.getValue("member");
+            Value n = bindingSet.getValue("name");
+            println("member: " + p + ", name: " + n);
+        }
+        result.close();
+        
+        // Valjean's ego group using neighbor matrix.
+        println("\nValjean's ego group (using associates matrix).");
+        queryString = "(select (?member ?name)" +
+          "(ego-group-member !lm:character11 1 matrix2 ?member)" +
+          "(q ?member !dc:title ?name))";
+        tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
+        result = tupleQuery.evaluate();
+        while (result.hasNext()) {
+            BindingSet bindingSet = result.next();
+            Value p = bindingSet.getValue("member");
+            Value n = bindingSet.getValue("name");
+            println("member: " + p + ", name: " + n);
+        }
+        result.close();
+    }
 	
     /**
      * Transactions
@@ -1025,7 +1102,7 @@ public class TutorialExamples {
 
     /**
      * Usage: all
-     * Usage: [1-19,22]+
+     * Usage: [1-22]+
      */
     public static void main(String[] args) throws Exception {
         List<Integer> choices = new ArrayList<Integer>();
@@ -1033,10 +1110,9 @@ public class TutorialExamples {
             // for choosing by editing this code
             choices.add(1);
         } else if (args[0].equals("all")) {
-            for (int i = 1; i <= 20; i++) {
+            for (int i = 1; i <= 22; i++) {
                 choices.add(i);
             }
-            choices.add(22);
         } else {
             for (int i = 0; i < args.length; i++) {
                 choices.add(Integer.parseInt(args[i]));
@@ -1066,6 +1142,7 @@ public class TutorialExamples {
                 case 18: example18(); break;                                    
                 case 19: example19(); break;                                    
                 case 20: example20(); break;                                    
+                case 21: example21(); break;                                    
                 case 22: example22(); break;
                 default: throw new IllegalArgumentException("There is no example " + choice);
                 }

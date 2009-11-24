@@ -366,6 +366,11 @@ public class AGProtocol extends Protocol {
 	public static final String GENERATOR_PARAM_NAME = "generator";
 	
 	/**
+	 * Parameter name for the 'group' used in seeding a neighbor matrix
+	 */
+	public static final String GROUP_PARAM_NAME = "group";
+	
+	/**
 	 * Parameter name for the 'depth' for the neighbor matrix
 	 */
 	public static final String DEPTH_PARAM_NAME = "depth";

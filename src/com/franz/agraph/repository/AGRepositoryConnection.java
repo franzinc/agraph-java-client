@@ -675,26 +675,35 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	}
 	
 	public void registerSNAGenerator(String generator, List<URI> objectOfs, List<URI> subjectOfs, List<URI> undirecteds, String query) throws RepositoryException {
-		List<String> objOfs = new ArrayList<String>(3);
-		for (URI objectOf: objectOfs) {
-			objOfs.add(NTriplesUtil.toNTriplesString(objectOf));
+		List<String> objOfs = new ArrayList<String>();
+		if (objectOfs!=null) {
+			for (URI objectOf: objectOfs) {
+				objOfs.add(NTriplesUtil.toNTriplesString(objectOf));
+			}
 		}
-		List<String> subjOfs = new ArrayList<String>(3);
-		for (URI subjectOf: subjectOfs) {
-			subjOfs.add(NTriplesUtil.toNTriplesString(subjectOf));
+		List<String> subjOfs = new ArrayList<String>();
+		if (subjectOfs!=null) {
+			for (URI subjectOf: subjectOfs) {
+				subjOfs.add(NTriplesUtil.toNTriplesString(subjectOf));
+			}
 		}
-		List<String> undirs = new ArrayList<String>(3);
-		for (URI undirected: undirecteds) {
-			undirs.add(NTriplesUtil.toNTriplesString(undirected));
+		List<String> undirs = new ArrayList<String>();
+		if (subjectOfs!=null) {
+			for (URI undirected: undirecteds) {
+				undirs.add(NTriplesUtil.toNTriplesString(undirected));
+			}
 		}
 		getHttpRepoClient().registerSNAGenerator(generator, objOfs, subjOfs, undirs, query);
 	}
 	
-	public void registerSNANeighborMatrix(String matrix, String generator, List<URI> groups, int depth) throws RepositoryException {
-		List<String> grps = new ArrayList<String>(3);
-		for (URI group: groups) {
-			grps.add(NTriplesUtil.toNTriplesString(group));
+	public void registerSNANeighborMatrix(String matrix, String generator, List<URI> group, int depth) throws RepositoryException {
+		if (group==null || group.size()==0) {
+			throw new IllegalArgumentException("group must be non-empty.");
 		}
-		getHttpRepoClient().registerSNANeighborMatrix(matrix, generator, grps, depth);
+		List<String> grp = new ArrayList<String>(3);
+		for (URI node: group) {
+			grp.add(NTriplesUtil.toNTriplesString(node));
+		}
+		getHttpRepoClient().registerSNANeighborMatrix(matrix, generator, grp, depth);
 	}
 }

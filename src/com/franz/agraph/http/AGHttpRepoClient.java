@@ -1087,6 +1087,7 @@ public class AGHttpRepoClient {
 	}
 	
 	public void registerSNAGenerator(String generator, List<String> objectOfs, List<String> subjectOfs, List<String> undirecteds, String query) throws RepositoryException {
+		useDedicatedSession(autoCommit);
 		String url = AGProtocol.getSNAGeneratorLocation(getSessionRoot(), generator);
 		Header[] headers = {};
 		List<NameValuePair> params = new ArrayList<NameValuePair>(7);
@@ -1099,7 +1100,9 @@ public class AGHttpRepoClient {
 		for (String undirected: undirecteds) {
 			params.add(new NameValuePair(AGProtocol.UNDIRECTED_PARAM_NAME, undirected));
 		}
-		params.add(new NameValuePair(AGProtocol.QUERY_PARAM_NAME, query));
+		if (query!=null) {
+			params.add(new NameValuePair(AGProtocol.QUERY_PARAM_NAME, query));
+		}
 		try {
 			getHTTPClient().put(url, headers, params.toArray(new NameValuePair[params.size()]), null);
 		} catch (HttpException e) {
@@ -1111,13 +1114,13 @@ public class AGHttpRepoClient {
 		} // TODO: need an RDFParseException for query param?
 	}
 	
-	public void registerSNANeighborMatrix(String matrix, String generator, List<String> groups, int depth) throws RepositoryException {
+	public void registerSNANeighborMatrix(String matrix, String generator, List<String> group, int depth) throws RepositoryException {
 		String url = AGProtocol.getSNANeighborMatrixLocation(getSessionRoot(), matrix);
 		Header[] headers = {};
 		List<NameValuePair> params = new ArrayList<NameValuePair>(7);
 		params.add(new NameValuePair(AGProtocol.GENERATOR_PARAM_NAME, generator));
-		for (String group: groups) {
-			params.add(new NameValuePair(AGProtocol.SUBJECTOF_PARAM_NAME, group));
+		for (String node: group) {
+			params.add(new NameValuePair(AGProtocol.GROUP_PARAM_NAME, node));
 		}
 		params.add(new NameValuePair(AGProtocol.DEPTH_PARAM_NAME, Integer.toString(depth)));
 		try {
@@ -1128,7 +1131,7 @@ public class AGHttpRepoClient {
 			throw new RepositoryException(e);
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
-		} // TODO: need an RDFParseException for query param?
+		}
 	}
 	
 	
