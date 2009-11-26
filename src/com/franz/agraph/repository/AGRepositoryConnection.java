@@ -688,7 +688,7 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 			}
 		}
 		List<String> undirs = new ArrayList<String>();
-		if (subjectOfs!=null) {
+		if (undirecteds!=null) {
 			for (URI undirected: undirecteds) {
 				undirs.add(NTriplesUtil.toNTriplesString(undirected));
 			}
