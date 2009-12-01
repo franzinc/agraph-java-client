@@ -8,19 +8,6 @@
 .input { margin-left:4em; background-color:#ADDFFF;}
 .output { margin-left:4em; background-color:#F1F1F1;}
 .returnlink {font-size:small;  font-weight:normal; }
-
-.style1 {
-	color: #0000FF;
-	font-weight: bold;
-}
-.style2 {
-	color: #008040;
-	font-weight: bold;
-}
-.style3 {
-	color: #800080;
-	font-weight: bold;
-}
 </style>
 </head>
 <body>
@@ -58,8 +45,8 @@ creating, querying and maintaining RDF data, and for managing the stored triples
 	  <li><a href="#Prolog Rule Queries">Prolog Rule Queries</a></li>
       <li><a href="#Loading Prolog Rules">Loading Prolog Rules</a> </li>
       <li><a href="#RDFS++ Inference">RDFS++ Inference</a> </li>
-<!--      <li><a href="#Geospatial Search">Geospatial Search</a> </li>
-      <li><a href="#Social Network Analysis">Social Network Analysis</a> </li>
+      <li><a href="#Geospatial Search">Geospatial Search</a> </li>
+<!--      <li><a href="#Social Network Analysis">Social Network Analysis</a> </li>
 -->      <li><a href="#Transaction">Transactions </a></li>
       </ul>
     <p>&nbsp;</p></td>
@@ -838,7 +825,7 @@ is the fifth parameter to getStatements(), defaulting to &quot;False&quot;. <br>
 (&lt;http://example.org/people/bobby&gt;, &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#type&gt;, &lt;http://exmaple.org/ontology/Child&gt;)
 (&lt;http://example.org/people/roberta&gt;, &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#type&gt;, &lt;http://exmaple.org/ontology/Child&gt;)</pre>
 <p>Bobby and Roberta are the children. &nbsp;  </p>
-<!--
+
 <h2 id="Geospatial Search">Geospatial Search (example20())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>AllegroGraph provides the ability to locate resources within a geospatial coordinate system. You can set up either a flat (X,Y Cartesian) or spherical (latitude, longitude) system. The systems are two-dimensional only. (There is no Z or altitude dimension available). </p>
 <p>The purpose of the geospatial representation is to efficiently find all entities that are located within a specific circular, rectangular or polygonal area. </p>
@@ -847,92 +834,83 @@ is the fifth parameter to getStatements(), defaulting to &quot;False&quot;. <br>
 <p>The first example uses a Cartesian (X,Y) system that is 100 units square, and contains three people located at various points along the X = Y diagonal.</p>
 <p><img src="gepCartesian.jpg" width="417" height="333"> </p>
 <p>The example is in the function example20(). After establishing a connection, it begins by creating URIs for the three people.</p>
-<pre class="input">    exns = &quot;http://example.org/people/&quot;<br>    conn.setNamespace('ex', exns)<br>    alice = conn.createURI(exns, &quot;alice&quot;)<br>    bob = conn.createURI(exns, &quot;bob&quot;)<br>    carol = conn.createURI(exns, &quot;carol&quot;)</pre>
+<pre class="input">        String exns = &quot;http://example.org/people/&quot;;<br>        conn.setNamespace(&quot;ex&quot;, exns);<br>        URI alice = vf.createURI(exns, &quot;alice&quot;);<br>        URI bob = vf.createURI(exns, &quot;bob&quot;);<br>        URI carol = vf.createURI(exns, &quot;carol&quot;);</pre>
 <p>Then we have the connection object generate a rectangular coordinate system for us to use. A rectangular (Cartesian) system can be used to represent anything that can be plotted using (X,Y) coordinates, such as the location of transistors on a silicon chip. </p>
-<pre>    conn.createRectangularSystem(scale=10, xMax=100, yMax=100) 
-</pre>
-<p>The size of the coordinate system is determined by the <strong>xMin, xMax, yMin</strong> and <strong>yMax</strong> parameters. The minimum values default to zero, so this system is 0 to 100 in the X dimension, and 0 to 100 in the Y dimension. </p>
-<p>The <strong>scale</strong> parameter influences how the coordinate data is stored and retrieved, and impacts search performance. The  task is to locate the people who are within a specific region. As a rule of thumb, set the scale parameter to approximately the same value as the height (Y-axis) of your typical search region. You can be off by a factor of ten without impacting performance too badly, but if your application will search regions that are orders of magnitude different in size, you'll want to create multiple coordinate systems that are scaled for different sized search regions. In this case, our search region is about 20 units high (Y), and we have set the scale parameter to 10 units. That's close enough.</p>
+<pre class="input">        URI cartSystem = conn.registerCartesianType(10, 0, 100, 0, 100);</pre>
+<p>The first parameter is called the <strong>stripWidth</strong>. The stripWidth parameter influences how the coordinate data is stored and retrieved, and impacts search performance. The task is to locate the people who are within a specific region. As a rule of thumb, set the stripWidth parameter to approximately the same value as the height (Y-axis) of your typical search region. You can be off by a factor of ten without impacting performance too badly, but if your application will search regions that are orders of magnitude different in size, you'll want to create multiple coordinate systems that are scaled for different sized search regions. In this case, our search region is about 20 units high (Y), and we have set the stripWidth parameter to 10 units. That's close enough.</p>
+<p>The remaining parameters describe the overall size of the system. The size of the coordinate system is determined by the <strong>xMin, xMax, yMin</strong> and <strong>yMax</strong> parameters. This system is 0 to 100 in the X dimension, and 0 to 100 in the Y dimension. </p>
 <p>The next step is to create a &quot;location&quot; predicate and enter the locations of the three people. </p>
-<pre class="input">    location = conn.createURI(exns, &quot;location&quot;)<br>    conn.add(alice, location, conn.createCoordinate(30,30))<br>    conn.add(bob, location, conn.createCoordinate(40, 40))<br>    conn.add(carol, location, conn.createCoordinate(50, 50))  
-</pre>
-<p>Note that the coordinate pairs need to be encapsulated in a GeoCoordinate object to facilitate indexing and retrieval, using the connection object's <strong>createCoordinate()</strong> method. </p>
-<p>At this point we have a Cartesian coordinate system containing three entities at specific (X,Y) locations. The next step is to define a search region. The first example is a &quot;box&quot; that is twenty units square, with the upper left corner at position (20, 20). The <strong>createBox()</strong> method requires parameters for <strong>xMin, xMax, yMin</strong>, and <strong>yMax</strong>. </p>
-<pre class="input">    box1 = conn.createBox(20, 40, 20, 40)  
-</pre>
+<pre class="input">        URI location = vf.createURI(exns, &quot;location&quot;);<br>		Literal alice_loc = vf.createLiteral(&quot;+30.0+30.0&quot;, cartSystem);<br>		Literal bob_loc = vf.createLiteral(&quot;+40.0+40.0&quot;, cartSystem);<br>		Literal carol_loc = vf.createLiteral(&quot;+50.0+50.0&quot;, cartSystem);<br>		conn.add(alice, location, alice_loc);<br>		conn.add(bob, location, bob_loc);<br>		conn.add(carol, location, carol_loc);</pre>
+<p>Note that the coordinate pairs need to be encapsulated in a literal value that references the appropriate coordinate system. </p>
 <p>The problem is to find the people whose locations lie within this box:</p>
 <p><img src="geoBox1.jpg" width="412" height="330"></p>
-<p>Locating the matching entities is remarkably easy to do:</p>
-<pre class="input">    for r in conn.getStatements(None, location, box1) : print r 
-</pre>
-<p>This retrieves all the location triples whose coordinates fall within the box1 region. Here are the resulting triples:</p>
+<p>Locating the matching entities is remarkably easy to do. The <strong>getStatementsInBox()</strong> method requires the coordinate system object and the location predicate, plus the <strong>xmin</strong>, <strong>xmax</strong>, <strong>ymin</strong> and <strong>ymax</strong> limits of the search region. The last two arguments of the method let you place a limit on the number of results (0 means no limit), and you can optionally turn on inferencing. </p>
+<pre class="input">        RepositoryResult result = conn.getStatementsInBox(cartSystem, location, 20, 40, 20, 40, 0, false);<br>        printRows(result);<br>        result.close();</pre>
+<p>This retrieves all the location triples whose coordinates fall within the region. Here are the resulting triples:</p>
 <pre class="output">(&lt;http://example.org/people/alice&gt;, &lt;http://example.org/people/location&gt;, 
 &quot;+30.000000004656613+30.000000004656613&quot;^^&lt;http://franz.com/ns/allegrograph/3.0/geospatial/cartesian/0.0/100.0/0.0/100.0/1.0&gt;)<br>(&lt;http://example.org/people/bob&gt;, &lt;http://example.org/people/location&gt;, 
 &quot;+39.999999990686774+39.999999990686774&quot;^^&lt;http://franz.com/ns/allegrograph/3.0/geospatial/cartesian/0.0/100.0/0.0/100.0/1.0&gt;) </pre>
 <p>AllegroGraph has located Alice and Bob, as expected. Note that Bob was exactly on the corner of the search area, showing that the boundaries are inclusive. </p>
-<p>We can also find all objects within a circle with a known center and radius. Circle1 is centered at (35, 35) and has a radius of 10 units.</p>
-<pre class="input">    circle1 = conn.createCircle(35, 35, radius=10)   
-</pre>
+<p>We can also find all objects within a circle with a known center and radius. </p>
+
 <p><img src="geoCircle1.jpg" width="415" height="333"></p>
+<p>The getStatementsInCircle() method asks for the coordinate system object, the location predicate, the X and Y location of the circle's center, and the radius. The final two arguments are the limit and the inferencing switch. </p>
+<pre class="input">        RepositoryResult result2 = conn.getStatementsInCircle(cartSystem, location, 35, 35, 10, 0, false);<br>        printRows(result2);<br>        result2.close();</pre>
 <p>A search within circle1 finds Alice and Bob again:</p>
-<pre class="input">    for r in conn.getStatements(None, location, circle1) : print r 
-</pre>
 <pre class="output">(&lt;http://example.org/people/alice&gt;, &lt;http://example.org/people/location&gt;, 
 &quot;+30.000000004656613+30.000000004656613&quot;^^&lt;http://franz.com/ns/allegrograph/3.0/geospatial/cartesian/0.0/100.0/0.0/100.0/1.0&gt;)<br>(&lt;http://example.org/people/bob&gt;, &lt;http://example.org/people/location&gt;, 
 &quot;+39.999999990686774+39.999999990686774&quot;^^&lt;http://franz.com/ns/allegrograph/3.0/geospatial/cartesian/0.0/100.0/0.0/100.0/1.0&gt;) </pre>
-<p>AllegroGraph can also locate points that lie within an irregular polygon. Just tell AllegroGraph the vertices of the polygon:</p>
-<pre class="input">    polygon1 = conn.createPolygon([(10,40), (50,10), (35,40), (50,70)]) 
-</pre>
+<p>AllegroGraph can also locate points that lie within an irregular polygon. First we need to define the polygon. The polygon has to be assembled as a list of vertices which is then registered with the connection object. </p>
+<pre class="input"> URI polygon1 = vf.createURI(&quot;http://example.org/polygon1&quot;);
+ List&lt;Literal&gt; polygon1_points = new ArrayList&lt;Literal&gt;(4);
+ polygon1_points.add(vf.createLiteral(&quot;+10.0+40.0&quot;, cartSystem));
+ polygon1_points.add(vf.createLiteral(&quot;+50.0+10.0&quot;, cartSystem));
+ polygon1_points.add(vf.createLiteral(&quot;+35.0+40.0&quot;, cartSystem));
+ polygon1_points.add(vf.createLiteral(&quot;+50.0+70.0&quot;, cartSystem));
+ conn.registerPolygon(polygon1, polygon1_points); </pre>
 <p><img src="geoPolygon1.jpg" width="423" height="330"></p>
 <p>When we ask what people are within polygon1, AllegroGraph finds Alice.</p>
-<pre class="input">    for r in conn.getStatements(None, location, polygon1) : print r 
-</pre>
+<pre class="input">        RepositoryResult result3 = conn.getStatementsInPolygon(cartSystem, location, polygon1, 0, false);<br>        printRows(result3);<br>        result3.close();</pre>
 <pre class="output">(&lt;http://example.org/people/alice&gt;, &lt;http://example.org/people/location&gt;, 
 &quot;+30.000000004656613+30.000000004656613&quot;^^&lt;http://franz.com/ns/allegrograph/3.0/geospatial/cartesian/0.0/100.0/0.0/100.0/1.0&gt;)</pre>
 <h3>Spherical System</h3>
 <p>A spherical coordinate system projects (X,Y) locations on a spherical surface, simulating locations on the surface of the earth. AllegroGraph supports the usual units of latitude and longitude in the spherical system. The default unit of distance is the kilometer (km). (These functions presume that the sphere is the size of the planet earth. For spherical coordinate systems of other sizes, you will have to work with the Lisp radian functions that underlie this interface.)</p>
 <p><img src="geoWorld.jpg" width="602" height="340"></p>
 <p>To establish a global coordinate system, use the connection object's createLatLongSystem() method. </p>
-<pre class="input">    latLongGeoType = conn.createLatLongSystem(scale=5, unit='degree')</pre>
-<p>Once again, the <strong>scale</strong> parameter is an estimate of the size of a typical search area, in the longitudinal direction this time. The default unit is the degree. For this system, we expect a typical search to cover about five degrees in the east-west direction. Actual search regions may be as much as ten times larger or smaller without significantly impacting performance. If the application will use search regions that are significantly larger or smaller, then you will want to create multiple coordinate systems that have been optimized for different scales. </p>
+<pre class="input">         URI sphericalSystemDegree = conn.registerSphericalType(5, &quot;degree&quot;);</pre>
+<p>Once again, the <strong>stripWidth</strong> parameter is an estimate of the size of a typical search area, in the longitudinal direction this time. The default unit is the &quot;degree&quot;, but the method also accepts kilometers (&quot;km&quot;). For this system, we expect a typical search to cover about five degrees in the east-west direction. Actual search regions may be as much as ten times larger or smaller without significantly impacting performance. If the application will use search regions that are significantly larger or smaller, then you will want to create multiple coordinate systems that have been optimized for different scales. </p>
 <p>First we set up the resources for the entities within the spherical system. We'll need these subject URIs:</p>
-<pre class="input">    amsterdam = conn.createURI(exns, &quot;amsterdam&quot;)<br>    london = conn.createURI(exns, &quot;london&quot;)<br>    sanfrancisto = conn.createURI(exns, &quot;sanfrancisco&quot;)<br>    salvador = conn.createURI(exns, &quot;salvador&quot;)     
-</pre>
+<pre class="input">        URI amsterdam = vf.createURI(exns, &quot;amsterdam&quot;);<br>        URI london = vf.createURI(exns, &quot;london&quot;);<br>        URI sanfrancisco = vf.createURI(exns, &quot;sanfrancisco&quot;);<br>        URI salvador = vf.createURI(exns, &quot;salvador&quot;);</pre>
 <p>Then we'll need a <strong>geolocation</strong> predicate to describe the lat/long coordinates of each entity.</p>
-<pre class="input">    location = conn.createURI(exns, &quot;geolocation&quot;)</pre>
-<p>Now we can create the entities by asserting a geolocation for each one. Note that the coordinates have to be encapsulated in coordinate objects: </p>
-<pre class="input">    conn.add(amsterdam, location, conn.createCoordinate(52.366665, 4.883333))<br>    conn.add(london, location, conn.createCoordinate(51.533333, -0.08333333))<br>    conn.add(sanfrancisto, location, conn.createCoordinate(37.783333, -122.433334)) <br>    conn.add(salvador, location, conn.createCoordinate(13.783333, -88.45))  </pre>
+<pre class="input">        location = vf.createURI(exns, &quot;geolocation&quot;);</pre>
+<p>Now we can create the entities by asserting a geolocation for each one. Note that the coordinates have to be encapsulated in literal objects: </p>
+<pre class="input">        conn.add(amsterdam, location, vf.createLiteral(&quot;+52.366665+004.883333&quot;,sphericalSystemDegree));<br>        conn.add(london, location, vf.createLiteral(&quot;+51.533333-000.08333333&quot;,sphericalSystemDegree));<br>        conn.add(sanfrancisco, location, vf.createLiteral(&quot;+37.783333-122.433334&quot;,sphericalSystemDegree));<br>        conn.add(salvador, location, vf.createLiteral(&quot;+13.783333-088.45&quot;,sphericalSystemDegree));</pre>
 <p>The coordinates are decimal degrees. Northern latitudes and eastern longitudes are positive. </p>
-<p>The next step is to create a box-shaped region, so we can see what entities lie within it. </p>
-<pre class="input">    box2 = conn.createBox( 25.0, 50.0, -130.0, -70.0) 
-</pre>
-<p>This region corresponds roughly to the contiguous United States. </p>
+<p>The next experiment is to search a box-shaped region on the surface of the sphere. (The &quot;box&quot; follows lines of latitude and longitude.) This region corresponds roughly to the contiguous United States. </p>
 <p><img src="geoBox2.jpg" width="634" height="361"></p>
 <p>Now we retrieve all the triples located within the search region:</p>
-<pre class="input">    for r in conn.getStatements(None, location, box2) : print r     
-</pre>
+<pre class="input">        RepositoryResult result4 = conn.getStatementsInBox(sphericalSystemDegree, location, -130.0f, -70.0f, 25.0f, 50.0f, 0, false);<br>		printRows(result4);<br>		result4.close();</pre>
 <p>AllegroGraph has located San Francisco:</p>
 <pre class="output">(&lt;http://example.org/people/sanfrancisco&gt;, &lt;http://example.org/people/geolocation&gt;,
 &quot;+374659.49909-1222600.00212&quot;^^&lt;http://franz.com/ns/allegrograph/3.0/geospatial/
 spherical/degrees/-180.0/180.0/-90.0/90.0/5.0&gt;) 
 </pre>
 <p>This time let's search for entities within 2000 kilometers of Mexico City, which is located at 19.3994 degrees north latitude, -99.08 degrees west longitude. </p>
-<pre class="input">    circle2 = conn.createCircle(19.3994, -99.08, 2000, unit='km')</pre>
+
 <p><img src="geoCircle2.jpg" width="630" height="365"></p>
-<pre class="input">    for r in conn.getStatements(None, location, circle2) : print r</pre>
+<pre class="input">		RepositoryResult result5 = conn.getGeoHaversine(sphericalSystemDegree, location, 19.3994f, -99.08f, 2000.0f, &quot;km&quot;, 0, false);<br>		printRows(result5);<br>		result5.close();</pre>
 <pre class="output">(&lt;http://example.org/people/salvador&gt;, &lt;http://example.org/people/geolocation&gt;, 
 &quot;+134659.49939-0882700&quot;^^&lt;http://franz.com/ns/allegrograph/3.0/geospatial/spherical/degrees/-180.0/180.0/-90.0/90.0/5.0&gt;)</pre>
 <p>And AllegroGraph returns the triple representing El Salvador. </p>
-<p>In the next example, the search area is a triangle roughly enclosing the United Kingdom:</p>
-<pre class="input">    polygon2 = conn.createPolygon([(51.0, 2.00),(60.0, -5.0),(48.0,-12.5)])
-</pre>
+<p>In the next example, the search area is a triangle roughly enclosing the United Kingdom. We begin by registering the polygon: </p>
+<pre class="input">        URI polygon2 = vf.createURI(&quot;http://example.org/polygon2&quot;);<br>        List&lt;Literal&gt; polygon2_points = new ArrayList&lt;Literal&gt;(3);<br>        polygon2_points.add(vf.createLiteral(&quot;+51.0+002.0&quot;, sphericalSystemDegree));<br>        polygon2_points.add(vf.createLiteral(&quot;+60.0-005.0&quot;, sphericalSystemDegree));<br>        polygon2_points.add(vf.createLiteral(&quot;+48.0-012.5&quot;, sphericalSystemDegree));<br>        conn.registerPolygon(polygon2, polygon2_points);</pre>
 <p><em><img src="geoPolygon2.jpg" width="631" height="385"> </em></p>
 <p>We ask AllegroGraph to find all entities within this triangle:</p>
-<pre class="input">    for r in conn.getStatements(None, location, polygon2) : print r 
-</pre>
+<pre class="input">        RepositoryResult result6 = conn.getStatementsInPolygon(sphericalSystemDegree, location, polygon2, 0, false);<br>        printRows(result6);<br>        result6.close();</pre>
 <pre class="output">(&lt;http://example.org/people/london&gt;, &lt;http://example.org/people/geolocation&gt;, 
 &quot;+513159.49909-0000459.99970&quot;^^&lt;http://franz.com/ns/allegrograph/3.0/geospatial/spherical/degrees/-180.0/180.0/-90.0/90.0/5.0&gt;)</pre>
 <p>AllegroGraph returns the location of London, but not the nearby Amsterdam.</p>
+<!--
 <h2 id="Social Network Analysis">Social Network Analysis  (example21())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>AllegroGraph includes sophisticated algorithms for social-network analysis (SNA). It can examine an RDF graph of relationships among people (or similar entities, such as businesses) and discover:</p>
 <ul>
