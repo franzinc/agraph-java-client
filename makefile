@@ -38,5 +38,8 @@ dist: FORCE
 	cp src/tutorial/java-tutorial-40.html DIST/$(DISTDIR)/doc
 	cp src/tutorial/*.jpg DIST/$(DISTDIR)/doc
 	tar -c -h -z --owner=root --group=root -f DIST/$(TARNAME) -C DIST $(DISTDIR)
+ifdef DESTDIR
+	cp -p DIST/$(TARNAME) $(DESTDIR)
+endif
 
 FORCE:
