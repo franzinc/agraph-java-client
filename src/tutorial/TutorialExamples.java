@@ -1164,9 +1164,9 @@ public class TutorialExamples {
         
         // Note that depth-first-search-paths may return more than one path of different lengths.  
         // None of them are guaranteed to be "the shortest path."
-        println("\nReturn depth-first path(s) connecting Valjean to Bossuet using associates (should be four).");
+        println("\nReturn depth-first path connecting Valjean to Bossuet using associates (should be one).");
         queryString = "(select ?path" +
-          "(depth-first-search-paths !lm:character11 !lm:character64 associates ?path))";
+          "(depth-first-search-path !lm:character11 !lm:character64 associates 10 ?path))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         result = tupleQuery.evaluate();
         count = 0;
@@ -1328,8 +1328,13 @@ public class TutorialExamples {
         }
         result.close();
 
-        // Group-degree-centrality is the number of non-group nodes that are connected to group members.
-        // Normalize by dividing by the number of non-group nodes. 
+        //  "Group centrality measures the cohesion a group relative to
+        //  some measure of actor-centrality. `group-degree-centrality measures
+        //  group cohesion by finding the maximum actor centrality in the group,
+        //  summing the difference between this and each other actor's degree
+        //  centrality and then normalizing. It ranges from 0 (when all actors have
+        //  equal degree) to 1 (when one actor is connected to every other and no
+        //  other actors have connections."
         println("\nGroup-degree-centrality of Valjean's ego group at depth 1 (using associates).");
         queryString = "(select ?centrality" +
           "(ego-group !lm:character11 1 associates ?group)" +
@@ -1343,7 +1348,7 @@ public class TutorialExamples {
         }
         result.close();
 
-        println("\nGroup-degree-centrality of Valjean's ego group at depth 2 (using associates).");
+        println("\nGroup-degree-centrality of Valjean's ego group at depth 2 (using associatese).");
         queryString = "(select ?centrality" +
           "(ego-group !lm:character11 2 associates ?group)" +
           "(group-degree-centrality ?group associates ?centrality))";
@@ -1356,8 +1361,12 @@ public class TutorialExamples {
         }
         result.close();
 
-        // Group-closeness-centrality is the sum of the distances from the group to all
-        // vertices outside the group. Divide by number of external vertices to normalize.
+        //  "Group centrality measures the cohesion a group relative to
+        //  some measure of actor-centrality. `group-closeness-centrality` is
+        //  measured by first finding the actor whose `closeness-centrality`
+        //  is maximized and then summing the difference between this maximum
+        //  value and the [actor-closeness-centrality][] of all other actors.
+        //  This value is then normalized so that it ranges between 0 and 1."
         println("\nGroup-closeness-centrality of Valjean's ego group at depth 1 (using associates).");
         queryString = "(select ?centrality" +
           "(ego-group !lm:character11 1 associates ?group)" +
@@ -1384,8 +1393,12 @@ public class TutorialExamples {
         }
         result.close();
 
-        // Group-betweenness-centrality is the proportion of geodesics between out-group vertices that 
-        // pass through the group.  
+        //  "Group centrality measures the cohesion a group relative to
+        //  some measure of actor-centrality. `group-betweenness-centrality` is
+        //  measured by first finding the actor whose `betweenness-centrality`
+        //  is maximized and then summing the difference between this maximum
+        //  value and the [actor-betweenness-centrality][] of all other actors.
+        //  This value is then normalized so that it ranges between 0 and 1.
         println("\nGroup-betweenness-centrality of Valjean's ego group at depth 1 (using associates).");
         queryString = "(select ?centrality" +
           "(ego-group !lm:character11 1 associates ?group)" +
@@ -1399,7 +1412,7 @@ public class TutorialExamples {
         }
         result.close();
 
-        println("\nGroup-betweenness-centrality of Valjean's ego group at depth 2 (using associates).");
+        println("\nGroup-betweenness-centrality of Valjean's ego group at depth 1 (using associates).");
         queryString = "(select ?centrality" +
           "(ego-group !lm:character11 2 associates ?group)" +
           "(group-betweenness-centrality ?group associates ?centrality))";
@@ -1411,6 +1424,8 @@ public class TutorialExamples {
             println("Centrality: " + p.stringValue());
         }
         result.close();
+
+
 
         
     }
