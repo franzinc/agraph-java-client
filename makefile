@@ -3,7 +3,7 @@
 default: FORCE
 	ant clean-build
 
-clean: FORCE
+clean: dist-clean
 	ant clean
 
 prepush: FORCE
@@ -15,31 +15,39 @@ build: FORCE
 ###############################################################################
 ## distribution building
 
-VERSION = 1.0m1a
-SERVER_VERSION = 4.0m1a
+## this is brittle, clean it up post-m2.
+
+VERSION = 1.0m2
+SERVER_VERSION = 4.0m2
 
 DISTDIR = agraph-$(SERVER_VERSION)-client-java-$(VERSION)
 
 TARNAME = $(DISTDIR).tar.gz
 
-TUTORIAL_FILES = kennedy.ntriples relative_rules.txt \
-		 vc-db-1.rdf lesmis.rdf TutorialExamples.java
+TUTORIAL_FILES = *.ntriples *.rdf *.txt TutorialExamples.java
 
-dist: FORCE
-	rm -fr DIST
-	mkdir -p DIST/$(DISTDIR)
-	cp -r dist/* dist/.[a-z]* DIST/$(DISTDIR)
-	mkdir -p DIST/$(DISTDIR)/src/tutorial
+dist: clean build
+	mkdir -p DIST
+	sed 's|SERVER_VERSION|$(SERVER_VERSION)|g' templates/.project > DIST/.project
+	sed 's|agraph.jar|agraph-$(SERVER_VERSION).jar|g' templates/.classpath > DIST/.classpath
+	mkdir -p DIST/src/tutorial
 	for f in $(TUTORIAL_FILES); do \
 	    echo copying src/tutorial/$$f...; \
-	    cp src/tutorial/$$f DIST/$(DISTDIR)/src/tutorial; \
+	    cp src/tutorial/$$f DIST/src/tutorial; \
 	done
-	mkdir -p DIST/$(DISTDIR)/doc
-	cp src/tutorial/java-tutorial-40.html DIST/$(DISTDIR)/doc
-	cp src/tutorial/*.jpg DIST/$(DISTDIR)/doc
-	tar -c -h -z --owner=root --group=root -f DIST/$(TARNAME) -C DIST $(DISTDIR)
+	mkdir -p DIST/lib
+	cp agraph.jar DIST/lib/agraph-$(SERVER_VERSION).jar
+	cp lib/*.jar DIST/lib
+	mkdir -p DIST/doc
+	cp src/tutorial/java-tutorial-40.html DIST/doc
+	cp src/tutorial/*.jpg DIST/doc
+	tar -c -h -z -f $(TARNAME) -C DIST .
+
+dist-clean: FORCE
+	rm -fr DIST $(TARNAME)
+	
 ifdef DESTDIR
-	cp -p DIST/$(TARNAME) $(DESTDIR)
+	cp -p $(TARNAME) $(DESTDIR)
 endif
 
 FORCE:
