@@ -20,13 +20,18 @@ build: FORCE
 VERSION = 1.0m2
 SERVER_VERSION = 4.0m2
 
-DISTDIR = agraph-$(SERVER_VERSION)-client-java-$(VERSION)
-
-TARNAME = $(DISTDIR).tar.gz
 
 TUTORIAL_FILES = *.ntriples *.rdf *.txt TutorialExamples.java
 
+ifdef CUSTOMER_DIST
+DISTDIR = agraph-$(SERVER_VERSION)-client-java-$(VERSION)
 DIST = DIST/$(DISTDIR)
+TARNAME = DIST/$(DISTDIR).tar.gz
+else
+DISTDIR = .
+DIST = DIST
+TARNAME = agraph-$(SERVER_VERSION)-client-java-$(VERSION).tar.gz
+endif
 
 dist: clean build
 	rm -fr DIST
@@ -44,12 +49,12 @@ dist: clean build
 	mkdir -p $(DIST)/doc
 	cp src/tutorial/java-tutorial-40.html $(DIST)/doc
 	cp src/tutorial/*.jpg $(DIST)/doc
-	tar -c -h -z -f DIST/$(TARNAME) -C DIST $(DISTDIR)
+	tar -c -h -z -f $(TARNAME) -C DIST $(DISTDIR)
 ifdef DESTDIR
-	cp -p DIST/$(TARNAME) $(DESTDIR)
+	cp -p $(TARNAME) $(DESTDIR)
 endif
 
 dist-clean: FORCE
-	rm -fr DIST
+	rm -fr DIST *.tar.gz
 
 FORCE:
