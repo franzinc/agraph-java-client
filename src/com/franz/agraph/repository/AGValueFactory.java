@@ -4,10 +4,14 @@ import java.io.IOException;
 
 import org.openrdf.http.protocol.UnauthorizedException;
 import org.openrdf.model.BNode;
+import org.openrdf.model.Resource;
+import org.openrdf.model.URI;
+import org.openrdf.model.Value;
 import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.repository.RepositoryException;
 
 import com.franz.agraph.http.AGHTTPClient;
+import com.hp.hpl.jena.graph.Node;
 
 /**
  * Implements the Sesame ValueFactory interface for AllegroGraph.
@@ -71,4 +75,60 @@ public class AGValueFactory extends ValueFactoryImpl {
 		return createBNode(null);
 	}
 
+	/**
+	 * Creates an OpenRDF Value from a concrete Jena Node.
+	 *  
+	 * @param node a concrete Jena node.
+	 * @return the corresponding Value.
+	 */
+	public Value asValue(Node node) {
+		Value val;
+		if (node==null || node==Node.ANY) {
+			val = null;
+		} else if (node.isURI()) {
+			val = createURI(node.getURI());
+		} else if (node.isBlank()) {
+			val = createBNode(node.getBlankNodeLabel());
+		} else if (node.isLiteral()) {
+			String lang = node.getLiteralLanguage();
+			if (node.getLiteralDatatypeURI()!=null) {
+				URI datatype = createURI(node.getLiteralDatatypeURI());
+				val = createLiteral(node.getLiteralLexicalForm(), datatype);
+			} else if (lang!=null && lang!="") {
+				val = createLiteral(node.getLiteralLexicalForm(),lang);
+			} else {
+				// TODO
+				val = createLiteral(node.getLiteralLexicalForm());
+			}
+		} else {
+			throw new IllegalArgumentException("Cannot convert Node to Value: " + node);
+		}
+		return val;
+	}
+
+	public Resource asResource(Node node) {
+		Resource res;
+		if (node==null || node==Node.ANY) {
+			res = null;
+		} else if (node.isURI()) {
+			res = createURI(node.getURI());
+		} else if (node.isBlank()) {
+			res = createBNode(node.getBlankNodeLabel());
+		} else {
+			throw new IllegalArgumentException("Cannot convert Node to Resource: " + node);
+		}
+		return res;
+	}
+
+	public URI asURI(Node node) {
+		URI uri;
+		if (node==null || node==Node.ANY) {
+			uri = null;
+		} else if (node.isURI()) {
+			uri = createURI(node.getURI());
+		} else {
+			throw new IllegalArgumentException("Cannot convert Node to URI: " + node);
+		}
+		return uri;
+	}
 }
