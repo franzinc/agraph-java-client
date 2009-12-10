@@ -21,10 +21,10 @@
 	<classpathentry kind="lib" path="lib/jena-2.6.0/junit-4.5.jar"/>
 	<classpathentry kind="lib" path="lib/jena-2.6.0/log4j-1.2.12.jar"/>
 	<classpathentry kind="lib" path="lib/jena-2.6.0/lucene-core-2.3.1.jar"/>
-	<classpathentry kind="lib" path="lib/jena-2.6.0/slf4j-api-1.5.6.jar"/>
-	<classpathentry kind="lib" path="lib/jena-2.6.0/slf4j-log4j12-1.5.6.jar"/>
 	<classpathentry kind="lib" path="lib/jena-2.6.0/stax-api-1.0.jar"/>
 	<classpathentry kind="lib" path="lib/jena-2.6.0/wstx-asl-3.0.0.jar"/>
 	<classpathentry kind="lib" path="lib/jena-2.6.0/xercesImpl.jar"/>
+	<classpathentry kind="lib" path="lib/slf4j-api-1.5.8.jar"/>
+	<classpathentry kind="lib" path="lib/slf4j-nop-1.5.8.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
