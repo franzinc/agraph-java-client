@@ -21,7 +21,7 @@ VERSION = 1.0m2
 SERVER_VERSION = 4.0m2
 
 
-TUTORIAL_FILES = *.ntriples *.rdf *.txt TutorialExamples.java
+TUTORIAL_FILES = *.ntriples *.rdf *.txt *TutorialExamples.java
 
 ifdef CUSTOMER_DIST
 DISTDIR = agraph-$(SERVER_VERSION)-client-java-$(VERSION)
@@ -48,6 +48,8 @@ dist: clean build
 	mkdir -p $(DIST)/lib
 	cp agraph.jar $(DIST)/lib/agraph-$(SERVER_VERSION).jar
 	cp lib/*.jar $(DIST)/lib
+	mkdir -p $(DIST)/lib/jena-2.6.0
+	cp lib/jena-2.6.0/*.jar $(DIST)/lib/jena-2.6.0
 	mkdir -p $(DIST)/doc
 	cp src/tutorial/java-tutorial-40.html $(DIST)/doc
 	cp src/tutorial/*.jpg $(DIST)/doc

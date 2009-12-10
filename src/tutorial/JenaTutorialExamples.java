@@ -587,9 +587,11 @@ public class JenaTutorialExamples {
 			// for choosing by editing this code
 			choices.add(1);
 		} else if (args[0].equals("all")) {
-			for (int i = 1; i <= 22; i++) {
+			for (int i = 1; i <= 9; i++) {
 				choices.add(i);
 			}
+			choices.add(11);
+			choices.add(13);
 		} else {
 			for (int i = 0; i < args.length; i++) {
 				choices.add(Integer.parseInt(args[i]));
@@ -626,44 +628,14 @@ public class JenaTutorialExamples {
 				case 9:
 					example9();
 					break;
-				case 10:
-					//example10();
-					break;
 				case 11:
 					example11();
-					break;
-				case 12:
-					//example12();
 					break;
 				case 13:
 					example13();
 					break;
-				case 14:
-					//example14();
-					break;
-				case 15:
-					//example15();
-					break;
-				case 16:
-					//example16();
-					break;
-				case 17:
-					//example17();
-					break;
-				case 18:
-					//example18();
-					break;
 				case 19:
 					//example19();
-					break;
-				case 20:
-					//example20();
-					break;
-				case 21:
-					//example21();
-					break;
-				case 22:
-					//example22();
 					break;
 				default:
 					throw new IllegalArgumentException("There is no example "
