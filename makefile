@@ -27,10 +27,12 @@ ifdef CUSTOMER_DIST
 DISTDIR = agraph-$(SERVER_VERSION)-client-java-$(VERSION)
 DIST = DIST/$(DISTDIR)
 TARNAME = DIST/$(DISTDIR).tar.gz
+TAROPTS = 
 else
 DISTDIR = .
 DIST = DIST
 TARNAME = agraph-$(SERVER_VERSION)-client-java-$(VERSION).tar.gz
+TAROPTS = --owner=root --group=root 
 endif
 
 dist: clean build
@@ -49,7 +51,7 @@ dist: clean build
 	mkdir -p $(DIST)/doc
 	cp src/tutorial/java-tutorial-40.html $(DIST)/doc
 	cp src/tutorial/*.jpg $(DIST)/doc
-	tar -c -h -z -f $(TARNAME) -C DIST $(DISTDIR)
+	tar -c -h -z $(TAROPTS) -f $(TARNAME) -C DIST $(DISTDIR)
 ifdef DESTDIR
 	cp -p $(TARNAME) $(DESTDIR)
 endif
