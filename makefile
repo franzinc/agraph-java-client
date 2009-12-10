@@ -27,12 +27,12 @@ ifdef CUSTOMER_DIST
 DISTDIR = agraph-$(SERVER_VERSION)-client-java-$(VERSION)
 DIST = DIST/$(DISTDIR)
 TARNAME = DIST/$(DISTDIR).tar.gz
-TAROPTS = 
+TAROPTS = --owner=root --group=root 
 else
 DISTDIR = .
 DIST = DIST
 TARNAME = agraph-$(SERVER_VERSION)-client-java-$(VERSION).tar.gz
-TAROPTS = --owner=root --group=root 
+TAROPTS = 
 endif
 
 dist: clean build
