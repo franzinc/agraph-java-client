@@ -33,7 +33,6 @@ import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.ntriples.NTriplesWriter;
 import org.openrdf.rio.rdfxml.RDFXMLWriter;
 
-import com.franz.agraph.http.AGProtocol;
 import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGQueryLanguage;
 import com.franz.agraph.repository.AGRepository;
@@ -913,12 +912,12 @@ public class TutorialExamples {
 		conn.add(bob, location, bob_loc);
 		conn.add(carol, location, carol_loc);
         println("\nFind people located within box1.");
-        RepositoryResult result1 = conn.getStatementsInBox(cartSystem, location, 20, 40, 20, 40, 0, false);
+        RepositoryResult<Statement> result1 = conn.getStatementsInBox(cartSystem, location, 20, 40, 20, 40, 0, false);
         printRows(result1);
         result1.close();
         //printRows( conn.getStatementsInBox(cartSystem, location, 20, 40, 20, 40, 0, false) );
         println("\nFind people located within circle1.");
-        RepositoryResult result2 = conn.getStatementsInCircle(cartSystem, location, 35, 35, 10, 0, false);
+        RepositoryResult<Statement> result2 = conn.getStatementsInCircle(cartSystem, location, 35, 35, 10, 0, false);
         printRows(result2);
         result2.close();
         //printRows( conn.getStatementsInCircle(cartSystem, location, 35, 35, 10, 0, false) ); 
@@ -931,7 +930,7 @@ public class TutorialExamples {
         //println(polygon1_points);
         conn.registerPolygon(polygon1, polygon1_points);
         println("\nFind people located within ploygon1.");
-        RepositoryResult result3 = conn.getStatementsInPolygon(cartSystem, location, polygon1, 0, false);
+        RepositoryResult<Statement> result3 = conn.getStatementsInPolygon(cartSystem, location, polygon1, 0, false);
         printRows(result3);
         result3.close();
         //printRows( conn.getStatementsInPolygon(cartSystem, location, polygon1, 0, false) );
@@ -950,12 +949,12 @@ public class TutorialExamples {
         conn.add(sanfrancisco, location, vf.createLiteral("+37.783333-122.433334",sphericalSystemDegree));
         conn.add(salvador, location, vf.createLiteral("+13.783333-088.45",sphericalSystemDegree));
         println("\nLocate entities within box2.");
-        RepositoryResult result4 = conn.getStatementsInBox(sphericalSystemDegree, location, -130.0f, -70.0f, 25.0f, 50.0f, 0, false);
+        RepositoryResult<Statement> result4 = conn.getStatementsInBox(sphericalSystemDegree, location, -130.0f, -70.0f, 25.0f, 50.0f, 0, false);
 		printRows(result4);
 		result4.close();
         //printRows(conn.getStatementsInBox(sphericalSystemDegree, location, -130.0f, -70.0f, 25.0f, 50.0f, 0, false) );
 		println("\nLocate entities within haversine circle.");
-		RepositoryResult result5 = conn.getGeoHaversine(sphericalSystemDegree, location, 19.3994f, -99.08f, 2000.0f, "km", 0, false);
+		RepositoryResult<Statement> result5 = conn.getGeoHaversine(sphericalSystemDegree, location, 19.3994f, -99.08f, 2000.0f, "km", 0, false);
 		printRows(result5);
 		result5.close();
 		//printRows(conn.getGeoHaversine(sphericalSystemDegree, location, 19.3994f, -99.08f, 2000.0f, "km", 0, false) );
@@ -967,7 +966,7 @@ public class TutorialExamples {
         //println(polygon2_points);
         conn.registerPolygon(polygon2, polygon2_points);
         println("\nLocate entities within polygon2.");
-        RepositoryResult result6 = conn.getStatementsInPolygon(sphericalSystemDegree, location, polygon2, 0, false);
+        RepositoryResult<Statement> result6 = conn.getStatementsInPolygon(sphericalSystemDegree, location, polygon2, 0, false);
         printRows(result6);
         result6.close();
         //printRows( conn.getStatementsInPolygon(sphericalSystemDegree, location, polygon2, 0, false) );
