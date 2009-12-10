@@ -2,3 +2,7 @@ bin
 .*sw*
 *.class
 classes
+agraph.jar
+agraph*.tar.gz
+DIST
+
