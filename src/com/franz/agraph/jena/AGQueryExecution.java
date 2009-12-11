@@ -13,6 +13,7 @@ import com.hp.hpl.jena.query.QueryExecution;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.sparql.util.Context;
 import com.hp.hpl.jena.util.FileManager;
 
@@ -35,8 +36,6 @@ public class AGQueryExecution implements QueryExecution {
 
 	@Override
 	public void close() {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -44,6 +43,7 @@ public class AGQueryExecution implements QueryExecution {
 		AGBooleanQuery bq = model.getGraph().getConnection().prepareBooleanQuery(AGQueryLanguage.SPARQL, query.getQueryString());
 		boolean result;
 		try {
+			bq.setDataset(model.getGraph().getDataset());
 			result = bq.evaluate();
 		} catch (QueryEvaluationException e) {
 			throw new RuntimeException(e);
@@ -52,35 +52,42 @@ public class AGQueryExecution implements QueryExecution {
 	}
 
 	@Override
-	public AGModel execConstruct() {
-		AGGraphQuery gq = model.getGraph().getConnection().prepareGraphQuery(AGQueryLanguage.SPARQL, query.getQueryString());
-		GraphQueryResult result;
-		try {
-			result = gq.evaluate();
-			// TODO:
-			result.close();
-		} catch (QueryEvaluationException e) {
-			throw new RuntimeException(e);
-		}
-		return null; // TODO: new AGModel(result, model);
+	public Model execConstruct() {
+		return execConstruct(null);
 	}
 
 	@Override
-	public Model execConstruct(Model model) {
-		// TODO Auto-generated method stub
-		return null;
+	public Model execConstruct(Model m) {
+		AGGraphQuery gq = model.getGraph().getConnection().prepareGraphQuery(AGQueryLanguage.SPARQL, query.getQueryString());
+		GraphQueryResult result;
+		try {
+			gq.setDataset(model.getGraph().getDataset());
+			result = gq.evaluate();
+		} catch (QueryEvaluationException e) {
+			throw new RuntimeException(e);
+		}
+		if (m==null) {
+			m = ModelFactory.createDefaultModel();
+		}
+		try {
+			m.setNsPrefixes(result.getNamespaces());
+			while (result.hasNext()) {
+				m.add(model.asStatement(AGNodeFactory.asTriple(result.next())));
+			}
+		} catch (QueryEvaluationException e) {
+			throw new RuntimeException(e);
+		}
+		return m;
 	}
 
 	@Override
 	public Model execDescribe() {
-		// TODO Auto-generated method stub
-		return null;
+		return execDescribe(null);
 	}
 
 	@Override
-	public Model execDescribe(Model model) {
-		// TODO Auto-generated method stub
-		return null;
+	public Model execDescribe(Model m) {
+		return execConstruct(m);
 	}
 
 	@Override

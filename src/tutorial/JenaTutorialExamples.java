@@ -409,7 +409,7 @@ public class JenaTutorialExamples {
 	public static void example8() throws Exception {
 		AGGraphMaker maker = example6();
 		AGModel model = new AGModel(maker.getGraph());
-		AGModel model_vcards = new AGModel(maker.openGraph("http://example.org#vcards"));
+		// TODO AGModel model_vcards = new AGModel(maker.openGraph("http://example.org#vcards"));
 		String outputFile = TEMPORARY_DIRECTORY + "temp.nt";
 		// outputFile = null;
 		if (outputFile == null) {
@@ -429,7 +429,7 @@ public class JenaTutorialExamples {
 		}
 		output = (outputFile2 != null) ? new FileOutputStream(outputFile2)
 				: System.out;
-		model_vcards.write(output);
+		// TODO model_vcards.write(output);
 	}
 
 	/**
@@ -495,7 +495,6 @@ public class JenaTutorialExamples {
 		} finally {
 			qe.close();
 		}
-		/*TODO:
 		queryString = "construct {?s ?p ?o} where { ?s ?p ?o . filter (?o = \"Alice\") } ";
         query = AGQueryFactory.create(queryString);
         qe = AGQueryExecutionFactory.create(query, model);
@@ -515,7 +514,7 @@ public class JenaTutorialExamples {
 			m.write(System.out);
 		} finally {
 			qe.close();
-		}*/
+		}
 	}
 
 	/**
