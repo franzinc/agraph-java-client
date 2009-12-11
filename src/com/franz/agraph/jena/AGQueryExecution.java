@@ -88,6 +88,7 @@ public class AGQueryExecution implements QueryExecution {
 		AGTupleQuery tq = model.getGraph().getConnection().prepareTupleQuery(AGQueryLanguage.SPARQL, query.getQueryString());
 		TupleQueryResult result;
 		try {
+			tq.setDataset(model.getGraph().getDataset());
 			result = tq.evaluate();
 		} catch (QueryEvaluationException e) {
 			throw new RuntimeException(e);

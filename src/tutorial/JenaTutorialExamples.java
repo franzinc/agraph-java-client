@@ -305,7 +305,7 @@ public class JenaTutorialExamples {
 	public static AGGraphMaker example6() throws Exception {
 		AGGraphMaker maker = example1(false);
 		AGModel model = new AGModel(maker.getGraph());
-		AGModel model_vcards = model;//TODO:new AGModel(maker.createGraph("http://example.org#vcards"));
+		AGModel model_vcards = new AGModel(maker.createGraph("http://example.org#vcards"));
 		String path1 = "src/tutorial/java-vcards.rdf";
 		String path2 = "src/tutorial/java-kennedy.ntriples";
 		String baseURI = "http://example.org/example/local";
@@ -324,7 +324,7 @@ public class JenaTutorialExamples {
 	public static void example7() throws Exception {
 		AGGraphMaker maker = example6();
 		AGModel model = new AGModel(maker.getGraph());
-		AGModel model_vcards = model; //TODO: new AGModel(maker.openGraph("http://example.org#vcards"));
+		AGModel model_vcards = new AGModel(maker.openGraph("http://example.org#vcards"));
 		println("\nMatch all and print subjects and graph (model)");
 		StmtIterator statements = model.listStatements();
 		for (int i = 0; i < 25 && statements.hasNext(); i++) {
@@ -339,8 +339,8 @@ public class JenaTutorialExamples {
 		}
 		statements.close();
 		
-		println("\nSame thing with SPARQL query (model).");
-		String queryString = "SELECT DISTINCT ?s ?g WHERE {graph ?g {?s ?p ?o .} } LIMIT 25";
+		println("\nSPARQL query over the default graph (model).");
+		String queryString = "SELECT DISTINCT ?s ?p ?o WHERE {?s ?p ?o . } LIMIT 25";
         AGQuery query = AGQueryFactory.create(queryString);
         QueryExecution qe = AGQueryExecutionFactory.create(query, model);
 		try {
@@ -348,21 +348,55 @@ public class JenaTutorialExamples {
 			while (results.hasNext()) {
 				QuerySolution result = results.next();
 				RDFNode s = result.get("s");
-				RDFNode g = result.get("g");
-				println("  " + s + " " + g);
+				RDFNode p = result.get("p");
+				RDFNode o = result.get("o");
+				println("  " + s + " " + p + " " + o);
 			}
 		} finally {
 			qe.close();
 		}
-		println("\nSame thing with SPARQL query (model_vcards).");
+		println("\nSPARQL query over the default graph (model_vcards).");
 		qe = AGQueryExecutionFactory.create(query, model_vcards);
 		try {
 			ResultSet results = qe.execSelect();
 			while (results.hasNext()) {
 				QuerySolution result = results.next();
 				RDFNode s = result.get("s");
+				RDFNode p = result.get("p");
+				RDFNode o = result.get("o");
+				println("  " + s + " " + p + " " + o);
+			}
+		} finally {
+			qe.close();
+		}
+		println("\nSPARQL query for triples in any named graph (model).");
+		queryString = "SELECT DISTINCT ?s ?p ?o ?g WHERE {graph ?g {?s ?p ?o .} } LIMIT 25";
+		query = AGQueryFactory.create(queryString);
+		qe = AGQueryExecutionFactory.create(query, model);
+		try {
+			ResultSet results = qe.execSelect();
+			while (results.hasNext()) {
+				QuerySolution result = results.next();
+				RDFNode s = result.get("s");
+				RDFNode p = result.get("p");
+				RDFNode o = result.get("o");
 				RDFNode g = result.get("g");
-				println("  " + s + " " + g);
+				println("  " + s + " " + p + " " + o + " " + g);
+			}
+		} finally {
+			qe.close();
+		}
+		println("\nSPARQL query for triples in any named graph (model_vcards).");
+		qe = AGQueryExecutionFactory.create(query, model_vcards);
+		try {
+			ResultSet results = qe.execSelect();
+			while (results.hasNext()) {
+				QuerySolution result = results.next();
+				RDFNode s = result.get("s");
+				RDFNode p = result.get("p");
+				RDFNode o = result.get("o");
+				RDFNode g = result.get("g");
+				println("  " + s + " " + p + " " + o + " " + g);
 			}
 		} finally {
 			qe.close();
@@ -375,7 +409,7 @@ public class JenaTutorialExamples {
 	public static void example8() throws Exception {
 		AGGraphMaker maker = example6();
 		AGModel model = new AGModel(maker.getGraph());
-		// TODO:AGModel model_vcards = new AGModel(maker.openGraph("http://example.org#vcards"));
+		AGModel model_vcards = new AGModel(maker.openGraph("http://example.org#vcards"));
 		String outputFile = TEMPORARY_DIRECTORY + "temp.nt";
 		// outputFile = null;
 		if (outputFile == null) {
@@ -395,7 +429,7 @@ public class JenaTutorialExamples {
 		}
 		output = (outputFile2 != null) ? new FileOutputStream(outputFile2)
 				: System.out;
-		// TODO: model_vcards.write(output);
+		model_vcards.write(output);
 	}
 
 	/**
@@ -403,7 +437,7 @@ public class JenaTutorialExamples {
 	 */
 	public static void example9() throws Exception {
 		AGGraphMaker maker = example6();
-		AGModel model_vcards = new AGModel(maker.getGraph());//TODO:new AGModel(maker.openGraph("http://example.org#vcards"));
+		AGModel model_vcards = new AGModel(maker.openGraph("http://example.org#vcards"));
 		StmtIterator statements = model_vcards.listStatements(null,RDF.type, (RDFNode)null);
 		Model m = ModelFactory.createDefaultModel();
 		m.add(statements);

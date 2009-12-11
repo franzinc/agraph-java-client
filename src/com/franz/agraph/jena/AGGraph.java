@@ -3,6 +3,9 @@ package com.franz.agraph.jena;
 import org.openrdf.http.protocol.UnauthorizedException;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
+import org.openrdf.model.URI;
+import org.openrdf.query.Dataset;
+import org.openrdf.query.impl.DatasetImpl;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
 
@@ -199,5 +202,16 @@ public class AGGraph implements Graph {
 		if (graphNode==null)
 			return "default-graph";
 		return graphNode.toString();
+	}
+
+	public Dataset getDataset() {
+		DatasetImpl dataset = new DatasetImpl();
+		if (context==null) {
+			dataset.addDefaultGraph(null);
+		} else if (context instanceof URI) {
+			dataset.addDefaultGraph((URI)context);
+			dataset.addNamedGraph((URI)context);
+		}
+		return dataset;
 	}
 }

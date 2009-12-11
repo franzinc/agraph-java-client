@@ -21,7 +21,9 @@ public class AGNodeFactory {
 
 	public static Node asNode(Value v) {
 		Node node = null;
-		if (v instanceof URI) {
+		if (v==null) {
+			node = Node.ANY; // TODO or Node.NULL or null?
+		} else if (v instanceof URI) {
 			node = Node.createURI(v.stringValue());
 		} else if (v instanceof BNode) {
 			node = Node.createAnon(new AnonId(v.stringValue()));
