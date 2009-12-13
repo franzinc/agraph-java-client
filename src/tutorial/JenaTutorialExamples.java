@@ -64,7 +64,6 @@ public class JenaTutorialExamples {
 		println("Got a repository.");
 		myRepository.initialize();
 		println("Initialized repository.");
-		println("Repository is writable? " + myRepository.isWritable());
 		AGRepositoryConnection conn = myRepository.getConnection();
 		closeBeforeExit(conn);
 		println("Got a connection.");
@@ -185,8 +184,8 @@ public class JenaTutorialExamples {
         AGModel model = example2(false);
         println("\nStarting example5().");
         model.removeAll();
-        Resource alice = model.createResource("http://example.org/people/alice");
         String exns = "http://example.org/people/";
+        Resource alice = model.createResource("http://example.org/people/alice");
         Resource ted = model.createResource(exns + "ted");
         Property age = model.createProperty(exns,"age");
         Property weight = model.createProperty(exns, "weight");
@@ -229,7 +228,8 @@ public class JenaTutorialExamples {
         for (String obj : new String[]{"42", "\"42\"", "120.5", "\"120.5\"", "\"120.5\"^^xsd:float",
                                        "\"Rouge\"@fr", "\"Rouge\"", "\"1984-12-06\"^^xsd:date"}) {
             println( "\nQuery triples matching " + obj + ".");
-            String queryString = "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = " + obj + ")}";
+            String queryString = "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>" + 
+                "SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = " + obj + ")}";
             AGQuery query = AGQueryFactory.create(queryString);
             QueryExecution qe = AGQueryExecutionFactory.create(query, model);
 			try {
@@ -355,7 +355,7 @@ public class JenaTutorialExamples {
 		} finally {
 			qe.close();
 		}
-		println("\nSPARQL query over the default graph (model_vcards).");
+		println("\nSPARQL query over the named graph (model_vcards).");
 		qe = AGQueryExecutionFactory.create(query, model_vcards);
 		try {
 			ResultSet results = qe.execSelect();
