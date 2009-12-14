@@ -12,6 +12,10 @@ prepush: FORCE
 build: FORCE
 	ant build
 
+tags: FORCE
+	rm -f TAGS
+	find . -name '*.java' -print0 | xargs -0 etags -a
+
 ###############################################################################
 ## distribution building
 
@@ -38,6 +42,7 @@ endif
 dist: clean build
 	rm -fr DIST
 	mkdir -p $(DIST)
+	cp LICENSE $(DIST)
 	sed 's|SERVER_VERSION|$(SERVER_VERSION)|g' templates/.project > $(DIST)/.project
 	sed 's|agraph.jar|agraph-$(SERVER_VERSION).jar|g' templates/.classpath > $(DIST)/.classpath
 	mkdir -p $(DIST)/src/tutorial
@@ -53,6 +58,7 @@ dist: clean build
 	cp lib/jena-2.6.0/*.jar $(DIST)/lib/jena-2.6.0
 	mkdir -p $(DIST)/doc
 	cp src/tutorial/java-tutorial-40.html $(DIST)/doc
+	cp src/tutorial/jena-tutorial-40.html $(DIST)/doc
 	cp src/tutorial/*.jpg $(DIST)/doc
 	tar -c -h -z $(TAROPTS) -f $(TARNAME) -C DIST $(DISTDIR)
 ifdef DESTDIR
