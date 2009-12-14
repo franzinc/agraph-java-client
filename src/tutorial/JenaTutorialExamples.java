@@ -525,7 +525,6 @@ public class JenaTutorialExamples {
 	public static void example19() throws Exception {
 		AGGraphMaker maker = example1(false);
 		AGModel model = new AGModel(maker.getGraph());
-		// Examples of RDFS++ inference. Was originally example 2A.
 		Resource robert = model.createResource("http://example.org/people/robert");
 		Resource roberta = model.createResource("http://example.org/people/roberta");
 		Resource bob = model.createResource("http://example.org/people/bob");
@@ -539,8 +538,6 @@ public class JenaTutorialExamples {
 		Literal bobbysName = model.createLiteral("Bobby");
 		Literal robertsName = model.createLiteral("Robert");
 		Literal robertasName = model.createLiteral("Roberta");
-		// Bob is the same person as Robert
-		model.add(bob, OWL.sameAs, robert);
 		// Robert, Bob, and children are people
 		model.add(robert, RDF.type, person);
 		model.add(roberta, RDF.type, person);
@@ -555,6 +552,8 @@ public class JenaTutorialExamples {
 		model.add(robert, fatherOf, roberta);
 		// bob has a child
 		model.add(bob, fatherOf, bobby);
+		// Bob is the same person as Robert
+		model.add(bob, OWL.sameAs, robert);
 
 		// List the children of Robert, with inference OFF.
 		println("\nChildren of Robert, inference OFF");
