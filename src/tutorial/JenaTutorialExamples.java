@@ -695,7 +695,7 @@ public class JenaTutorialExamples {
 		rows.close();
 	}
 
-	static void printRows(String headerMsg, int limit,	StmtIterator rows) throws Exception {
+	protected static void printRows(String headerMsg, int limit,	StmtIterator rows) throws Exception {
 		println(headerMsg);
 		int count = 0;
 		while (count < limit && rows.hasNext()) {
@@ -720,11 +720,11 @@ public class JenaTutorialExamples {
 	/**
 	 * This is just a quick mechanism to make sure all connections get closed.
 	 */
-	private static void closeBeforeExit(AGRepositoryConnection conn) {
+	protected static void closeBeforeExit(AGRepositoryConnection conn) {
 		toClose.add(conn);
 	}
 
-	private static void closeAll() {
+	protected static void closeAll() {
 		while (toClose.isEmpty() == false) {
 			AGRepositoryConnection conn = toClose.get(0);
 			close(conn);

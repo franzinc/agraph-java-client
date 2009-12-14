@@ -118,8 +118,7 @@ public class AGGraph extends GraphBase implements Graph {
 
 	@Override
 	public TransactionHandler getTransactionHandler() {
-		// TODO Auto-generated method stub
-		return null;
+		return new AGTransactionHandler(this);
 	}
 
 	/*
