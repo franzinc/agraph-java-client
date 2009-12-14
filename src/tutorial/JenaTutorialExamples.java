@@ -420,6 +420,7 @@ public class JenaTutorialExamples {
 		OutputStream output = (outputFile != null) ? new FileOutputStream(
 				outputFile) : System.out;
 		model.write(output, "N-TRIPLE");
+		output.close();
 		String outputFile2 = TEMPORARY_DIRECTORY + "temp.rdf";
 		// outputFile2 = null;
 		if (outputFile2 == null) {
@@ -430,6 +431,7 @@ public class JenaTutorialExamples {
 		output = (outputFile2 != null) ? new FileOutputStream(outputFile2)
 				: System.out;
 		model.write(output);
+		output.close();
 	}
 
 	/**

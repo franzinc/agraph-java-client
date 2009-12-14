@@ -47,7 +47,8 @@ dist: clean build
 	done
 	mkdir -p $(DIST)/lib
 	cp agraph.jar $(DIST)/lib/agraph-$(SERVER_VERSION).jar
-	cp lib/*.jar $(DIST)/lib
+	mkdir -p $(DIST)/lib/sesame-2.2.4
+	cp lib/sesame-2.2.4/*.jar $(DIST)/lib/sesame-2.2.4
 	mkdir -p $(DIST)/lib/jena-2.6.0
 	cp lib/jena-2.6.0/*.jar $(DIST)/lib/jena-2.6.0
 	mkdir -p $(DIST)/doc
