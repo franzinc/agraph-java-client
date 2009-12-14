@@ -1,8 +1,11 @@
 package com.franz.agraph.jena;
 
+import java.util.HashMap;
 import java.util.Map;
 
+import org.openrdf.model.Namespace;
 import org.openrdf.repository.RepositoryException;
+import org.openrdf.repository.RepositoryResult;
 
 import com.hp.hpl.jena.shared.PrefixMapping;
 
@@ -26,8 +29,17 @@ public class AGPrefixMapping implements PrefixMapping {
 
 	@Override
 	public Map<String, String> getNsPrefixMap() {
-		// TODO Auto-generated method stub
-		return null;
+		Map<String,String> map = new HashMap<String,String>();
+		try {
+			RepositoryResult<Namespace> result = getGraph().getConnection().getNamespaces();
+			while (result.hasNext()) {
+				Namespace ns = result.next();
+				map.put(ns.getPrefix(), ns.getName());
+			}
+		} catch (RepositoryException e) {
+			throw new RuntimeException(e);
+		}
+		return map;
 	}
 
 	@Override
@@ -43,8 +55,20 @@ public class AGPrefixMapping implements PrefixMapping {
 
 	@Override
 	public String getNsURIPrefix(String uri) {
-		// TODO Auto-generated method stub
-		return null;
+		// TODO speed this up!
+		String prefix = null;
+		try {
+			RepositoryResult<Namespace> result = getGraph().getConnection().getNamespaces();
+			while (prefix==null && result.hasNext()) {
+				Namespace ns = result.next();
+				if (uri.equalsIgnoreCase(ns.getName())) {
+					prefix = ns.getPrefix();
+				}
+			}
+		} catch (RepositoryException e) {
+			throw new RuntimeException(e);
+		}
+		return prefix;
 	}
 
 	@Override

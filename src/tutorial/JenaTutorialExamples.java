@@ -409,7 +409,7 @@ public class JenaTutorialExamples {
 	public static void example8() throws Exception {
 		AGGraphMaker maker = example6();
 		AGModel model = new AGModel(maker.getGraph());
-		// TODO AGModel model_vcards = new AGModel(maker.openGraph("http://example.org#vcards"));
+		//AGModel model_vcards = new AGModel(maker.openGraph("http://example.org#vcards"));
 		String outputFile = TEMPORARY_DIRECTORY + "temp.nt";
 		// outputFile = null;
 		if (outputFile == null) {
@@ -429,7 +429,7 @@ public class JenaTutorialExamples {
 		}
 		output = (outputFile2 != null) ? new FileOutputStream(outputFile2)
 				: System.out;
-		// TODO model_vcards.write(output);
+		model.write(output);
 	}
 
 	/**
@@ -437,8 +437,8 @@ public class JenaTutorialExamples {
 	 */
 	public static void example9() throws Exception {
 		AGGraphMaker maker = example6();
-		AGModel model_vcards = new AGModel(maker.openGraph("http://example.org#vcards"));
-		StmtIterator statements = model_vcards.listStatements(null,RDF.type, (RDFNode)null);
+		AGModel model = new AGModel(maker.getGraph());
+		StmtIterator statements = model.listStatements(null,RDF.type, (RDFNode)null);
 		Model m = ModelFactory.createDefaultModel();
 		m.add(statements);
 		m.write(System.out);
@@ -612,7 +612,7 @@ public class JenaTutorialExamples {
 	}
 
 	/**
-	 * Usage: all Usage: [1-9,11,13]+
+	 * Usage: all Usage: [1-9,11,13,19]+
 	 */
 	public static void main(String[] args) throws Exception {
 		List<Integer> choices = new ArrayList<Integer>();
@@ -625,6 +625,7 @@ public class JenaTutorialExamples {
 			}
 			choices.add(11);
 			choices.add(13);
+			choices.add(19);
 		} else {
 			for (int i = 0; i < args.length; i++) {
 				choices.add(Integer.parseInt(args[i]));
@@ -668,7 +669,7 @@ public class JenaTutorialExamples {
 					example13();
 					break;
 				case 19:
-					//example19();
+					example19();
 					break;
 				default:
 					throw new IllegalArgumentException("There is no example "

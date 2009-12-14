@@ -11,25 +11,27 @@ import com.hp.hpl.jena.reasoner.ReasonerException;
 public class AGReasoner implements Reasoner {
 
 	@Override
-	public void addDescription(Model arg0, Resource arg1) {
+	public void addDescription(Model configSpec, Resource base) {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 	@Override
-	public AGInfGraph bind(Graph arg0) throws ReasonerException {
+	public AGInfGraph bind(Graph data) throws ReasonerException {
+		if (!(data instanceof AGGraph)) {
+			throw new IllegalArgumentException("Only AGGraphs are supported.");
+		}
+		return new AGInfGraph(this,(AGGraph)data);
+	}
+
+	@Override
+	public Reasoner bindSchema(Graph tbox) throws ReasonerException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Reasoner bindSchema(Graph arg0) throws ReasonerException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Reasoner bindSchema(Model arg0) throws ReasonerException {
+	public Reasoner bindSchema(Model tbox) throws ReasonerException {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -47,21 +49,22 @@ public class AGReasoner implements Reasoner {
 	}
 
 	@Override
-	public void setDerivationLogging(boolean arg0) {
+	public void setDerivationLogging(boolean logOn) {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 	@Override
-	public void setParameter(Property arg0, Object arg1) {
+	public void setParameter(Property parameterUri, Object value) {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 	@Override
-	public boolean supportsProperty(Property arg0) {
+	public boolean supportsProperty(Property property) {
 		// TODO Auto-generated method stub
 		return false;
 	}
+
 
 }
