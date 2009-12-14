@@ -53,6 +53,7 @@ dist: clean build
 	cp lib/jena-2.6.0/*.jar $(DIST)/lib/jena-2.6.0
 	mkdir -p $(DIST)/doc
 	cp src/tutorial/java-tutorial-40.html $(DIST)/doc
+	cp src/tutorial/jena-tutorial-40.html $(DIST)/doc
 	cp src/tutorial/*.jpg $(DIST)/doc
 	tar -c -h -z $(TAROPTS) -f $(TARNAME) -C DIST $(DISTDIR)
 ifdef DESTDIR
