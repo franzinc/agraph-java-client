@@ -159,7 +159,7 @@ this diagram:</p>
   <tr>
     <td width="378"><p>The example1() function opens (or creates) a repository by building a series of client-side objects, culminating in a &quot;GraphMaker&quot; object. The graph maker object will be passed to other methods in JenaTutorialExamples.java. </p>
       <p>The graph maker lets us create an RDF graph and a model object for manipulating the graph. </p></td>
-    <td width="421"><img src="allegrographdiagramJena.jpg"></td>
+    <td width="421"><img src="createconnectionobjectJena.jpg"></td>
   </tr>
 </table>
 
@@ -204,9 +204,9 @@ this diagram:</p>
 <p>The goal of all this object-building has been to create a client-side <strong>repositoryConnection</strong> object, which we casually refer to as the &quot;connection&quot; or &quot;connection object.&quot; The repository object's <strong>getConnection()</strong> method returns this connection object. The function <strong>closeBeforeExit()</strong> maintains a list of connection objects and automatically cleans them up when the client exits. </p>
 <pre class="input">		AGRepositoryConnection conn = myRepository.getConnection();<br>		closeBeforeExit(conn);<br>		println(&quot;Got a connection.&quot;);<br>		println(&quot;Repository &quot; + (myRepository.getRepositoryID())<br>				+ &quot; is up! It contains &quot; + (conn.size()) + &quot; statements.&quot;);</pre>
  <p>The <strong>size()</strong> method of the connection object returns how many triples are present. In the example1() function, this number should always be zero because we deleted, recreated, and cleared the repository. This is the output in the Java window: </p>
- <pre class="output"> Got a connection.<br> Cleared the connection.<br> Repository javatutorial is up! It contains 0 statements.</pre>
+<pre class="output"> Got a connection.<br> Repository javatutorial is up! It contains 0 statements.</pre>
  <p>When using the Jena API, it is necessary to create a GraphMaker object on the connection. The GraphMaker fulfills a mission similar to the ValueFactory in the Java API. It exposes a number of useful methods for building and maintaining the graph. </p>
- <pre class="input">AGGraphMaker maker = new AGGraphMaker(conn);<br>
+ <pre class="input">AGGraphMaker maker = new AGGraphMaker(conn);
 println(&quot;Got a graph maker for the connection.&quot;); </pre>
  <pre class="output">Got a graph maker for the connection.</pre>
  <p>In its default mode, example1() closes the maker and connection. It can optionally return the maker when called by another method, as will occur in several examples below. If you are done with the connection, closing it and shutting it down will free resources.</p>
