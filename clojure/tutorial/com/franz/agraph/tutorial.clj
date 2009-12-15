@@ -64,11 +64,11 @@
 ;; (import 'tutorial.TutorialExamples)
 ;; (TutorialExamples/test1)
 
-(defonce *connection-params* {:host "localhost" :port 8080 :username "test" :password "xyzzy"})
+(defonce *connection-params* {:host "localhost" :port 10035 :username "test" :password "xyzzy"})
 
-(defonce *catalog-id* "scratch")
+(defonce *catalog-id* "java-catalog")
 
-(defonce *repository-id* "tutorial")
+(defonce *repository-id* "javatutorial")
 
 (def *agraph-java-tutorial-dir* (or (System/getProperty "com.franz.agraph.tutorial.dir")
                                     (.getCanonicalPath (java.io.File. "./src/tutorial/"))))
