@@ -1,3 +1,11 @@
+/******************************************************************************
+** Copyright (c) 2008-2009 Franz Inc.
+** All rights reserved. This program and the accompanying materials
+** are made available under the terms of the Eclipse Public License v1.0
+** which accompanies this distribution, and is available at
+** http://www.eclipse.org/legal/epl-v10.html
+******************************************************************************/
+
 package tutorial;
 
 import java.io.FileInputStream;
@@ -64,7 +72,6 @@ public class JenaTutorialExamples {
 		println("Got a repository.");
 		myRepository.initialize();
 		println("Initialized repository.");
-		println("Repository is writable? " + myRepository.isWritable());
 		AGRepositoryConnection conn = myRepository.getConnection();
 		closeBeforeExit(conn);
 		println("Got a connection.");
@@ -185,8 +192,8 @@ public class JenaTutorialExamples {
         AGModel model = example2(false);
         println("\nStarting example5().");
         model.removeAll();
-        Resource alice = model.createResource("http://example.org/people/alice");
         String exns = "http://example.org/people/";
+        Resource alice = model.createResource("http://example.org/people/alice");
         Resource ted = model.createResource(exns + "ted");
         Property age = model.createProperty(exns,"age");
         Property weight = model.createProperty(exns, "weight");
@@ -229,7 +236,8 @@ public class JenaTutorialExamples {
         for (String obj : new String[]{"42", "\"42\"", "120.5", "\"120.5\"", "\"120.5\"^^xsd:float",
                                        "\"Rouge\"@fr", "\"Rouge\"", "\"1984-12-06\"^^xsd:date"}) {
             println( "\nQuery triples matching " + obj + ".");
-            String queryString = "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = " + obj + ")}";
+            String queryString = "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>" + 
+                "SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = " + obj + ")}";
             AGQuery query = AGQueryFactory.create(queryString);
             QueryExecution qe = AGQueryExecutionFactory.create(query, model);
 			try {
@@ -355,7 +363,7 @@ public class JenaTutorialExamples {
 		} finally {
 			qe.close();
 		}
-		println("\nSPARQL query over the default graph (model_vcards).");
+		println("\nSPARQL query over the named graph (model_vcards).");
 		qe = AGQueryExecutionFactory.create(query, model_vcards);
 		try {
 			ResultSet results = qe.execSelect();
@@ -525,7 +533,6 @@ public class JenaTutorialExamples {
 	public static void example19() throws Exception {
 		AGGraphMaker maker = example1(false);
 		AGModel model = new AGModel(maker.getGraph());
-		// Examples of RDFS++ inference. Was originally example 2A.
 		Resource robert = model.createResource("http://example.org/people/robert");
 		Resource roberta = model.createResource("http://example.org/people/roberta");
 		Resource bob = model.createResource("http://example.org/people/bob");
@@ -539,8 +546,6 @@ public class JenaTutorialExamples {
 		Literal bobbysName = model.createLiteral("Bobby");
 		Literal robertsName = model.createLiteral("Robert");
 		Literal robertasName = model.createLiteral("Roberta");
-		// Bob is the same person as Robert
-		model.add(bob, OWL.sameAs, robert);
 		// Robert, Bob, and children are people
 		model.add(robert, RDF.type, person);
 		model.add(roberta, RDF.type, person);
@@ -555,6 +560,8 @@ public class JenaTutorialExamples {
 		model.add(robert, fatherOf, roberta);
 		// bob has a child
 		model.add(bob, fatherOf, bobby);
+		// Bob is the same person as Robert
+		model.add(bob, OWL.sameAs, robert);
 
 		// List the children of Robert, with inference OFF.
 		println("\nChildren of Robert, inference OFF");
