@@ -34,14 +34,12 @@ public class AGInfModel extends AGModel implements InfModel {
 
 	@Override
 	public Model getDeductionsModel() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public Iterator<Derivation> getDerivation(Statement statement) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
@@ -51,45 +49,35 @@ public class AGInfModel extends AGModel implements InfModel {
 
 	@Override
 	public Reasoner getReasoner() {
-		// TODO Auto-generated method stub
 		return reasoner;
 	}
 
 	@Override
 	public StmtIterator listStatements(Resource subject, Property predicate,
 			RDFNode object, Model posit) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public void prepare() {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void rebind() {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void reset() {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void setDerivationLogging(boolean logOn) {
-		// TODO Auto-generated method stub
-		
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public ValidityReport validate() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 

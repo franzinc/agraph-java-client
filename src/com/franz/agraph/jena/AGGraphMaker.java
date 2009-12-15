@@ -41,8 +41,7 @@ public class AGGraphMaker implements GraphMaker {
 
 	@Override
 	public AGGraph createGraph() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
@@ -58,26 +57,22 @@ public class AGGraphMaker implements GraphMaker {
 
 	@Override
 	public ReificationStyle getReificationStyle() {
-		// TODO Auto-generated method stub
-		return null;
+		return ReificationStyle.Minimal;
 	}
 
 	@Override
 	public boolean hasGraph(String name) {
-		// TODO Auto-generated method stub
-		return false;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public ExtendedIterator<String> listGraphs() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public AGGraph openGraph() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
@@ -93,8 +88,7 @@ public class AGGraphMaker implements GraphMaker {
 
 	@Override
 	public void removeGraph(String name) {
-		// TODO Auto-generated method stub
-		
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 }

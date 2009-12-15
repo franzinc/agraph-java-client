@@ -34,26 +34,22 @@ public class AGInfGraph extends AGGraph implements InfGraph {
 	@Override
 	public ExtendedIterator<Triple> find(Node subject, Node property,
 			Node object, Graph param) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public Graph getDeductionsGraph() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public Iterator<Derivation> getDerivation(Triple triple) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public Node getGlobalProperty(Node property) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
@@ -68,44 +64,33 @@ public class AGInfGraph extends AGGraph implements InfGraph {
 
 	@Override
 	public void prepare() {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void rebind() {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void rebind(Graph data) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void reset() {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void setDerivationLogging(boolean logOn) {
-		// TODO Auto-generated method stub
-		
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public boolean testGlobalProperty(Node property) {
-		// TODO Auto-generated method stub
-		return false;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public ValidityReport validate() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 

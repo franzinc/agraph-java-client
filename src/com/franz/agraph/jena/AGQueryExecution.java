@@ -38,8 +38,7 @@ public class AGQueryExecution implements QueryExecution {
 	
 	@Override
 	public void abort() {
-		// TODO Auto-generated method stub
-
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
@@ -113,26 +112,22 @@ public class AGQueryExecution implements QueryExecution {
 
 	@Override
 	public Context getContext() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public Dataset getDataset() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public void setFileManager(FileManager fm) {
-		// TODO Auto-generated method stub
-
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public void setInitialBinding(QuerySolution binding) {
-		// TODO Auto-generated method stub
-
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 }

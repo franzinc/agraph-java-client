@@ -29,8 +29,7 @@ public class AGQuerySolution implements QuerySolution {
 
 	@Override
 	public boolean contains(String varName) {
-		// TODO Auto-generated method stub
-		return false;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
@@ -40,20 +39,17 @@ public class AGQuerySolution implements QuerySolution {
 
 	@Override
 	public Literal getLiteral(String varName) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public Resource getResource(String varName) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public Iterator<String> varNames() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override

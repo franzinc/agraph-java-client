@@ -20,7 +20,7 @@ public class AGReasoner implements Reasoner {
 
 	@Override
 	public void addDescription(Model configSpec, Resource base) {
-		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 		
 	}
 
@@ -34,44 +34,39 @@ public class AGReasoner implements Reasoner {
 
 	@Override
 	public Reasoner bindSchema(Graph tbox) throws ReasonerException {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public Reasoner bindSchema(Model tbox) throws ReasonerException {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public Capabilities getGraphCapabilities() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public Model getReasonerCapabilities() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public void setDerivationLogging(boolean logOn) {
-		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 		
 	}
 
 	@Override
 	public void setParameter(Property parameterUri, Object value) {
-		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 		
 	}
 
 	@Override
 	public boolean supportsProperty(Property property) {
-		// TODO Auto-generated method stub
-		return false;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 
