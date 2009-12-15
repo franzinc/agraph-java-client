@@ -31,8 +31,7 @@ public class AGPrefixMapping implements PrefixMapping {
 
 	@Override
 	public String expandPrefix(String prefixed) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
@@ -81,26 +80,22 @@ public class AGPrefixMapping implements PrefixMapping {
 
 	@Override
 	public PrefixMapping lock() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public String qnameFor(String uri) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public PrefixMapping removeNsPrefix(String prefix) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public boolean samePrefixMappingAs(PrefixMapping other) {
-		// TODO Auto-generated method stub
-		return false;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
@@ -115,26 +110,23 @@ public class AGPrefixMapping implements PrefixMapping {
 
 	@Override
 	public PrefixMapping setNsPrefixes(PrefixMapping other) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public PrefixMapping setNsPrefixes(Map<String, String> map) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public String shortForm(String uri) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public PrefixMapping withDefaultMappings(PrefixMapping map) {
-		// TODO Auto-generated method stub
 		return null;
+		//throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 }

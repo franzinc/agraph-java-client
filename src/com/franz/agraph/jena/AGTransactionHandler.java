@@ -48,7 +48,7 @@ public class AGTransactionHandler implements TransactionHandler {
 
 	@Override
 	public Object executeInTransaction(Command c) {
-		throw new UnsupportedOperationException();
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
