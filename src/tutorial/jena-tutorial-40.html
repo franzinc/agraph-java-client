@@ -1,7 +1,7 @@
 <html>
 <head>
       <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" >
-<title>Java API Tutorial for AllegroGraph 4.0</title>
+<title>Jena API Tutorial for AllegroGraph 4.0</title>
 
 <style type="text/css">
 
@@ -17,7 +17,7 @@
 The Jena API offers convenient and efficient
 access to an AllegroGraph server from a Java-based application.  This API provides methods for
 creating, querying and maintaining RDF data, and for managing the stored triples. </p>
-<p>The Jena API emulates the Jena Semantic Web Framework to make it easier to migrate from Jena to AllegroGraph.&nbsp; &nbsp; </p>
+<p>The Jena API emulates the <a href="http://jena.sourceforge.net/">Jena Semantic Web Framework</a> to make it easier to migrate from Jena to AllegroGraph.&nbsp; &nbsp; </p>
 <h2 id="Contents">Contents</h2>
 <table width="554" border="0" style="vertical-align:top" >
   <tr>
@@ -54,16 +54,16 @@ creating, querying and maintaining RDF data, and for managing the stored triples
 </table>
 <p>&nbsp;</p>
 <h2 id="Overview">Overview&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
-<p>The Java client tutorial rests on a simple architecture involving AllegroGraph, disk-based data files, Java, and a file of Java examples called JenaTutorialExamples.java.</p>
+<p>The Jena client tutorial rests on a simple architecture involving AllegroGraph, disk-based data files, Java, and a file of examples called JenaTutorialExamples.java.</p>
 <table width="964" border="0">
   <tr>
-    <td width="286"><p>AllegroGraph 4.0 Server runs as a Windows service in this example. It contains the Java API, which is part of the AllegroGraph installation. </p>
+    <td width="286"><p>AllegroGraph 4.0 Server contains the Java API, which is part of the AllegroGraph installation. </p>
     <p>Java communicates with AllegroGraph through HTTP port 10035 in this example. Java and AllegroGraph may be installed on the same computer, but in practice one server is shared by multiple clients. </p>
     <p>Load JenaTutorialExamples.java into Java to view the tutorial examples. </p></td>
     <td width="668"><img src="allegrographdiagramJena.jpg" width="668" height="443"></td>
   </tr>
 </table>
-<p>Each lesson in <strong>JenaTutorialExamples.java</strong> is encapsulated in a Java method, named exampleN(), where N ranges from 0 to 21 (or more). The function names are referenced in the title of each section to make it easier to compare the tutorial text and the living code of the examples file. (We use the same example numbers across Python, Java and Jena APIs to facilitate comparisons among them, even though this sometimes leaves gaps in the sequence of numbers.) </p>
+<p>Each lesson in <strong>JenaTutorialExamples.java</strong> is encapsulated in a Java method, named exampleN(), where N ranges from 0 to 21 (or more). The function names are referenced in the title of each section to make it easier to compare the tutorial text and the living code of the examples file. We use the same example numbers across multiple APIs to facilitate comparisons among them, even though differences in API features sometimes leaves a gap in the sequence of numbers.</p>
 <!--<h2 id="PrerequisitesLinux">Prerequisites (Windows) &nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <table border="1">
     <tr>
@@ -121,7 +121,7 @@ In Windows XP, you can set an environment variable by
 </ol>
 -->
 <h2 id="PrerequisitesLinux">Prerequisites (Linux) &nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
-<p>The tutorial examples can be run on a Linux system, running AllegroGraph and the examples on the same computer (&quot;localhost&quot;). The tutorial assumes that AllegroGraph has been installed and configured using the procedure posted on <a href="http://www.franz.com/agraph/support/documentation/4.0m1/server-installation.html">this webpage</a>. The Jena API is bundled with the AllegroGraph Java Client. </p>
+<p>The tutorial examples can be run on a Linux system, running AllegroGraph and the examples on the same computer (&quot;localhost&quot;). The tutorial assumes that AllegroGraph has been installed and configured using the procedure posted on <a href="http://www.franz.com/agraph/support/documentation/4.0m1/server-installation.html">this webpage</a>. The Jena API and the Jena tutorial are bundled with the AllegroGraph Java Client. </p>
 <h2 id="Terminology">Terminology&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>We need to clarify some terminology before proceeding. </p>
 <ul>
@@ -134,9 +134,9 @@ In Windows XP, you can set an environment variable by
   </ul>
   <li>A &quot;quad&quot; is a triple with an added &quot;context&quot; field, which is used to divide the repository into &quot;subgraphs.&quot; This context or subgraph is just a URI label that appears in the fourth field of related triples. </li>
   <li>A &quot;quint&quot; is a quad with a fifth field used for the &quot;tripleID.&quot; AllegroGraph Server implements all triples as quints behind the scenes. The fourth and fifth fields are often ignored, however, so we speak casually of &quot;triples,&quot; and sometimes of &quot;quads,&quot; when it would be more rigorous to call them all &quot;quints.&quot; </li>
-  <li>A &quot;resource description&quot; is defined as a collection of triples that all have the same URI in the subject field. In other words, the triples all describe attributes of the same thing.</li>
+  <li>A &quot;resource description&quot; is a collection of triples that all have the same URI in the subject field. In other words, the triples all describe attributes of the same thing.</li>
   <li>A &quot;statement&quot; is a client-side Java object that describes a triple (quad, quint).&nbsp; </li>
-  <li>A &quot;model&quot; is a Jena-specific term referring to a specific RDF graph. </li>
+  <li>A &quot;model&quot; is a Jena object that provides methods for managing a specific RDF graph. </li>
 </ul>
   <table width="809" border="0">
   <tr>
@@ -145,25 +145,26 @@ In Windows XP, you can set an environment variable by
         <li>A &quot;catalog&quot; is a list of repositories owned by an AllegroGraph server.</li>
         <li>A &quot;repository&quot; is a collection of triples within a Catalog, stored and indexed on a hard disk.</li>
         <li>A &quot;context&quot; is a subgraph of the triples in a repository. </li>
-        <li>If contexts are not in use, the triples are stored in the background (default) graph. </li>
+        <li>If contexts are not in use, the triples are stored in the background (default) graph.</li>
+        <li>A Jena &quot;model&quot; corresponds to a background graph or subgraph in AllegroGraph.  </li>
       </ul>      </td>
     <td width="421"><img src="catalogrepositorycontext.jpg" width="397" height="400" align="right"></td>
   </tr>
 </table>
   <p>&nbsp;</p>
   <h2 id="Creating a Repository">Creating a Repository (example1()) &nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
-<p>The first task is to our AllegroGraph Server and open a repository. This task is implemented in<strong> example1()</strong> from<strong> JenaTutorialExamples.java</strong>. </p>
+<p>The first task is to have our AllegroGraph Server open a repository. This task is implemented in<strong> example1()</strong> from<strong> JenaTutorialExamples.java</strong>. </p>
 <p>In <strong>example1()</strong> we build a chain of Java objects,  ending in a &quot;connection&quot; object that lets us manipulate triples in a specific repository. The overall process of generating the connection object follows 
 this diagram:</p>
   <table width="809" border="0">
   <tr>
-    <td width="378"><p>The example1() function opens (or creates) a repository by building a series of client-side objects, culminating in a &quot;GraphMaker&quot; object. The graph maker object will be passed to other methods in JenaTutorialExamples.java. </p>
-      <p>The graph maker lets us create an RDF graph and a model object for manipulating the graph. </p></td>
+    <td width="378"><p>The example1() and example2() functions open a repository by building a series of client-side objects, culminating in a &quot;Model&quot; object. These objects can be passed to other methods in JenaTutorialExamples.java. </p>
+      <p>The Model object is the unique interface to a specific RDF graph. </p></td>
     <td width="421"><img src="createconnectionobjectJena.jpg"></td>
   </tr>
 </table>
 
-<p>The example first connects to an AllegroGraph Server by providing the endpoint (host IP address and port number) of an already-launched AllegroGraph server. You'll also need a user name and password. This creates a client-side server object, which can access the AllegroGraph server's list of available catalogs through the <strong>listCatalogs()</strong> method:</p>
+<p>The example first connects to an AllegroGraph Server by providing the endpoint (host IP address and port number) of an already-launched AllegroGraph server. You'll also need a user name and password. This creates a client-side server object, which can access the AllegroGraph server's list of available catalogs through the <strong>server.listCatalogs()</strong> method:</p>
 <pre class="input">public class JenaTutorialExamples {
 
 	static private final String SERVER_URL = "http://localhost:10035";
@@ -185,31 +186,30 @@ this diagram:</p>
 		AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
 		println("Available catalogs: " + server.listCatalogs());</pre>
 <p>This is the output so far:</p>
-<pre class="output">Starting example example1().<br>Available catalogs: [/, scratch]</pre>
-<p>These examples use either the default root catalog (denoted as &quot;/&quot;) or a named catalog called &quot;scratch&quot;. </p>
+<pre class="output">Starting example example1().<br>Available catalogs: [/, java-catalog, python-catalog]</pre>
+<p>These examples use either the default root catalog (denoted as &quot;/&quot;) or a named catalog called &quot;java-catalog&quot;. </p>
 <p>In the next line of example1(), we use the server's <strong>getRootCatalog()</strong> method to create a client-side catalog object connected to AllegroGraph's default rootCatalog, as defined in the AllegroGraph configuration file. The catalog object has methods such as <strong>getCatalogName()</strong> and <strong>getAllRepositories()</strong> that we can use to investigate the catalogs on the AllegroGraph server. When we look inside the root catalog, we can see which repositories are available:</p>
-<pre class="input">        AGCatalog catalog = server.getRootCatalog();<br>        println(&quot;Available repositories in catalog &quot; + <br>                (catalog.getCatalogName()) + &quot;: &quot; + <br>                catalog.listRepositories());
-		println(&quot;Available repositories in catalog &quot;<br>				+ (catalog.getCatalogName()) + &quot;: &quot;<br>				+ catalog.listRepositories());</pre>
+<pre class="input">		AGCatalog catalog = server.getCatalog(CATALOG_ID);<br>		println(&quot;Available repositories in catalog &quot;<br>				+ (catalog.getCatalogName()) + &quot;: &quot;<br>				+ catalog.listRepositories());</pre>
 <p>The corresponding output lists the available repositories.  (When you run the examples, you may see a different list of repositories.)</p>
 <pre class="output">Available catalogs: [/, java-catalog]<br>Available repositories in catalog java-catalog: []</pre>
 <p>In the examples, we are careful to delete previous state before continuing. You probably would not do this in your actual application:</p>
 <pre class="input">         catalog.deleteRepository(REPOSITORY_ID); </pre>
 <p>The next step is to create a client-side repository object representing the respository we wish to open, by calling the
   <strong>createRepository()</strong> method of the catalog object. We have to provide the name of the desired repository (REPOSITORY_ID in this case, which is bound to the string &quot;jenatutorial&quot;). </p>
-<pre class="input">		AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);<br>		println(&quot;Got a repository.&quot;);<br>		myRepository.initialize();<br>		println(&quot;Initialized repository.&quot;);<br>		println(&quot;Repository is writable? &quot; + myRepository.isWritable());</pre>
-<p>A new or renewed repository must be initialized, using the <strong>initialize()</strong> method of the repository object. If you try to initialize a respository twice you get a warning message in the Java window but no exception. Finally we check to see that the repository is writable.</p>
+<pre class="input">		AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);<br>		println(&quot;Got a repository.&quot;);<br>		myRepository.initialize();<br>		println(&quot;Initialized repository.&quot;);</pre>
+<p>A new or renewed repository must be initialized, using the <strong>initialize()</strong> method of the repository object. If you try to initialize a respository twice you get a warning message in the Java window but no exception. </p>
 <pre class="output"> Got a repository.
  Initialized repository.
- Repository is writable? true </pre>
+</pre>
 <p>The goal of all this object-building has been to create a client-side <strong>repositoryConnection</strong> object, which we casually refer to as the &quot;connection&quot; or &quot;connection object.&quot; The repository object's <strong>getConnection()</strong> method returns this connection object. The function <strong>closeBeforeExit()</strong> maintains a list of connection objects and automatically cleans them up when the client exits. </p>
 <pre class="input">		AGRepositoryConnection conn = myRepository.getConnection();<br>		closeBeforeExit(conn);<br>		println(&quot;Got a connection.&quot;);<br>		println(&quot;Repository &quot; + (myRepository.getRepositoryID())<br>				+ &quot; is up! It contains &quot; + (conn.size()) + &quot; statements.&quot;);</pre>
  <p>The <strong>size()</strong> method of the connection object returns how many triples are present. In the example1() function, this number should always be zero because we deleted, recreated, and cleared the repository. This is the output in the Java window: </p>
 <pre class="output"> Got a connection.<br> Repository javatutorial is up! It contains 0 statements.</pre>
- <p>When using the Jena API, it is necessary to create a GraphMaker object on the connection. The GraphMaker fulfills a mission similar to the ValueFactory in the Java API. It exposes a number of useful methods for building and maintaining the graph. </p>
+ <p>When using the Jena API, it is necessary to create a GraphMaker object on the connection. This object will let us create graphs in the connection's repository.</p>
  <pre class="input">AGGraphMaker maker = new AGGraphMaker(conn);
 println(&quot;Got a graph maker for the connection.&quot;); </pre>
  <pre class="output">Got a graph maker for the connection.</pre>
- <p>In its default mode, example1() closes the maker and connection. It can optionally return the maker when called by another method, as will occur in several examples below. If you are done with the connection, closing it and shutting it down will free resources.</p>
+ <p>In its default mode, example1() closes the maker and connection. It can optionally return the maker when called by another method, as will occur in several examples below. If you are done with these objects, closing them and shutting them down will free resources.</p>
  <pre class="input">		if (close) {<br>			// tidy up<br>			maker.close();<br>			conn.close();<br>			myRepository.shutDown();<br>			return null;<br>		}<br>		return maker;<br>	}</pre>
 
 <h2 id="Asserting and Retracting Triples">Asserting and Retracting Triples (example2()) &nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
@@ -222,13 +222,12 @@ println(&quot;Got a graph maker for the connection.&quot;); </pre>
 In example2(), we show how
 to create resources describing two
 people, Bob and Alice, by asserting individual triples into the respository. The example also retracts and replaces a triple.  Assertions and retractions to the triple store
-are executed by 'add' and 'remove' methods belonging to the model object, which we obtain by calling the example1() function (described above).
-</p>
+are executed by 'add' and 'remove' methods belonging to the Model object. The Model object is created by the GraphMaker object, which we will obtain from example1(), above. </p>
 <p>Before asserting a triple, we have to generate the URI values for the subject, predicate and object fields. The Jena API to AllegroGraph Server predefines a number of classes and predicates for the RDF, RDFS, XSD, and OWL ontologies.  RDF.type is one of the predefined predicates we will use. </p>
 <p>
-The example2() function begins by calling example1() to create the appropriate maker object, which is bound to the variable <strong>maker</strong>. We will use the GraphMaker to create a <strong>graph</strong>, and then a <strong>model</strong> object that is connected to the graph. We will need both objects in order to proceed. </p>
-<pre class="input">	public static AGModel example2(boolean close) throws Exception {<br>		AGGraphMaker maker = example1(false);<br>		AGGraph graph = maker.getGraph();<br>		AGModel model = new AGModel(graph);<br>		println(&quot;\nStarting example2().&quot;);</pre>
- <p>The next step is to begin assembling the resources we will need for the example. The model's <strong>createResource()</strong> method generates a URI from a string. These are the subject URIs identifying the resources &quot;Bob&quot; and &quot;Alice&quot;:</p>
+The example2() function begins by calling example1() to create the appropriate GraphMaker object, which is bound to the variable <strong>maker</strong>. We will use the GraphMaker to create a <strong>graph</strong>, and then a <strong>model</strong> object that is connected to the graph. We will need both objects in order to proceed. </p>
+<pre class="input">	public static AGModel example2(boolean close) throws Exception {<br>		println(&quot;\nStarting example2().&quot;);<br>		AGGraphMaker maker = example1(false);<br>		AGGraph graph = maker.getGraph();<br>		AGModel model = new AGModel(graph);</pre>
+ <p>The next step is to begin assembling the resources we will need for the example. The model's <strong>createResource()</strong> method creates a Resource object based on a string URI. These are the resources for &quot;Bob&quot; and &quot;Alice&quot;:</p>
  <pre class="input">		Resource alice = model<br>				.createResource(&quot;http://example.org/people/alice&quot;);<br>		Resource bob = model.createResource(&quot;http://example.org/people/bob&quot;);</pre>
  <p>Both Bob and Alice will have a &quot;name&quot; attribute. We also need to declare a class of Persons, so we can state that Bob and Alice are Persons. </p>
  <pre class="input">		Property name = model<br>				.createProperty(&quot;http://example.org/ontology/name&quot;);<br>		Resource person = model<br>				.createResource(&quot;http://example.org/ontology/Person&quot;);</pre>
@@ -245,19 +244,19 @@ The example2() function begins by calling example1() to create the appropriate m
 <p>This is the output at this point. We see four triples, two about Alice and two about Bob:</p>
 <pre class="output">Triple count after inserts: 4<br>[http://example.org/people/bob, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/ontology/Person]<br>[http://example.org/people/bob, http://example.org/ontology/name, &quot;Bob&quot;]<br>[http://example.org/people/alice, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/ontology/Person]<br>[http://example.org/people/alice, http://example.org/ontology/name, &quot;Alice&quot;]</pre>
 <p>We see two resources of type &quot;person,&quot; each with a literal name. </p>
-<p>The next step is to demonstrate how to remove a triple. Use the <strong>remove()</strong> method of the model object, and supply a triple pattern that matches the target triple. In this case we want to remove Bob's name triple from the repository. Then we'll count the triples again to verify that there are only three remaining. Finally, we re-assert Bob's name so we can use it in subsequent examples, and we'll return the connection object.</p>
+<p>The next step is to demonstrate how to remove a triple. Use the <strong>remove()</strong> method of the model object, and supply a triple pattern that matches the target triple. In this case we want to remove Bob's name triple from the repository. Then we'll count the triples again to verify that there are only three remaining. </p>
 <pre class="input">		model.remove(bob, name, bobsName);<br>		println(&quot;Removed one triple.&quot;);<br>		println(&quot;Triple count after deletion: &quot; + (model.size()));
-		model.add(bob, name, bobsName);</pre>
+</pre>
  
  <pre class="output">Removed one triple.<br>Triple count after deletion: 3</pre>
- <p>Example2() ends with a condition that either closes the connection or passes the model object on to the next method for reuse. </p>
- <pre class="input">		if (close) {<br>			model.close();<br>			graph.close();<br>			maker.close();<br>			return null;<br>		}<br>		return model;<br>	}</pre>
+ <p>Finally, we re-assert Bob's name so we can use it in subsequent examples, and we'll return the model object for other examples to use. Example2() ends with a condition that either closes the connection or passes the model object on to the next method for reuse. </p>
+ <pre class="input">		model.add(bob, name, bobsName);<br>		if (close) {<br>			model.close();<br>			graph.close();<br>			maker.close();<br>			return null;<br>		}<br>		return model;<br>	}</pre>
  <h2 id="A SPARQL Query">A SPARQL Query (example3()) &nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>SPARQL stands for  the &quot;<a href="http://www.w3.org/TR/rdf-sparql-query/">SPARQL Protocol and RDF Query Language</a>,&quot; a recommendation of the <a href="http://www.w3.org/">World Wide Web Consortium (W3C)</a>. SPARQL is a query language for retrieving RDF triples. </p>
  <p>Our next example illustrates how to evaluate a SPARQL query. This is the simplest query, the one that returns all triples. Note that example3() continues with the four triples created in example2(). </p>
  <pre class="input">	public static void example3() throws Exception {<br>		AGModel model = example2(false);<br>		println(&quot;\nStarting example3().&quot;);<br>		try {<br>			String queryString = &quot;SELECT ?s ?p ?o  WHERE {?s ?p ?o .}&quot;;</pre>
  <p>The SELECT clause returns the variables ?s, ?p and ?o. The variables are bound to the subject, predicate and object values of each triple that satisfies the WHERE clause. In this case the WHERE clause is unconstrained. The dot (.) in the fourth position signifies the end of the pattern. </p>
-<p>Queries must be created by offering the queryString to the <strong>AGQueryFactory.create()</strong> method.    The query object is passed, in turn, to the <strong>AGQueryExecutionFactory.create() </strong>method where it is combined with the <strong>model</strong> for the graph you want to search. The resulting AGQueryExecution object has a method, <strong>execSelect()</strong>, that runs the query and returns a ResultSet. </p>
+<p>Queries must be created by offering the queryString to the <strong>AGQueryFactory.create()</strong> method. This creates a query object. The query object is passed, in turn, to the <strong>AGQueryExecutionFactory.create() </strong>method where it is combined with the <strong>model</strong> for the graph you want to search. The resulting <strong>AGQueryExecution</strong> object has a method, <strong>execSelect()</strong>, that runs the query and returns a ResultSet. </p>
 <pre class="input">			AGQuery sparql = AGQueryFactory.create(queryString);<br>			QueryExecution qe = AGQueryExecutionFactory.create(sparql, model);<br>			try {<br>				ResultSet results = qe.execSelect();</pre>
 <p>The ResultSet is an iterator that gives access to a sequence of bindingSets. Below we illustrate one (rather heavyweight) method for extracting the values
   from a binding set, indexed by the name of the corresponding column variable
@@ -273,9 +272,9 @@ The listStatements() method of the model object provides a simple way to perform
 <p>
 This is the <strong>example4()</strong> function of JenaTutorialExamples.java. It begins by calling example2() to create a model object and populate the jenarepository with four triples describing Bob and Alice. </p>
 <pre class="input">	public static void example4() throws Exception {<br>		AGModel model = example2(false);<br>		println(&quot;\nStarting example4().&quot;);</pre>
-<p>We're going to search for triples that mention Alice, so we have to create an &quot;Alice&quot; URI to use in the search pattern. </p>
+<p>We're going to search for triples that mention Alice, so we have to create an &quot;Alice&quot; resource object to use in the search pattern. Think of this as Alice's URI. </p>
 <pre class="input">		Resource alice = model<br>				.createResource(&quot;http://example.org/people/alice&quot;);</pre>
-<p> Now we search for triples with Alice's URI in the subject position.  The &quot;null&quot; values are wildcards for the predicate and object positions of the triple. </p>
+<p> Now we search for triples with Alice's URI in the subject position.  The &quot;null&quot; values are wildcards for the predicate and object positions of the triple. The RDFNode token indicates that we want to object of the triple to be either a resource URI or a literal value. The object value can sometimes be a string, which we are excluding from this pattern. </p>
 <pre class="input">		StmtIterator statements = model.listStatements(alice, null,<br>				(RDFNode) null);</pre>
 <p>The listStatements() method returns a statement iterator object (bound to the variable &quot;statements&quot; in this case). This object can be iterated over, exposing one result statement at a time. </p>
 <pre class="input">		try {<br>			while (statements.hasNext()) {<br>				println(statements.next());<br>			}</pre>
@@ -293,7 +292,7 @@ This is the <strong>example4()</strong> function of JenaTutorialExamples.java. I
 <pre class="input">        String exns = &quot;http://example.org/people/&quot;;</pre>
 <p>The example creates new resources describing Alice and Ted. Apparently Bob was on vacation. We will use these resources in the subject field of the triples. </p>
 <pre class="input">        Resource alice = model.createResource(&quot;http://example.org/people/alice&quot;);<br>        Resource ted = model.createResource(exns + &quot;ted&quot;);</pre>
-<p>These are the four predicates used in the example: age, weight, favoriteColor, and birthdate. They are instantiated as Property objects. </p>
+<p>These are the four predicates used in the example: age, weight, favoriteColor, and birthdate. They are instantiated as Property objects. We would usually refer to these are predicates in AllegroGraph. </p>
 <pre class="input">        Property age = model.createProperty(exns,&quot;age&quot;);<br>        Property weight = model.createProperty(exns, &quot;weight&quot;);<br>        Property favoriteColor = model.createProperty(exns, &quot;favoriteColor&quot;);<br>        Property birthdate = model.createProperty(exns, &quot;birthdate&quot;);</pre>
 <p>Favorite colors, declared as Literals in English (default) and French. </p>
 <pre class="input">        Literal red = model.createLiteral(&quot;Red&quot;);<br>        Literal rouge = model.createLiteral(&quot;Rouge&quot;, &quot;fr&quot;);</pre>
@@ -301,7 +300,7 @@ This is the <strong>example4()</strong> function of JenaTutorialExamples.java. I
 <pre class="input">        Literal fortyTwoInt = model.createTypedLiteral(&quot;42&quot;, XSDDatatype.XSDint);<br>        Literal fortyTwoLong = model.createTypedLiteral(&quot;42&quot;, XSDDatatype.XSDlong);<br>        Literal fortyTwoUntyped = model.createLiteral(&quot;42&quot;);</pre>
 <p>Birth date values, declared as DATE and DATETIME types. </p>
 <pre class="input">        Literal date = model.createTypedLiteral(&quot;1984-12-06&quot;, XSDDatatype.XSDdate);<br>        Literal time = model.createTypedLiteral(&quot;1984-12-06T09:00:00&quot;, XSDDatatype.XSDdateTime);</pre>
-<p>Weights, written as floats, but one untyped and the other declared to be a FLOAT. </p>
+<p>Weights, written as floats, but one untyped and the other declared to be a float. </p>
 <pre class="input">        Literal weightUntyped = model.createLiteral(&quot;120.5&quot;);<br>        Literal weightFloat = model.createTypedLiteral(&quot;120.5&quot;, XSDDatatype.XSDfloat);</pre>
  <p>The model object's createStatement() method assembles the elements of a triple, but does not yet add them to the repository. Here are Alice's and Ted's ages assembled into statements. (We gave Ted two age triples because Bob was on vacation. The triples have the same value cast into different types.) </p>
  <pre class="input">        Statement stmt1 = model.createStatement(alice, age, fortyTwoInt);<br>        Statement stmt2 = model.createStatement(ted, age, fortyTwoLong);<br>        Statement stmt3 = model.createStatement(ted, age, fortyTwoUntyped);</pre>
@@ -326,7 +325,7 @@ This is the <strong>example4()</strong> function of JenaTutorialExamples.java. I
 <pre class="output"></p>Retrieve triples matching Red.<br>[http://example.org/people/alice, http://example.org/people/favoriteColor, &quot;Red&quot;]</pre>
 <p>What triples match &quot;Rouge&quot; declared as a French string? [Rouge] </p>
 <pre class="output"></p>Retrieve triples matching Rouge@fr.<br>[http://example.org/people/ted, http://example.org/people/favoriteColor, &quot;Rouge&quot;@fr]</pre>
-<p>The next loop builds and evaluates a SPARQL query instead of using getStatements(). It also shows examples of putting coded values into the search criteria without creating Literal objects as an intermediate step. It also shows how to use a BindingSet instead of a RepositoryResult object, and how to extract individual subject, predicate and object values from each returned triple. </p>
+<p>The next loop builds and evaluates a SPARQL query instead of using listStatements(). It also shows examples of putting typed values into the search criteria without creating Literal objects as an intermediate step. It also shows how to  extract individual subject, predicate and object values from each returned triple. </p>
 <pre class="input">        for (String obj : new String[]{&quot;42&quot;, &quot;\&quot;42\&quot;&quot;, &quot;120.5&quot;, &quot;\&quot;120.5\&quot;&quot;, &quot;\&quot;120.5\&quot;^^xsd:float&quot;,<br>                                       &quot;\&quot;Rouge\&quot;@fr&quot;, &quot;\&quot;Rouge\&quot;&quot;, &quot;\&quot;1984-12-06\&quot;^^xsd:date&quot;}) {<br>            println( &quot;\nQuery triples matching &quot; + obj + &quot;.&quot;);<br>            String queryString = &quot;PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt; SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = &quot; + obj + &quot;)}&quot;;<br>            AGQuery query = AGQueryFactory.create(queryString);<br>            QueryExecution qe = AGQueryExecutionFactory.create(query, model);<br>			try {<br>				ResultSet results = qe.execSelect();<br>				while (results.hasNext()) {<br>					QuerySolution result = results.next();<br>					RDFNode s = result.get(&quot;s&quot;);<br>					RDFNode p = result.get(&quot;p&quot;);<br>					RDFNode o = result.get(&quot;o&quot;);<br>					println(&quot;  &quot; + s + &quot; &quot; + p + &quot; &quot; + o);<br>				}</pre>
 <p>What triples match &quot;42&quot; (which is an int). We get both ints and longs. 
 <pre class="output">Query triples matching 42.<br>  http://example.org/people/alice http://example.org/people/age &quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#int&gt;<br>  http://example.org/people/ted http://example.org/people/age &quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#long&gt;</pre>
@@ -387,7 +386,7 @@ The Jena API client can load triples in either RDF/XML format or  NTriples forma
 <p>Note that AllegroGraph can segregate triples into contexts (subgraphs) by treating them as quads. The fourth field contains the URI of a subgraph. The Jena GraphMaker object, however, explicitly creates subgraphs (by creating model objects). Each model object addresses the content of a specific subgraph. There is always an unnamed &quot;default background graph&quot; available, and you may create any number of named subgraphs to compliment it. It is important to address your queries to the right graph, of course. </p>
 <p>In example6() we use the default background graph from example1(), which is initially empty, plus a second subgraph named &quot;http://example.org#vcards". Note that it is traditional to name subgraphs using appropriate URIs. </p>
 <pre class="input">	public static AGGraphMaker example6() throws Exception {<br>		AGGraphMaker maker = example1(false);<br>		AGModel model = new AGModel(maker.getGraph());<br>		AGModel model_vcards = new AGModel(maker.createGraph(&quot;http://example.org#vcards&quot;));</pre>
-<p>Model addresses the default background graph. Model_vcards addresses a second subgraph where we will load v-card data. </p>
+<p><strong>Model</strong> addresses the default background graph. <strong>Model_vcards</strong> addresses a second subgraph where we will load v-card data. </p>
 <p>The variables path1 and path2 are bound to the RDF/XML and NTriples files, respectively. You may have to redefine these paths depending on your platform and how you have set up the project. The data files are in the same directory as JenaTutorialExamples.java.</p>
 <pre class="input">		String path1 = &quot;src/tutorial/java-vcards.rdf&quot;;<br>		String path2 = &quot;src/tutorial/java-kennedy.ntriples&quot;;</pre>
 <p>Both examples need a base URI as one of the required arguments to the asserting methods: </p>
@@ -1165,6 +1164,6 @@ Number of results: 1</pre>
 <p>The Les Miserables triples are visible in both sessions. So too are the Kennedy triples. </p>
 <p>&nbsp;</p>
 -->
-<p><font color="#CCCCCC">December 14, 2009 4.0 M2 release</font></p>
+<p><font color="#CCCCCC">December 15, 2009 4.0 M2 release</font></p>
 </body>
 </html>
