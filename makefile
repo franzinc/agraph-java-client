@@ -21,8 +21,8 @@ tags: FORCE
 
 ## this is brittle, clean it up post-m2.
 
-VERSION = 1.0m2
-SERVER_VERSION = 4.0m2
+VERSION = 1.0m2a
+SERVER_VERSION = 4.0m2a
 
 
 TUTORIAL_FILES = *.ntriples *.rdf *.txt *TutorialExamples.java
