@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+
+<rdf:Description rdf:about="http://somewhere/JohnSmith/">
+	<FN xmlns="http://www.w3.org/2001/vcard-rdf/3.0#">John Smith</FN>
+	<N xmlns="http://www.w3.org/2001/vcard-rdf/3.0#" rdf:nodeID="1"/>
+</rdf:Description>
+
+<rdf:Description rdf:nodeID="1">
+	<Family xmlns="http://www.w3.org/2001/vcard-rdf/3.0#">Smith</Family>
+	<Given xmlns="http://www.w3.org/2001/vcard-rdf/3.0#">John</Given>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://somewhere/RebeccaSmith/">
+	<FN xmlns="http://www.w3.org/2001/vcard-rdf/3.0#">Becky Smith</FN>
+	<N xmlns="http://www.w3.org/2001/vcard-rdf/3.0#" rdf:nodeID="2"/>
+</rdf:Description>
+
+<rdf:Description rdf:nodeID="2">
+	<Family xmlns="http://www.w3.org/2001/vcard-rdf/3.0#">Smith</Family>
+	<Given xmlns="http://www.w3.org/2001/vcard-rdf/3.0#">Rebecca</Given>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://somewhere/SarahJones/">
+	<FN xmlns="http://www.w3.org/2001/vcard-rdf/3.0#">Sarah Jones</FN>
+	<N xmlns="http://www.w3.org/2001/vcard-rdf/3.0#" rdf:nodeID="3"/>
+</rdf:Description>
+
+<rdf:Description rdf:nodeID="3">
+	<Family xmlns="http://www.w3.org/2001/vcard-rdf/3.0#">Jones</Family>
+	<Given xmlns="http://www.w3.org/2001/vcard-rdf/3.0#">Sarah</Given>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://somewhere/MattJones/">
+	<FN xmlns="http://www.w3.org/2001/vcard-rdf/3.0#">Matt Jones</FN>
+	<N xmlns="http://www.w3.org/2001/vcard-rdf/3.0#" rdf:nodeID="4"/>
+</rdf:Description>
+
+<rdf:Description rdf:nodeID="4">
+	<Family xmlns="http://www.w3.org/2001/vcard-rdf/3.0#">Jones</Family>
+	<Given xmlns="http://www.w3.org/2001/vcard-rdf/3.0#">Matthew</Given>
+</rdf:Description>
+
+</rdf:RDF>
