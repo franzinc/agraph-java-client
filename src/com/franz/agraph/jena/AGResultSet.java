@@ -1,3 +1,11 @@
+/******************************************************************************
+** Copyright (c) 2008-2009 Franz Inc.
+** All rights reserved. This program and the accompanying materials
+** are made available under the terms of the Eclipse Public License v1.0
+** which accompanies this distribution, and is available at
+** http://www.eclipse.org/legal/epl-v10.html
+******************************************************************************/
+
 package com.franz.agraph.jena;
 
 import java.util.List;
@@ -23,20 +31,17 @@ public class AGResultSet implements ResultSet {
 
 	@Override
 	public Model getResourceModel() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public List<String> getResultVars() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public int getRowNumber() {
-		// TODO Auto-generated method stub
-		return 0;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
@@ -63,19 +68,17 @@ public class AGResultSet implements ResultSet {
 
 	@Override
 	public Binding nextBinding() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public QuerySolution nextSolution() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public void remove() {
-		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 
 	}
 

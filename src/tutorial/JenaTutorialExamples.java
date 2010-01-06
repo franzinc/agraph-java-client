@@ -1,3 +1,11 @@
+/******************************************************************************
+** Copyright (c) 2008-2009 Franz Inc.
+** All rights reserved. This program and the accompanying materials
+** are made available under the terms of the Eclipse Public License v1.0
+** which accompanies this distribution, and is available at
+** http://www.eclipse.org/legal/epl-v10.html
+******************************************************************************/
+
 package tutorial;
 
 import java.io.FileInputStream;
@@ -64,7 +72,6 @@ public class JenaTutorialExamples {
 		println("Got a repository.");
 		myRepository.initialize();
 		println("Initialized repository.");
-		println("Repository is writable? " + myRepository.isWritable());
 		AGRepositoryConnection conn = myRepository.getConnection();
 		closeBeforeExit(conn);
 		println("Got a connection.");
@@ -185,8 +192,8 @@ public class JenaTutorialExamples {
         AGModel model = example2(false);
         println("\nStarting example5().");
         model.removeAll();
-        Resource alice = model.createResource("http://example.org/people/alice");
         String exns = "http://example.org/people/";
+        Resource alice = model.createResource("http://example.org/people/alice");
         Resource ted = model.createResource(exns + "ted");
         Property age = model.createProperty(exns,"age");
         Property weight = model.createProperty(exns, "weight");
@@ -229,7 +236,8 @@ public class JenaTutorialExamples {
         for (String obj : new String[]{"42", "\"42\"", "120.5", "\"120.5\"", "\"120.5\"^^xsd:float",
                                        "\"Rouge\"@fr", "\"Rouge\"", "\"1984-12-06\"^^xsd:date"}) {
             println( "\nQuery triples matching " + obj + ".");
-            String queryString = "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = " + obj + ")}";
+            String queryString = "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>" + 
+                "SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = " + obj + ")}";
             AGQuery query = AGQueryFactory.create(queryString);
             QueryExecution qe = AGQueryExecutionFactory.create(query, model);
 			try {
@@ -355,7 +363,7 @@ public class JenaTutorialExamples {
 		} finally {
 			qe.close();
 		}
-		println("\nSPARQL query over the default graph (model_vcards).");
+		println("\nSPARQL query over the named graph (model_vcards).");
 		qe = AGQueryExecutionFactory.create(query, model_vcards);
 		try {
 			ResultSet results = qe.execSelect();
@@ -409,7 +417,7 @@ public class JenaTutorialExamples {
 	public static void example8() throws Exception {
 		AGGraphMaker maker = example6();
 		AGModel model = new AGModel(maker.getGraph());
-		// TODO AGModel model_vcards = new AGModel(maker.openGraph("http://example.org#vcards"));
+		//AGModel model_vcards = new AGModel(maker.openGraph("http://example.org#vcards"));
 		String outputFile = TEMPORARY_DIRECTORY + "temp.nt";
 		// outputFile = null;
 		if (outputFile == null) {
@@ -420,6 +428,7 @@ public class JenaTutorialExamples {
 		OutputStream output = (outputFile != null) ? new FileOutputStream(
 				outputFile) : System.out;
 		model.write(output, "N-TRIPLE");
+		output.close();
 		String outputFile2 = TEMPORARY_DIRECTORY + "temp.rdf";
 		// outputFile2 = null;
 		if (outputFile2 == null) {
@@ -429,7 +438,8 @@ public class JenaTutorialExamples {
 		}
 		output = (outputFile2 != null) ? new FileOutputStream(outputFile2)
 				: System.out;
-		// TODO model_vcards.write(output);
+		model.write(output);
+		output.close();
 	}
 
 	/**
@@ -437,8 +447,8 @@ public class JenaTutorialExamples {
 	 */
 	public static void example9() throws Exception {
 		AGGraphMaker maker = example6();
-		AGModel model_vcards = new AGModel(maker.openGraph("http://example.org#vcards"));
-		StmtIterator statements = model_vcards.listStatements(null,RDF.type, (RDFNode)null);
+		AGModel model = new AGModel(maker.getGraph());
+		StmtIterator statements = model.listStatements(null,RDF.type, (RDFNode)null);
 		Model m = ModelFactory.createDefaultModel();
 		m.add(statements);
 		m.write(System.out);
@@ -523,7 +533,6 @@ public class JenaTutorialExamples {
 	public static void example19() throws Exception {
 		AGGraphMaker maker = example1(false);
 		AGModel model = new AGModel(maker.getGraph());
-		// Examples of RDFS++ inference. Was originally example 2A.
 		Resource robert = model.createResource("http://example.org/people/robert");
 		Resource roberta = model.createResource("http://example.org/people/roberta");
 		Resource bob = model.createResource("http://example.org/people/bob");
@@ -537,8 +546,6 @@ public class JenaTutorialExamples {
 		Literal bobbysName = model.createLiteral("Bobby");
 		Literal robertsName = model.createLiteral("Robert");
 		Literal robertasName = model.createLiteral("Roberta");
-		// Bob is the same person as Robert
-		model.add(bob, OWL.sameAs, robert);
 		// Robert, Bob, and children are people
 		model.add(robert, RDF.type, person);
 		model.add(roberta, RDF.type, person);
@@ -553,6 +560,8 @@ public class JenaTutorialExamples {
 		model.add(robert, fatherOf, roberta);
 		// bob has a child
 		model.add(bob, fatherOf, bobby);
+		// Bob is the same person as Robert
+		model.add(bob, OWL.sameAs, robert);
 
 		// List the children of Robert, with inference OFF.
 		println("\nChildren of Robert, inference OFF");
@@ -612,7 +621,7 @@ public class JenaTutorialExamples {
 	}
 
 	/**
-	 * Usage: all Usage: [1-9,11,13]+
+	 * Usage: all Usage: [1-9,11,13,19]+
 	 */
 	public static void main(String[] args) throws Exception {
 		List<Integer> choices = new ArrayList<Integer>();
@@ -625,6 +634,7 @@ public class JenaTutorialExamples {
 			}
 			choices.add(11);
 			choices.add(13);
+			choices.add(19);
 		} else {
 			for (int i = 0; i < args.length; i++) {
 				choices.add(Integer.parseInt(args[i]));
@@ -668,7 +678,7 @@ public class JenaTutorialExamples {
 					example13();
 					break;
 				case 19:
-					//example19();
+					example19();
 					break;
 				default:
 					throw new IllegalArgumentException("There is no example "
@@ -692,7 +702,7 @@ public class JenaTutorialExamples {
 		rows.close();
 	}
 
-	static void printRows(String headerMsg, int limit,	StmtIterator rows) throws Exception {
+	protected static void printRows(String headerMsg, int limit,	StmtIterator rows) throws Exception {
 		println(headerMsg);
 		int count = 0;
 		while (count < limit && rows.hasNext()) {
@@ -717,11 +727,11 @@ public class JenaTutorialExamples {
 	/**
 	 * This is just a quick mechanism to make sure all connections get closed.
 	 */
-	private static void closeBeforeExit(AGRepositoryConnection conn) {
+	protected static void closeBeforeExit(AGRepositoryConnection conn) {
 		toClose.add(conn);
 	}
 
-	private static void closeAll() {
+	protected static void closeAll() {
 		while (toClose.isEmpty() == false) {
 			AGRepositoryConnection conn = toClose.get(0);
 			close(conn);

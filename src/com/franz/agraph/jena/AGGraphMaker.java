@@ -1,3 +1,11 @@
+/******************************************************************************
+** Copyright (c) 2008-2009 Franz Inc.
+** All rights reserved. This program and the accompanying materials
+** are made available under the terms of the Eclipse Public License v1.0
+** which accompanies this distribution, and is available at
+** http://www.eclipse.org/legal/epl-v10.html
+******************************************************************************/
+
 package com.franz.agraph.jena;
 
 import com.franz.agraph.repository.AGRepositoryConnection;
@@ -33,8 +41,7 @@ public class AGGraphMaker implements GraphMaker {
 
 	@Override
 	public AGGraph createGraph() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
@@ -50,26 +57,22 @@ public class AGGraphMaker implements GraphMaker {
 
 	@Override
 	public ReificationStyle getReificationStyle() {
-		// TODO Auto-generated method stub
-		return null;
+		return ReificationStyle.Minimal;
 	}
 
 	@Override
 	public boolean hasGraph(String name) {
-		// TODO Auto-generated method stub
-		return false;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public ExtendedIterator<String> listGraphs() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public AGGraph openGraph() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
@@ -85,8 +88,7 @@ public class AGGraphMaker implements GraphMaker {
 
 	@Override
 	public void removeGraph(String name) {
-		// TODO Auto-generated method stub
-		
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 }

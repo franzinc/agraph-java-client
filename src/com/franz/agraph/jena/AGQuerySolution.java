@@ -1,3 +1,11 @@
+/******************************************************************************
+** Copyright (c) 2008-2009 Franz Inc.
+** All rights reserved. This program and the accompanying materials
+** are made available under the terms of the Eclipse Public License v1.0
+** which accompanies this distribution, and is available at
+** http://www.eclipse.org/legal/epl-v10.html
+******************************************************************************/
+
 package com.franz.agraph.jena;
 
 import java.util.Iterator;
@@ -21,8 +29,7 @@ public class AGQuerySolution implements QuerySolution {
 
 	@Override
 	public boolean contains(String varName) {
-		// TODO Auto-generated method stub
-		return false;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
@@ -32,20 +39,17 @@ public class AGQuerySolution implements QuerySolution {
 
 	@Override
 	public Literal getLiteral(String varName) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public Resource getResource(String varName) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public Iterator<String> varNames() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override

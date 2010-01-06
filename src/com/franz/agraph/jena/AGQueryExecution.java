@@ -1,3 +1,11 @@
+/******************************************************************************
+** Copyright (c) 2008-2009 Franz Inc.
+** All rights reserved. This program and the accompanying materials
+** are made available under the terms of the Eclipse Public License v1.0
+** which accompanies this distribution, and is available at
+** http://www.eclipse.org/legal/epl-v10.html
+******************************************************************************/
+
 package com.franz.agraph.jena;
 
 import org.openrdf.query.GraphQueryResult;
@@ -30,8 +38,7 @@ public class AGQueryExecution implements QueryExecution {
 	
 	@Override
 	public void abort() {
-		// TODO Auto-generated method stub
-
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
@@ -105,26 +112,22 @@ public class AGQueryExecution implements QueryExecution {
 
 	@Override
 	public Context getContext() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public Dataset getDataset() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public void setFileManager(FileManager fm) {
-		// TODO Auto-generated method stub
-
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
 	public void setInitialBinding(QuerySolution binding) {
-		// TODO Auto-generated method stub
-
+		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 }
