@@ -2,7 +2,6 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="lib" path="lib/jena-2.6.0/arq-extra.jar"/>
 	<classpathentry kind="lib" path="lib/jena-2.6.0/arq.jar"/>
 	<classpathentry kind="lib" path="lib/jena-2.6.0/icu4j_3_4.jar"/>
@@ -10,7 +9,6 @@
 	<classpathentry kind="lib" path="lib/jena-2.6.0/jena.jar" sourcepath="/Jena 2.6.0/src"/>
 	<classpathentry kind="lib" path="lib/jena-2.6.0/jenatest.jar"/>
 	<classpathentry kind="lib" path="lib/jena-2.6.0/json.jar"/>
-	<classpathentry kind="lib" path="lib/jena-2.6.0/junit-4.5.jar"/>
 	<classpathentry kind="lib" path="lib/jena-2.6.0/log4j-1.2.12.jar"/>
 	<classpathentry kind="lib" path="lib/jena-2.6.0/lucene-core-2.3.1.jar"/>
 	<classpathentry kind="lib" path="lib/jena-2.6.0/stax-api-1.0.jar"/>
@@ -22,5 +20,6 @@
 	<classpathentry kind="lib" path="lib/sesame-2.2.4/openrdf-sesame-2.2.4-onejar.jar"/>
 	<classpathentry kind="lib" path="lib/sesame-2.2.4/slf4j-api-1.5.8.jar"/>
 	<classpathentry kind="lib" path="lib/sesame-2.2.4/slf4j-nop-1.5.8.jar"/>
+	<classpathentry kind="lib" path="lib/junit-4.8.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

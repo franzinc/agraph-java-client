@@ -1,5 +1,5 @@
 /******************************************************************************
-** Copyright (c) 2008-2009 Franz Inc.
+** Copyright (c) 2008-2010 Franz Inc.
 ** All rights reserved. This program and the accompanying materials
 ** are made available under the terms of the Eclipse Public License v1.0
 ** which accompanies this distribution, and is available at
@@ -8,28 +8,18 @@
 
 package test.stress;
 
-import java.util.*;
+import static test.AGAbstractTest.findServerUrl;
+import static test.AGAbstractTest.password;
+import static test.AGAbstractTest.username;
 
-import org.openrdf.model.BNode;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.rio.ntriples.NTriplesUtil;
-import org.openrdf.query.TupleQuery;
-import org.openrdf.query.TupleQueryResult;
-import org.openrdf.query.QueryEvaluationException;
-
-import com.franz.agraph.repository.AGCatalog;
-import com.franz.agraph.repository.AGQueryLanguage;
-import com.franz.agraph.repository.AGRepository;
-import com.franz.agraph.repository.AGRepositoryConnection;
-import com.franz.agraph.repository.AGServer;
-import com.franz.agraph.repository.AGTupleQuery;
-
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Formatter;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.Random;
+import java.util.Vector;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -39,24 +29,29 @@ import java.util.concurrent.Future;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 
-import java.io.IOException;
-import java.lang.ThreadLocal;
+import org.openrdf.model.BNode;
+import org.openrdf.model.Resource;
+import org.openrdf.model.Statement;
+import org.openrdf.model.URI;
+import org.openrdf.model.Value;
+import org.openrdf.model.ValueFactory;
+import org.openrdf.model.vocabulary.RDF;
+import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.query.TupleQuery;
+import org.openrdf.query.TupleQueryResult;
+import org.openrdf.repository.RepositoryException;
+import org.openrdf.rio.ntriples.NTriplesUtil;
+
+import com.franz.agraph.repository.AGCatalog;
+import com.franz.agraph.repository.AGQueryLanguage;
+import com.franz.agraph.repository.AGRepository;
+import com.franz.agraph.repository.AGRepositoryConnection;
+import com.franz.agraph.repository.AGServer;
+import com.franz.agraph.repository.AGTupleQuery;
 
 public class Events {
-	private static String with_default(String theValue, String theDefault) {
-		if (theValue == null) {
-			return theDefault;
-		}
-		
-		return theValue;
-	}
 	
 	static private final Random RANDOM = new Random();
-	static private final String LOCALHOST = "localhost";
-	static private final String AG_HOST = with_default(System.getenv("AGRAPH_HOST"), LOCALHOST);
-	static private final int AG_PORT = Integer.parseInt(with_default(System.getenv("AGRAPH_PORT"), "10035"));
-	static private final String AG_USER = with_default(System.getenv("AGRAPH_USER"), "test");
-	static private final String AG_PASSWORD = with_default(System.getenv("AGRAPH_PASSWORD"), "xyzzy");
 
 	private static class Defaults {
 	    // The namespace
@@ -99,7 +94,7 @@ public class Events {
 	}
 	
 	public static AGRepositoryConnection connect(boolean shared) throws RepositoryException {
-        AGServer server = new AGServer("http://" + AG_HOST + ":" + AG_PORT, AG_USER, AG_PASSWORD);
+        AGServer server = new AGServer(findServerUrl(), username(), password());
         AGCatalog catalog = server.getCatalog(Defaults.CATALOG);
         AGRepository repository = catalog.createRepository(Defaults.REPOSITORY);
         repository.initialize();
@@ -775,7 +770,7 @@ public class Events {
        	    trace("RENEWing %s:%s.", Defaults.CATALOG, Defaults.REPOSITORY);
        	}
 
-	    AGServer server = new AGServer("http://" + AG_HOST + ":" + AG_PORT, AG_USER, AG_PASSWORD);
+	    AGServer server = new AGServer(findServerUrl(), username(), password());
         AGCatalog catalog = server.getCatalog(Defaults.CATALOG);
         if (!Defaults.OPEN) {
         	catalog.deleteRepository(Defaults.REPOSITORY);

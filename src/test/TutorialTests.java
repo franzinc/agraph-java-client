@@ -8,6 +8,10 @@
 
 package test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static test.Util.close;
 
 import java.io.File;
@@ -15,7 +19,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.OutputStream;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -25,6 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
@@ -55,26 +60,8 @@ public class TutorialTests extends AGAbstractTest {
 
     static final String FOAF_NS = "http://xmlns.com/foaf/0.1/";
     
-    public static void main(String[] args) throws Exception {
-        int n = Integer.parseInt(Util.get(args, 0, "1"));
-        TutorialTests test = new TutorialTests();
-        try {
-            test.setName("test" + n);
-            test.setUp();
-            test.println("running...");
-            Method method = test.getClass().getMethod(test.getName());
-            method.invoke(test);
-        } finally {
-            try {
-                test.tearDown();
-            } catch (Throwable e) {
-                System.err.println(e);
-                e.printStackTrace(System.err);
-            }
-        }
-    }
-    
-    public void test1() throws Exception {
+    @Test
+    public void example1() throws Exception {
         assertTrue(server.listCatalogs().size() > 0);
         assertEquals(CATALOG_ID, cat.getCatalogName());
         assertEquals(repoId, repo.getRepositoryID());
@@ -83,7 +70,7 @@ public class TutorialTests extends AGAbstractTest {
         assertEquals(0, conn.size());
     }
     
-    public Map<String, Stmt> test2inputs() throws Exception {
+    Map<String, Stmt> example2inputs() throws Exception {
         AGValueFactory vf = repo.getValueFactory();
         URI alice = vf.createURI("http://example.org/people/alice");
         URI bob = vf.createURI("http://example.org/people/bob");
@@ -100,15 +87,16 @@ public class TutorialTests extends AGAbstractTest {
         return inputs;
     }
     
-    private Map<String, Stmt> test2setup() throws Exception, RepositoryException {
-        Map<String, Stmt> inputs = test2inputs();
+    private Map<String, Stmt> example2setup() throws Exception, RepositoryException {
+        Map<String, Stmt> inputs = example2inputs();
         addAll(inputs.values(), conn);
         assertEquals(4, conn.size());
         return inputs;
     }
     
-    public void test2() throws Exception {
-        Map<String, Stmt> inputs = test2setup();
+    @Test
+    public void example2() throws Exception {
+        Map<String, Stmt> inputs = example2setup();
         Set<Stmt> stmts = statementSet(conn.getStatements(null, null, null, false));
         assertSetsEqual(inputs.values(), stmts);
         Stmt x = inputs.values().iterator().next();
@@ -118,16 +106,18 @@ public class TutorialTests extends AGAbstractTest {
         assertEquals(4, conn.size());
     }
 
-    public void test3() throws Exception {
-        Map<String, Stmt> inputs = test2setup();
+    @Test
+    public void example3() throws Exception {
+        Map<String, Stmt> inputs = example2setup();
         String queryString = "SELECT ?s ?p ?o  WHERE {?s ?p ?o .}";
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         Set<Stmt> stmts = statementSet(tupleQuery.evaluate());
         assertSetsEqual(inputs.values(), stmts);
     }
 
-    public void test4() throws Exception {
-        Map<String, Stmt> inputs = test2setup();
+    @Test
+    public void example4() throws Exception {
+        Map<String, Stmt> inputs = example2setup();
         URI alice = repo.getValueFactory().createURI("http://example.org/people/alice");
         RepositoryResult<Statement> result = conn.getStatements(alice, null, null, false);
         result.enableDuplicateFilter();
@@ -135,8 +125,10 @@ public class TutorialTests extends AGAbstractTest {
         assertSetsEqual(mapKeep(new String[] {"an", "at"}, inputs).values(), stmts);
     }
 
-    public void test5() throws Exception {
-        test2setup();
+    @Category(TestSuites.Broken.class)
+    @Test
+    public void example5() throws Exception {
+        example2setup();
         conn.clear();
         ValueFactory f = repo.getValueFactory();
         String exns = "http://example.org/people/";
@@ -202,7 +194,8 @@ public class TutorialTests extends AGAbstractTest {
                 f.createLiteral("1984-12-06T09:00:00",XMLSchema.DATETIME), false)));
     }
     
-    public void test6() throws Exception {
+    @Test
+    public void example6() throws Exception {
         conn.clear();
         conn.setAutoCommit(false);  // dedicated session
         assertEquals(0, conn.size());
@@ -220,8 +213,9 @@ public class TutorialTests extends AGAbstractTest {
         assertEquals(1230, conn.size());
     }
     
-    public void test7() throws Exception {
-        test6();
+    @Test
+    public void example7() throws Exception {
+        example6();
         assertEquals(1230, statementSet(conn.getStatements(null, null, null, false)).size());
         assertEquals(8, statementSet(
                 conn.prepareTupleQuery(
@@ -230,20 +224,22 @@ public class TutorialTests extends AGAbstractTest {
                 ).evaluate()).size());
     }
     
-    public void test8() throws Exception {
-        test6();
+    @Test
+    public void example8() throws Exception {
+        example6();
         URI context = repo.getValueFactory().createURI("http://example.org#vcards");
         {
-            File outputFile = File.createTempFile("agraph-" + getName(), ".nt");
+            File outputFile = File.createTempFile("agraph-test", ".nt");
             println("Writing n-triples to: " + outputFile.getCanonicalPath());
             OutputStream out = new FileOutputStream(outputFile);
             NTriplesWriter ntriplesWriter = new NTriplesWriter(out);
             conn.export(ntriplesWriter, context);
             close(out);
             assertFiles(new File("src/test/tutorial-test8-expected.nt"), outputFile);
+            outputFile.delete(); // delete if success
         }
         {
-            File outputFile = File.createTempFile("agraph-" + getName(), ".rdf");
+            File outputFile = File.createTempFile("agraph-test", ".rdf");
             println("Writing RDF to: " + outputFile);
             OutputStream out = new FileOutputStream(outputFile);
             RDFXMLWriter rdfxmlfWriter = new RDFXMLWriter(out);
@@ -251,26 +247,30 @@ public class TutorialTests extends AGAbstractTest {
             out.write('\n');
             close(out);
             assertFiles(new File("src/test/tutorial-test8-expected.rdf"), outputFile);
+            outputFile.delete(); // delete if success
         }
     }
 
     /**
      * Writing the result of a statements match to a file.
      */
-    public void test9() throws Exception {    
-        test6();
-        File f = File.createTempFile("agraph-" + getName(), ".rdf");
+    @Test
+    public void example9() throws Exception {    
+        example6();
+        File f = File.createTempFile("agraph-test", ".rdf");
         FileWriter out = new FileWriter(f);
         println("export to " + f.getCanonicalFile());
         conn.exportStatements(null, RDF.TYPE, null, false, new RDFXMLWriter(out));
         close(out);
         assertFiles(new File("src/test/tutorial-test9-expected.rdf"), f);
+        f.delete(); // delete if success
     }
 
     /**
      * Datasets and multiple contexts.
      */
-    public void test10 () throws Exception {
+    @Test
+    public void example10 () throws Exception {
         ValueFactory f = repo.getValueFactory();
         String exns = "http://example.org/people/";
         URI alice = f.createURI(exns, "alice");
@@ -345,7 +345,8 @@ public class TutorialTests extends AGAbstractTest {
                 statementSet(tupleQuery.evaluate()));
     }
     
-    public void test11() throws Exception {
+    @Test
+    public void example11() throws Exception {
         ValueFactory f = repo.getValueFactory();
         String exns = "http://example.org/people/";
         URI alice = f.createURI(exns, "alice");
@@ -360,7 +361,8 @@ public class TutorialTests extends AGAbstractTest {
 	/**
 	 * Text search
 	 */
-	public void test12 () throws Exception {    
+    @Test
+    public void example12 () throws Exception {    
 	    ValueFactory f = conn.getValueFactory();
 	    String exns = "http://example.org/people/";
 	    conn.setNamespace("ex", exns);
@@ -420,8 +422,9 @@ public class TutorialTests extends AGAbstractTest {
 	/**
      * Ask, Construct, and Describe queries
      */
-    public void test13 () throws Exception {
-        Map<String, Stmt> inputs = test2setup();
+    @Test
+    public void example13 () throws Exception {
+        Map<String, Stmt> inputs = example2setup();
         conn.setNamespace("ex", "http://example.org/people/");
         conn.setNamespace("ont", "http://example.org/ontology/");
         
@@ -453,8 +456,9 @@ public class TutorialTests extends AGAbstractTest {
     /**
      * Parametric Queries
      */
-    public void test14() throws Exception {
-        Map<String, Stmt> inputs = test2setup();
+    @Test
+    public void example14() throws Exception {
+        Map<String, Stmt> inputs = example2setup();
         ValueFactory f = conn.getValueFactory();
         URI alice = f.createURI("http://example.org/people/alice");
         URI bob = f.createURI("http://example.org/people/bob");
@@ -474,7 +478,9 @@ public class TutorialTests extends AGAbstractTest {
     /**
      * Range matches
      */
-    public void test15() throws Exception {
+    @Category(TestSuites.Broken.class)
+    @Test
+    public void example15() throws Exception {
         ValueFactory f = conn.getValueFactory();
         conn.clear();
         String exns = "http://example.org/people/";
@@ -512,8 +518,9 @@ public class TutorialTests extends AGAbstractTest {
     /**
      * Federated triple stores.
      */
-    public void test16() throws Exception {
-        test6();
+    @Test
+    public void example16() throws Exception {
+        example6();
         // create two ordinary stores, and one federated store:
         AGRepository redRepo = cat.createRepository("redthingsjv");
         redRepo.initialize();
@@ -562,8 +569,9 @@ public class TutorialTests extends AGAbstractTest {
     /**
      * Prolog queries
      */
-    public void test17() throws Exception {
-        test6();
+    @Test
+    public void example17() throws Exception {
+        example6();
         conn.setNamespace("kdy", "http://www.franz.com/simple#");
         String rules1 =
             "(<-- (woman ?person) ;; IF\n" +
@@ -586,8 +594,9 @@ public class TutorialTests extends AGAbstractTest {
     /**
      * Loading Prolog rules
      */
-    public void test18() throws Exception {
-        test6();
+    @Test
+    public void example18() throws Exception {
+        example6();
         conn.setNamespace("kdy", "http://www.franz.com/simple#");
         conn.setNamespace("rltv", "http://www.franz.com/simple#");
         conn.addRules(new FileInputStream("src/tutorial/java-rules.txt"));
@@ -603,7 +612,8 @@ public class TutorialTests extends AGAbstractTest {
     /**
      * RDFS++ Reasoning
      */
-    public void test19() throws Exception {
+    @Test
+    public void example19() throws Exception {
         // Examples of RDFS++ inference.  Was originally example 2A.
         ValueFactory f = conn.getValueFactory();
         URI robert = f.createURI("http://example.org/people/robert");
@@ -709,7 +719,8 @@ public class TutorialTests extends AGAbstractTest {
     /**
      * Geospatial Reasoning
      */
-    public void test20() throws Exception {
+    @Test
+    public void example20() throws Exception {
         AGValueFactory vf = conn.getValueFactory();
         conn.clear();
         String exns = "http://example.org/people/";
@@ -790,7 +801,9 @@ public class TutorialTests extends AGAbstractTest {
     /**
      * Social Network Analysis
      */
-    public void test21() throws Exception {
+    @Category(TestSuites.Broken.class)
+    @Test
+    public void example21() throws Exception {
     	AGValueFactory vf = repo.getValueFactory();
     	conn.add(new File("src/tutorial/java-lesmis.rdf"), null, RDFFormat.RDFXML);
     	assertEquals("Loaded java-lesmis.rdf triples.", 916, conn.size());
@@ -1049,7 +1062,8 @@ public class TutorialTests extends AGAbstractTest {
     /**
      * Transactions
      */
-    public void test22() throws Exception {
+    @Test
+    public void example22() throws Exception {
         AGValueFactory vf = repo.getValueFactory();
         // Create conn1 (autoCommit) and conn2 (no autoCommit).
         AGRepositoryConnection conLesmis = getConnection();

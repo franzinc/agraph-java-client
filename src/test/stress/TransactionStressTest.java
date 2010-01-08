@@ -1,18 +1,25 @@
 /******************************************************************************
-** Copyright (c) 2008-2009 Franz Inc.
+** Copyright (c) 2008-2010 Franz Inc.
 ** All rights reserved. This program and the accompanying materials
 ** are made available under the terms of the Eclipse Public License v1.0
 ** which accompanies this distribution, and is available at
 ** http://www.eclipse.org/legal/epl-v10.html
 ******************************************************************************/
 
-package test;
+package test.stress;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static test.AGAbstractTest.findServerUrl;
+import static test.AGAbstractTest.password;
+import static test.AGAbstractTest.username;
 
 import java.util.LinkedList;
 import java.util.Random;
 
-import junit.framework.TestCase;
-
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
@@ -23,21 +30,20 @@ import org.openrdf.query.TupleQueryResult;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
 
+import test.TestSuites;
+
 import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
 import com.franz.agraph.repository.AGValueFactory;
 
-public class TransactionStressTest extends TestCase {
-    static private final String SERVER_URL = "http://localhost:10035";
-    static private final String USERNAME = "test";
-    static private final String PASSWORD = "xyzzy";
+public class TransactionStressTest {
     static private final int WORKERS = 10;
     static private final int PER = 1000;
 
     public static AGRepositoryConnection connect() throws RepositoryException {
-        AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
+        AGServer server = new AGServer(findServerUrl(), username(), password());
         AGCatalog catalog = server.getCatalog("tests");
         AGRepository repository = catalog.createRepository("transaction-stress");
         repository.initialize();
@@ -106,6 +112,12 @@ public class TransactionStressTest extends TestCase {
     }
 
     public static void main(String[] args) throws Exception {
+        new TransactionStressTest().test();
+    }
+
+    @Test
+    @Category(TestSuites.Stress.class)
+    public void test() throws Exception {
         AGRepositoryConnection conn = connect();
         conn.clear();  // remove previous triples, if any.
 

@@ -8,7 +8,13 @@
 
 package test;
 
-import static test.Util.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static test.Util.close;
+import static test.Util.get;
+import static test.Util.ifBlank;
+import static test.Util.or;
+import static test.Util.readLines;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -21,8 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import junit.framework.TestCase;
-
+import org.junit.After;
+import org.junit.Before;
 import org.openrdf.model.Statement;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryResult;
@@ -36,11 +42,9 @@ import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
 
-public class AGAbstractTest extends TestCase {
+public class AGAbstractTest {
 
     static public final String CATALOG_ID = "java-tutorial";
-    static public final String USERNAME = "test";
-    static public final String PASSWORD = "xyzzy";
     static public final String TEMPORARY_DIRECTORY = "";
     
     protected AGServer server;
@@ -52,8 +56,10 @@ public class AGAbstractTest extends TestCase {
     private List<RepositoryConnection> toClose = new ArrayList<RepositoryConnection>();
     
     public static String findServerUrl() {
-        String host = ifBlank(System.getProperty("AGRAPH_HOST"), null);
-        String port = ifBlank(System.getProperty("AGRAPH_PORT"), null);
+        String host = or(ifBlank(System.getenv("AGRAPH_HOST"), null),
+                ifBlank(System.getProperty("AGRAPH_HOST"), null));
+        String port = or(ifBlank(System.getenv("AGRAPH_PORT"), null),
+                ifBlank(System.getProperty("AGRAPH_PORT"), null));
         
         if ((host == null || host.equals("localhost")) && port == null) {
             File cfg = new File(new File(System.getProperty("java.io.tmpdir"),
@@ -79,9 +85,17 @@ public class AGAbstractTest extends TestCase {
         return "http://" + or(host, "localhost") + ":" + or(port, "10035");
     }
     
-    @Override
-    protected void setUp() throws Exception {
-        server = new AGServer(findServerUrl(), USERNAME, PASSWORD);
+    public static String username() {
+        return or(System.getenv("AGRAPH_USER"), "test");
+    }
+    
+    public static String password() {
+        return or(System.getenv("AGRAPH_PASSWORD"), "xyzzy");
+    }
+    
+    @Before
+    public void setUp() throws Exception {
+        server = new AGServer(findServerUrl(), username(), password());
         cat = server.getCatalog(CATALOG_ID);
         repoId = "javatest";
         cat.deleteRepository(repoId);
@@ -90,8 +104,8 @@ public class AGAbstractTest extends TestCase {
         conn = getConnection();
     }
 
-    @Override
-    protected void tearDown() throws Exception {
+    @After
+    public void tearDown() throws Exception {
         cat = null;
         server = null;
         while (toClose.isEmpty() == false) {
@@ -226,7 +240,7 @@ public class AGAbstractTest extends TestCase {
     }
 
     public void println(Object x) {
-        System.out.println(getName() + ": " + x);
+        System.out.println(x);
     }
     
     public void printRows(RepositoryResult<Statement> rows) throws Exception {
