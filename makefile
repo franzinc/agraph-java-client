@@ -21,21 +21,19 @@ tags: FORCE
 
 ## this is brittle, clean it up post-m2.
 
-VERSION = 1.0m2b
 SERVER_VERSION = 4.0m2b
-
 
 TUTORIAL_FILES = *.ntriples *.rdf *.txt *TutorialExamples.java
 
 ifdef CUSTOMER_DIST
-DISTDIR = agraph-$(SERVER_VERSION)-client-java-$(VERSION)
+DISTDIR = agraph-client-java-$(SERVER_VERSION)
 DIST = DIST/$(DISTDIR)
 TARNAME = DIST/$(DISTDIR).tar.gz
 TAROPTS = --owner=root --group=root 
 else
 DISTDIR = .
 DIST = DIST
-TARNAME = agraph-$(SERVER_VERSION)-client-java-$(VERSION).tar.gz
+TARNAME = agraph-client-java-$(SERVER_VERSION).tar.gz
 TAROPTS = 
 endif
 
