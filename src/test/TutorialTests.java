@@ -12,6 +12,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static test.Stmt.statementSet;
+import static test.Stmt.stmts;
+import static test.Stmt.stmtsSP;
 import static test.Util.close;
 
 import java.io.File;

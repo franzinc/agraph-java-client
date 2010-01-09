@@ -9,11 +9,16 @@
 package test;
 
 import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.GZIPOutputStream;
 
 public class Util {
 
@@ -25,9 +30,23 @@ public class Util {
     }
     
     public static Object close(Object o) {
-        if (o != null) {
+        if (o instanceof Closeable) {
+            close((Closeable)o);
+        } else if (o != null) {
             try {
                 o.getClass().getMethod("close").invoke(o);
+            } catch (Exception e) {
+                System.err.println("ignoring error with close:" + e);
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+    
+    public static Object close(Closeable o) {
+        if (o != null) {
+            try {
+                o.close();
             } catch (Exception e) {
                 System.err.println("ignoring error with close:" + e);
                 e.printStackTrace();
@@ -86,4 +105,21 @@ public class Util {
             return str;
         }
     }
+    
+    public static void gzip(File in, File out) throws IOException {
+        FileInputStream is = null;
+        OutputStream os = null;
+        try {
+            is = new FileInputStream(in);
+            os = new GZIPOutputStream(new FileOutputStream(out));
+            for (int ch = is.read(); ch != -1; ch = is.read()) {
+                os.write(ch);
+            }
+            os.flush();
+        } finally {
+            close(is);
+            close(os);
+        }
+    }
+    
 }

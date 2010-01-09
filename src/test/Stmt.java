@@ -8,10 +8,15 @@
 
 package test;
 
-import static test.Util.*;
+import static test.Util.close;
+import static test.Util.get;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 import org.openrdf.model.Literal;
 import org.openrdf.model.Resource;
@@ -20,6 +25,9 @@ import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.query.Binding;
 import org.openrdf.query.BindingSet;
+import org.openrdf.query.QueryResult;
+import org.openrdf.query.TupleQueryResult;
+import org.openrdf.repository.RepositoryResult;
 
 /**
  * A simple implementation of Statement used for testing.
@@ -48,13 +56,66 @@ class Stmt implements Statement {
         return b == null ? null : b.getValue();
     }
     
+    public static Set<Stmt> stmts(Stmt... stmts) {
+        HashSet<Stmt> set = new HashSet<Stmt>(Arrays.asList(stmts));
+        set.remove(null);
+        return set;
+    }
+
     public static Stmt spog(BindingSet s, String... SPOGnames) {
         return new Stmt((Resource)value(s, get(SPOGnames, 0, "s")),
-                (URI)value(s, get(SPOGnames, 1, "p")),
-                (Value)value(s, get(SPOGnames, 2, "o")),
-                (Resource)value(s, get(SPOGnames, 3, "g")));
+                        (URI)value(s, get(SPOGnames, 1, "p")),
+                        (Value)value(s, get(SPOGnames, 2, "o")),
+                        (Resource)value(s, get(SPOGnames, 3, "g")));
+    }
+   
+    public static Set<Stmt> statementSet(RepositoryResult<Statement> results) throws Exception {
+        try {
+            Set<Stmt> ret = new HashSet<Stmt>();
+            while (results.hasNext()) {
+                ret.add(new Stmt(results.next()));
+            }
+            return ret;
+        } finally {
+            close(results);
+        }
     }
     
+    public static Set<Stmt> stmtsSP(Collection c) throws Exception {
+        Set<Stmt> ret = new HashSet<Stmt>();
+        for (Iterator iter = c.iterator(); iter.hasNext();) {
+            Statement s = (Statement) iter.next();
+            ret.add(new Stmt(s.getSubject(), s.getPredicate(), null, null));
+        }
+        return ret;
+    }
+    
+    public static Set<Stmt> statementSet(QueryResult<Statement> results) throws Exception {
+        try {
+            Set<Stmt> ret = new HashSet<Stmt>();
+            while (results.hasNext()) {
+                ret.add(new Stmt(results.next()));
+            }
+            return ret;
+        } finally {
+            close(results);
+        }
+    }
+    
+    public static Set<Stmt> statementSet(TupleQueryResult result, String... SPOGnames) throws Exception {
+        try {
+            Set<Stmt> ret = new HashSet<Stmt>();
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                ret.add(Stmt.spog(bindingSet, SPOGnames));
+                //println(bindingSet);
+            }
+            return ret;
+        } finally {
+            close(result);
+        }
+    }
+
     public static Collection<Stmt> dropSubjects(Collection<Stmt> c) {
         Collection<Stmt> r = new ArrayList<Stmt>(c.size());
         for (Stmt s : c) {
@@ -63,6 +124,14 @@ class Stmt implements Statement {
         return r;
     }
     
+    public static Collection<Stmt> dropSubjects(Stmt...c) {
+        Collection<Stmt> r = new ArrayList<Stmt>(c.length);
+        for (Stmt s : c) {
+            r.add(new Stmt(null, s.getPredicate(), s.getObject(), s.getContext()));
+        }
+        return r;
+    }
+
     public Stmt(Resource s, URI p, Value o, Resource c) {
         this.s = s;
         this.p = p;

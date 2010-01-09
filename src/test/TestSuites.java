@@ -31,7 +31,9 @@ public class TestSuites {
      */
     @RunWith(Categories.class)
     @ExcludeCategory(NonPrepushTest.class)
-    @SuiteClasses( { TutorialTests.class })
+    @SuiteClasses( { TutorialTests.class,
+        QuickTests.class,
+        AGRepositoryConnectionTests.class })
     public static class Prepush {}
     
     /**
@@ -44,7 +46,9 @@ public class TestSuites {
      */
     @RunWith(Categories.class)
     @IncludeCategory(Broken.class)
-    @SuiteClasses( { TutorialTests.class })
+    @SuiteClasses( { TutorialTests.class,
+        QuickTests.class,
+        AGRepositoryConnectionTests.class})
     public static class Broken implements NonPrepushTest {}
     
     /**

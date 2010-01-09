@@ -1,5 +1,5 @@
 /******************************************************************************
-** Copyright (c) 2008-2009 Franz Inc.
+** Copyright (c) 2008-2010 Franz Inc.
 ** All rights reserved. This program and the accompanying materials
 ** are made available under the terms of the Eclipse Public License v1.0
 ** which accompanies this distribution, and is available at
@@ -13,6 +13,14 @@ package test;
  *
  * Licensed under the Aduna BSD-style license.
  */
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import info.aduna.iteration.CloseableIteration;
+import info.aduna.iteration.Iterations;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -38,11 +46,10 @@ import java.util.TimeZone;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import junit.framework.TestCase;
-
-import info.aduna.iteration.CloseableIteration;
-import info.aduna.iteration.Iterations;
-
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.openrdf.model.BNode;
 import org.openrdf.model.Graph;
 import org.openrdf.model.Literal;
@@ -73,7 +80,7 @@ import org.openrdf.rio.RDFParseException;
 import org.openrdf.rio.helpers.RDFHandlerBase;
 import org.openrdf.sail.memory.MemoryStore;
 
-public abstract class RepositoryConnectionTest extends TestCase {
+public abstract class RepositoryConnectionTest {
 
     protected static final String FOAF_NS = "http://xmlns.com/foaf/0.1/";
 
@@ -117,12 +124,8 @@ public abstract class RepositoryConnectionTest extends TestCase {
 
     protected Literal Александър;
 
-    public RepositoryConnectionTest(String name) {
-        super(name);
-    }
-
-    @Override
-    protected void setUp()
+    @Before
+    public void setUp()
         throws Exception
     {
         testRepository = createRepository();
@@ -160,8 +163,8 @@ public abstract class RepositoryConnectionTest extends TestCase {
         context2 = vf.createURI("urn:x-local:graph2");
     }
 
-    @Override
-    protected void tearDown()
+    @After
+    public void tearDown()
         throws Exception
     {
         testCon2.close();
@@ -184,6 +187,10 @@ public abstract class RepositoryConnectionTest extends TestCase {
     protected abstract Repository createRepository()
         throws Exception;
 
+public static abstract class RepositoryConnectionTests extends RepositoryConnectionTest {
+    
+    @Test
+    @Category(TestSuites.Broken.class)
     public void testAddStatement()
         throws Exception
     {
@@ -211,6 +218,7 @@ public abstract class RepositoryConnectionTest extends TestCase {
         tempRep.shutDown();
     }
 
+    @Test
     public void testTransactionIsolation()
         throws Exception
     {
@@ -226,6 +234,8 @@ public abstract class RepositoryConnectionTest extends TestCase {
         assertTrue(testCon2.hasStatement(bob, name, nameBob, false));
     }
 
+    @Test
+    @Category(TestSuites.Broken.class)
     public void testAddReader()
         throws Exception
     {
@@ -276,6 +286,8 @@ public abstract class RepositoryConnectionTest extends TestCase {
 
     }
 
+    @Test
+    @Category(TestSuites.Broken.class)
     public void testAddInputStream()
         throws Exception
     {
@@ -322,6 +334,8 @@ public abstract class RepositoryConnectionTest extends TestCase {
 
     }
 
+    @Test
+    @Category(TestSuites.Broken.class)
     public void testAddGzipInputStream()
         throws Exception
     {
@@ -342,6 +356,8 @@ public abstract class RepositoryConnectionTest extends TestCase {
 
     }
 
+    @Test
+    @Category(TestSuites.Broken.class)
     public void testAddZipFile()
         throws Exception
     {
@@ -359,6 +375,7 @@ public abstract class RepositoryConnectionTest extends TestCase {
         assertTrue("bob should be known in the store", testCon.hasStatement(null, name, nameBob, false));
     }
 
+    @Test
     public void testAutoCommit()
         throws Exception
     {
@@ -376,6 +393,7 @@ public abstract class RepositoryConnectionTest extends TestCase {
         testCon.setAutoCommit(true);
     }
 
+    @Test
     public void testRollback()
         throws Exception
     {
@@ -393,6 +411,8 @@ public abstract class RepositoryConnectionTest extends TestCase {
         testCon.setAutoCommit(true);
     }
 
+    @Test
+    @Category(TestSuites.Broken.class)
     public void testSimpleTupleQuery()
         throws Exception
     {
@@ -433,6 +453,8 @@ public abstract class RepositoryConnectionTest extends TestCase {
         }
     }
 
+    @Test
+    @Category(TestSuites.Broken.class)
     public void testSimpleTupleQueryUnicode()
         throws Exception
     {
@@ -460,6 +482,8 @@ public abstract class RepositoryConnectionTest extends TestCase {
         }
     }
 
+    @Test
+    @Category(TestSuites.Broken.class)
     public void testPreparedTupleQuery()
         throws Exception
     {
@@ -503,6 +527,8 @@ public abstract class RepositoryConnectionTest extends TestCase {
         }
     }
 
+    @Test
+    @Category(TestSuites.Broken.class)
     public void testPreparedTupleQueryUnicode()
         throws Exception
     {
@@ -533,6 +559,8 @@ public abstract class RepositoryConnectionTest extends TestCase {
         }
     }
 
+    @Test
+    @Category(TestSuites.Broken.class)
     public void testSimpleGraphQuery()
         throws Exception
     {
@@ -572,6 +600,8 @@ public abstract class RepositoryConnectionTest extends TestCase {
         }
     }
 
+    @Test
+    @Category(TestSuites.Broken.class)
     public void testPreparedGraphQuery()
         throws Exception
     {
@@ -616,6 +646,7 @@ public abstract class RepositoryConnectionTest extends TestCase {
         }
     }
 
+    @Test
     public void testSimpleBooleanQuery()
         throws Exception
     {
@@ -637,6 +668,7 @@ public abstract class RepositoryConnectionTest extends TestCase {
         assertTrue(exists);
     }
 
+    @Test
     public void testPreparedBooleanQuery()
         throws Exception
     {
@@ -659,6 +691,7 @@ public abstract class RepositoryConnectionTest extends TestCase {
         assertTrue(query.evaluate());
     }
 
+    @Test
     public void testDataset()
         throws Exception
     {
@@ -721,6 +754,7 @@ public abstract class RepositoryConnectionTest extends TestCase {
         assertTrue(query.evaluate());
     }
 
+    @Test
     public void testGetStatements()
         throws Exception
     {
@@ -751,6 +785,8 @@ public abstract class RepositoryConnectionTest extends TestCase {
         assertFalse("List should not be empty", list.isEmpty());
     }
 
+    @Test
+    @Category(TestSuites.Broken.class)
     public void testGetStatementsInSingleContext()
         throws Exception
     {
@@ -816,6 +852,7 @@ public abstract class RepositoryConnectionTest extends TestCase {
         assertFalse("List should not be empty", list.isEmpty());
     }
 
+    @Test
     public void testGetStatementsInMultipleContexts()
         throws Exception
     {
@@ -933,6 +970,7 @@ public abstract class RepositoryConnectionTest extends TestCase {
         }
     }
 
+    @Test
     public void testDuplicateFilter()
         throws Exception
     {
@@ -953,6 +991,7 @@ public abstract class RepositoryConnectionTest extends TestCase {
         assertEquals(1, count);
     }
 
+    @Test
     public void testRemoveStatements()
         throws Exception
     {
@@ -974,6 +1013,8 @@ public abstract class RepositoryConnectionTest extends TestCase {
         assertTrue(testCon.isEmpty());
     }
 
+    @Test
+    @Category(TestSuites.Broken.class)
     public void testRemoveStatementCollection()
         throws Exception
     {
@@ -994,6 +1035,8 @@ public abstract class RepositoryConnectionTest extends TestCase {
         assertFalse(testCon.hasStatement(alice, name, nameAlice, false));
     }
 
+    @Test
+    @Category(TestSuites.Broken.class)
     public void testRemoveStatementIteration()
         throws Exception
     {
@@ -1020,6 +1063,8 @@ public abstract class RepositoryConnectionTest extends TestCase {
 
     }
 
+    @Test
+    @Category(TestSuites.Broken.class)
     public void testGetNamespaces()
         throws Exception
     {
@@ -1062,6 +1107,7 @@ public abstract class RepositoryConnectionTest extends TestCase {
         }
     }
 
+    @Test
     public void testClear()
         throws Exception
     {
@@ -1071,6 +1117,8 @@ public abstract class RepositoryConnectionTest extends TestCase {
         assertFalse(testCon.hasStatement(null, name, nameBob, false));
     }
 
+    @Test
+    @Category(TestSuites.Broken.class)
     public void testRecoverFromParseError()
         throws RepositoryException, IOException
     {
@@ -1095,6 +1143,8 @@ public abstract class RepositoryConnectionTest extends TestCase {
         assertEquals("Repository contains incorrect number of statements", 1, testCon.size());
     }
 
+    @Test
+    @Category(TestSuites.Broken.class)
     public void testStatementSerialization()
         throws Exception
     {
@@ -1125,6 +1175,8 @@ public abstract class RepositoryConnectionTest extends TestCase {
         assertTrue(testCon.hasStatement(deserializedStatement, true));
     }
 
+    @Test
+    @Category(TestSuites.Broken.class)
     public void testBNodeSerialization()
         throws Exception
     {
@@ -1157,6 +1209,7 @@ public abstract class RepositoryConnectionTest extends TestCase {
         assertTrue(testCon.hasStatement(deserializedBNode, name, nameBob, true));
     }
 
+    @Test
     public void testURISerialization()
         throws Exception
     {
@@ -1189,6 +1242,7 @@ public abstract class RepositoryConnectionTest extends TestCase {
         assertTrue(testCon.hasStatement(bob, deserializedURI, nameBob, true));
     }
 
+    @Test
     public void testLiteralSerialization()
         throws Exception
     {
@@ -1221,6 +1275,8 @@ public abstract class RepositoryConnectionTest extends TestCase {
         assertTrue(testCon.hasStatement(bob, name, deserializedLiteral, true));
     }
 
+    @Test
+    @Category(TestSuites.Broken.class)
     public void testGraphSerialization()
         throws Exception
     {
@@ -1254,6 +1310,7 @@ public abstract class RepositoryConnectionTest extends TestCase {
         }
     }
 
+    @Test
     public void testEmptyRollback()
         throws Exception
     {
@@ -1268,6 +1325,7 @@ public abstract class RepositoryConnectionTest extends TestCase {
         assertTrue(testCon2.isEmpty());
     }
 
+    @Test
     public void testEmptyCommit()
         throws Exception
     {
@@ -1282,6 +1340,7 @@ public abstract class RepositoryConnectionTest extends TestCase {
         assertFalse(testCon2.isEmpty());
     }
 
+    @Test
     public void testOpen()
         throws Exception
     {
@@ -1292,6 +1351,7 @@ public abstract class RepositoryConnectionTest extends TestCase {
         assertTrue(testCon2.isOpen());
     }
 
+    @Test
     public void testSizeRollback()
         throws Exception
     {
@@ -1309,6 +1369,7 @@ public abstract class RepositoryConnectionTest extends TestCase {
         assertEquals(0, testCon2.size());
     }
 
+    @Test
     public void testSizeCommit()
         throws Exception
     {
@@ -1326,6 +1387,7 @@ public abstract class RepositoryConnectionTest extends TestCase {
         assertEquals(2, testCon2.size());
     }
 
+    @Test
     public void testAddRemove()
         throws Exception
     {
@@ -1350,6 +1412,7 @@ public abstract class RepositoryConnectionTest extends TestCase {
         });
     }
 
+    @Test
     public void testInferredStatementCount()
         throws Exception
     {
@@ -1365,6 +1428,7 @@ public abstract class RepositoryConnectionTest extends TestCase {
         assertEquals(inferred, getTotalStatementCount(testCon));
     }
 
+    @Test
     public void testGetContextIDs()
         throws Exception
     {
@@ -1386,6 +1450,8 @@ public abstract class RepositoryConnectionTest extends TestCase {
     }
 
     @SuppressWarnings("deprecation")
+    @Test
+    @Category(TestSuites.Broken.class)
 	public void testXmlCalendarZ()
         throws Exception
     {
@@ -1423,6 +1489,8 @@ public abstract class RepositoryConnectionTest extends TestCase {
         assertEquals(7, list.size());
     }
 
+    @Test
+    @Category(TestSuites.Broken.class)
     public void testOptionalFilter()
         throws Exception
     {
@@ -1449,6 +1517,7 @@ public abstract class RepositoryConnectionTest extends TestCase {
         assertTrue(set.contains(Arrays.asList(v3, null)));
     }
 
+    @Test
     public void testOrPredicate()
         throws Exception
     {
@@ -1492,4 +1561,6 @@ public abstract class RepositoryConnectionTest extends TestCase {
             iter.close();
         }
     }
+}
+
 }

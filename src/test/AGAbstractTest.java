@@ -18,10 +18,8 @@ import static test.Util.readLines;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -30,9 +28,6 @@ import java.util.Set;
 import org.junit.After;
 import org.junit.Before;
 import org.openrdf.model.Statement;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryResult;
-import org.openrdf.query.TupleQueryResult;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
@@ -41,11 +36,11 @@ import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
+import com.franz.agraph.repository.AGValueFactory;
 
 public class AGAbstractTest {
 
     static public final String CATALOG_ID = "java-tutorial";
-    static public final String TEMPORARY_DIRECTORY = "";
     
     protected AGServer server;
     protected AGCatalog cat;
@@ -53,8 +48,10 @@ public class AGAbstractTest {
     protected AGRepositoryConnection conn;
     protected String repoId;
     
-    private List<RepositoryConnection> toClose = new ArrayList<RepositoryConnection>();
+    protected AGValueFactory vf;
     
+    private List<RepositoryConnection> toClose = new ArrayList<RepositoryConnection>();
+
     public static String findServerUrl() {
         String host = or(ifBlank(System.getenv("AGRAPH_HOST"), null),
                 ifBlank(System.getProperty("AGRAPH_HOST"), null));
@@ -102,10 +99,12 @@ public class AGAbstractTest {
         repo = cat.createRepository(repoId);
         repo.initialize();
         conn = getConnection();
+        vf = repo.getValueFactory();
     }
 
     @After
     public void tearDown() throws Exception {
+        vf = null;
         cat = null;
         server = null;
         while (toClose.isEmpty() == false) {
@@ -126,11 +125,11 @@ public class AGAbstractTest {
         return conn;
    }
    
-    public void assertSetsEqual(Collection expected, Set actual) {
+    public static void assertSetsEqual(Collection expected, Set actual) {
         assertSetsEqual("", expected, actual);
     }
 
-    public void assertSetsEqual(String msg, Collection expected, Collection actual) {
+    public static void assertSetsEqual(String msg, Collection expected, Collection actual) {
         expected = new ArrayList(expected);
         actual = new ArrayList(actual);
         assertEquals(actual.toString(), expected.size(), actual.size());
@@ -150,7 +149,7 @@ public class AGAbstractTest {
         assertEquals(msg + ". Remaining: " + actual, 0, actual.size());
     }
     
-    public void assertSetsSome(String msg, Collection expected, Collection actual) {
+    public static void assertSetsSome(String msg, Collection expected, Collection actual) {
         for (Iterator ait = actual.iterator(); ait.hasNext();) {
             Object act = ait.next();
             boolean found = false;
@@ -165,49 +164,10 @@ public class AGAbstractTest {
         }
     }
     
-    public static Set<Stmt> stmts(Stmt... stmts) {
-         HashSet<Stmt> set = new HashSet<Stmt>(Arrays.asList(stmts));
-         set.remove(null);
-         return set;
-    }
-    
-    public void assertFiles(File expected, File actual) throws Exception {
+    public static void assertFiles(File expected, File actual) throws Exception {
         assertEquals("diff " + expected.getCanonicalPath() + " " + actual.getCanonicalPath(),
                 readLines(expected),
                 readLines(actual));
-    }
-    
-    public Set<Stmt> statementSet(RepositoryResult<Statement> results) throws Exception {
-        try {
-            Set<Stmt> ret = new HashSet<Stmt>();
-            while (results.hasNext()) {
-                ret.add(new Stmt(results.next()));
-            }
-            return ret;
-        } finally {
-            close(results);
-        }
-    }
-    
-    public Set<Stmt> stmtsSP(Collection c) throws Exception {
-        Set<Stmt> ret = new HashSet<Stmt>();
-        for (Iterator iter = c.iterator(); iter.hasNext();) {
-            Statement s = (Statement) iter.next();
-            ret.add(new Stmt(s.getSubject(), s.getPredicate(), null, null));
-        }
-        return ret;
-    }
-    
-    public Set<Stmt> statementSet(QueryResult<Statement> results) throws Exception {
-        try {
-            Set<Stmt> ret = new HashSet<Stmt>();
-            while (results.hasNext()) {
-                ret.add(new Stmt(results.next()));
-            }
-            return ret;
-        } finally {
-            close(results);
-        }
     }
     
     public static Map mapKeep(Object[] keys, Map map) {
@@ -218,20 +178,6 @@ public class AGAbstractTest {
         return ret;
     }
     
-    public Set<Stmt> statementSet(TupleQueryResult result, String... SPOGnames) throws Exception {
-        try {
-            Set<Stmt> ret = new HashSet<Stmt>();
-            while (result.hasNext()) {
-                BindingSet bindingSet = result.next();
-                ret.add(Stmt.spog(bindingSet, SPOGnames));
-                //println(bindingSet);
-            }
-            return ret;
-        } finally {
-            close(result);
-        }
-    }
-
     public void addAll(Collection stmts, RepositoryConnection conn) throws RepositoryException {
         for (Iterator iter = stmts.iterator(); iter.hasNext();) {
             Statement st = (Statement) iter.next();

@@ -7,6 +7,13 @@
 ******************************************************************************/
 
 package test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,6 +21,13 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 
+import org.junit.Test;
+import org.junit.experimental.categories.Categories;
+import org.junit.experimental.categories.Category;
+import org.junit.experimental.categories.Categories.ExcludeCategory;
+import org.junit.experimental.categories.Categories.IncludeCategory;
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite.SuiteClasses;
 import org.openrdf.model.Statement;
 import org.openrdf.model.Value;
 import org.openrdf.query.BindingSet;
@@ -27,30 +41,35 @@ import org.openrdf.repository.RepositoryException;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFParseException;
 
+import test.TestSuites.NonPrepushTest;
+
 import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGServer;
 
 public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 
-	public String TEST_DIR_PREFIX = System.getProperty("com.franz.agraph.test.dataDir", System.getProperty("user.dir") + System.getProperty("file.separator"));
-	public String SERVER_URL = System.getProperty("com.franz.agraph.test.serverURL","http://localhost:10035");
-	public String USERNAME = System.getProperty("com.franz.agraph.test.username","test");
-	public String PASSWORD = System.getProperty("com.franz.agraph.test.password","xyzzy");
+    @RunWith(Categories.class)
+    @ExcludeCategory(NonPrepushTest.class)
+    @SuiteClasses( { AGRepositoryConnectionTest.class })
+    public static class Prepush {}
 
-	int repoNumber = 2;
+    @RunWith(Categories.class)
+    @IncludeCategory(TestSuites.Broken.class)
+    @SuiteClasses( { AGRepositoryConnectionTest.class })
+    public static class Broken {}
 
-	public AGRepositoryConnectionTest(String name) {
-		super(name);
-	}
+    public String TEST_DIR_PREFIX = System.getProperty("com.franz.agraph.test.dataDir",
+           System.getProperty("user.dir") + File.separator + "src" + File.separator + "test"  + File.separator);
 
-	protected Repository createRepository() throws Exception {
-		AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
-		AGCatalog catalog = server.getRootCatalog();
-		AGRepository repo = catalog.createRepository("testRepo" + repoNumber);
-		return repo;
-	}
+    protected Repository createRepository() throws Exception {
+        AGServer server = new AGServer(AGAbstractTest.findServerUrl(), AGAbstractTest.username(), AGAbstractTest.password());
+        AGCatalog catalog = server.getRootCatalog();
+        AGRepository repo = catalog.createRepository("testRepo2");
+        return repo;
+    }
 
+    @Test
 	public void testHasStatementWithoutBNodes() throws Exception {
 		testCon.add(name, name, nameBob);
 
@@ -58,6 +77,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 				.hasStatement(name, name, nameBob, false));
 	}
 
+    @Test
 	public void testHasStatementWithBNodes() throws Exception {
 		testCon.add(bob, name, nameBob);
 
@@ -66,9 +86,13 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 
 	}
 
+    @Test
 	public void testAddGzipInputStream() throws Exception {
 		// add file default-graph.nt.gz to repository, no context
-		InputStream defaultGraph = new FileInputStream(TEST_DIR_PREFIX + "default-graph.nt.gz");
+	    File gz = File.createTempFile("default-graph.nt", ".gz");
+	    File nt = new File(TEST_DIR_PREFIX + "default-graph.nt");
+	    Util.gzip(nt, gz);
+		InputStream defaultGraph = new FileInputStream(gz);
 		//RepositoryConnectionTest.class.getResourceAsStream(TEST_DIR_PREFIX + "default-graph.nt.gz");
 		try {
 			testCon.add(defaultGraph, "", RDFFormat.NTRIPLES);
@@ -83,6 +107,8 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 
 	}
 
+    @Test
+    @Category(TestSuites.Broken.class)
 	public void testAddZipFile() throws Exception {
 		InputStream in = new FileInputStream(TEST_DIR_PREFIX + "graphs.zip");
 
@@ -100,6 +126,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 				null, name, nameBob, false));
 	}
 
+    @Test
 	public void testSimpleTupleQuery() throws Exception {
 		testCon.add(alice, name, nameAlice, context2);
 		testCon.add(alice, mbox, mboxAlice, context2);
@@ -140,6 +167,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 		}
 	}
 
+    @Test
 	public void testSimpleTupleQueryUnicode() throws Exception {
 		testCon.add(alexander, name, Александър);
 
@@ -166,6 +194,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 		}
 	}
 
+    @Test
 	public void testPreparedTupleQuery() throws Exception {
 		testCon.add(alice, name, nameAlice, context2);
 		testCon.add(alice, mbox, mboxAlice, context2);
@@ -209,6 +238,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 		}
 	}
 
+    @Test
 	public void testPreparedTupleQueryUnicode() throws Exception {
 		testCon.add(alexander, name, Александър);
 
@@ -238,6 +268,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 		}
 	}
 
+    @Test
 	public void testSimpleGraphQuery() throws Exception {
 		testCon.add(alice, name, nameAlice, context2);
 		testCon.add(alice, mbox, mboxAlice, context2);
@@ -277,6 +308,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 		}
 	}
 
+    @Test
 	public void testPreparedGraphQuery() throws Exception {
 		testCon.add(alice, name, nameAlice, context2);
 		testCon.add(alice, mbox, mboxAlice, context2);
@@ -322,6 +354,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 		}
 	}
 
+    @Test
 	public void testAddReader() throws Exception {
 		InputStream defaultGraphStream = new FileInputStream(TEST_DIR_PREFIX
 				+ "default-graph.nt");
@@ -376,6 +409,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 
 	}
 
+    @Test
 	public void testAddInputStream() throws Exception {
 		// add file default-graph.nt to repository, no context
 		InputStream defaultGraph = new FileInputStream(TEST_DIR_PREFIX
@@ -428,6 +462,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 
 	}
 
+    @Test
 	public void testRecoverFromParseError() throws RepositoryException,
 			IOException {
 		String invalidData = "bad";
