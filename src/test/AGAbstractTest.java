@@ -21,12 +21,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.openrdf.model.Statement;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
@@ -42,15 +44,15 @@ public class AGAbstractTest {
 
     static public final String CATALOG_ID = "java-tutorial";
     
-    protected AGServer server;
-    protected AGCatalog cat;
+    protected static AGServer server;
+    protected static AGCatalog cat;
     protected AGRepository repo;
     protected AGRepositoryConnection conn;
-    protected String repoId;
+    protected static String repoId;
     
     protected AGValueFactory vf;
     
-    private List<RepositoryConnection> toClose = new ArrayList<RepositoryConnection>();
+    private Stack<RepositoryConnection> toClose = new Stack<RepositoryConnection>();
 
     public static String findServerUrl() {
         String host = or(ifBlank(System.getenv("AGRAPH_HOST"), null),
@@ -90,27 +92,32 @@ public class AGAbstractTest {
         return or(System.getenv("AGRAPH_PASSWORD"), "xyzzy");
     }
     
-    @Before
-    public void setUp() throws Exception {
+    @BeforeClass
+    public static void setUpOnce() throws Exception {
         server = new AGServer(findServerUrl(), username(), password());
         cat = server.getCatalog(CATALOG_ID);
         repoId = "javatest";
         cat.deleteRepository(repoId);
+    }
+    
+    @Before
+    public void setUp() throws Exception {
         repo = cat.createRepository(repoId);
         repo.initialize();
         conn = getConnection();
+        conn.clear();
+//        conn.clearMappings();
+//        conn.clearNamespaces();
         vf = repo.getValueFactory();
     }
 
     @After
     public void tearDown() throws Exception {
         vf = null;
-        cat = null;
-        server = null;
         while (toClose.isEmpty() == false) {
-            RepositoryConnection conn = toClose.get(0);
+            RepositoryConnection conn = toClose.pop();
             close(conn);
-            while (toClose.remove(conn)) {}
+//            while (toClose.remove(conn)) {}
         }
         conn = null;
         if (repo != null) {
@@ -119,7 +126,19 @@ public class AGAbstractTest {
         repo = null;
     }
 
+    @AfterClass
+    public static void tearDownOnce() throws Exception {
+        cat = null;
+        server = null;
+    }
+
     AGRepositoryConnection getConnection() throws RepositoryException {
+        AGRepositoryConnection conn = repo.getConnection();
+        toClose.add(conn);
+        return conn;
+   }
+   
+    AGRepositoryConnection getConnection(AGRepository repo) throws RepositoryException {
         AGRepositoryConnection conn = repo.getConnection();
         toClose.add(conn);
         return conn;

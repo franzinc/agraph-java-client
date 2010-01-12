@@ -229,6 +229,11 @@ public class TutorialTests extends AGAbstractTest {
     
     @Test
     public void example8() throws Exception {
+        cat.deleteRepository("example8");
+        repo = cat.createRepository("example8");
+        repo.initialize();
+        conn = getConnection(repo);
+        vf = repo.getValueFactory();
         example6();
         URI context = repo.getValueFactory().createURI("http://example.org#vcards");
         {
@@ -426,6 +431,7 @@ public class TutorialTests extends AGAbstractTest {
      * Ask, Construct, and Describe queries
      */
     @Test
+    @Category(TestSuites.Temp.class)
     public void example13 () throws Exception {
         Map<String, Stmt> inputs = example2setup();
         conn.setNamespace("ex", "http://example.org/people/");
@@ -481,8 +487,8 @@ public class TutorialTests extends AGAbstractTest {
     /**
      * Range matches
      */
-    @Category(TestSuites.Broken.class)
     @Test
+    @Category(TestSuites.Broken.class)
     public void example15() throws Exception {
         ValueFactory f = conn.getValueFactory();
         conn.clear();
@@ -527,19 +533,19 @@ public class TutorialTests extends AGAbstractTest {
         // create two ordinary stores, and one federated store:
         AGRepository redRepo = cat.createRepository("redthingsjv");
         redRepo.initialize();
-        AGRepositoryConnection redConn = redRepo.getConnection();
+        AGRepositoryConnection redConn = getConnection(redRepo);
         redConn.clear();
         ValueFactory rf = redConn.getValueFactory();
         AGRepository greenRepo = cat.createRepository("greenthingsjv");
         greenRepo.initialize();
-        AGRepositoryConnection greenConn = greenRepo.getConnection();
+        AGRepositoryConnection greenConn = getConnection(greenRepo);
         greenConn.clear();
         ValueFactory gf = greenConn.getValueFactory();
         AGServer server = repo.getCatalog().getServer();
         AGRepository rainbowRepo = server.createFederation("rainbowthingsjv", redRepo, greenRepo);
         rainbowRepo.initialize();
         assertFalse("Federation is writable?", rainbowRepo.isWritable());
-        AGRepositoryConnection rainbowConn = rainbowRepo.getConnection();
+        AGRepositoryConnection rainbowConn = getConnection(rainbowRepo);
         String ex = "http://www.demo.com/example#";
         // add a few triples to the red and green stores:
         URI mac = rf.createURI(ex+"mcintosh");
