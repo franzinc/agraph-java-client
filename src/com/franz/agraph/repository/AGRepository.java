@@ -1,5 +1,5 @@
 /******************************************************************************
-** Copyright (c) 2008-2009 Franz Inc.
+** Copyright (c) 2008-2010 Franz Inc.
 ** All rights reserved. This program and the accompanying materials
 ** are made available under the terms of the Eclipse Public License v1.0
 ** which accompanies this distribution, and is available at
@@ -21,12 +21,13 @@ import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryException;
 
 import com.franz.agraph.http.AGHTTPClient;
+import com.franz.util.Closeable;
 
 /**
  * Implements the Sesame Repository interface for AllegroGraph.
  * 
  */
-public class AGRepository implements Repository {
+public class AGRepository implements Repository, Closeable {
 
 	private final AGCatalog catalog;
 	private final String repositoryID;
@@ -156,5 +157,10 @@ public class AGRepository implements Repository {
 
 	public void shutDown() throws RepositoryException {
 	}
+
+    @Override
+    public void close() throws RepositoryException {
+        shutDown();
+    }
 
 }

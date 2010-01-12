@@ -16,6 +16,7 @@ import com.franz.agraph.repository.AGBooleanQuery;
 import com.franz.agraph.repository.AGGraphQuery;
 import com.franz.agraph.repository.AGQueryLanguage;
 import com.franz.agraph.repository.AGTupleQuery;
+import com.franz.util.Closeable;
 import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.query.QueryExecution;
 import com.hp.hpl.jena.query.QuerySolution;
@@ -25,7 +26,7 @@ import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.sparql.util.Context;
 import com.hp.hpl.jena.util.FileManager;
 
-public class AGQueryExecution implements QueryExecution {
+public class AGQueryExecution implements QueryExecution, Closeable {
 
 	private final AGQuery query;
 	private final AGModel model;

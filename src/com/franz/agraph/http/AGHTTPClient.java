@@ -49,17 +49,23 @@ import org.openrdf.sail.memory.MemoryStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.franz.util.Util;
+import com.franz.util.Closeable;
+
 /**
  * TODO: another pass over this class for response and error handling
  * replace RepositoryExceptions, this class shouldn't know about them.
  */
 public class AGHTTPClient
-{
+implements Closeable {
+    
 	private final String serverURL;
 	private final HttpClient httpClient;
 
 	private AuthScope authScope;
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
+	
+	private MultiThreadedHttpConnectionManager mManager = null;
 
 	public AGHTTPClient(String serverURL) {
 		this(serverURL, null);
@@ -70,8 +76,9 @@ public class AGHTTPClient
 		if (manager == null) {
 			// Use MultiThreadedHttpConnectionManager to allow concurrent access
 			// on HttpClient
-			manager = new MultiThreadedHttpConnectionManager();
-
+		    mManager = new MultiThreadedHttpConnectionManager();
+		    manager = mManager;
+		    
 			// Allow 20 concurrent connections to the same host (default is 2)
 			HttpConnectionManagerParams params = new HttpConnectionManagerParams();
 			params.setDefaultMaxConnectionsPerHost(20);
@@ -324,5 +331,10 @@ public class AGHTTPClient
 		}
 		return handler.getString().split("\n");
 	}
+
+    @Override
+    public void close() {
+        Util.close(this.mManager);
+    }
 
 }

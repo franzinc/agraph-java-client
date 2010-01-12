@@ -9,7 +9,6 @@
 package test;
 
 import java.io.BufferedReader;
-import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -20,7 +19,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
 
-public class Util {
+import com.franz.util.Closeable;
+
+public class Util extends com.franz.util.Util {
 
     public static String get(String[] arr, int i, String defaultVal) {
         if (arr != null && arr.length > i) {
@@ -32,6 +33,8 @@ public class Util {
     public static Object close(Object o) {
         if (o instanceof Closeable) {
             close((Closeable)o);
+        } else if (o instanceof java.io.Closeable) {
+            close((java.io.Closeable)o);
         } else if (o != null) {
             try {
                 o.getClass().getMethod("close").invoke(o);
@@ -42,19 +45,7 @@ public class Util {
         }
         return null;
     }
-    
-    public static Object close(Closeable o) {
-        if (o != null) {
-            try {
-                o.close();
-            } catch (Exception e) {
-                System.err.println("ignoring error with close:" + e);
-                e.printStackTrace();
-            }
-        }
-        return null;
-    }
-    
+
     public static List<String> readLines(File file) {
         List list = new ArrayList<String>();
         FileReader f = null;

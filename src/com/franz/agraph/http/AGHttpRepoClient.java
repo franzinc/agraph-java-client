@@ -56,11 +56,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.franz.agraph.repository.AGRepositoryConnection;
+import com.franz.util.Closeable;
 
 /**
  * TODO: rename this class.
  */
-public class AGHttpRepoClient {
+public class AGHttpRepoClient implements Closeable {
 
 	private final AGRepositoryConnection repoconnection;
 	final Logger logger = LoggerFactory.getLogger(this.getClass());

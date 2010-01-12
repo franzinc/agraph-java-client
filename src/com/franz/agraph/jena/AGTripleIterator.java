@@ -1,5 +1,5 @@
 /******************************************************************************
-** Copyright (c) 2008-2009 Franz Inc.
+** Copyright (c) 2008-2010 Franz Inc.
 ** All rights reserved. This program and the accompanying materials
 ** are made available under the terms of the Eclipse Public License v1.0
 ** which accompanies this distribution, and is available at
@@ -12,10 +12,12 @@ import org.openrdf.model.Statement;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
 
+import com.franz.util.Closeable;
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.util.iterator.NiceIterator;
 
-public class AGTripleIterator extends NiceIterator<Triple> {
+public class AGTripleIterator extends NiceIterator<Triple>
+implements Closeable {
 	
 	private RepositoryResult<Statement> result;
 

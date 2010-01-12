@@ -1,5 +1,5 @@
 /******************************************************************************
-** Copyright (c) 2008-2009 Franz Inc.
+** Copyright (c) 2008-2010 Franz Inc.
 ** All rights reserved. This program and the accompanying materials
 ** are made available under the terms of the Eclipse Public License v1.0
 ** which accompanies this distribution, and is available at
@@ -44,12 +44,13 @@ import org.openrdf.rio.ntriples.NTriplesUtil;
 
 import com.franz.agraph.http.AGHttpRepoClient;
 import com.franz.agraph.http.AGResponseHandler;
+import com.franz.util.Closeable;
 
 /**
  * Implements the Sesame RepositoryConnection interface for AllegroGraph.
  */
 public class AGRepositoryConnection extends RepositoryConnectionBase implements
-		RepositoryConnection {
+		RepositoryConnection, Closeable {
 
 	private final AGRepository repository;
 	private final AGHttpRepoClient repoclient;

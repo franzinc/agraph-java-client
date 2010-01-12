@@ -39,6 +39,7 @@ import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
 import com.franz.agraph.repository.AGValueFactory;
+import com.franz.util.Closeable;
 
 public class AGAbstractTest {
 
@@ -52,7 +53,7 @@ public class AGAbstractTest {
     
     protected AGValueFactory vf;
     
-    private Stack<RepositoryConnection> toClose = new Stack<RepositoryConnection>();
+    private Stack<Closeable> toClose = new Stack<Closeable>();
 
     public static String findServerUrl() {
         String host = or(ifBlank(System.getenv("AGRAPH_HOST"), null),
@@ -104,6 +105,7 @@ public class AGAbstractTest {
     public void setUp() throws Exception {
         repo = cat.createRepository(repoId);
         repo.initialize();
+        toClose.add(repo);
         conn = getConnection();
         conn.clear();
 //        conn.clearMappings();
@@ -115,21 +117,17 @@ public class AGAbstractTest {
     public void tearDown() throws Exception {
         vf = null;
         while (toClose.isEmpty() == false) {
-            RepositoryConnection conn = toClose.pop();
+            Closeable conn = toClose.pop();
             close(conn);
-//            while (toClose.remove(conn)) {}
         }
         conn = null;
-        if (repo != null) {
-            repo.shutDown();
-        }
         repo = null;
     }
 
     @AfterClass
     public static void tearDownOnce() throws Exception {
         cat = null;
-        server = null;
+        server = close(server);
     }
 
     AGRepositoryConnection getConnection() throws RepositoryException {

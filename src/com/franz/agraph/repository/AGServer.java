@@ -24,11 +24,13 @@ import com.franz.agraph.http.AGErrorType;
 import com.franz.agraph.http.AGHTTPClient;
 import com.franz.agraph.http.AGHttpException;
 import com.franz.agraph.http.AGProtocol;
+import com.franz.util.Util;
+import com.franz.util.Closeable;
 
 /**
  * The top-level class for interacting with an AllegroGraph server.
  */
-public class AGServer {
+public class AGServer implements Closeable {
 
 	private final String serverURL;
 	private final AGHTTPClient httpClient;
@@ -165,5 +167,10 @@ public class AGServer {
 			throw new RepositoryException(e);
 		}
 	}
+
+    @Override
+    public void close() {
+        Util.close(httpClient);
+    }
 	
 }

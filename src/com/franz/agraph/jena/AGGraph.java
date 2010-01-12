@@ -1,5 +1,5 @@
 /******************************************************************************
-** Copyright (c) 2008-2009 Franz Inc.
+** Copyright (c) 2008-2010 Franz Inc.
 ** All rights reserved. This program and the accompanying materials
 ** are made available under the terms of the Eclipse Public License v1.0
 ** which accompanies this distribution, and is available at
@@ -19,6 +19,7 @@ import org.openrdf.repository.RepositoryResult;
 
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGValueFactory;
+import com.franz.util.Closeable;
 import com.hp.hpl.jena.graph.BulkUpdateHandler;
 import com.hp.hpl.jena.graph.Graph;
 import com.hp.hpl.jena.graph.Node;
@@ -31,7 +32,7 @@ import com.hp.hpl.jena.shared.DeleteDeniedException;
 import com.hp.hpl.jena.shared.PrefixMapping;
 import com.hp.hpl.jena.util.iterator.ExtendedIterator;
 
-public class AGGraph extends GraphBase implements Graph {
+public class AGGraph extends GraphBase implements Graph, Closeable {
 
 	private final AGGraphMaker maker;
 	private final Node graphNode;
