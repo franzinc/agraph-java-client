@@ -199,36 +199,52 @@ public class TutorialExamples {
         conn.clear();
         String exns = "http://example.org/people/";
         URI alice = f.createURI("http://example.org/people/alice");
-        URI ted = f.createURI(exns, "ted");
+        URI bob = f.createURI("http://example/org/people/bob");
+        URI carol = f.createURI("http://example.org/people/carol");
+        URI dave = f.createURI("http://example.org/people/dave");
+        URI eric = f.createURI("http://example.org/people/eric");
+        URI fred = f.createURI("http://example.org/people/fred");
         URI age = f.createURI(exns, "age");
-        URI weight = f.createURI(exns, "weight");
-        URI favoriteColor = f.createURI(exns, "favoriteColor");
+        // Automatic typing of numbers
+/*        URI favoriteColor = f.createURI(exns, "favoriteColor");
         URI birthdate = f.createURI(exns, "birthdate");
         Literal red = f.createLiteral("Red");
         Literal rouge = f.createLiteral("Rouge", "fr");
+*/
+        Literal fortyTwo = f.createLiteral(42); // unquoted turns into int
+        Literal fortyTwoDecimal = f.createLiteral(42.0); // creates double instead of float
         Literal fortyTwoInt = f.createLiteral("42", XMLSchema.INT);
         Literal fortyTwoLong = f.createLiteral("42", XMLSchema.LONG);
-        Literal fortyTwoUntyped = f.createLiteral("42");
-        Literal date = f.createLiteral("1984-12-06", XMLSchema.DATE);
+        Literal fortyTwoDouble = f.createLiteral("42", XMLSchema.DOUBLE);
+        Literal fortyTwoString = f.createLiteral("42"); // creates string
+/*        Literal date = f.createLiteral("1984-12-06", XMLSchema.DATE);
         Literal time = f.createLiteral("1984-12-06T09:00:00", XMLSchema.DATETIME);
         Literal weightUntyped = f.createLiteral("120.5");
         Literal weightFloat = f.createLiteral("120.5", XMLSchema.FLOAT);
-        Statement stmt1 = f.createStatement(alice, age, fortyTwoInt);
-        Statement stmt2 = f.createStatement(ted, age, fortyTwoLong);
-        Statement stmt3 = f.createStatement(ted, age, fortyTwoUntyped);
+*/
+        Statement stmt1 = f.createStatement(alice, age, fortyTwo);
+        Statement stmt2 = f.createStatement(bob, age, fortyTwoDecimal);
+        Statement stmt3 = f.createStatement(carol, age, fortyTwoInt);
+        Statement stmt4 = f.createStatement(dave, age, fortyTwoLong);
+        Statement stmt5 = f.createStatement(eric, age, fortyTwoDouble);
+        Statement stmt6 = f.createStatement(fred, age, fortyTwoString);
         conn.add(stmt1);
         conn.add(stmt2);
         conn.add(stmt3);
-        conn.add(alice, weight, weightFloat);
+        conn.add(stmt4);
+        conn.add(stmt5);
+        conn.add(stmt6);
+/*        conn.add(alice, weight, weightFloat);
         conn.add(ted, weight, weightUntyped);
         conn.add(alice, favoriteColor, red);
         conn.add(ted, favoriteColor, rouge);
         conn.add(alice, birthdate, date);
         conn.add(ted, birthdate, time);
-        for (Literal obj : new Literal[] {null, fortyTwoInt, fortyTwoLong, fortyTwoUntyped,  weightFloat, weightUntyped,
-                    red, rouge}) {
-            println( "\nRetrieve triples matching " + obj + ".");
-            RepositoryResult<Statement> statements = conn.getStatements(null, null, obj, false);
+*/
+        // This section retrieves the age triples to see what datatypes are present. 
+        {
+            println("\nShowing all age triples using getStatements().  Should be six.  One should be a float but is a double.");
+            RepositoryResult<Statement> statements = conn.getStatements(null, age, null, false);
             try {
                 while (statements.hasNext()) {
                     println(statements.next());
@@ -237,25 +253,633 @@ public class TutorialExamples {
                 statements.close();
             }
         }
-        // SPARQL
-        for (String obj : new String[]{"42", "\"42\"", "120.5", "\"120.5\"", "\"120.5\"^^xsd:float",
-                                       "\"Rouge\"@fr", "\"Rouge\"", "\"1984-12-06\"^^xsd:date"}) {
-            println( "\nQuery triples matching " + obj + ".");
-            String queryString = "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = " + obj + ")}";
-            TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
-            TupleQueryResult result = tupleQuery.evaluate();
+        println("\ngetStatements() request for 42, errors out. Not a Value.");
+        /* getStatements() won't accept 42 as a value.
+        {
+            println("\ngetStatements() request for 42, matches ints.");
+            RepositoryResult<Statement> statements = conn.getStatements(null, age, 42, false);
             try {
-                while (result.hasNext()) {
-                    BindingSet bindingSet = result.next();
-                    Value s = bindingSet.getValue("s");
-                    Value p = bindingSet.getValue("p");
-                    Value o = bindingSet.getValue("o");
-                    println("  " + s + " " + p + " " + o);
+                while (statements.hasNext()) {
+                    println(statements.next());
                 }
             } finally {
-                result.close();
+                statements.close();
             }
         }
+*/
+        println( "\nSPARQL matches for 42 (filter match) finds multiple numeric types.");
+        String queryString = "SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = 42)}";
+        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        TupleQueryResult result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                Value o = bindingSet.getValue("o");
+                println("  " + s + " " + p + " " + o);
+            }
+        } finally {
+            result.close();
+        }
+
+        println( "\nSPARQL matches for 42 (direct match). No results.");
+        queryString = "SELECT ?s ?p WHERE {?s ?p 42 .}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                println("  " + s + " " + p );
+            }
+        } finally {
+            result.close();
+        }
+        
+        println("\ngetStatements() request for 42.0, errors out. Not a Value.");
+/*        {
+            println("\ngetStatements() request for 42.0 matches float and double.");
+            RepositoryResult<Statement> statements = conn.getStatements(null, age, 42.0, false);
+            try {
+                while (statements.hasNext()) {
+                    println(statements.next());
+                }
+            } finally {
+                statements.close();
+            }
+        }
+*/
+        {
+            println("\ngetStatements() request for fortyTwoDecimal matches multiple numeric types.");
+            RepositoryResult<Statement> statements = conn.getStatements(null, age, fortyTwoDecimal, false);
+            try {
+                while (statements.hasNext()) {
+                    println(statements.next());
+                }
+            } finally {
+                statements.close();
+            }
+        }
+
+        println( "\nSPARQL matches for 42.0 (filter match) finds multiple numeric types.");
+        queryString = "SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = 42.0)}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                Value o = bindingSet.getValue("o");
+                println("  " + s + " " + p + " " + o);
+            }
+        } finally {
+            result.close();
+        }
+    
+        println( "\nSPARQL matches for 42.0 (direct match). No results.");
+        queryString = "SELECT ?s ?p WHERE {?s ?p 42.0 .}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                println("  " + s + " " + p );
+            }
+        } finally {
+            result.close();
+        }
+        
+        println("------------------------------------------------------------------------------------");
+        // Matches against ints. 
+        {
+            println("\ngetStatements() request for fortyTwoInt:" + fortyTwoInt );
+            RepositoryResult<Statement> statements = conn.getStatements(null, age, fortyTwoInt, false);
+            try {
+                while (statements.hasNext()) {
+                    println(statements.next());
+                }
+            } finally {
+                statements.close();
+            }
+        }
+
+        println( "\nSPARQL matches for \"42\"^^<http://www.w3.org/2001/XMLSchema#int> (filter match) finds multple types.");
+        queryString = "SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = '42'^^<http://www.w3.org/2001/XMLSchema#int>)}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                Value o = bindingSet.getValue("o");
+                println("  " + s + " " + p + " " + o);
+            }
+        } finally {
+            result.close();
+        }
+        println( "\nSPARQL matches for \"42\"^^<http://www.w3.org/2001/XMLSchema#int> (direct match) finds ints.");
+        queryString = "SELECT ?s ?p WHERE {?s ?p '42'^^<http://www.w3.org/2001/XMLSchema#int>}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                println("  " + s + " " + p );
+            }
+        } finally {
+            result.close();
+        }
+        println("------------------------------------------------------------------------------------");
+        // Matches against longs. 
+        {
+            println("\ngetStatements() request for fortyTwoLong:" + fortyTwoLong );
+            RepositoryResult<Statement> statements = conn.getStatements(null, age, fortyTwoLong, false);
+            try {
+                while (statements.hasNext()) {
+                    println(statements.next());
+                }
+            } finally {
+                statements.close();
+            }
+        }
+
+        println( "\nSPARQL matches for \"42\"^^<http://www.w3.org/2001/XMLSchema#long> (filter match) finds multple types.");
+        queryString = "SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = '42'^^<http://www.w3.org/2001/XMLSchema#long>)}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                Value o = bindingSet.getValue("o");
+                println("  " + s + " " + p + " " + o);
+            }
+        } finally {
+            result.close();
+        }
+        println( "\nSPARQL matches for \"42\"^^<http://www.w3.org/2001/XMLSchema#long> (direct match) finds ints.");
+        queryString = "SELECT ?s ?p WHERE {?s ?p '42'^^<http://www.w3.org/2001/XMLSchema#long>}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                println("  " + s + " " + p );
+            }
+        } finally {
+            result.close();
+        }
+        
+        println("------------------------------------------------------------------------------------");
+        // Matches against doubles. 
+        {
+            println("\ngetStatements() request for fortyTwoDouble:" + fortyTwoDouble );
+            RepositoryResult<Statement> statements = conn.getStatements(null, age, fortyTwoDouble, false);
+            try {
+                while (statements.hasNext()) {
+                    println(statements.next());
+                }
+            } finally {
+                statements.close();
+            }
+        }
+
+        println( "\nSPARQL matches for \"42\"^^<http://www.w3.org/2001/XMLSchema#double> (filter match) finds multple types.");
+        queryString = "SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = '42'^^<http://www.w3.org/2001/XMLSchema#double>)}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                Value o = bindingSet.getValue("o");
+                println("  " + s + " " + p + " " + o);
+            }
+        } finally {
+            result.close();
+        }
+        println( "\nSPARQL matches for \"42\"^^<http://www.w3.org/2001/XMLSchema#double> (direct match) finds a double.");
+        queryString = "SELECT ?s ?p WHERE {?s ?p '42'^^<http://www.w3.org/2001/XMLSchema#double>}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                println("  " + s + " " + p );
+            }
+        } finally {
+            result.close();
+        }
+
+    
+        println("------------------------------------------------------------------------------------");
+        // Matches against declared strings. 
+        {
+            println("\ngetStatements() request for fortyTwoString:" + fortyTwoString );
+            RepositoryResult<Statement> statements = conn.getStatements(null, age, fortyTwoString, false);
+            try {
+                while (statements.hasNext()) {
+                    println(statements.next());
+                }
+            } finally {
+                statements.close();
+            }
+        }
+
+        println( "\nSPARQL matches for \"42\"^^<http://www.w3.org/2001/XMLSchema#string> (filter match).");
+        queryString = "SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = '42'^^<http://www.w3.org/2001/XMLSchema#string>)}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                Value o = bindingSet.getValue("o");
+                println("  " + s + " " + p + " " + o);
+            }
+        } finally {
+            result.close();
+        }
+        println( "\nSPARQL matches for \"42\"^^<http://www.w3.org/2001/XMLSchema#string> (direct match).");
+        queryString = "SELECT ?s ?p WHERE {?s ?p '42'^^<http://www.w3.org/2001/XMLSchema#string>}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                println("  " + s + " " + p );
+            }
+        } finally {
+            result.close();
+        }
+        
+        println("------------------------------------------------------------------------------------");
+        // Matches against undeclared strings. 
+        {
+            println("\ngetStatements() request for \"42\".  Illegal, wrong type.");
+/*            RepositoryResult<Statement> statements = conn.getStatements(null, age, "42", false);
+            try {
+                while (statements.hasNext()) {
+                    println(statements.next());
+                }
+            } finally {
+                statements.close();
+            }
+*/
+        }
+
+        println( "\nSPARQL matches for \"42\" (filter match).");
+        queryString = "SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = '42')}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                Value o = bindingSet.getValue("o");
+                println("  " + s + " " + p + " " + o);
+            }
+        } finally {
+            result.close();
+        }
+        println( "\nSPARQL matches for \"42\" (direct match).");
+        queryString = "SELECT ?s ?p WHERE {?s ?p '42'}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                println("  " + s + " " + p );
+            }
+        } finally {
+            result.close();
+        }
+        println("------------------------------------------------------------------------------------");
+        println("\nTests of string matching.");
+ 
+        URI favoriteColor = f.createURI(exns, "favoriteColor");
+        Literal UCred = f.createLiteral("Red");
+        Literal LCred = f.createLiteral("red");
+        Literal rouge = f.createLiteral("rouge");
+        Literal Rouge = f.createLiteral("Rouge");
+        Literal FrRouge = f.createLiteral("Rouge", "fr");
+        conn.add(alice, favoriteColor, UCred);
+        conn.add(bob, favoriteColor, LCred);
+        conn.add(carol, favoriteColor,rouge);
+        conn.add(dave, favoriteColor, Rouge);
+        conn.add(eric, favoriteColor, FrRouge);
+        {
+            println("\nShowing all color triples using getStatements().  Should be five.");
+            RepositoryResult<Statement> statements = conn.getStatements(null, favoriteColor, null, false);
+            try {
+                while (statements.hasNext()) {
+                    println(statements.next());
+                }
+            } finally {
+                statements.close();
+            }
+        }
+
+        // Matches against undeclared strings. These are capitalized Red.
+        {
+            println("\ngetStatements() triples that match \"Red\".  Illegal, wrong type.");
+/*            RepositoryResult<Statement> statements = conn.getStatements(null, favoriteColor, "Red", false);
+            try {
+                while (statements.hasNext()) {
+                    println(statements.next());
+                }
+            } finally {
+                statements.close();
+            }
+*/
+        }
+
+        println( "\nSPARQL matches for \"Red\" (filter match) find exact match.");
+        queryString = "SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = 'Red')}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                Value o = bindingSet.getValue("o");
+                println("  " + s + " " + p + " " + o);
+            }
+        } finally {
+            result.close();
+        }
+        println( "\nSPARQL matches for \"Red\" (direct match) finds exact match.");
+        queryString = "SELECT ?s ?p WHERE {?s ?p 'Red'}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                println("  " + s + " " + p );
+            }
+        } finally {
+            result.close();
+        }
+        println("------------------------------------------------------------------------------------");
+    
+        {
+            println("\ngetStatements() triples that match \"Rouge\".  Illegal, wrong type.");
+/*            RepositoryResult<Statement> statements = conn.getStatements(null, favoriteColor, "Rouge", false);
+            try {
+                while (statements.hasNext()) {
+                    println(statements.next());
+                }
+            } finally {
+                statements.close();
+            }
+*/
+        }
+
+        println( "\nSPARQL matches for \"Rouge\" (filter match) find exact match.");
+        queryString = "SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = 'Rouge')}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                Value o = bindingSet.getValue("o");
+                println("  " + s + " " + p + " " + o);
+            }
+        } finally {
+            result.close();
+        }
+        println( "\nSPARQL matches for \"Rouge\" (direct match) finds exact match.");
+        queryString = "SELECT ?s ?p WHERE {?s ?p 'Rouge'}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                println("  " + s + " " + p );
+            }
+        } finally {
+            result.close();
+        }
+     
+        println("------------------------------------------------------------------------------------");
+        
+        {
+            println("\ngetStatements() triples that match \"Rouge\"@fr.  Illegal, wrong type.");
+/*            RepositoryResult<Statement> statements = conn.getStatements(null, favoriteColor, "Rouge"@fr, false);
+            try {
+                while (statements.hasNext()) {
+                    println(statements.next());
+                }
+            } finally {
+                statements.close();
+            }
+*/
+        }
+
+        println( "\nSPARQL matches for \"Rouge\"@fr (filter match) find exact match.");
+        queryString = "SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = 'Rouge'@fr)}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                Value o = bindingSet.getValue("o");
+                println("  " + s + " " + p + " " + o);
+            }
+        } finally {
+            result.close();
+        }
+        println( "\nSPARQL matches for \"Rouge\"@fr (direct match) finds exact match.");
+        queryString = "SELECT ?s ?p WHERE {?s ?p 'Rouge'@fr}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                println("  " + s + " " + p );
+            }
+        } finally {
+            result.close();
+        }
+
+
+    println("\nSPARQL matches for (fn:lower-case(str(?o)) = \'rouge\') (filter match) finds three.");
+    queryString = "PREFIX fn: <http://www.w3.org/2005/xpath-functions#> SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (fn:lower-case(str(?o)) = 'rouge')}";
+    tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+    result = tupleQuery.evaluate();
+    try {
+        while (result.hasNext()) {
+            BindingSet bindingSet = result.next();
+            Value s = bindingSet.getValue("s");
+            Value p = bindingSet.getValue("p");
+            Value o = bindingSet.getValue("o");
+            println("  " + s + " " + p + " " + o);
+        }
+    } finally {
+        result.close();
+    }
+
+        
+        println("------------------------------------------------------------------------------------");
+        // Boolean experiments.
+        URI seniorp = f.createURI(exns, "seniorp");
+        println("true = " + true);
+        println("false = " + false);
+//      conn.add(alice, seniorp, true);  // illegal
+//      conn.add(bob, seniorp, false);   // illegal
+        Literal trueValue = f.createLiteral("true", XMLSchema.BOOLEAN);  
+        Literal falseValue = f.createLiteral("false", XMLSchema.BOOLEAN);
+        conn.add(alice, seniorp, trueValue);
+        conn.add(bob, seniorp, falseValue);
+        conn.add(carol, seniorp, trueValue); // Added to parallel the Python example. Not really needed here. 
+        {
+            println("\ngetStatements() all seniorp triple, should be three.");
+            RepositoryResult<Statement> statements = conn.getStatements(null, seniorp, null, false);
+            try {
+                while (statements.hasNext()) {
+                    println(statements.next());
+                }
+            } finally {
+                statements.close();
+            }
+        }
+
+        {
+            println("\ngetStatements() triples that match Boolean true.  Illegal.");
+/*            RepositoryResult<Statement> statements = conn.getStatements(null, seniorp, true, false);
+            try {
+                while (statements.hasNext()) {
+                    println(statements.next());
+                }
+            } finally {
+                statements.close();
+            }
+*/ 
+        }
+        {
+            println("\ngetStatements() triples that match trueValue.  Two matches.");
+            RepositoryResult<Statement> statements = conn.getStatements(null, seniorp, trueValue, false);
+            try {
+                while (statements.hasNext()) {
+                    println(statements.next());
+                }
+            } finally {
+                statements.close();
+            }
+        }     
+            
+        println( "\nSPARQL matches for true (filter match).  Two matches.");
+        queryString = "SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = true)}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                Value o = bindingSet.getValue("o");
+                println("  " + s + " " + p + " " + o);
+            }
+        } finally {
+            result.close();
+        }
+        println( "\nSPARQL matches for true (direct match). Two matches.");
+        queryString = "SELECT ?s ?p WHERE {?s ?p true}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                println("  " + s + " " + p );
+            }
+        } finally {
+            result.close();
+        }
+        
+        println( "\nSPARQL matches for \"true\"^^<http://www.w3.org/2001/XMLSchema#boolean> (filter match). Two matches.");
+        queryString = "SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = 'true'^^<http://www.w3.org/2001/XMLSchema#boolean>)}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                Value o = bindingSet.getValue("o");
+                println("  " + s + " " + p + " " + o);
+            }
+        } finally {
+            result.close();
+        }
+        println( "\nSPARQL matches for \"true\"^^<http://www.w3.org/2001/XMLSchema#boolean> (direct match). Two matches.");
+        queryString = "SELECT ?s ?p WHERE {?s ?p 'true'^^<http://www.w3.org/2001/XMLSchema#boolean>}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                println("  " + s + " " + p );
+            }
+        } finally {
+            result.close();
+        }
+        println("------------------------------------------------------------------------------------");
+        // Dates, times and datetimes.
+        URI birthdate = f.createURI(exns, "birthdate");
+        Literal date = f.createLiteral("1984-12-06", XMLSchema.DATE);
+        Literal datetime = f.createLiteral("1984-12-06T09:00:00", XMLSchema.DATETIME);
+        Literal time = f.createLiteral("09:00:00", XMLSchema.TIME);
+                
+        conn.add(alice, birthdate, date);
+        conn.add(bob, birthdate, datetime);
+        conn.add(carol, birthdate, time);
+ 
+        {
+            println("\ngetStatements() all birthdates.  Three matches.");
+            RepositoryResult<Statement> statements = conn.getStatements(null, birthdate, null, false);
+            try {
+                while (statements.hasNext()) {
+                    println(statements.next());
+                }
+            } finally {
+                statements.close();
+            }
+        }     
         {
             // Search for date using date object in triple pattern.
             println("\nRetrieve triples matching DATE object.");
@@ -1066,7 +1690,7 @@ public class TutorialExamples {
         result.close();
         
         println("\nValjean's ego group in one list depth 1 (using associates).");
-        queryString = "(select (?group)" +
+        queryString = "(select ?group" +
           "(ego-group !lm:character11 1 associates ?group))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         result = tupleQuery.evaluate();
@@ -1081,7 +1705,7 @@ public class TutorialExamples {
         result.close();
 
         println("\nValjean's ego group in one list depth 2 (using associates).");
-        queryString = "(select (?group)" +
+        queryString = "(select ?group" +
           "(ego-group !lm:character11 2 associates ?group))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         result = tupleQuery.evaluate();
@@ -1096,7 +1720,7 @@ public class TutorialExamples {
         result.close();
 
         println("\nValjean's ego group in one list depth 3 (using associates).");
-        queryString = "(select (?group)" +
+        queryString = "(select ?group" +
           "(ego-group !lm:character11 3 associates ?group))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         result = tupleQuery.evaluate();
@@ -1111,7 +1735,7 @@ public class TutorialExamples {
         result.close();
 
         println("\nShortest breadth-first path connecting Valjean to Bossuet using intimates. (Should be no path.)");
-        queryString = "(select (?path)" +
+        queryString = "(select ?path" +
           "(breadth-first-search-paths !lm:character11 !lm:character64 intimates 10 ?path))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         result = tupleQuery.evaluate();
@@ -1125,7 +1749,7 @@ public class TutorialExamples {
         result.close();
         
         println("\nShortest breadth-first path connecting Valjean to Bossuet using associates.");
-        queryString = "(select (?path)" +
+        queryString = "(select ?path" +
           "(breadth-first-search-paths !lm:character11 !lm:character64 associates 10 ?path))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         result = tupleQuery.evaluate();
@@ -1140,7 +1764,7 @@ public class TutorialExamples {
         result.close();
         
         println("\nShortest breadth-first path connecting Valjean to Bossuet using everyone.");
-        queryString = "(select (?path)" +
+        queryString = "(select ?path" +
           "(breadth-first-search-paths !lm:character11 !lm:character64 everyone 10 ?path))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         result = tupleQuery.evaluate();
@@ -1155,7 +1779,7 @@ public class TutorialExamples {
         result.close();
  
         println("\nShortest breadth-first path connecting Valjean to Bossuet using associates (should be two).");
-        queryString = "(select (?path)" +
+        queryString = "(select ?path" +
           "(breadth-first-search-paths !lm:character11 !lm:character64 associates ?path))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         result = tupleQuery.evaluate();
@@ -1172,7 +1796,7 @@ public class TutorialExamples {
         // Note that depth-first-search-paths may return more than one path of different lengths.  
         // None of them are guaranteed to be "the shortest path."
         println("\nReturn depth-first path connecting Valjean to Bossuet using associates (should be one).");
-        queryString = "(select (?path)" +
+        queryString = "(select ?path" +
           "(depth-first-search-path !lm:character11 !lm:character64 associates 10 ?path))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         result = tupleQuery.evaluate();
@@ -1187,7 +1811,7 @@ public class TutorialExamples {
         result.close();
         
         println("\nShortest bidirectional path connecting Valjean to Bossuet using associates (should be two).");
-        queryString = "(select (?path)" +
+        queryString = "(select ?path" +
           "(bidirectional-search-paths !lm:character11 !lm:character64 associates ?path))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         result = tupleQuery.evaluate();
@@ -1202,7 +1826,7 @@ public class TutorialExamples {
         result.close();
         
         println("\nNodal degree of Valjean (should be seven).");
-        queryString = "(select (?degree)" +
+        queryString = "(select ?degree" +
           "(nodal-degree !lm:character11 associates ?degree))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         result = tupleQuery.evaluate();
@@ -1215,7 +1839,7 @@ public class TutorialExamples {
         result.close();
         
         println("\nHow many neighbors are around Valjean? (should be 36).");
-        queryString = "(select (?neighbors)" +
+        queryString = "(select ?neighbors" +
           "(nodal-degree !lm:character11 everyone ?neighbors))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         result = tupleQuery.evaluate();
@@ -1228,7 +1852,7 @@ public class TutorialExamples {
         result.close();
 
         println("\nWho are Valjean's neighbors? (using everyone).");
-        queryString = "(select (?name)" +
+        queryString = "(select ?name" +
           "(nodal-neighbors !lm:character11 everyone ?member)" +
           "(q ?member !dc:title ?name))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -1243,7 +1867,7 @@ public class TutorialExamples {
         result.close();
 
         println("\nGraph density of Valjean's ego group? (using associates).");
-        queryString = "(select (?density)" +
+        queryString = "(select ?density" +
           "(ego-group !lm:character11 1 associates ?group)" +
           "(graph-density ?group associates ?density))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -1256,7 +1880,7 @@ public class TutorialExamples {
         result.close();
 
         println("\nValjean's cliques? Should be two (using associates).");
-        queryString = "(select (?clique)" +
+        queryString = "(select ?clique" +
           "(clique !lm:character11 associates ?clique))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         result = tupleQuery.evaluate();
@@ -1271,7 +1895,7 @@ public class TutorialExamples {
         result.close();
         
         println("\nValjean's actor-degree-centrality to his ego group at depth 1 (using associates).");
-        queryString = "(select (?centrality)" +
+        queryString = "(select ?centrality" +
           "(ego-group !lm:character11 1 associates ?group)" +
           "(actor-degree-centrality !lm:character11 ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -1284,7 +1908,7 @@ public class TutorialExamples {
         result.close();
         
         println("\nValjean's actor-degree-centrality to his ego group at depth 2 (using associates).");
-        queryString = "(select (?centrality)" +
+        queryString = "(select ?centrality" +
           "(ego-group !lm:character11 2 associates ?group)" +
           "(actor-degree-centrality !lm:character11 ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -1297,7 +1921,7 @@ public class TutorialExamples {
         result.close();
 
         println("\nValjean's actor-closeness-centrality to his ego group at depth 1 (using associates).");
-        queryString = "(select (?centrality)" +
+        queryString = "(select ?centrality" +
           "(ego-group !lm:character11 1 associates ?group)" +
           "(actor-closeness-centrality !lm:character11 ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -1310,7 +1934,7 @@ public class TutorialExamples {
         result.close();
 
         println("\nValjean's actor-closeness-centrality to his ego group at depth 2 (using associates).");
-        queryString = "(select (?centrality)" +
+        queryString = "(select ?centrality" +
           "(ego-group !lm:character11 2 associates ?group)" +
           "(actor-closeness-centrality !lm:character11 ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -1323,7 +1947,7 @@ public class TutorialExamples {
         result.close();
 
         println("\nValjean's actor-betweenness-centrality to his ego group at depth 2 (using associates).");
-        queryString = "(select (?centrality)" +
+        queryString = "(select ?centrality" +
           "(ego-group !lm:character11 2 associates ?group)" +
           "(actor-betweenness-centrality !lm:character11 ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -1343,7 +1967,7 @@ public class TutorialExamples {
         //  equal degree) to 1 (when one actor is connected to every other and no
         //  other actors have connections."
         println("\nGroup-degree-centrality of Valjean's ego group at depth 1 (using associates).");
-        queryString = "(select (?centrality)" +
+        queryString = "(select ?centrality" +
           "(ego-group !lm:character11 1 associates ?group)" +
           "(group-degree-centrality ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -1356,7 +1980,7 @@ public class TutorialExamples {
         result.close();
 
         println("\nGroup-degree-centrality of Valjean's ego group at depth 2 (using associatese).");
-        queryString = "(select (?centrality)" +
+        queryString = "(select ?centrality" +
           "(ego-group !lm:character11 2 associates ?group)" +
           "(group-degree-centrality ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -1375,7 +1999,7 @@ public class TutorialExamples {
         //  value and the [actor-closeness-centrality][] of all other actors.
         //  This value is then normalized so that it ranges between 0 and 1."
         println("\nGroup-closeness-centrality of Valjean's ego group at depth 1 (using associates).");
-        queryString = "(select (?centrality)" +
+        queryString = "(select ?centrality" +
           "(ego-group !lm:character11 1 associates ?group)" +
           "(group-closeness-centrality ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -1388,7 +2012,7 @@ public class TutorialExamples {
         result.close();
 
         println("\nGroup-closeness-centrality of Valjean's ego group at depth 2 (using associates).");
-        queryString = "(select (?centrality)" +
+        queryString = "(select ?centrality" +
           "(ego-group !lm:character11 2 associates ?group)" +
           "(group-closeness-centrality ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -1407,7 +2031,7 @@ public class TutorialExamples {
         //  value and the [actor-betweenness-centrality][] of all other actors.
         //  This value is then normalized so that it ranges between 0 and 1.
         println("\nGroup-betweenness-centrality of Valjean's ego group at depth 1 (using associates).");
-        queryString = "(select (?centrality)" +
+        queryString = "(select ?centrality" +
           "(ego-group !lm:character11 1 associates ?group)" +
           "(group-betweenness-centrality ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -1420,7 +2044,7 @@ public class TutorialExamples {
         result.close();
 
         println("\nGroup-betweenness-centrality of Valjean's ego group at depth 1 (using associates).");
-        queryString = "(select (?centrality)" +
+        queryString = "(select ?centrality" +
           "(ego-group !lm:character11 2 associates ?group)" +
           "(group-betweenness-centrality ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
