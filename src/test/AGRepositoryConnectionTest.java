@@ -108,7 +108,6 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 	}
 
     @Test
-    @Category(TestSuites.Broken.class)
 	public void testAddZipFile() throws Exception {
 		InputStream in = new FileInputStream(TEST_DIR_PREFIX + "graphs.zip");
 

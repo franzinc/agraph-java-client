@@ -86,7 +86,7 @@ public abstract class RepositoryConnectionTest {
 
     protected static final String DC_NS = "http://purl.org/dc/elements/1.1/";
 
-    public static final String TEST_DIR_PREFIX = "/testcases/";
+    public static final String TEST_DIR_PREFIX = "src/test/";
 
     protected Repository testRepository;
 
@@ -235,7 +235,7 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
     }
 
     @Test
-    @Category(TestSuites.Broken.class)
+    @Category(TestSuites.NotApplicableForAgraph.class) // TURTLE not supported
     public void testAddReader()
         throws Exception
     {
@@ -287,7 +287,7 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
     }
 
     @Test
-    @Category(TestSuites.Broken.class)
+    @Category(TestSuites.NotApplicableForAgraph.class) // TURTLE not supported
     public void testAddInputStream()
         throws Exception
     {
@@ -335,7 +335,7 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
     }
 
     @Test
-    @Category(TestSuites.Broken.class)
+    @Category(TestSuites.NotApplicableForAgraph.class) // TURTLE not supported
     public void testAddGzipInputStream()
         throws Exception
     {
@@ -357,7 +357,7 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
     }
 
     @Test
-    @Category(TestSuites.Broken.class)
+    @Category(TestSuites.NotApplicableForAgraph.class) // TURTLE not supported
     public void testAddZipFile()
         throws Exception
     {
@@ -412,7 +412,7 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
     }
 
     @Test
-    @Category(TestSuites.Broken.class)
+    @Category(TestSuites.NotApplicableForAgraph.class) // Unsupported query language: 'SeRQL'
     public void testSimpleTupleQuery()
         throws Exception
     {
@@ -454,7 +454,7 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
     }
 
     @Test
-    @Category(TestSuites.Broken.class)
+    @Category(TestSuites.NotApplicableForAgraph.class) // Unsupported query language: 'SeRQL'
     public void testSimpleTupleQueryUnicode()
         throws Exception
     {
@@ -483,7 +483,7 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
     }
 
     @Test
-    @Category(TestSuites.Broken.class)
+    @Category(TestSuites.NotApplicableForAgraph.class) // Unsupported query language: 'SeRQL'
     public void testPreparedTupleQuery()
         throws Exception
     {
@@ -528,7 +528,7 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
     }
 
     @Test
-    @Category(TestSuites.Broken.class)
+    @Category(TestSuites.NotApplicableForAgraph.class) // Unsupported query language: 'SeRQL'
     public void testPreparedTupleQueryUnicode()
         throws Exception
     {
@@ -560,7 +560,7 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
     }
 
     @Test
-    @Category(TestSuites.Broken.class)
+    @Category(TestSuites.NotApplicableForAgraph.class) // Unsupported query language: 'SeRQL'
     public void testSimpleGraphQuery()
         throws Exception
     {
@@ -601,7 +601,7 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
     }
 
     @Test
-    @Category(TestSuites.Broken.class)
+    @Category(TestSuites.NotApplicableForAgraph.class) // Unsupported query language: 'SeRQL'
     public void testPreparedGraphQuery()
         throws Exception
     {
@@ -1118,7 +1118,7 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
     }
 
     @Test
-    @Category(TestSuites.Broken.class)
+    @Category(TestSuites.NotApplicableForAgraph.class) // TURTLE not supported
     public void testRecoverFromParseError()
         throws RepositoryException, IOException
     {

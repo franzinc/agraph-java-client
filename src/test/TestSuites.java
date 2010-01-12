@@ -23,7 +23,22 @@ public class TestSuites {
     /**
      * Takes too long to be included in prepush.
      */
-    public interface SlowTest extends NonPrepushTest {}
+    public interface Slow extends NonPrepushTest {}
+    
+    /**
+     * Test is not applicable for AGraph for some reason.
+     */
+    public interface NotApplicableForAgraph extends NonPrepushTest {}
+    
+    /**
+     * Temporary category for developer to run a single test.
+     */
+    @RunWith(Categories.class)
+    @IncludeCategory(Temp.class)
+    @SuiteClasses( { TutorialTests.class,
+        QuickTests.class,
+        AGRepositoryConnectionTests.class })
+    public static class Temp {}
     
     /**
      * Suite for 'ant test-prepush' and 'ant prepush'.
@@ -46,6 +61,7 @@ public class TestSuites {
      */
     @RunWith(Categories.class)
     @IncludeCategory(Broken.class)
+    @ExcludeCategory(NotApplicableForAgraph.class)
     @SuiteClasses( { TutorialTests.class,
         QuickTests.class,
         AGRepositoryConnectionTests.class})
