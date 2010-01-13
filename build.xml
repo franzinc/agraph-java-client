@@ -42,6 +42,7 @@
             description="Remove generated files and directories.">
         <delete dir="${build}"/>
         <delete file="${jarfile}"/>
+        <ant dir="clojure" target="clean" inheritall="false"/>
     </target>
 
     <target name="compile" depends="init"
@@ -77,7 +78,7 @@
     
     <target name="prepush"
             description="Tests required before git push: clean, build, and run Java and Clojure client tests"
-            depends="clean-build">
+            depends="clean-build, test-prepush">
         <ant dir="clojure" target="prepush" inheritall="false"/>
     </target>
     
