@@ -105,14 +105,17 @@ public class AGAbstractTest {
     public void setUp() throws Exception {
         repo = cat.createRepository(repoId);
         repo.initialize();
-        toClose.add(repo);
+        closeLater(repo);
+        vf = repo.getValueFactory();
         conn = getConnection();
         conn.clear();
-//        conn.clearMappings();
-//        conn.clearNamespaces();
-        vf = repo.getValueFactory();
+        conn.clearMappings();
+        conn.clearNamespaces();
+        // these are the default namespaces in AG, which are not present after clearNamespaces:
+        conn.setNamespace("fti", "http://franz.com/ns/allegrograph/2.2/textindex/");
+        conn.setNamespace("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
     }
-
+    
     @After
     public void tearDown() throws Exception {
         vf = null;
@@ -130,15 +133,20 @@ public class AGAbstractTest {
         server = close(server);
     }
 
+    public <CloseableType extends Closeable>  CloseableType closeLater(CloseableType c) {
+        toClose.add(c);
+        return c;
+    }
+
     AGRepositoryConnection getConnection() throws RepositoryException {
         AGRepositoryConnection conn = repo.getConnection();
-        toClose.add(conn);
+        closeLater(conn);
         return conn;
    }
    
     AGRepositoryConnection getConnection(AGRepository repo) throws RepositoryException {
         AGRepositoryConnection conn = repo.getConnection();
-        toClose.add(conn);
+        closeLater(conn);
         return conn;
    }
    

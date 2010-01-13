@@ -8,6 +8,7 @@
 
 package test;
 
+import static com.franz.util.Util.close;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -15,7 +16,6 @@ import static org.junit.Assert.assertTrue;
 import static test.Stmt.statementSet;
 import static test.Stmt.stmts;
 import static test.Stmt.stmtsSP;
-import static test.Util.close;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -355,13 +355,13 @@ public class TutorialTests extends AGAbstractTest {
     
     @Test
     public void example11() throws Exception {
-        ValueFactory f = repo.getValueFactory();
         String exns = "http://example.org/people/";
-        URI alice = f.createURI(exns, "alice");
-        URI person = f.createURI(exns, "Person");
-        conn.add(alice, RDF.TYPE, person);
         conn.setNamespace("ex", exns);
-        String queryString = "SELECT ?s ?p ?o WHERE { ?s ?p ?o . FILTER ((?p = rdf:type) && (?o = ex:Person) ) }";
+        URI alice = vf.createURI(exns, "alice");
+        URI person = vf.createURI(exns, "Person");
+        conn.add(alice, RDF.TYPE, person);
+        String queryString = "PREFIX ex:" + "<" + exns + ">\n" +
+            "SELECT ?s ?p ?o WHERE { ?s ?p ?o . FILTER ((?p = rdf:type) && (?o = ex:Person) ) }";
         assertSetsEqual(stmts(new Stmt[] {new Stmt(alice, RDF.TYPE, person)}),
                 statementSet(conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString).evaluate()));
     }
@@ -373,7 +373,7 @@ public class TutorialTests extends AGAbstractTest {
     public void example12 () throws Exception {    
 	    ValueFactory f = conn.getValueFactory();
 	    String exns = "http://example.org/people/";
-	    conn.setNamespace("ex", exns);
+        conn.setNamespace("ex", exns);
 	    conn.registerFreetextPredicate(f.createURI(exns,"fullname"));
 	    URI alice = f.createURI(exns, "alice1");
 	    URI person = f.createURI(exns, "Person");
@@ -431,11 +431,11 @@ public class TutorialTests extends AGAbstractTest {
      * Ask, Construct, and Describe queries
      */
     @Test
-    @Category(TestSuites.Temp.class)
     public void example13 () throws Exception {
         Map<String, Stmt> inputs = example2setup();
         conn.setNamespace("ex", "http://example.org/people/");
         conn.setNamespace("ont", "http://example.org/ontology/");
+        String prefix = "PREFIX ont: " + "<http://example.org/ontology/>\n";
         
         String queryString = "select ?s ?p ?o where { ?s ?p ?o} ";
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
@@ -444,9 +444,11 @@ public class TutorialTests extends AGAbstractTest {
         
         assertTrue("Boolean result",
                 conn.prepareBooleanQuery(QueryLanguage.SPARQL,
+                        prefix + 
                 "ask { ?s ont:name \"Alice\" } ").evaluate());
         assertFalse("Boolean result",
                 conn.prepareBooleanQuery(QueryLanguage.SPARQL,
+                        prefix + 
                 "ask { ?s ont:name \"NOT Alice\" } ").evaluate());
         
         queryString = "construct {?s ?p ?o} where { ?s ?p ?o . filter (?o = \"Alice\") } ";

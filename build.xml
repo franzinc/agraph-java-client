@@ -160,6 +160,15 @@
         <run-java tasknamex="test" classname="org.junit.runner.JUnitCore" arg="test.TestSuites$Stress"/>
     </target>
     
+    <target name="test-temp"
+            depends="compile"
+            description="">
+        <property name="cat" value="Temp"/>
+        <property name="prefix" value="test.TestSuites$"/>
+        <property name="test" value="${prefix}${cat}"/>
+        <run-java tasknamex="test" classname="test.TestRunner" arg="${test}"/>
+    </target>
+    
     <target name="test-stress-events"
             depends="compile"
             description="Run test.stress.Events">
