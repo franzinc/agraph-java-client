@@ -42,6 +42,7 @@
             description="Remove generated files and directories.">
         <delete dir="${build}"/>
         <delete file="${jarfile}"/>
+        <ant dir="clojure" target="clean" inheritall="false"/>
     </target>
 
     <target name="compile" depends="init"
@@ -77,7 +78,7 @@
     
     <target name="prepush"
             description="Tests required before git push: clean, build, and run Java and Clojure client tests"
-            depends="clean-build">
+            depends="clean-build, test-prepush">
         <ant dir="clojure" target="prepush" inheritall="false"/>
     </target>
     
@@ -157,6 +158,15 @@
             depends="compile"
             description="long-running stress tests">
         <run-java tasknamex="test" classname="org.junit.runner.JUnitCore" arg="test.TestSuites$Stress"/>
+    </target>
+    
+    <target name="test-temp"
+            depends="compile"
+            description="">
+        <property name="cat" value="Temp"/>
+        <property name="prefix" value="test.TestSuites$"/>
+        <property name="test" value="${prefix}${cat}"/>
+        <run-java tasknamex="test" classname="test.TestRunner" arg="${test}"/>
     </target>
     
     <target name="test-stress-events"

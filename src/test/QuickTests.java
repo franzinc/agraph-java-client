@@ -1,6 +1,16 @@
+/******************************************************************************
+** Copyright (c) 2008-2010 Franz Inc.
+** All rights reserved. This program and the accompanying materials
+** are made available under the terms of the Eclipse Public License v1.0
+** which accompanies this distribution, and is available at
+** http://www.eclipse.org/legal/epl-v10.html
+******************************************************************************/
+
 package test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static test.Stmt.statementSet;
 import static test.Stmt.stmts;
 
@@ -15,6 +25,7 @@ import org.openrdf.model.BNode;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
+import org.openrdf.query.QueryLanguage;
 import org.openrdf.repository.RepositoryResult;
 
 import test.TestSuites.NonPrepushTest;
@@ -53,6 +64,34 @@ public class QuickTests extends AGAbstractTest {
         AGAbstractTest.assertSetsEqual("",
                 Stmt.stmts(new Stmt(st)),
                 Stmt.statementSet(conn.getStatements(st.getSubject(), st.getPredicate(), st.getObject(), false)));
+    }
+
+    /**
+     * Simplified from tutorial example13 to show the error.
+     * Example13 now has a workaround: setting the prefix in the sparql query.
+     * Namespaces are cleared in setUp(), otherwise the first errors don't happen.
+     * After the (expected) failure for xxx, setting the ont namespace
+     * does not hold, so the query with ont fails.
+     */
+    @Test
+    @Category(TestSuites.Broken.class)
+    public void namespaceAfterError() throws Exception {
+        URI alice = vf.createURI("http://example.org/people/alice");
+        URI name = vf.createURI("http://example.org/ontology/name");
+        Literal alicesName = vf.createLiteral("Alice");
+        conn.add(alice, name, alicesName);
+        try {
+            conn.prepareBooleanQuery(QueryLanguage.SPARQL,
+            "ask { ?s xxx:name \"Alice\" } ").evaluate();
+            fail("");
+        } catch (Exception e) {
+            // expected
+            //e.printStackTrace();
+        }
+        conn.setNamespace("ont", "http://example.org/ontology/");
+        assertTrue("Boolean result",
+                conn.prepareBooleanQuery(QueryLanguage.SPARQL,
+                "ask { ?s ont:name \"Alice\" } ").evaluate());
     }
     
 }
