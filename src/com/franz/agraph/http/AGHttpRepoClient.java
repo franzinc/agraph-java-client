@@ -392,7 +392,18 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	public void uploadJSON(JSONArray rows, Resource... contexts)
-			throws RepositoryException {
+	throws RepositoryException {
+		String url = Protocol.getStatementsLocation(getSessionRoot());
+		uploadJSON(url, rows, contexts);
+	}
+
+	public void deleteJSON(JSONArray rows, Resource... contexts)
+	throws RepositoryException {
+		uploadJSON(AGProtocol.getStatementsDeleteLocation(getSessionRoot()), rows, contexts);
+	}
+
+	public void uploadJSON(String url, JSONArray rows, Resource... contexts)
+            throws RepositoryException {
 		if (rows == null)
 			return;
 		InputStream in;
@@ -400,7 +411,7 @@ public class AGHttpRepoClient implements Closeable {
 			in = new ByteArrayInputStream(rows.toString().getBytes("UTF-8"));
 			RequestEntity entity = new InputStreamRequestEntity(in, -1,
 					"application/json");
-			upload(entity, null, false, null, null, null, contexts);
+			upload(url, entity, null, false, null, null, null, contexts);
 		} catch (UnsupportedEncodingException e) {
 			throw new RuntimeException(e);
 		} catch (RDFParseException e) {
@@ -427,8 +438,15 @@ public class AGHttpRepoClient implements Closeable {
 			boolean overwrite, String serverSideFile, URI serverSideURL,
 			RDFFormat dataFormat, Resource... contexts) throws IOException,
 			RDFParseException, RepositoryException, UnauthorizedException {
-		OpenRDFUtil.verifyContextNotNull(contexts);
 		String url = Protocol.getStatementsLocation(getSessionRoot());
+		upload(url, reqEntity, baseURI, overwrite, serverSideFile, serverSideURL, dataFormat, contexts);
+	}
+
+	public void upload(String url, RequestEntity reqEntity, String baseURI,
+			boolean overwrite, String serverSideFile, URI serverSideURL,
+			RDFFormat dataFormat, Resource... contexts) throws IOException,
+			RDFParseException, RepositoryException, UnauthorizedException {
+		OpenRDFUtil.verifyContextNotNull(contexts);
 		List<Header> headers = new ArrayList<Header>(1);
 		if (dataFormat != null) {
 			headers.add(new Header("Content-Type", dataFormat

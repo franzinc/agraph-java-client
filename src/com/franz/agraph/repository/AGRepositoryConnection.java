@@ -154,6 +154,31 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	}
 
 	@Override
+	public void remove(Iterable<? extends Statement> statements,
+			Resource... contexts) throws RepositoryException {
+		OpenRDFUtil.verifyContextNotNull(contexts);
+		JSONArray rows = new JSONArray();
+		for (Statement st : statements) {
+			JSONArray row = encodeJSON(st, contexts);
+			rows.put(row);
+		}
+		getHttpRepoClient().deleteJSON(rows, contexts);
+	}
+    
+	@Override
+	public <E extends Exception> void remove(
+			Iteration<? extends Statement, E> statements, Resource... contexts)
+	throws RepositoryException, E {
+		OpenRDFUtil.verifyContextNotNull(contexts);
+		JSONArray rows = new JSONArray();
+		while (statements.hasNext()) {
+			JSONArray row = encodeJSON(statements.next(), contexts);
+			rows.put(row);
+		}
+		getHttpRepoClient().deleteJSON(rows, contexts);
+	}
+
+	@Override
 	public void setAutoCommit(boolean autoCommit) throws RepositoryException {
 		getHttpRepoClient().setAutoCommit(autoCommit);
 	}

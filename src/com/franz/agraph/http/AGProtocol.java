@@ -1,5 +1,5 @@
 /******************************************************************************
-** Copyright (c) 2008-2009 Franz Inc.
+** Copyright (c) 2008-2010 Franz Inc.
 ** All rights reserved. This program and the accompanying materials
 ** are made available under the terms of the Eclipse Public License v1.0
 ** which accompanies this distribution, and is available at
@@ -89,10 +89,15 @@ public class AGProtocol extends Protocol {
 	public static final String AMOUNT_PARAM_NAME = "amount";
 
 	/**
+	 * Relative location to delete statements.
+	 */
+	public static final String DELETE = "delete";
+
+	/**
 	 * Relative location of the autocommit service.
 	 */
 	public static final String AUTOCOMMIT = "autoCommit";
-	
+
 	/**
 	 * Parameter name for the 'on' parameter of autoCommit.
 	 */
@@ -425,23 +430,27 @@ public class AGProtocol extends Protocol {
 	public static final String getSessionURL(String serverLocation) {
 		return serverLocation + "/" + SESSION;
 	}
-	
+
 	public static final String getSessionCloseLocation(String sessionRoot) {
 		return getSessionURL(sessionRoot) + "/" + CLOSE;
 	}
-	
+
 	public static final String getSessionPingLocation(String sessionRoot) {
 		return getSessionURL(sessionRoot) + "/" + PING;
 	}
-	
+
 	public static final String getAutoCommitLocation(String sessionRoot) {
 		return getSessionURL(sessionRoot) + "/" + AUTOCOMMIT;
+	}
+
+	public static String getStatementsDeleteLocation(String sessionRoot) {
+		return getStatementsLocation(sessionRoot) + "/" + DELETE;
 	}
 
 	public static String getFreetextLocation(String sessionRoot) {
 		return sessionRoot + "/" + FREETEXT;
 	}
-	
+
 	public static String getFreetextPredicatesLocation(String sessionRoot) {
 		return getFreetextLocation(sessionRoot) + "/" + FTI_PREDICATES;
 	}
@@ -530,7 +539,6 @@ public class AGProtocol extends Protocol {
 	public static String getSNANeighborMatricesLocation(String sessionRoot) {
 		return sessionRoot + "/" + NEIGHBOR_MATRICES;
 	}
-	
 
 	public static String getSNANeighborMatrixLocation(String sessionRoot,
 			String matrix) {

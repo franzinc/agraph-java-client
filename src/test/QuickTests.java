@@ -14,6 +14,9 @@ import static org.junit.Assert.fail;
 import static test.Stmt.statementSet;
 import static test.Stmt.stmts;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.Test;
 import org.junit.experimental.categories.Categories;
 import org.junit.experimental.categories.Category;
@@ -94,4 +97,20 @@ public class QuickTests extends AGAbstractTest {
                 "ask { ?s ont:name \"Alice\" } ").evaluate());
     }
     
+    @Test
+    @Category(TestSuites.Temp.class)
+    public void bulkDelete() throws Exception {
+        URI alice = vf.createURI("http://example.org/people/alice");
+        URI firstname = vf.createURI("http://example.org/ontology/firstname");
+        URI lastname = vf.createURI("http://example.org/ontology/lastname");
+        Literal alicesName = vf.createLiteral("Alice");
+        List input = new ArrayList<Statement>();
+        input.add(vf.createStatement(alice, firstname, alicesName));
+        input.add(vf.createStatement(alice, lastname, alicesName));
+        conn.add(input);
+        assertEquals("size", 2, conn.size());
+        conn.remove(input);
+        assertEquals("size", 0, conn.size());
+    }
+
 }
