@@ -197,53 +197,41 @@ public class TutorialExamples {
         ValueFactory f = myRepository.getValueFactory();
         println("\nStarting example5().");
         conn.clear();
-        String exns = "http://example.org/people/";
-        URI alice = f.createURI("http://example.org/people/alice");
-        URI bob = f.createURI("http://example/org/people/bob");
-        URI carol = f.createURI("http://example.org/people/carol");
-        URI dave = f.createURI("http://example.org/people/dave");
-        URI eric = f.createURI("http://example.org/people/eric");
-        URI fred = f.createURI("http://example.org/people/fred");
+        String exns = "http://people/";
+        URI alice = f.createURI("http://people/alice");
+        URI bob = f.createURI("http://people/bob");
+        URI carol = f.createURI("http://people/carol");
+        URI dave = f.createURI("http://people/dave");
+        URI eric = f.createURI("http://people/eric");
+        URI fred = f.createURI("http://people/fred");
+        URI greg = f.createURI("http://people/greg");
         URI age = f.createURI(exns, "age");
         // Automatic typing of numbers
-/*        URI favoriteColor = f.createURI(exns, "favoriteColor");
-        URI birthdate = f.createURI(exns, "birthdate");
-        Literal red = f.createLiteral("Red");
-        Literal rouge = f.createLiteral("Rouge", "fr");
-*/
-        Literal fortyTwo = f.createLiteral(42); // unquoted turns into int
-        Literal fortyTwoDecimal = f.createLiteral(42.0); // creates double instead of float
+        Literal fortyTwo = f.createLiteral(42);          // creates int
+        Literal fortyTwoDouble = f.createLiteral(42.0);  // creates double
         Literal fortyTwoInt = f.createLiteral("42", XMLSchema.INT);
         Literal fortyTwoLong = f.createLiteral("42", XMLSchema.LONG);
-        Literal fortyTwoDouble = f.createLiteral("42", XMLSchema.DOUBLE);
-        Literal fortyTwoString = f.createLiteral("42"); // creates string
-/*        Literal date = f.createLiteral("1984-12-06", XMLSchema.DATE);
-        Literal time = f.createLiteral("1984-12-06T09:00:00", XMLSchema.DATETIME);
-        Literal weightUntyped = f.createLiteral("120.5");
-        Literal weightFloat = f.createLiteral("120.5", XMLSchema.FLOAT);
-*/
+        Literal fortyTwoFloat = f.createLiteral("42", XMLSchema.FLOAT);
+        Literal fortyTwoString = f.createLiteral("42", XMLSchema.STRING); 
+        Literal fortyTwoPlain = f.createLiteral("42");   // creates plain literal
         Statement stmt1 = f.createStatement(alice, age, fortyTwo);
-        Statement stmt2 = f.createStatement(bob, age, fortyTwoDecimal);
+        Statement stmt2 = f.createStatement(bob, age, fortyTwoDouble);
         Statement stmt3 = f.createStatement(carol, age, fortyTwoInt);
         Statement stmt4 = f.createStatement(dave, age, fortyTwoLong);
-        Statement stmt5 = f.createStatement(eric, age, fortyTwoDouble);
+        Statement stmt5 = f.createStatement(eric, age, fortyTwoFloat);
         Statement stmt6 = f.createStatement(fred, age, fortyTwoString);
+        Statement stmt7 = f.createStatement(greg, age, fortyTwoPlain);
         conn.add(stmt1);
         conn.add(stmt2);
         conn.add(stmt3);
         conn.add(stmt4);
         conn.add(stmt5);
         conn.add(stmt6);
-/*        conn.add(alice, weight, weightFloat);
-        conn.add(ted, weight, weightUntyped);
-        conn.add(alice, favoriteColor, red);
-        conn.add(ted, favoriteColor, rouge);
-        conn.add(alice, birthdate, date);
-        conn.add(ted, birthdate, time);
-*/
+        conn.add(stmt7);
+
         // This section retrieves the age triples to see what datatypes are present. 
         {
-            println("\nShowing all age triples using getStatements().  Should be six.  One should be a float but is a double.");
+            println("\nShowing all age triples using getStatements().  Seven matches.");
             RepositoryResult<Statement> statements = conn.getStatements(null, age, null, false);
             try {
                 while (statements.hasNext()) {
@@ -312,8 +300,8 @@ public class TutorialExamples {
         }
 */
         {
-            println("\ngetStatements() request for fortyTwoDecimal matches multiple numeric types.");
-            RepositoryResult<Statement> statements = conn.getStatements(null, age, fortyTwoDecimal, false);
+            println("\ngetStatements() request for 42.0 is illegal.");
+/*        RepositoryResult<Statement> statements = conn.getStatements(null, age, fortyTwoDouble, false);
             try {
                 while (statements.hasNext()) {
                     println(statements.next());
@@ -321,7 +309,7 @@ public class TutorialExamples {
             } finally {
                 statements.close();
             }
-        }
+*/        }
 
         println( "\nSPARQL matches for 42.0 (filter match) finds multiple numeric types.");
         queryString = "SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = 42.0)}";
@@ -426,7 +414,7 @@ public class TutorialExamples {
         } finally {
             result.close();
         }
-        println( "\nSPARQL matches for \"42\"^^<http://www.w3.org/2001/XMLSchema#long> (direct match) finds ints.");
+        println( "\nSPARQL matches for \"42\"^^<http://www.w3.org/2001/XMLSchema#long> (direct match) finds longs.");
         queryString = "SELECT ?s ?p WHERE {?s ?p '42'^^<http://www.w3.org/2001/XMLSchema#long>}";
         tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         result = tupleQuery.evaluate();
@@ -533,8 +521,8 @@ public class TutorialExamples {
         println("------------------------------------------------------------------------------------");
         // Matches against undeclared strings. 
         {
-            println("\ngetStatements() request for \"42\".  Illegal, wrong type.");
-/*            RepositoryResult<Statement> statements = conn.getStatements(null, age, "42", false);
+            println("\ngetStatements() request for fortyTwoPlain.  Matches plain literal.");
+            RepositoryResult<Statement> statements = conn.getStatements(null, age, fortyTwoPlain, false);
             try {
                 while (statements.hasNext()) {
                     println(statements.next());
@@ -542,7 +530,7 @@ public class TutorialExamples {
             } finally {
                 statements.close();
             }
-*/
+
         }
 
         println( "\nSPARQL matches for \"42\" (filter match).");
@@ -578,18 +566,23 @@ public class TutorialExamples {
         println("\nTests of string matching.");
  
         URI favoriteColor = f.createURI(exns, "favoriteColor");
-        Literal UCred = f.createLiteral("Red");
-        Literal LCred = f.createLiteral("red");
-        Literal rouge = f.createLiteral("rouge");
-        Literal Rouge = f.createLiteral("Rouge");
+        Literal UCred = f.createLiteral("Red", XMLSchema.STRING);
+        Literal LCred = f.createLiteral("red", XMLSchema.STRING);
+        Literal RedPlain = f.createLiteral("Red");
+        Literal rouge = f.createLiteral("rouge", XMLSchema.STRING);
+        Literal Rouge = f.createLiteral("Rouge", XMLSchema.STRING);
+        Literal RougePlain = f.createLiteral("Rouge");
         Literal FrRouge = f.createLiteral("Rouge", "fr");
+        
         conn.add(alice, favoriteColor, UCred);
         conn.add(bob, favoriteColor, LCred);
-        conn.add(carol, favoriteColor,rouge);
-        conn.add(dave, favoriteColor, Rouge);
-        conn.add(eric, favoriteColor, FrRouge);
+        conn.add(carol, favoriteColor, RedPlain);
+        conn.add(dave, favoriteColor, rouge);
+        conn.add(eric, favoriteColor, Rouge);
+        conn.add(fred, favoriteColor, RougePlain);
+        conn.add(greg, favoriteColor, FrRouge);
         {
-            println("\nShowing all color triples using getStatements().  Should be five.");
+            println("\nShowing all color triples using getStatements().  Should be seven.");
             RepositoryResult<Statement> statements = conn.getStatements(null, favoriteColor, null, false);
             try {
                 while (statements.hasNext()) {
@@ -691,8 +684,8 @@ public class TutorialExamples {
         println("------------------------------------------------------------------------------------");
         
         {
-            println("\ngetStatements() triples that match \"Rouge\"@fr.  Illegal, wrong type.");
-/*            RepositoryResult<Statement> statements = conn.getStatements(null, favoriteColor, "Rouge"@fr, false);
+            println("\ngetStatements() triples that match \"Rouge\"@fr.  Match French only.");
+            RepositoryResult<Statement> statements = conn.getStatements(null, favoriteColor, FrRouge, false);
             try {
                 while (statements.hasNext()) {
                     println(statements.next());
@@ -700,7 +693,7 @@ public class TutorialExamples {
             } finally {
                 statements.close();
             }
-*/
+
         }
 
         println( "\nSPARQL matches for \"Rouge\"@fr (filter match) find exact match.");
@@ -753,19 +746,18 @@ public class TutorialExamples {
         
         println("------------------------------------------------------------------------------------");
         // Boolean experiments.
-        URI seniorp = f.createURI(exns, "seniorp");
+        URI senior = f.createURI(exns, "senior");
         println("true = " + true);
         println("false = " + false);
-//      conn.add(alice, seniorp, true);  // illegal
-//      conn.add(bob, seniorp, false);   // illegal
+//      conn.add(alice, senior, true);  // illegal
+//      conn.add(bob, senior, false);   // illegal
         Literal trueValue = f.createLiteral("true", XMLSchema.BOOLEAN);  
         Literal falseValue = f.createLiteral("false", XMLSchema.BOOLEAN);
-        conn.add(alice, seniorp, trueValue);
-        conn.add(bob, seniorp, falseValue);
-        conn.add(carol, seniorp, trueValue); // Added to parallel the Python example. Not really needed here. 
+        conn.add(alice, senior, trueValue);
+        conn.add(bob, senior, falseValue);
         {
-            println("\ngetStatements() all seniorp triple, should be three.");
-            RepositoryResult<Statement> statements = conn.getStatements(null, seniorp, null, false);
+            println("\ngetStatements() all senior triple, should be two.");
+            RepositoryResult<Statement> statements = conn.getStatements(null, senior, null, false);
             try {
                 while (statements.hasNext()) {
                     println(statements.next());
@@ -776,8 +768,8 @@ public class TutorialExamples {
         }
 
         {
-            println("\ngetStatements() triples that match Boolean true.  Illegal.");
-/*            RepositoryResult<Statement> statements = conn.getStatements(null, seniorp, true, false);
+            println("\ngetStatements() triples that match trueValue.  One.");
+           RepositoryResult<Statement> statements = conn.getStatements(null, senior, trueValue, false);
             try {
                 while (statements.hasNext()) {
                     println(statements.next());
@@ -785,11 +777,11 @@ public class TutorialExamples {
             } finally {
                 statements.close();
             }
-*/ 
+ 
         }
         {
-            println("\ngetStatements() triples that match trueValue.  Two matches.");
-            RepositoryResult<Statement> statements = conn.getStatements(null, seniorp, trueValue, false);
+            println("\ngetStatements() triples that match trueValue.  One.");
+            RepositoryResult<Statement> statements = conn.getStatements(null, senior, trueValue, false);
             try {
                 while (statements.hasNext()) {
                     println(statements.next());
@@ -799,7 +791,7 @@ public class TutorialExamples {
             }
         }     
             
-        println( "\nSPARQL matches for true (filter match).  Two matches.");
+        println( "\nSPARQL matches for true (filter match).  One.");
         queryString = "SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = true)}";
         tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         result = tupleQuery.evaluate();
@@ -814,7 +806,7 @@ public class TutorialExamples {
         } finally {
             result.close();
         }
-        println( "\nSPARQL matches for true (direct match). Two matches.");
+        println( "\nSPARQL matches for true (direct match). One.");
         queryString = "SELECT ?s ?p WHERE {?s ?p true}";
         tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         result = tupleQuery.evaluate();
@@ -829,7 +821,7 @@ public class TutorialExamples {
             result.close();
         }
         
-        println( "\nSPARQL matches for \"true\"^^<http://www.w3.org/2001/XMLSchema#boolean> (filter match). Two matches.");
+        println( "\nSPARQL matches for \"true\"^^<http://www.w3.org/2001/XMLSchema#boolean> (filter match). One.");
         queryString = "SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = 'true'^^<http://www.w3.org/2001/XMLSchema#boolean>)}";
         tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         result = tupleQuery.evaluate();
@@ -844,7 +836,7 @@ public class TutorialExamples {
         } finally {
             result.close();
         }
-        println( "\nSPARQL matches for \"true\"^^<http://www.w3.org/2001/XMLSchema#boolean> (direct match). Two matches.");
+        println( "\nSPARQL matches for \"true\"^^<http://www.w3.org/2001/XMLSchema#boolean> (direct match). One.");
         queryString = "SELECT ?s ?p WHERE {?s ?p 'true'^^<http://www.w3.org/2001/XMLSchema#boolean>}";
         tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         result = tupleQuery.evaluate();

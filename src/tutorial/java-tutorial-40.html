@@ -304,67 +304,392 @@ This is the <strong>example4()</strong> function of TutorialExamples.java. It be
 <p>At this point it is good form to close the respositoryResponse object because it occupies memory and is rarely reused in most programs. We can also close the connection and shut down the repository. </p>
 <pre class="input">        } finally {<br>            statements.close();<br>        }
         conn.close();<br>        myRepository.shutDown();<br>    }</pre>
-<p>&nbsp;</p>
-
 <h2 id="Literal Values">Literal Values (example5())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
-<p>The next example, <strong>example5()</strong>, illustrates some variations on what we have seen so far.  The example creates and asserts typed literal values, including  language-specific literals.</p>
-<p>First, example5() obtains a connection object from example1(). From the connection we can determine the respository and the repository's valueFactory. Then it clears the repository of all existing triples. </p>
+<p>The next example, <strong>example5()</strong>, illustrates some variations on what we have seen so far. The example creates and asserts <a href="http://www.w3.org/TR/rdf-concepts/#section-Graph-Literal">typed and plain literal values</a>, including language-specific plain literals, and then conducts searches for them in three ways:</p>
+<ul>
+  <li>getStatements() search, which is an efficient way to match a single triple pattern. </li>
+  <li>SPARQL direct match, for efficient multi-pattern search. </li>
+  <li>SPARQL filter match, for sophisticated filtering such as performing range matches. </li>
+</ul>
+<p>The getStatements() and SPARQL direct searches return exactly the datatype you ask for. The SPARQL filter queries can sometimes return multiple datatypes. This behavior will be one focus of this section. </p>
+<p>If you are not explicit about the datatype of a value, either when asserting the triple or when writing a search pattern, AllegroGraph will deduce an appropriate datatype and use it. This is another focus of this section. This helpful behavior can sometimes surprise you with unanticipated results. </p>
+<h3>Setup</h3>
+<p>Example5() begins by obtaining a connection object from example1(), and then clears the repository of all existing triples. </p>
 <pre class="input">    public static void example5() throws Exception {<br>        RepositoryConnection conn = example2(false);<br>        Repository myRepository = conn.getRepository();<br>        ValueFactory f = myRepository.getValueFactory();<br>        println(&quot;\nStarting example5().&quot;);<br>        conn.clear();</pre>
-<p>For sake of coding efficiency, it is good practice to create variables for namespace strings. We'll use this namespace again and again in the following lines. </p>
-<pre class="input">        String exns = &quot;http://example.org/people/&quot;;</pre>
-<p>The example creates new resources describing Alice and Ted. Apparently Bob was on vacation. These are URIs to use in the subject field of the triples. </p>
-<pre class="input">        URI alice = f.createURI(&quot;http://example.org/people/alice&quot;);<br>        URI ted = f.createURI(exns, &quot;Ted&quot;);</pre>
-<p>These are the URIs of the four predicates used in the example: age, weight, favoriteColor, and birthdate. </p>
-<pre class="input">        URI age = f.createURI(exns, &quot;age&quot;);<br>        URI weight = f.createURI(exns, &quot;weight&quot;);    <br>        URI favoriteColor = f.createURI(exns, &quot;favoriteColor&quot;);<br>        URI birthdate = f.createURI(exns, &quot;birthdate&quot;);</pre>
-<p>Favorite colors, declared in English (default) and French. </p>
-<pre class="input">        Literal red = f.createLiteral(&quot;Red&quot;);<br>        Literal rouge = f.createLiteral(&quot;Rouge&quot;, &quot;fr&quot;);</pre>
-<p>Age values, declared as INT, LONG, and untyped: </p>
-<pre class="input">        Literal fortyTwoInt = f.createLiteral(&quot;42&quot;, XMLSchema.INT);<br>        Literal fortyTwoLong = f.createLiteral(&quot;42&quot;, XMLSchema.LONG);    <br>        Literal fortyTwoUntyped = f.createLiteral(&quot;42&quot;);</pre>
-<p>Birth date values, declared as DATE and DATETIME types. </p>
-<pre class="input">        Literal date = f.createLiteral(&quot;1984-12-06&quot;, XMLSchema.DATE);     <br>        Literal time = f.createLiteral(&quot;1984-12-06T09:00:00&quot;, XMLSchema.DATETIME);         </pre>
-<p>Weights, written as floats, but one untyped and the other declared to be a FLOAT. </p>
-<pre class="input">        Literal weightUntyped = f.createLiteral(&quot;120.5&quot;);<br>        Literal weightFloat = f.createLiteral(&quot;120.5&quot;, XMLSchema.FLOAT);</pre>
- <p>The connection object's createStatement() method assembles the elements of a triple, but does not yet add them to the repository. Here are Alice's and Ted's ages assembled into statements. (We gave Ted two age triples because Bob was on vacation. The triples have the same value cast into different types.) </p>
- <pre class="input">        Statement stmt1 = f.createStatement(alice, age, fortyTwoInt);<br>        Statement stmt2 = f.createStatement(ted, age, fortyTwoLong);    <br>        Statement stmt3 = f.createStatement(ted, age, fortyTwoUntyped);</pre>
-<p>The Java API to AllegroGraph Server uses the <strong>add()</strong> method for asserting triples into the repository. It can create triples from statements, or from URIs and literal values, as shown here. </p>
-<pre class="input">        conn.add(stmt1);<br>        conn.add(stmt2);<br>        conn.add(stmt3);<br>        conn.add(alice, weight, weightFloat);<br>        conn.add(ted, weight, weightUntyped);<br>        conn.add(alice, favoriteColor, red);<br>        conn.add(ted, favoriteColor, rouge);<br>        conn.add(alice, birthdate, date);<br>        conn.add(ted, birthdate, time);    </pre>
-<p>The RDF/SPARQL spec is very conservative when matching various combinations of literal values. The match and query statements below illustrate how some of these combinations perform. Note that this loop uses the getStatements() method to retrieve triples. We'll do SPARQL queries in a minute. </p>
-<pre class="input">        for (Literal obj : new Literal[] {null, fortyTwoInt, fortyTwoUntyped, fortyTwoLong, weightFloat, weightUntyped,<br>                    red, rouge}) {<br>            println( &quot;\nRetrieve triples matching &quot; + obj + &quot;.&quot;);<br>            RepositoryResult&lt;Statement&gt; statements = conn.getStatements(null, null, obj, false);<br>            try {<br>                while (statements.hasNext()) {<br>                    println(statements.next());<br>                }<br>            } finally {<br>                statements.close();<br>            }<br>        }</pre>
-<p>The getStatements() method looks for all triples that have a specific value in the object position. It doesn't care which resource or which predicate are in play. </p>
-<p>These are the results of the tests in this loop. The first iteration uses &quot;null&quot; as the object value. This is a wildcard value, and matches all the triples in the repository: </p>
-<pre class="output">Retrieve triples matching null.<br>(http://example.org/people/alice, http://example.org/people/age, &quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#int&gt;) [null]<br>(http://example.org/people/ted, http://example.org/people/age, &quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#long&gt;) [null]<br>(http://example.org/people/ted, http://example.org/people/age, &quot;42&quot;) [null]<br>(http://example.org/people/alice, http://example.org/people/weight, &quot;120.5&quot;) [null]<br>(http://example.org/people/ted, http://example.org/people/weight, &quot;120.5&quot;^^&lt;http://www.w3.org/2001/XMLSchema#float&gt;) [null]<br>(http://example.org/people/alice, http://example.org/people/favoriteColor, &quot;Red&quot;) [null]<br>(http://example.org/people/ted, http://example.org/people/favoriteColor, &quot;Rouge&quot;@fr) [null]<br>(http://example.org/people/alice, http://example.org/people/birthdate, &quot;1984-12-06&quot;^^&lt;http://www.w3.org/2001/XMLSchema#date&gt;) [null]<br>(http://example.org/people/ted, http://example.org/people/birthdate, &quot;1984-12-06T09:00:00&quot;^^&lt;http://www.w3.org/2001/XMLSchema#dateTime&gt;) [null]</pre>
-<p>What triples match &quot;42&quot; declared as an INT? [fortyTwoInt]</p>
-<pre class="output">Retrieve triples matching &quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#int&gt;.<br>(http://example.org/people/alice, http://example.org/people/age, &quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#int&gt;) [null]</pre>
-<p>What triples match &quot;42&quot; declared as an LONG? [fortyTwoLong]</p>
-<pre class="output">Retrieve triples matching &quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#long&gt;.<br>(http://example.org/people/ted, http://example.org/people/age, &quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#long&gt;) [null]</pre>
-<p>What triples match &quot;42&quot; untyped? [fortyTwoUntyped] </p>
-<pre class="output">Retrieve triples matching &quot;42&quot;.<br>(http://example.org/people/ted, http://example.org/people/age, &quot;42&quot;) [null]</pre>
-<p>What triples match &quot;120.5&quot; declared as a FLOAT? [weightFloat]</p>
-<pre class="output">Retrieve triples matching &quot;120.5&quot;^^&lt;http://www.w3.org/2001/XMLSchema#float&gt;.<br>(http://example.org/people/alice, http://example.org/people/weight, &quot;120.5&quot;^^&lt;http://www.w3.org/2001/XMLSchema#float&gt;) [null]</pre>
-<p>What triples match &quot;120.5&quot; untyped? [weightUntyped]</p>
-<pre class="output"></p>Retrieve triples matching &quot;120.5&quot;.<br>(http://example.org/people/ted, http://example.org/people/weight, &quot;120.5&quot;) [null]</pre>
-<p>What triples match &quot;Red&quot; as a simple string? [Red] </p>
-<pre class="output"></p>Retrieve triples matching &quot;Red&quot;.<br>(http://example.org/people/alice, http://example.org/people/favoriteColor, &quot;Red&quot;) [null]</pre>
-<p>What triples match &quot;Rouge&quot; declared as a French string? [Rouge] </p>
-<pre class="output"></p>Retrieve triples matching &quot;Rouge&quot;@fr.<br>(http://example.org/people/ted, http://example.org/people/favoriteColor, &quot;Rouge&quot;@fr) [null]</pre>
-<p>This loop builds and evaluates a SPARQL query instead of using getStatements(). It also shows examples of putting coded values into the search criteria without creating Literal objects as an intermediate step. It also shows how to use a BindingSet instead of a RepositoryResult object, and how to extract individual subject, predicate and object values from each returned triple. </p>
-<pre class="input"> for (String obj : new String[]{&quot;42&quot;, &quot;\&quot;42\&quot;&quot;, &quot;20.5&quot;, &quot;\&quot;20.5\&quot;&quot;, &quot;\&quot;20.5\&quot;^^xsd:float&quot;,<br>                                       &quot;\&quot;Rouge\&quot;@fr&quot;, &quot;\&quot;Rouge\&quot;&quot;, &quot;\&quot;1984-12-06\&quot;^^xsd:date&quot;}) {<br>            println( &quot;\nQuery triples matching &quot; + obj + &quot;.&quot;);<br>            String queryString = &quot;PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt; SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = &quot; + obj + &quot;)}&quot;;<br>            TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);<br>            TupleQueryResult result = tupleQuery.evaluate();<br>            try {<br>                while (result.hasNext()) {<br>                    BindingSet bindingSet = result.next();<br>                    Value s = bindingSet.getValue(&quot;s&quot;);<br>                    Value p = bindingSet.getValue(&quot;p&quot;);<br>                    Value o = bindingSet.getValue(&quot;o&quot;);<br>                    println(&quot;  &quot; + s + &quot; &quot; + p + &quot; &quot; + o);<br>                }</pre>
-<p>What triples match &quot;42&quot; (which is an int). We get both ints and longs. 
-<pre class="output">Query triples matching 42.<br>  http://example.org/people/alice http://example.org/people/age &quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#int&gt;<br>  http://example.org/people/ted http://example.org/people/age &quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#long&gt;</pre>
-<p>What triples match &quot;\&quot;42\&quot;&quot; (which is a string?) </p>
-<pre class="output">Query triples matching &quot;42&quot;.<br>  http://example.org/people/ted http://example.org/people/age &quot;42&quot;</pre>
-<p>What triples match &quot;120.5&quot; (a float)? </p>
-<pre class="output">Query triples matching 120.5.<br>  http://example.org/people/alice http://example.org/people/weight &quot;120.5&quot;^^&lt;http://www.w3.org/2001/XMLSchema#float&gt;</pre>
-<p>What triples match &quot;\&quot;120.5\&quot;&quot; (a string)? </p>
-<pre class="output">Query triples matching &quot;120.5&quot;.<br>  http://example.org/people/ted http://example.org/people/weight &quot;120.5&quot;</pre>
-<p>What triples match&quot;\&quot;120.5\&quot;^^xsd:float&quot; (a float)? </p>
-<pre class="output">Query triples matching &quot;120.5&quot;^^xsd:float.<br>  http://example.org/people/alice http://example.org/people/weight &quot;120.5&quot;^^&lt;http://www.w3.org/2001/XMLSchema#float&gt;</pre>
-<p>What triples match &quot;\&quot;Rouge\&quot;@fr&quot; (a French string)? </p>
-<pre class="output">Query triples matching &quot;Rouge&quot;@fr.<br>  http://example.org/people/ted http://example.org/people/favoriteColor &quot;Rouge&quot;@fr</pre>
-<p>What triples match &quot;Rouge&quot; (a string)? </p>
-<pre class="output">Query triples matching &quot;Rouge&quot;. 
-[No matches. General string fails to match French string.]</p></pre>
-<p>In the following example, we use getStatements() to match a DATE object. We have used a DATE literal in the object position of the triple pattern: </p> 
+<p>For sake of coding efficiency, it is good practice to create variables for namespace strings. We'll use this namespace again and again in the following lines. We have made the URIs in this example very short to keep the result displays compact.</p>
+<pre class="input">        String exns = &quot;http://people/&quot;;</pre>
+<p>The example creates new resources describing seven people, named alphabetically from Alice to Greg. These are URIs to use in the subject field of the triples. The example shows how to enter a full URI string, or alternately how to combine a namespace with a local resource name. </p>
+<pre class="input">        URI alice = f.createURI(&quot;http://people/alice&quot;);<br>        URI bob = f.createURI(&quot;http://people/bob&quot;);<br>        URI carol = f.createURI(&quot;http://people/carol&quot;);<br>        URI dave = f.createURI(&quot;http://people/dave&quot;);<br>        URI eric = f.createURI(&quot;http://people/eric&quot;);<br>        URI fred = f.createURI(&quot;http://people/fred&quot;);<br>        URI greg = f.createURI(&quot;http://people/greg&quot;);</pre>
+<h3>Numeric Literal Values </h3>
+<p>This section explores the behavior of numeric literals.</p>
+<h3>Asserting Numeric Data</h3>
+<p>The first section assigns ages to the  participants, using a variety of numeric types. First we need a URI for the &quot;age&quot; predicate. </p>
+<pre class="input">        URI age = f.createURI(exns, &quot;age&quot;);</pre>
+<p>The next step is to create a variety of values representing ages. Coincidentally, these people are all 42 years old, but we're going to record that information in multiple ways:</p>
+<pre class="input">        Literal fortyTwo = f.createLiteral(42);          // creates int<br>        Literal fortyTwoDecimal = f.createLiteral(42.0); // creates float<br>        Literal fortyTwoInt = f.createLiteral(&quot;42&quot;, XMLSchema.INT);<br>        Literal fortyTwoLong = f.createLiteral(&quot;42&quot;, XMLSchema.LONG);<br>        Literal fortyTwoFloat = f.createLiteral(&quot;42&quot;, XMLSchema.FLOAT);<br>        Literal fortyTwoString = f.createLiteral(&quot;42&quot;, XMLSchema.STRING); <br>        Literal fortyTwoPlain = f.createLiteral(&quot;42&quot;);   // creates plain literal</pre>
+<p>In four of these statements, we explicitly identified the datatype of the value in order to create an INT, a LONG, a DOUBLE and a STRING. This is the best practice. </p>
+<p>In three other statements, we just handed AllegroGraph numeric-looking values to see what it would do with them. As we will see in a moment, 42 creates an INT, 42.0 becomes into a DOUBLE, and &quot;42&quot; becomes a &quot;plain&quot; (untyped) literal value. (Note that plain literals are not <em>quite </em>the same thing as typed literal strings. A search for a plain literal will not always match a typed string, and <em>vice versa</em>.)</p>
+<p>Now we need to assemble the URIs and values into statements (which are client-side triples):</p>
+<pre class="input">        Statement stmt1 = f.createStatement(alice, age, fortyTwo);<br>        Statement stmt2 = f.createStatement(bob, age, fortyTwoDecimal);<br>        Statement stmt3 = f.createStatement(carol, age, fortyTwoInt);<br>        Statement stmt4 = f.createStatement(dave, age, fortyTwoLong);<br>        Statement stmt5 = f.createStatement(eric, age, fortyTwoFloat);<br>        Statement stmt6 = f.createStatement(fred, age, fortyTwoString);<br>        Statement stmt7 = f.createStatement(greg, age, fortyTwoPlain);</pre>
+<p>And then add the statements to the triple store on the AllegroGraph server. We can use either <strong>add()</strong> or <strong>addStatement()</strong> for this purpose. </p>
+<pre class="input">        conn.add(stmt1);<br>        conn.add(stmt2);<br>        conn.add(stmt3);<br>        conn.add(stmt4);<br>        conn.add(stmt5);<br>        conn.add(stmt6);<br>        conn.add(stmt7);</pre>
+<p>Now we'll complete the round trip to see what triples we get back from these assertions. This is how we use <strong>getStatements()</strong> in this example to retrieve and display age triples for us:</p>
+<pre class="input">        println(&quot;\nShowing all age triples using getStatements().  Seven matches.&quot;);<br>        RepositoryResult&lt;Statement&gt; statements = conn.getStatements(null, age, null, false);<br>        try {<br>            while (statements.hasNext()) {<br>                println(statements.next());<br>            }<br>        } finally {<br>            statements.close();<br>        }</pre>
+<p>This loop prints all age triples to the interaction window. Note that the retrieved triples are of six types: two ints, a long, a float, a double, a long, a string, and a &quot;plain literal.&quot; All of them say that their person's age is 42. Note that the triple for Greg has the plain literal value &quot;42&quot;, while the triple for Fred uses &quot;42&quot; as a string.</p>
+<pre class="output">Showing all age triples using getStatements().  Seven matches.  <br>(http://people/greg, http://people/age, &quot;42&quot;) [null]<br>(http://people/fred, http://people/age, &quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#string&gt;) [null]<br>(http://people/eric, http://people/age, &quot;4.2E1&quot;^^&lt;http://www.w3.org/2001/XMLSchema#float&gt;) [null]<br>(http://people/dave, http://people/age, &quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#long&gt;) [null]<br>(http://people/carol, http://people/age, &quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#int&gt;) [null]<br>(http://people/bob, http://people/age, &quot;4.2E1&quot;^^&lt;http://www.w3.org/2001/XMLSchema#double&gt;) [null]<br>(http://people/alice, http://people/age, &quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#int&gt;) [null]</pre>
+<p>If you ask AllegroGraph for a specific datatype, you will get it. If you leave the decision up to AllegroGraph, you might get something unexpected such as an plain literal value. </p>
+<h3>Matching Numeric Data</h3>
+<p>This section explores getStatements() and SPARQL matches against numeric triples. </p>
+<p><strong>Match 42.</strong> In the first example, we asked AllegroGraph to find an untyped number, <strong>42.</strong> </p>
+<table width="1038" border="1">
+  <tr>
+    <td width="140"><strong>Query Type </strong></td>
+    <td width="368"><strong>Query</strong></td>
+    <td width="508"><strong>Matches which types? </strong></td>
+  </tr>
+  <tr>
+    <td><strong>getStatements()</strong></td>
+    <td>conn.getStatements(None, age, 42)</td>
+    <td>Illegal argument.</td>
+  </tr>
+  <tr>
+    <td><strong>SPARQL direct match </strong></td>
+    <td>SELECT ?s ?p WHERE {?s ?p 42 .}</td>
+    <td>No matches. </td>
+  </tr>
+  <tr>
+    <td><strong>SPARQL filter match </strong></td>
+    <td>SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = 42)}</td>
+    <td>&quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#int&gt;<br>
+&quot;4.2E1&quot;^^&lt;http://www.w3.org/2001/XMLSchema#float&gt;<br>
+&quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#long&gt;<br>
+&quot;4.2E1&quot;^^&lt;http://www.w3.org/2001/XMLSchema#double&gt;</td>
+  </tr>
+</table>
+<p>The getStatements() query cannot accept a text input parameter, so that experiment won't run. The SPARQL direct match didn't know how to interpret the untyped value and found zero matches. The SPARQL filter match, however, opened the doors to matches of multiple numeric types, and returned ints, floats, longs and doubles. </p>
+<p><strong>&quot;Match 42.0&quot;</strong> without explicitly declaring the number's type.</p>
+<table width="1038" border="1">
+  <tr>
+    <td width="140"><strong>Query Type </strong></td>
+    <td width="368"><strong>Query</strong></td>
+    <td width="508"><strong>Matches which types? </strong></td>
+  </tr>
+  <tr>
+    <td><strong>getStatements()</strong></td>
+    <td>conn.getStatements(None, age, 42.0)</td>
+    <td><p>Illegal argument. </p></td>
+  </tr>
+  <tr>
+    <td><strong>SPARQL direct match </strong></td>
+    <td>SELECT ?s ?p WHERE {?s ?p 42.0 .}</td>
+    <td>No direct matches. </td>
+  </tr>
+  <tr>
+    <td><strong>SPARQL filter match </strong></td>
+    <td>SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = 42.0)}</td>
+    <td>&quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#int&gt;<br>
+&quot;4.2E1&quot;^^&lt;http://www.w3.org/2001/XMLSchema#float&gt;<br>
+&quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#long&gt;<br>
+&quot;4.2E1&quot;^^&lt;http://www.w3.org/2001/XMLSchema#double&gt;</td>
+  </tr>
+</table>
+<p>The getStatements() method cannot accept this input. The filter match returned all numeric types that were equal to 42.0.</p>
+<p><strong>&quot;Match '42'^^&lt;http://www.w3.org/2001/XMLSchema#int&gt;.&quot;</strong> Note that we have to use a variable (fortyTwoInt) bound to a Literal value in order to offer this int to getStatements(). We can't just type the value into the getStatements() method directly. </p>
+<table width="1038" border="1">
+  <tr>
+    <td width="140"><strong>Query Type </strong></td>
+    <td width="368"><strong>Query</strong></td>
+    <td width="508"><strong>Matches which types? </strong></td>
+  </tr>
+  <tr>
+    <td><strong>getStatements()</strong></td>
+    <td>conn.getStatements(None, age, fortyTwoInt)</td>
+    <td><p>&quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#int&gt;<br>
+    </p></td>
+  </tr>
+  <tr>
+    <td><strong>SPARQL direct match </strong></td>
+    <td>SELECT ?s ?p WHERE {?s ?p &quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#int&gt;}</td>
+    <td>&quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#int&gt;</td>
+  </tr>
+  <tr>
+    <td><strong>SPARQL filter match </strong></td>
+    <td>SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = &quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#int&gt;)}</td>
+    <td>&quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#int&gt;<br>
+&quot;4.2E1&quot;^^&lt;http://www.w3.org/2001/XMLSchema#float&gt;<br>
+&quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#long&gt;<br>
+&quot;4.2E1&quot;^^&lt;http://www.w3.org/2001/XMLSchema#double&gt;</td>
+  </tr>
+</table>
+<p>Both the getStatements() query and the SPARQL direct query returned exactly what we asked for: ints. The filter match returned all numeric types that matches in value. </p>
+<p><strong>&quot;Match '42'^^&lt;http://www.w3.org/2001/XMLSchema#long&gt;.&quot;</strong> Again we need a bound variable to offer a Literal value to getStatements(). </p>
+<table width="1038" border="1">
+  <tr>
+    <td width="140"><strong>Query Type </strong></td>
+    <td width="368"><strong>Query</strong></td>
+    <td width="508"><strong>Matches which types? </strong></td>
+  </tr>
+  <tr>
+    <td><strong>getStatements()</strong></td>
+    <td>conn.getStatements(None, age, fortyTwoLong)</td>
+    <td><p>&quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#long&gt;<br>
+    </p></td>
+  </tr>
+  <tr>
+    <td><strong>SPARQL direct match </strong></td>
+    <td>SELECT ?s ?p WHERE {?s ?p &quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#long&gt;}</td>
+    <td>&quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#long&gt;</td>
+  </tr>
+  <tr>
+    <td><strong>SPARQL filter match </strong></td>
+    <td>SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = &quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#long&gt;)}</td>
+    <td>&quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#int&gt;<br>
+&quot;4.2E1&quot;^^&lt;http://www.w3.org/2001/XMLSchema#float&gt;<br>
+&quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#long&gt;<br>
+&quot;4.2E1&quot;^^&lt;http://www.w3.org/2001/XMLSchema#double&gt;</td>
+  </tr>
+</table>
+<p>Both the getStatements() query and the SPARQL direct query returned longs. The filter match returned all numeric types. </p>
+<p><strong>&quot;Match '42'^^&lt;http://www.w3.org/2001/XMLSchema#double&gt;.&quot;</strong> </p>
+<table width="1038" border="1">
+  <tr>
+    <td width="140"><strong>Query Type </strong></td>
+    <td width="368"><strong>Query</strong></td>
+    <td width="508"><strong>Matches which types? </strong></td>
+  </tr>
+  <tr>
+    <td><strong>getStatements()</strong></td>
+    <td>conn.getStatements(None, age, fortyTwoDouble)</td>
+    <td><p>&quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#double&gt;<br>
+    </p></td>
+  </tr>
+  <tr>
+    <td><strong>SPARQL direct match </strong></td>
+    <td>SELECT ?s ?p WHERE {?s ?p &quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#double&gt;}</td>
+    <td>&quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#double&gt;</td>
+  </tr>
+  <tr>
+    <td><strong>SPARQL filter match </strong></td>
+    <td>SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = &quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#double&gt;)}</td>
+    <td>&quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#int&gt;<br>
+&quot;4.2E1&quot;^^&lt;http://www.w3.org/2001/XMLSchema#float&gt;<br>
+&quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#long&gt;<br>
+&quot;4.2E1&quot;^^&lt;http://www.w3.org/2001/XMLSchema#double&gt;</td>
+  </tr>
+</table>
+<p>Both the getStatements() query and the SPARQL direct query returned doubles. The filter match returned all numeric types. </p>
+<h2>Matching Numeric Strings and Plain Literals</h2>
+<p>At this point we are transitioning from tests of numeric matches to tests of string matches, but there is a gray zone to be explored first. What do we find if we search for strings that contain numbers? In particular, what about &quot;plain literal&quot; values that are almost, but not quite, strings?</p>
+<p><strong>&quot;Match '42'^^&lt;http://www.w3.org/2001/XMLSchema#string&gt;.&quot;</strong> This example asks for a typed string to see if we get any numeric matches back. </p>
+<table width="1038" border="1">
+  <tr>
+    <td width="140"><strong>Query Type </strong></td>
+    <td width="368"><strong>Query</strong></td>
+    <td width="508"><strong>Matches which types? </strong></td>
+  </tr>
+  <tr>
+    <td><strong>getStatements()</strong></td>
+    <td>conn.getStatements(None, age, fortyTwoString)</td>
+    <td><p>&quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#string&gt;<br>
+        It did not match the plain literal. <br>
+    </p></td>
+  </tr>
+  <tr>
+    <td><strong>SPARQL direct match </strong></td>
+    <td>SELECT ?s ?p WHERE {?s ?p &quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#string&gt;}</td>
+    <td><p>&quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#string&gt;<br>
+&quot;42&quot; This is the plain literal value. </p></td>
+  </tr>
+  <tr>
+    <td><strong>SPARQL filter match </strong></td>
+    <td>SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = &quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#string&gt;)}</td>
+    <td>&quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#string&gt;<br>
+&quot;42&quot; This is the plain literal value. </td>
+  </tr>
+</table>
+<p>The getStatements() query matched a literal string only. The SPARQL queries returned matches that were both typed strings and plain literals. There were no numeric matches. </p>
+<p><strong>&quot;Match plain literal '42'.&quot;</strong> This example asks for a plain literal to see if we get any numeric matches back. </p>
+<table width="1038" border="1">
+  <tr>
+    <td width="140"><strong>Query Type </strong></td>
+    <td width="368"><strong>Query</strong></td>
+    <td width="508"><strong>Matches which types? </strong></td>
+  </tr>
+  <tr>
+    <td><strong>getStatements()</strong></td>
+    <td>conn.getStatements(None, age, fortyTwoPlain)</td>
+    <td><p>&quot;42&quot; This is the plain literal. It did not match the string. <br>
+    </p></td>
+  </tr>
+  <tr>
+    <td><strong>SPARQL direct match </strong></td>
+    <td>SELECT ?s ?p WHERE {?s ?p &quot;42&quot;}</td>
+    <td><p>&quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#string&gt;<br>
+&quot;42&quot; This is the plain literal value. </p></td>
+  </tr>
+  <tr>
+    <td><strong>SPARQL filter match </strong></td>
+    <td>SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = &quot;42&quot;)}</td>
+    <td>&quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#string&gt;<br>
+&quot;42&quot; This is the plain literal value. </td>
+  </tr>
+</table>
+<p>The getStatements() query matched the plain literal only, and did not match the string. The SPARQL queries returned matches that were both typed strings and plain literals. There were no numeric matches. </p>
+<p>The interesting lesson here is that AllegroGraph distinguishes between strings and plain literals when you use getStatements(), but it lumps them together when you use SPARQL. </p>
+<h2>Matching Strings</h2>
+<p>In this section we'll set up a variety of string triples and experiment with matching them using getStatements() and SPARQL. Note that <a href="#Free Text Search">Free Text Search</a> is a different topic. In this section we're doing simple matches of whole strings.</p>
+<h3>Asserting String Values </h3>
+<p>We're going to add a &quot;favorite color&quot; attribute to five of the person resources we have used so far. First we need a predicate.</p>
+<pre class="input">        URI favoriteColor = f.createURI(exns, &quot;favoriteColor&quot;);</pre>
+<p>Now we'll create a variety of string values, and a single &quot;plain literal&quot; value. </p>
+<pre class="input">        Literal UCred = f.createLiteral(&quot;Red&quot;);<br>        Literal LCred = f.createLiteral(&quot;red&quot;);<br>        Literal RedPlain = f.createLiteral(&quot;Red&quot;);<br>        Literal rouge = f.createLiteral(&quot;rouge&quot;, XMLSchema.STRING);<br>        Literal Rouge = f.createLiteral(&quot;Rouge&quot;, XMLSchema.STRING);<br>        Literal RougePlain = f.createLiteral(&quot;Rouge&quot;);<br>        Literal FrRouge = f.createLiteral(&quot;Rouge&quot;, &quot;fr&quot;);</pre>
+<p>Note that in the last line we created a plain literal and assigned it a French language tag. <em>You cannot assign a language tag to strings, only to plain literals.</em> See <a href="http://www.w3.org/TR/rdf-concepts/#section-Graph-Literal">typed and plain literal values</a> for the specification.</p>
+<p>Next we'll add these values to new triples in the triple store. </p>
+<pre class="input">        conn.add(alice, favoriteColor, UCred);<br>        conn.add(bob, favoriteColor, LCred);<br>        conn.add(carol, favoriteColor, RedPlain);<br>        conn.add(dave, favoriteColor, rouge);<br>        conn.add(eric, favoriteColor, Rouge);<br>        conn.add(fred, favoriteColor, RougePlain);<br>        conn.add(greg, favoriteColor, FrRouge);</pre>
+<p>If we run a getStatements() query for all favoriteColor triples, we get these values returned:</p>
+<pre class="input">Showing all color triples using getStatements().  Should be seven.<br>(http://people/greg, http://people/favoriteColor, &quot;Rouge&quot;@fr) [null]<br>(http://people/fred, http://people/favoriteColor, &quot;Rouge&quot;) [null]<br>(http://people/eric, http://people/favoriteColor, &quot;Rouge&quot;^^&lt;http://www.w3.org/2001/XMLSchema#string&gt;) [null]<br>(http://people/dave, http://people/favoriteColor, &quot;rouge&quot;^^&lt;http://www.w3.org/2001/XMLSchema#string&gt;) [null]<br>(http://people/carol, http://people/favoriteColor, &quot;Red&quot;) [null]<br>(http://people/bob, http://people/favoriteColor, &quot;red&quot;^^&lt;http://www.w3.org/2001/XMLSchema#string&gt;) [null]<br>(http://people/alice, http://people/favoriteColor, &quot;Red&quot;^^&lt;http://www.w3.org/2001/XMLSchema#string&gt;) [null]</pre>
+<p>That's four typed strings, capitalized and lower case, plus three plain literals, one with a language tag. </p>
+<h3>Matching String Data</h3>
+<p>First let's search for &quot;Red&quot; without specifying a datatype. </p>
+<p><strong>&quot;Match 'Red'.&quot;</strong> What happens if we search for &quot;Red&quot; without specifying a string datatype? </p>
+<table width="1038" border="1">
+  <tr>
+    <td width="140"><strong>Query Type </strong></td>
+    <td width="368"><strong>Query</strong></td>
+    <td width="508"><strong>Matches which types? </strong></td>
+  </tr>
+  <tr>
+    <td><strong>getStatements()</strong></td>
+    <td>conn.getStatements(None, age, &quot;Red&quot;)</td>
+    <td><p>Illegal value. <br>
+    </p></td>
+  </tr>
+  <tr>
+    <td><strong>SPARQL direct match </strong></td>
+    <td>SELECT ?s ?p WHERE {?s ?p &quot;Red&quot;}</td>
+    <td><p>&quot;Red&quot;^^&lt;http://www.w3.org/2001/XMLSchema#string&gt;<br>
+&quot;Red&quot; This is the plain literal value.</p></td>
+  </tr>
+  <tr>
+    <td><strong>SPARQL filter match </strong></td>
+    <td>SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = &quot;Red&quot;)}</td>
+    <td>&quot;Red&quot;^^&lt;http://www.w3.org/2001/XMLSchema#string&gt;<br>
+&quot;Red&quot; This is the plain literal value.</td>
+  </tr>
+</table>
+<p>The getStatements() query cannot accept the &quot;Red&quot; argument and cannot run. The SPARQL queries matched both &quot;Red&quot; typed strings and &quot;Red&quot; plain literals, but they did not return the lower case &quot;red&quot; triple. The match was liberal regarding datatype but strict about case. </p>
+<p>Let's try &quot;Rouge&quot;.</p>
+<p><strong>&quot;Match 'Rouge'.&quot;</strong> What happens if we search for &quot;Rouge&quot; without specifying a string datatype or language? Will it match the triple with the French tag? </p>
+<table width="1038" border="1">
+  <tr>
+    <td width="140"><strong>Query Type </strong></td>
+    <td width="368"><strong>Query</strong></td>
+    <td width="508"><strong>Matches which types? </strong></td>
+  </tr>
+  <tr>
+    <td><strong>getStatements()</strong></td>
+    <td>conn.getStatements(None, age, &quot;Rouge&quot;)</td>
+    <td><p>Illegal. <br>
+    </p></td>
+  </tr>
+  <tr>
+    <td><strong>SPARQL direct match </strong></td>
+    <td>SELECT ?s ?p WHERE {?s ?p &quot;Rouge&quot;}</td>
+    <td><p>&quot;Rouge&quot;^^&lt;http://www.w3.org/2001/XMLSchema#string&gt;<br>
+&quot;Rouge&quot; This is the plain literal value. <br>
+        Did not match the &quot;Rouge&quot;@fr triple. </p></td>
+  </tr>
+  <tr>
+    <td><strong>SPARQL filter match </strong></td>
+    <td>SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = &quot;Rouge&quot;)}</td>
+    <td>&quot;Rouge&quot;^^&lt;http://www.w3.org/2001/XMLSchema#string&gt;<br>
+&quot;Rouge&quot; This is the plain literal value. <br>
+      Did not match the&quot;Rouge&quot;@fr triple. </td>
+  </tr>
+</table>
+<p>The getStatements() query could not proceed because of the illegal argument. The SPARQL queries matched both &quot;Rouge&quot; typed strings and &quot;Rouge&quot; plain literals, but they did not return the &quot;Rouge&quot;@fr triple. The match was liberal regarding datatype but strict about language. We didn't ask for French, so we didn't get French. </p>
+<p><strong>&quot;Match 'Rouge'@fr.&quot;</strong> What happens if we search for &quot;Rouge&quot;@fr? We'll have to bind the value to a variable (FrRouge) to use getStatements(). We can type the value directly into the SPARQL queries. </p>
+<table width="1038" border="1">
+  <tr>
+    <td width="140"><strong>Query Type </strong></td>
+    <td width="368"><strong>Query</strong></td>
+    <td width="508"><strong>Matches which types? </strong></td>
+  </tr>
+  <tr>
+    <td><strong>getStatements()</strong></td>
+    <td>conn.getStatements(None, age, FrRouge)</td>
+    <td><p>&quot;Rouge&quot;@fr <br>
+    </p></td>
+  </tr>
+  <tr>
+    <td><strong>SPARQL direct match </strong></td>
+    <td>SELECT ?s ?p WHERE {?s ?p &quot;Rouge&quot;@fr}</td>
+    <td><p>&quot;Rouge&quot;@fr </p></td>
+  </tr>
+  <tr>
+    <td><strong>SPARQL filter match </strong></td>
+    <td>SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = &quot;Rouge&quot;@fr)}</td>
+    <td>&quot;Rouge&quot;@fr </td>
+  </tr>
+</table>
+<p>If you ask for a specific language, that's exactly what you are going to get, in all three types of queries. </p>
+<p>You may be wondering how to perform a string match where language and capitalization don't matter. You can do that with a SPARQL filter query using the <strong>str()</strong> function, which strips out the string portion of a literal, leaving behind the datatype or language tag. Then the <strong>lowercase()</strong> function eliminates case issues:</p>
+<pre class="input">PREFIX fn: &lt;http://www.w3.org/2005/xpath-functions#&gt; 
+SELECT ?s ?p ?o 
+WHERE {?s ?p ?o . filter (fn:lower-case(str(?o)) = &quot;rouge&quot;)}</pre>
+<p>This query returns a variety of &quot;Rouge&quot; triples:</p>
+<pre class="output">  http://people/dave http://people/favoriteColor &quot;rouge&quot;^^&lt;http://www.w3.org/2001/XMLSchema#string&gt;<br>  http://people/eric http://people/favoriteColor &quot;Rouge&quot;^^&lt;http://www.w3.org/2001/XMLSchema#string&gt;<br>  http://people/fred http://people/favoriteColor &quot;Rouge&quot;<br>  http://people/greg http://people/favoriteColor &quot;Rouge&quot;@fr</pre>
+<p>This query matched all triples containing the string &quot;rouge&quot; regardless of datatype or language tag. Remember that the SPARQL &quot;filter&quot; queries are powerful, but they are also the slowest queries. SPARQL direct queries and getStatements() queries are faster. </p>
+<h2>Matching Booleans</h2>
+<p>In this section we'll assert and then search for Boolean values.</p>
+<h3>Asserting Boolean Values</h3>
+<p>We'll be adding a new attribute to the person resources in our example. Are they, or are they not, seniors?</p>
+<pre class="input">        URI senior = f.createURI(exns, &quot;senior&quot;);</pre>
+<p>The correct way to create Boolean values for use in triples is to create literal values of type Boolean:</p>
+<pre class="input">        Literal trueValue = f.createLiteral(&quot;true&quot;, XMLSchema.BOOLEAN);  <br>        Literal falseValue = f.createLiteral(&quot;false&quot;, XMLSchema.BOOLEAN);</pre>
+<p>Note that &quot;true&quot; and &quot;false&quot; must be lower case. </p>
+<p>We'll only need two triples:</p>
+<pre class="input">        conn.add(alice, senior, trueValue);<br>        conn.add(bob, senior, falseValue);</pre>
+<p>When we retrieve the triples (using getStatements()) we see:</p>
+<pre class="output">(http://people/bob, http://people/senior, &quot;false&quot;^^&lt;http://www.w3.org/2001/XMLSchema#boolean&gt;) [null]<br>(http://people/alice, http://people/senior, &quot;true&quot;^^&lt;http://www.w3.org/2001/XMLSchema#boolean&gt;) [null]</pre>
+<p>These are RDF-legal Boolean values that work with the AllegroGraph query engine. </p>
+<p><strong>&quot;Match 'true'.&quot;</strong> There are three correct ways to perform a Boolean search. One is to use the varible trueValue (defined above) to pass a Boolean literal value to getStatements(). SPARQL queries will recognize <strong>true</strong> and <strong>false</strong>, and of course the fully-typed <strong>&quot;true&quot;^^&lt;http://www.w3.org/2001/XMLSchema#boolean&gt;</strong> format is also respected by SPARQL:</p>
+<table width="1038" border="1">
+  <tr>
+    <td width="140"><strong>Query Type </strong></td>
+    <td width="368"><strong>Query</strong></td>
+    <td width="508"><strong>Matches which types? </strong></td>
+  </tr>
+  <tr>
+    <td><strong>getStatements()</strong></td>
+    <td>conn.getStatements(None, senior, trueValue)</td>
+    <td><p>&quot;true&quot;^^&lt;http://www.w3.org/2001/XMLSchema#boolean&gt;<br>
+    </p></td>
+  </tr>
+  <tr>
+    <td><strong>SPARQL direct match </strong></td>
+    <td>SELECT ?s ?p WHERE {?s ?p true}</td>
+    <td><p>&quot;true&quot;^^&lt;http://www.w3.org/2001/XMLSchema#boolean&gt;</p></td>
+  </tr>
+  <tr>
+    <td><strong>SPARQL direct match </strong></td>
+    <td>SELECT ?s ?p WHERE {?s ?p &quot;true&quot;^^&lt;http://www.w3.org/2001/XMLSchema#boolean&gt;</td>
+    <td>&quot;true&quot;^^&lt;http://www.w3.org/2001/XMLSchema#boolean&gt;</td>
+  </tr>
+  <tr>
+    <td><strong>SPARQL filter match </strong></td>
+    <td>SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = true)}</td>
+    <td>&quot;true&quot;^^&lt;http://www.w3.org/2001/XMLSchema#boolean&gt;</td>
+  </tr>
+  <tr>
+    <td><strong>SPARQL filter match </strong></td>
+    <td>SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = &quot;true&quot;^^&lt;http://www.w3.org/2001/XMLSchema#boolean&gt;}</td>
+    <td>&quot;true&quot;^^&lt;http://www.w3.org/2001/XMLSchema#boolean&gt;</td>
+  </tr>
+</table>
+<p>All of these queries correctly match Boolean values.</p>
+<p>In the following example, we use getStatements() to match a DATE object. We have used a DATE literal in the object position of the triple pattern: </p>
+
 <pre class="input">            println(&quot;Retrieve triples matching DATE object.&quot;);<br>            RepositoryResult&lt;Statement&gt; statements = conn.getStatements(null, null, date, false);<br>            try {<br>                while (statements.hasNext()) {<br>                    println(statements.next());<br>                }<br>            } finally {<br>                statements.close();<br>            }</pre> 
 <pre class="output">Retrieve triples matching DATE object.<br>(http://example.org/people/alice, http://example.org/people/birthdate, &quot;1984-12-06&quot;^^&lt;http://www.w3.org/2001/XMLSchema#date&gt;) [null]</pre>
 <p>Note the string representation of the DATE object in the following query.  </p>
@@ -1199,6 +1524,6 @@ Using getStatements() on conn2 should find Valjean:
 Number of results: 1</pre>
 <p>The Les Miserables triples are visible in both sessions. So too are the Kennedy triples. </p>
 <p>&nbsp;</p>
-<p><font color="#CCCCCC">December 14, 2009 4.0 m2 release</font></p>
+<p><font color="#CCCCCC">January 14, 2010 4.0 m3 release</font></p>
 </body>
 </html>
