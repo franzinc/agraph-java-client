@@ -856,13 +856,19 @@ public class TutorialExamples {
         Literal date = f.createLiteral("1984-12-06", XMLSchema.DATE);
         Literal datetime = f.createLiteral("1984-12-06T09:00:00", XMLSchema.DATETIME);
         Literal time = f.createLiteral("09:00:00", XMLSchema.TIME);
-                
+        Literal datetimeOffset = f.createLiteral("1984-12-06T09:00:00+01:00", XMLSchema.DATETIME);
+        println("Printing out Literals for date, datetime, time, and datetime with Zulu offset.");
+        println(date);
+        println(datetime);
+        println(time);
+        println(datetimeOffset);
         conn.add(alice, birthdate, date);
         conn.add(bob, birthdate, datetime);
         conn.add(carol, birthdate, time);
- 
+        conn.add(dave, birthdate, datetimeOffset);
+        
         {
-            println("\ngetStatements() all birthdates.  Three matches.");
+            println("\ngetStatements() all birthdates.  Four matches.");
             RepositoryResult<Statement> statements = conn.getStatements(null, birthdate, null, false);
             try {
                 while (statements.hasNext()) {
@@ -872,10 +878,10 @@ public class TutorialExamples {
                 statements.close();
             }
         }     
+        println("----------------------------------------------------------------------------");
+        println("\ngetStatements() triples that match date: " + date + " One match."  );        
         {
-            // Search for date using date object in triple pattern.
-            println("\nRetrieve triples matching DATE object.");
-            RepositoryResult<Statement> statements = conn.getStatements(null, null, date, false);
+            RepositoryResult<Statement> statements = conn.getStatements(null, birthdate, date, false);
             try {
                 while (statements.hasNext()) {
                     println(statements.next());
@@ -883,12 +889,41 @@ public class TutorialExamples {
             } finally {
                 statements.close();
             }
+        }           
+        println( "\nSPARQL matches for \'1984-12-06\'^^<http://www.w3.org/2001/XMLSchema#date> (filter match) finds one.");
+        queryString = "SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = '1984-12-06'^^<http://www.w3.org/2001/XMLSchema#date>)}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                Value o = bindingSet.getValue("o");
+                println("  " + s + " " + p + " " + o);
+            }
+        } finally {
+            result.close();
         }
-
+        println( "\nSPARQL matches for \'1984-12-06\'^^<http://www.w3.org/2001/XMLSchema#date> (direct match) finds one.");
+        queryString = "SELECT ?s ?p WHERE {?s ?p '1984-12-06'^^<http://www.w3.org/2001/XMLSchema#date> .}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                println("  " + s + " " + p );
+            }
+        } finally {
+            result.close();
+        }        
+        
+        println("----------------------------------------------------------------------------");
+        println("\ngetStatements() triples that match datetime: " + datetime + " One match."  );        
         {
-            println("\nMatch triples having a specific DATE value.");
-            RepositoryResult<Statement> statements = conn.getStatements(null, null,
-                    f.createLiteral("1984-12-06",XMLSchema.DATE), false);
+            RepositoryResult<Statement> statements = conn.getStatements(null, birthdate, datetime, false);
             try {
                 while (statements.hasNext()) {
                     println(statements.next());
@@ -896,11 +931,41 @@ public class TutorialExamples {
             } finally {
                 statements.close();
             }
+        }           
+        println( "\nSPARQL matches for \"1984-12-06T09:00:00Z\"^^<http://www.w3.org/2001/XMLSchema#dateTime> (filter match) finds one.");
+        queryString = "SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = '1984-12-06T09:00:00Z'^^<http://www.w3.org/2001/XMLSchema#dateTime>)}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                Value o = bindingSet.getValue("o");
+                println("  " + s + " " + p + " " + o);
+            }
+        } finally {
+            result.close();
         }
+        println( "\nSPARQL matches for \'1984-12-06T09:00:00Z\'^^<http://www.w3.org/2001/XMLSchema#dateTime> (direct match) finds one.");
+        queryString = "SELECT ?s ?p WHERE {?s ?p '1984-12-06T09:00:00Z'^^<http://www.w3.org/2001/XMLSchema#dateTime> .}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                println("  " + s + " " + p );
+            }
+        } finally {
+            result.close();
+        }        
+        
+        println("----------------------------------------------------------------------------");
+        println("\ngetStatements() triples that match time: " + time + " One match."  );        
         {
-            // Search for time using datetime object in triple pattern.
-            println("\nRetrieve triples matching DATETIME object.");
-            RepositoryResult<Statement> statements = conn.getStatements(null, null, time, false);
+            RepositoryResult<Statement> statements = conn.getStatements(null, birthdate, time, false);
             try {
                 while (statements.hasNext()) {
                     println(statements.next());
@@ -908,11 +973,42 @@ public class TutorialExamples {
             } finally {
                 statements.close();
             }
+        }           
+        println( "\nSPARQL matches for \"09:00:00Z\"^^<http://www.w3.org/2001/XMLSchema#time> (filter match) finds one.");
+        queryString = "SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = '09:00:00Z'^^<http://www.w3.org/2001/XMLSchema#time>)}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                Value o = bindingSet.getValue("o");
+                println("  " + s + " " + p + " " + o);
+            }
+        } finally {
+            result.close();
         }
+        println( "\nSPARQL matches for \"09:00:00Z\"^^<http://www.w3.org/2001/XMLSchema#time (direct match) finds one.");
+        queryString = "SELECT ?s ?p WHERE {?s ?p '09:00:00Z'^^<http://www.w3.org/2001/XMLSchema#time> .}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                println("  " + s + " " + p );
+            }
+        } finally {
+            result.close();
+        }        
+                
+        
+        println("----------------------------------------------------------------------------");
+        println("\ngetStatements() triples that match datetimeOffset: " + datetimeOffset + " One match."  );        
         {
-            println("\nMatch triples having a specific DATETIME value.");
-            RepositoryResult<Statement> statements = conn.getStatements(null, null,
-                    f.createLiteral("1984-12-06T09:00:00",XMLSchema.DATETIME), false);
+            RepositoryResult<Statement> statements = conn.getStatements(null, birthdate, datetimeOffset, false);
             try {
                 while (statements.hasNext()) {
                     println(statements.next());
@@ -920,7 +1016,37 @@ public class TutorialExamples {
             } finally {
                 statements.close();
             }
+        }           
+        println( "\nSPARQL matches for \"1984-12-06T09:00:00+01:00\"^^<http://www.w3.org/2001/XMLSchema#dateTime> (filter match) finds one.");
+        queryString = "SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = '1984-12-06T09:00:00+01:00'^^<http://www.w3.org/2001/XMLSchema#dateTime>)}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                Value o = bindingSet.getValue("o");
+                println("  " + s + " " + p + " " + o);
+            }
+        } finally {
+            result.close();
         }
+        println("\nSPARQL matches for \"1984-12-06T09:00:00+01:00\"^^<http://www.w3.org/2001/XMLSchema#dateTime> (direct match) finds one.");
+        queryString = "SELECT ?s ?p WHERE {?s ?p '1984-12-06T09:00:00+01:00'^^<http://www.w3.org/2001/XMLSchema#dateTime> .}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();
+        try {
+            while (result.hasNext()) {
+                BindingSet bindingSet = result.next();
+                Value s = bindingSet.getValue("s");
+                Value p = bindingSet.getValue("p");
+                println("  " + s + " " + p );
+            }
+        } finally {
+            result.close();
+        }        
+                
 
         conn.close();
         myRepository.shutDown();
