@@ -62,9 +62,17 @@ public class AGAbstractTest {
                 ifBlank(System.getProperty("AGRAPH_PORT"), null));
         
         if ((host == null || host.equals("localhost")) && port == null) {
-            File cfg = new File(new File(System.getProperty("java.io.tmpdir"),
-                    System.getProperty("user.name")), "agraph-tests.cfg");
-            if (cfg.exists()) {
+        	String root = ifBlank(System.getProperty("AGRAPH_ROOT"), null);
+        	File cfg;
+        	if (root == null) {
+            	cfg = new File( new File(
+            			System.getProperty("java.io.tmpdir"),
+            			System.getProperty("user.name")),
+            			"agraph-tests.cfg");
+        	} else {
+            	cfg = new File( new File(root), "agraph-tests.cfg");
+        	}
+        	if (cfg.exists()) {
                 try {
                     for (String line: readLines(cfg)) {
                         if (line.trim().startsWith("PortFile")) {
@@ -99,7 +107,25 @@ public class AGAbstractTest {
         cat = server.getCatalog(CATALOG_ID);
         repoId = "javatest";
         cat.deleteRepository(repoId);
+
+        // test connection once
+        ping();
     }
+
+	private static void ping() throws RepositoryException {
+		AGRepository repo = cat.createRepository(repoId);
+        try {
+            repo.initialize();
+            AGRepositoryConnection conn = repo.getConnection();
+            try {
+                conn.ping();
+            } finally {
+                Util.close(conn);
+            }
+        } finally {
+            Util.close(repo);
+        }
+	}
     
     @Before
     public void setUp() throws Exception {

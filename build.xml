@@ -103,6 +103,7 @@
                              value="true"/>
                 <sysproperty key="AGRAPH_HOST" value="${env.AGRAPH_HOST}"/>
                 <sysproperty key="AGRAPH_PORT" value="${env.AGRAPH_PORT}"/>
+                <sysproperty key="AGRAPH_ROOT" value="${env.root}"/>
                 <classpath>
                     <path refid="classpath"/>
                     <path location="classes"/>
@@ -145,7 +146,7 @@
     <target name="test-prepush"
             depends="compile"
             description="run prepush tests">
-        <run-java tasknamex="test" classname="org.junit.runner.JUnitCore" arg="test.TestSuites$Prepush"/>
+        <run-java tasknamex="test" classname="test.TestRunner" arg="test.TestSuites$Prepush"/>
     </target>
     
     <target name="test-broken"
