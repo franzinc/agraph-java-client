@@ -16,7 +16,6 @@
 	<classpathentry kind="lib" path="lib/jena-2.6.0/jena.jar"/>
 	<classpathentry kind="lib" path="lib/jena-2.6.0/jenatest.jar"/>
 	<classpathentry kind="lib" path="lib/jena-2.6.0/json.jar"/>
-	<classpathentry kind="lib" path="lib/jena-2.6.0/junit-4.5.jar"/>
 	<classpathentry kind="lib" path="lib/jena-2.6.0/log4j-1.2.12.jar"/>
 	<classpathentry kind="lib" path="lib/jena-2.6.0/lucene-core-2.3.1.jar"/>
 	<classpathentry kind="lib" path="lib/jena-2.6.0/stax-api-1.0.jar"/>
