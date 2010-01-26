@@ -46,8 +46,8 @@ creating, querying and maintaining RDF data, and for managing the stored triples
       <li><a href="#Loading Prolog Rules">Loading Prolog Rules</a> </li>
       <li><a href="#RDFS++ Inference">RDFS++ Inference</a> </li>
       <li><a href="#Geospatial Search">Geospatial Search</a> </li>
-      <li><a href="#Social Network Analysis">Social Network Analysis</a> </li>
-      <li><a href="#Transaction">Transactions </a></li>
+<!--      <li><a href="#Social Network Analysis">Social Network Analysis</a> </li>
+-->      <li><a href="#Transaction">Transactions </a></li>
       </ul>
     <p>&nbsp;</p></td>
   </tr>
@@ -349,7 +349,7 @@ This is the <strong>example4()</strong> function of TutorialExamples.java. It be
   </tr>
   <tr>
     <td><strong>getStatements()</strong></td>
-    <td>conn.getStatements(None, age, 42)</td>
+    <td>conn.getStatements(null, age, 42, false)</td>
     <td>Illegal argument.</td>
   </tr>
   <tr>
@@ -376,7 +376,7 @@ This is the <strong>example4()</strong> function of TutorialExamples.java. It be
   </tr>
   <tr>
     <td><strong>getStatements()</strong></td>
-    <td>conn.getStatements(None, age, 42.0)</td>
+    <td>conn.getStatements(null, age, 42.0, false)</td>
     <td><p>Illegal argument. </p></td>
   </tr>
   <tr>
@@ -403,7 +403,7 @@ This is the <strong>example4()</strong> function of TutorialExamples.java. It be
   </tr>
   <tr>
     <td><strong>getStatements()</strong></td>
-    <td>conn.getStatements(None, age, fortyTwoInt)</td>
+    <td>conn.getStatements(null, age, fortyTwoInt, false)</td>
     <td><p>&quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#int&gt;<br>
     </p></td>
   </tr>
@@ -431,7 +431,7 @@ This is the <strong>example4()</strong> function of TutorialExamples.java. It be
   </tr>
   <tr>
     <td><strong>getStatements()</strong></td>
-    <td>conn.getStatements(None, age, fortyTwoLong)</td>
+    <td>conn.getStatements(null, age, fortyTwoLong, false)</td>
     <td><p>&quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#long&gt;<br>
     </p></td>
   </tr>
@@ -459,7 +459,7 @@ This is the <strong>example4()</strong> function of TutorialExamples.java. It be
   </tr>
   <tr>
     <td><strong>getStatements()</strong></td>
-    <td>conn.getStatements(None, age, fortyTwoDouble)</td>
+    <td>conn.getStatements(null, age, fortyTwoDouble, false)</td>
     <td><p>&quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#double&gt;<br>
     </p></td>
   </tr>
@@ -489,7 +489,7 @@ This is the <strong>example4()</strong> function of TutorialExamples.java. It be
   </tr>
   <tr>
     <td><strong>getStatements()</strong></td>
-    <td>conn.getStatements(None, age, fortyTwoString)</td>
+    <td>conn.getStatements(null, age, fortyTwoString, false)</td>
     <td><p>&quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#string&gt;<br>
         It did not match the plain literal. <br>
     </p></td>
@@ -517,7 +517,7 @@ This is the <strong>example4()</strong> function of TutorialExamples.java. It be
   </tr>
   <tr>
     <td><strong>getStatements()</strong></td>
-    <td>conn.getStatements(None, age, fortyTwoPlain)</td>
+    <td>conn.getStatements(null, age, fortyTwoPlain, false)</td>
     <td><p>&quot;42&quot; This is the plain literal. It did not match the string. <br>
     </p></td>
   </tr>
@@ -560,7 +560,7 @@ This is the <strong>example4()</strong> function of TutorialExamples.java. It be
   </tr>
   <tr>
     <td><strong>getStatements()</strong></td>
-    <td>conn.getStatements(None, age, &quot;Red&quot;)</td>
+    <td>conn.getStatements(null, age, &quot;Red&quot;, false)</td>
     <td><p>Illegal value. <br>
     </p></td>
   </tr>
@@ -588,7 +588,7 @@ This is the <strong>example4()</strong> function of TutorialExamples.java. It be
   </tr>
   <tr>
     <td><strong>getStatements()</strong></td>
-    <td>conn.getStatements(None, age, &quot;Rouge&quot;)</td>
+    <td>conn.getStatements(null, age, &quot;Rouge&quot;, false)</td>
     <td><p>Illegal. <br>
     </p></td>
   </tr>
@@ -617,7 +617,7 @@ This is the <strong>example4()</strong> function of TutorialExamples.java. It be
   </tr>
   <tr>
     <td><strong>getStatements()</strong></td>
-    <td>conn.getStatements(None, age, FrRouge)</td>
+    <td>conn.getStatements(null, age, FrRouge, false)</td>
     <td><p>&quot;Rouge&quot;@fr <br>
     </p></td>
   </tr>
@@ -662,7 +662,7 @@ WHERE {?s ?p ?o . filter (fn:lower-case(str(?o)) = &quot;rouge&quot;)}</pre>
   </tr>
   <tr>
     <td><strong>getStatements()</strong></td>
-    <td>conn.getStatements(None, senior, trueValue)</td>
+    <td>conn.getStatements(null, senior, trueValue, false)</td>
     <td><p>&quot;true&quot;^^&lt;http://www.w3.org/2001/XMLSchema#boolean&gt;<br>
     </p></td>
   </tr>
@@ -705,7 +705,143 @@ WHERE {?s ?p ?o . filter (fn:lower-case(str(?o)) = &quot;rouge&quot;)}</pre>
 <p>And a DATETIME match without using a literal value object:</p>
 <pre class="input">           RepositoryResult&lt;Statement&gt; statements = conn.getStatements(null, null,<br>                    f.createLiteral(&quot;\&quot;1984-12-06T09:00:00\&quot;^^&lt;http://www.w3.org/2001/XMLSchema#dateTime&gt;&quot;), false);</pre>
 <pre class="output">Match triples having a specific DATETIME value.<br>(http://example.org/people/ted, http://example.org/people/birthdate, &quot;1984-12-06T09:00:00&quot;^^&lt;http://www.w3.org/2001/XMLSchema#dateTime&gt;) [null]</pre>
-<h2 id="Importing Triples">Importing Triples (example6() and example7()) &nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
+<h3>Dates, Times and Datetimes </h3>
+<p>In this final section of example5(), we'll assert and retrieve dates, times and datetimes. </p>
+<p>In this context, you might be surprised by the way that AllegroGraph handles time zone data. If you assert (or search for) a timestamp that includes a time-zone offset, AllegroGraph will &quot;normalize&quot; the expression to Greenwich (zulu) time before proceeding. This normalization greatly speeds up searching and happens transparently to you, but you'll notice that the matched values are all zulu times. </p>
+<h3>Asserting Date, Time and Datetime Values</h3>
+<p>We're going to add birthdates to our personnel records. We'll need a birthdate predicate:</p>
+<pre class="input">        URI birthdate = f.createURI(exns, &quot;birthdate&quot;);</pre>
+<p>We'll also need four types of literal values: a date, a time, a datetime, and a datetime with a time-zone offset.</p>
+<pre class="input">        Literal date = f.createLiteral(&quot;1984-12-06&quot;, XMLSchema.DATE);<br>        Literal datetime = f.createLiteral(&quot;1984-12-06T09:00:00&quot;, XMLSchema.DATETIME);<br>        Literal time = f.createLiteral(&quot;09:00:00&quot;, XMLSchema.TIME);<br>        Literal datetimeOffset = f.createLiteral(&quot;1984-12-06T09:00:00+01:00&quot;, XMLSchema.DATETIME);</pre>
+<p>It is interesting to notice that these lilteral values print out exactly as we defined them. </p>
+<pre class="output">Printing out Literals for date, datetime, time, and datetime with Zulu offset.<br>&quot;1984-12-06&quot;^^&lt;http://www.w3.org/2001/XMLSchema#date&gt;<br>&quot;1984-12-06T09:00:00&quot;^^&lt;http://www.w3.org/2001/XMLSchema#dateTime&gt;<br>&quot;09:00:00&quot;^^&lt;http://www.w3.org/2001/XMLSchema#time&gt;<br>&quot;1984-12-06T09:00:00+01:00&quot;^^&lt;http://www.w3.org/2001/XMLSchema#dateTime&gt;</pre>
+<p>Now we'll add them to the triple store:</p>
+<pre class="input">        conn.add(alice, birthdate, date);<br>        conn.add(bob, birthdate, datetime);<br>        conn.add(carol, birthdate, time);<br>        conn.add(dave, birthdate, datetimeOffset);</pre>
+<p>And then retrieve them using getStatements():</p>
+<pre class="output">getStatements() all birthdates.  Four matches.<br>(http://people/dave, http://people/birthdate, &quot;1984-12-06T08:00:00Z&quot;^^&lt;http://www.w3.org/2001/XMLSchema#dateTime&gt;) [null]<br>(http://people/carol, http://people/birthdate, &quot;09:00:00Z&quot;^^&lt;http://www.w3.org/2001/XMLSchema#time&gt;) [null]<br>(http://people/bob, http://people/birthdate, &quot;1984-12-06T09:00:00Z&quot;^^&lt;http://www.w3.org/2001/XMLSchema#dateTime&gt;) [null]<br>(http://people/alice, http://people/birthdate, &quot;1984-12-06&quot;^^&lt;http://www.w3.org/2001/XMLSchema#date&gt;) [null]</pre>
+<p>If you look sharply, you'll notice that the zulu offset has been normalized:</p>
+<pre>Was:<span class="output">&quot;1984-12-06T09:00:00+01:00&quot;</span>
+Now:<span class="output">&quot;1984-12-06T08:00:00Z&quot;</span></pre>
+<p>Note that the one-hour zulu offset has been applied to the timestamp. &quot;9:00&quot; turned into &quot;8:00.&quot; </p>
+<h3>Matching Date, Time, and Datetime Literals</h3>
+<p><strong>&quot;Match date.&quot;</strong> What happens if we search for the date literal we defined? We'll use the &quot;date&quot; variable with getStatements(), but just type the expected value into the SPARQL queries. </p>
+<table width="1038" border="1">
+  <tr>
+    <td width="140"><strong>Query Type </strong></td>
+    <td width="368"><strong>Query</strong></td>
+    <td width="508"><strong>Matches which types? </strong></td>
+  </tr>
+  <tr>
+    <td><strong>getStatements()</strong></td>
+    <td>conn.getStatements(null, birthdate, date, false)</td>
+    <td><p>&quot;1984-12-06&quot;<br>
+        ^^&lt;http://www.w3.org/2001/XMLSchema#date&gt;<br>
+    </p></td>
+  </tr>
+  <tr>
+    <td><strong>SPARQL direct match </strong></td>
+    <td>SELECT ?s ?p WHERE {?s ?p '1984-12-06'^^&lt;http://www.w3.org/2001/XMLSchema#date&gt;</td>
+    <td><p>&quot;1984-12-06&quot;<br>
+        ^^&lt;http://www.w3.org/2001/XMLSchema#date&gt;</p></td>
+  </tr>
+  <tr>
+    <td><strong>SPARQL filter match </strong></td>
+    <td>SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o =<br>
+      '1984-12-06'<br>
+      ^^&lt;http://www.w3.org/2001/XMLSchema#date&gt;)}</td>
+    <td>&quot;1984-12-06&quot;<br>
+      ^^&lt;http://www.w3.org/2001/XMLSchema#date&gt;</td>
+  </tr>
+</table>
+<p>All three queries match narrowly, meaning the exact date and datatype we asked for is returned. </p>
+<p><strong>&quot;Match datetime.&quot;</strong> What happens if we search for the datetime literal? We'll use the &quot;datetime&quot; variable with getStatements(), but just type the expected value into the SPARQL queries. </p>
+<table width="1038" border="1">
+  <tr>
+    <td width="140"><strong>Query Type </strong></td>
+    <td width="368"><strong>Query</strong></td>
+    <td width="508"><strong>Matches which types? </strong></td>
+  </tr>
+  <tr>
+    <td><strong>getStatements()</strong></td>
+    <td>conn.getStatements(null, birthdate, datetime, false)</td>
+    <td><p>&quot;1984-12-06T09:00:00Z&quot;<br>
+        ^^&lt;http://www.w3.org/2001/XMLSchema#dateTime&gt;<br>
+    </p></td>
+  </tr>
+  <tr>
+    <td><strong>SPARQL direct match </strong></td>
+    <td>SELECT ?s ?p WHERE {?s ?p '1984-12-06T09:00:00Z'<br>
+      ^^&lt;http://www.w3.org/2001/XMLSchema#dateTime&gt; .}</td>
+    <td><p>&quot;1984-12-06T09:00:00Z&quot;<br>
+        ^^&lt;http://www.w3.org/2001/XMLSchema#dateTime&gt;</p></td>
+  </tr>
+  <tr>
+    <td><strong>SPARQL filter match </strong></td>
+    <td>SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = '1984-12-06T09:00:00Z'^^&lt;http://www.w3.org/2001/XMLSchema#dateTime&gt;</td>
+    <td>&quot;1984-12-06T09:00:00Z&quot;<br>
+      ^^&lt;http://www.w3.org/2001/XMLSchema#dateTime&gt;</td>
+  </tr>
+</table>
+<p>The matches are specific for the exact date, time and type. </p>
+<p><strong>&quot;Match time.&quot;</strong> What happens if we search for the time literal? We'll use the &quot;time&quot; variable with getStatements(), but just type the expected value into the SPARQL queries. </p>
+<table width="1038" border="1">
+  <tr>
+    <td width="140"><strong>Query Type </strong></td>
+    <td width="368"><strong>Query</strong></td>
+    <td width="508"><strong>Matches which types? </strong></td>
+  </tr>
+  <tr>
+    <td><strong>getStatements()</strong></td>
+    <td>conn.getStatements(null, birthdate, time, false)</td>
+    <td><p>&quot;09:00:00Z&quot;<br>
+        ^^&lt;http://www.w3.org/2001/XMLSchema#time&gt;<br>
+    </p></td>
+  </tr>
+  <tr>
+    <td><strong>SPARQL direct match </strong></td>
+    <td>SELECT ?s ?p WHERE {?s ?p &quot;09:00:00Z&quot;<br>
+      ^^&lt;http://www.w3.org/2001/XMLSchema#time&gt; .}</td>
+    <td><p>&quot;09:00:00Z&quot;<br>
+        ^^&lt;http://www.w3.org/2001/XMLSchema#time&gt;</p></td>
+  </tr>
+  <tr>
+    <td><strong>SPARQL filter match </strong></td>
+    <td>SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = &quot;09:00:00Z&quot;^^&lt;http://www.w3.org/2001/XMLSchema#time&gt;)}</td>
+    <td>&quot;09:00:00Z&quot;<br>
+      ^^&lt;http://www.w3.org/2001/XMLSchema#time&gt;</td>
+  </tr>
+</table>
+<p>The matches are specific for the exact time and type. </p>
+<p><strong>&quot;Match datetime with offset.&quot;</strong> What happens if we search for a datetime with zulu offset? </p>
+<table width="1038" border="1">
+  <tr>
+    <td width="140"><strong>Query Type </strong></td>
+    <td width="368"><strong>Query</strong></td>
+    <td width="508"><strong>Matches which types? </strong></td>
+  </tr>
+  <tr>
+    <td><strong>getStatements()</strong></td>
+    <td>conn.getStatements(null, birthdate, datetimeOffset, false)</td>
+    <td><p>&quot;1984-12-06T08:00:00Z&quot;<br>
+        ^^&lt;http://www.w3.org/2001/XMLSchema#dateTime&gt;<br>
+    </p></td>
+  </tr>
+  <tr>
+    <td><strong>SPARQL direct match </strong></td>
+    <td>SELECT ?s ?p WHERE {?s ?p &quot;1984-12-06T09:00:00+01:00&quot;<br>
+      ^^&lt;http://www.w3.org/2001/XMLSchema#dateTime&gt; .}</td>
+    <td><p>&quot;1984-12-06T08:00:00Z&quot;<br>
+        ^^&lt;http://www.w3.org/2001/XMLSchema#dateTime&gt;</p></td>
+  </tr>
+  <tr>
+    <td><strong>SPARQL filter match </strong></td>
+    <td><p>SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = &quot;1984-12-06T09:00:00+01:00&quot;^^&lt;http://www.w3.org/2001/XMLSchema#dateTime&gt;)}</p></td>
+    <td>&quot;1984-12-06T08:00:00Z&quot;<br>
+      ^^&lt;http://www.w3.org/2001/XMLSchema#dateTime&gt;</td>
+  </tr>
+</table>
+<p>Note that we searched for &quot;1984-12-06T09:00:00+01:00&quot; but found &quot;1984-12-06T08:00:00Z&quot;. It is the same moment in time. </p>
+<h2>Importing Triples (example6() and example7()) &nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>
 The Java API client can load triples in either RDF/XML format or  NTriples format.  The example below calls the connection object's <strong>add()</strong> method to load 
 an NTriples file, and <strong>addFile()</strong> to load  an RDF/XML file. Both methods work, but the best practice is to use addFile(). </p>
@@ -1235,6 +1371,7 @@ spherical/degrees/-180.0/180.0/-90.0/90.0/5.0&gt;)
 &quot;+513159.49909-0000459.99970&quot;^^&lt;http://franz.com/ns/allegrograph/3.0/geospatial/spherical/degrees/-180.0/180.0/-90.0/90.0/5.0&gt;)</pre>
 <p>AllegroGraph returns the location of London, but not the nearby Amsterdam.</p>
 
+<!-- Commented out 1/25/2010 due to rfe9149. BDC
 <h2 id="Social Network Analysis">Social Network Analysis  (example21())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>AllegroGraph includes sophisticated algorithms for social-network analysis (SNA). It can examine an RDF graph of relationships among people (or similar entities, such as businesses) and discover:</p>
 <ul>
@@ -1467,6 +1604,8 @@ spherical/degrees/-180.0/180.0/-90.0/90.0/5.0&gt;)
 <p> Group-betweenness-centrality() is measured by first finding the actor whose actor-betweenness-centrality<br>
   is maximized and then summing the difference between this maximum value and the actor-betweenness-centrality of all other actors. This value is then normalized so that it ranges between 0 and 1. </p>
 <p>Valjean's smaller ego group has a group-betweenness-centrality of 0.904. The value for the larger ego group is 0.704. Even by this measure, the larger group is less cohesive. </p>
+-->
+
 <p>&nbsp;</p>
 <h2 id="Transaction">Transaction (example22())</h2>
 <p>Triples are normally loaded one at a time in &quot;auto-commit&quot; mode. Each triple enters the triple store individually. It is possible that a batch of incoming triples, all describing the same resource, might be interrupted for some reason. An interrupted load can leave the triple store in an unknown state. </p>
@@ -1524,6 +1663,6 @@ Using getStatements() on conn2 should find Valjean:
 Number of results: 1</pre>
 <p>The Les Miserables triples are visible in both sessions. So too are the Kennedy triples. </p>
 <p>&nbsp;</p>
-<p><font color="#CCCCCC">January 14, 2010 4.0 m3 release</font></p>
+<p><font color="#CCCCCC">January 20, 2010 4.0 m3 release</font></p>
 </body>
 </html>
