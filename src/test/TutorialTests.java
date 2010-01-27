@@ -822,6 +822,8 @@ public class TutorialTests extends AGAbstractTest {
         // Create URIs for relationship predicates.
     	String lmns = "http://www.franz.com/lesmis#";
         conn.setNamespace("lm", lmns);
+        String dc = "http://purl.org/dc/elements/1.1/";
+        conn.setNamespace("dc", dc);
         URI knows = vf.createURI(lmns, "knows");
         URI barelyKnows = vf.createURI(lmns, "barely_knows");
         URI knowsWell = vf.createURI(lmns, "knows_well");
