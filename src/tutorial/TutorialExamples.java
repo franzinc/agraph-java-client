@@ -1726,7 +1726,7 @@ public class TutorialExamples {
 
     /**
      * Social Network Analysis
-     */
+    */
     public static void example21() throws Exception {
     	AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
     	AGCatalog catalog = server.getCatalog(CATALOG_ID);
@@ -2178,6 +2178,7 @@ public class TutorialExamples {
 
         
     }
+
 	
     /**
      * Transactions
@@ -2253,6 +2254,7 @@ public class TutorialExamples {
      * Usage: [1-22]+
      */
     public static void main(String[] args) throws Exception {
+    	long now = System.currentTimeMillis();
         List<Integer> choices = new ArrayList<Integer>();
         if (args.length == 0) {
             // for choosing by editing this code
@@ -2290,14 +2292,15 @@ public class TutorialExamples {
                 case 18: example18(); break;                                    
                 case 19: example19(); break;                                    
                 case 20: example20(); break;                                    
-                case 21: example21(); break;                                    
+//                case 21: example21(); break;        Commented out pending rfe9149 1/25/2010 BDC                          
                 case 22: example22(); break;
-                default: throw new IllegalArgumentException("There is no example " + choice);
+                default: println("Example" + choice + "() is not available in this release.");
                 }
                 closeAll();
             }
         } finally {
             closeAll();
+            println("Elapsed time: " + (System.currentTimeMillis() - now)/1000.00 + " seconds.");
         }
     }
     

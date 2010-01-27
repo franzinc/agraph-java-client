@@ -63,7 +63,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 
     protected Repository createRepository() throws Exception {
         AGServer server = new AGServer(AGAbstractTest.findServerUrl(), AGAbstractTest.username(), AGAbstractTest.password());
-        AGCatalog catalog = server.getRootCatalog();
+        AGCatalog catalog = server.getCatalog(AGAbstractTest.CATALOG_ID);
         AGRepository repo = catalog.createRepository("testRepo2");
         return repo;
     }
