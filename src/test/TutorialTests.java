@@ -231,6 +231,7 @@ public class TutorialTests extends AGAbstractTest {
     public void example8() throws Exception {
         cat.deleteRepository("example8");
         repo = cat.createRepository("example8");
+        closeLater(repo);
         repo.initialize();
         conn = getConnection(repo);
         vf = repo.getValueFactory();
@@ -534,17 +535,20 @@ public class TutorialTests extends AGAbstractTest {
         example6();
         // create two ordinary stores, and one federated store:
         AGRepository redRepo = cat.createRepository("redthingsjv");
+        closeLater(redRepo);
         redRepo.initialize();
         AGRepositoryConnection redConn = getConnection(redRepo);
         redConn.clear();
         ValueFactory rf = redConn.getValueFactory();
         AGRepository greenRepo = cat.createRepository("greenthingsjv");
+        closeLater(greenRepo);
         greenRepo.initialize();
         AGRepositoryConnection greenConn = getConnection(greenRepo);
         greenConn.clear();
         ValueFactory gf = greenConn.getValueFactory();
         AGServer server = repo.getCatalog().getServer();
         AGRepository rainbowRepo = server.createFederation("rainbowthingsjv", redRepo, greenRepo);
+        closeLater(rainbowRepo);
         rainbowRepo.initialize();
         assertFalse("Federation is writable?", rainbowRepo.isWritable());
         AGRepositoryConnection rainbowConn = getConnection(rainbowRepo);

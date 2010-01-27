@@ -54,8 +54,17 @@ public class AGAbstractTest {
     protected AGValueFactory vf;
     
     private Stack<Closeable> toClose = new Stack<Closeable>();
+    
+    private static String serverUrl;
 
     public static String findServerUrl() {
+    	if (serverUrl == null) {
+    		serverUrl = findServerUrl1();
+    	}
+    	return serverUrl;
+    }
+    
+    private static String findServerUrl1() {
         String host = or(ifBlank(System.getenv("AGRAPH_HOST"), null),
                 ifBlank(System.getProperty("AGRAPH_HOST"), null));
         String port = or(ifBlank(System.getenv("AGRAPH_PORT"), null),
@@ -74,6 +83,7 @@ public class AGAbstractTest {
         	}
         	if (cfg.exists()) {
                 try {
+                	System.out.println("Reading agraph cfg: " + cfg.getAbsolutePath());
                     for (String line: readLines(cfg)) {
                         if (line.trim().startsWith("PortFile")) {
                             File portFile = new File(get(line.split(" "), 1, "").trim());
@@ -87,6 +97,8 @@ public class AGAbstractTest {
                 } catch (Exception e) {
                     throw new RuntimeException("Trying to read PortFile from config file: " + cfg.getAbsolutePath(), e);
                 }
+            } else {
+            	System.err.println("Agraph cfg not found: " + cfg.getAbsolutePath());
             }
         }
         
@@ -102,14 +114,20 @@ public class AGAbstractTest {
     }
     
     @BeforeClass
-    public static void setUpOnce() throws Exception {
-        server = new AGServer(findServerUrl(), username(), password());
-        cat = server.getCatalog(CATALOG_ID);
-        repoId = "javatest";
-        cat.deleteRepository(repoId);
+    public static void setUpOnce() {
+    	String url = findServerUrl();
+        try {
+            server = new AGServer(url, username(), password());
+            cat = server.getCatalog(CATALOG_ID);
+            repoId = "javatest";
+			cat.deleteRepository(repoId);
+			cat.deleteRepository(repoId);
 
-        // test connection once
-        ping();
+	        // test connection once
+	        ping();
+		} catch (Exception e) {
+			throw new RuntimeException("server url: " + url, e);
+		}
     }
 
 	private static void ping() throws RepositoryException {
@@ -130,8 +148,8 @@ public class AGAbstractTest {
     @Before
     public void setUp() throws Exception {
         repo = cat.createRepository(repoId);
-        repo.initialize();
         closeLater(repo);
+        repo.initialize();
         vf = repo.getValueFactory();
         conn = getConnection();
         conn.clear();
