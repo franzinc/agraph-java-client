@@ -8,10 +8,10 @@
 
 package test;
 
+import static com.franz.util.Util.close;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static test.Util.close;
-import static test.Util.get;
 import static test.Util.ifBlank;
 import static test.Util.or;
 import static test.Util.readLines;
@@ -71,34 +71,17 @@ public class AGAbstractTest {
 				ifBlank(System.getProperty("AGRAPH_PORT"), null));
 		
 		if ((host == null || host.equals("localhost")) && port == null) {
-			String root = ifBlank(System.getProperty("AGRAPH_ROOT"), null);
-			File cfg;
-			if (root == null) {
-            	cfg = new File( new File( new File(System.getProperty("java.io.tmpdir"),
-   							  					   System.getProperty("user.name")),
-   							  			  "ag40"),
-            					"agraph-tests.cfg");
-			} else {
-				cfg = new File( new File(root), "agraph-tests.cfg");
-			}
-			if (cfg.exists()) {
-				try {
-					System.out.println("Reading agraph cfg: " + cfg.getAbsolutePath());
-					for (String line: readLines(cfg)) {
-						if (line.trim().startsWith("PortFile")) {
-							File portFile = new File(get(line.split(" "), 1, "").trim());
-							if (portFile.exists()) {
-								port = readLines(portFile).get(0);
-								host = "localhost";
-							}
-							break;
-						}
-					}
-				} catch (Exception e) {
-					throw new RuntimeException("Trying to read PortFile from config file: " + cfg.getAbsolutePath(), e);
+			File portFile = new File("../agraph/lisp/agraph.port");
+			System.out.println("Reading agraph.port: " + portFile.getAbsolutePath());
+			try {
+				if (portFile.exists()) {
+					port = readLines(portFile).get(0);
+					host = "localhost";
+				} else {
+					throw new RuntimeException("PortFile not found.");
 				}
-			} else {
-				System.err.println("Agraph cfg not found: " + cfg.getAbsolutePath());
+			} catch (Exception e) {
+				throw new RuntimeException("Trying to read PortFile: " + portFile.getAbsolutePath(), e);
 			}
 		}
 		
