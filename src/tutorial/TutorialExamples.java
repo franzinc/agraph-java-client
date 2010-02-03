@@ -1806,16 +1806,17 @@ public class TutorialExamples {
         }
         println("Number of results: " + count);
         result.close();
-        
+        println("foo");
         println("\nValjean's ego group in one list depth 1 (using associates).");
-        queryString = "(select ?group" +
-          "(ego-group !lm:character11 1 associates ?group))";
+        queryString = "(select (?member)" +
+          "(ego-group !lm:character11 1 associates ?group)" +
+          "(member ?member ?group))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         result = tupleQuery.evaluate();
         count = 0;
         while (result.hasNext()) {
             BindingSet bindingSet = result.next();
-            Value p = bindingSet.getValue("group");
+            Value p = bindingSet.getValue("member");
             println("Group: " + p );
             count++;
         }
@@ -1823,14 +1824,15 @@ public class TutorialExamples {
         result.close();
 
         println("\nValjean's ego group in one list depth 2 (using associates).");
-        queryString = "(select ?group" +
-          "(ego-group !lm:character11 2 associates ?group))";
+        queryString = "(select (?member)" +
+        "(ego-group !lm:character11 2 associates ?group)" +
+        "(member ?member ?group))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         result = tupleQuery.evaluate();
         count = 0;
         while (result.hasNext()) {
             BindingSet bindingSet = result.next();
-            Value p = bindingSet.getValue("group");
+            Value p = bindingSet.getValue("member");
             println("Group: " + p );
             count++;
         }
@@ -1838,49 +1840,53 @@ public class TutorialExamples {
         result.close();
 
         println("\nValjean's ego group in one list depth 3 (using associates).");
-        queryString = "(select ?group" +
-          "(ego-group !lm:character11 3 associates ?group))";
+        queryString = "(select (?member)" +
+        "(ego-group !lm:character11 3 associates ?group)" +
+        "(member ?member ?group))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         result = tupleQuery.evaluate();
         count = 0;
         while (result.hasNext()) {
             BindingSet bindingSet = result.next();
-            Value p = bindingSet.getValue("group");
+            Value p = bindingSet.getValue("member");
             println("Group: " + p );
             count++;
         }
         println("Number of results: " + count);
         result.close();
-
+/*
         println("\nShortest breadth-first path connecting Valjean to Bossuet using intimates. (Should be no path.)");
-        queryString = "(select ?path" +
-          "(breadth-first-search-paths !lm:character11 !lm:character64 intimates 10 ?path))";
+        queryString = "(select ?node" +
+          "(breadth-first-search-paths !lm:character11 !lm:character64 intimates 10 ?path)" +
+          "(member ?node ?path))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         result = tupleQuery.evaluate();
         count = 0;
         while (result.hasNext()) {
             BindingSet bindingSet = result.next();
-            Value p = bindingSet.getValue("path");
+            Value p = bindingSet.getValue("node");
             println("Path: " + p );
         }
         println("Number of results: " + count);
         result.close();
-        
+ */     
         println("\nShortest breadth-first path connecting Valjean to Bossuet using associates.");
-        queryString = "(select ?path" +
-          "(breadth-first-search-paths !lm:character11 !lm:character64 associates 10 ?path))";
+        queryString = "(select ?node" +
+          "(breadth-first-search-paths !lm:character11 !lm:character64 associates 10 ?paths)" +
+          "(member ?path ?paths)" +
+          "(member ?node ?path))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         result = tupleQuery.evaluate();
         count = 0;
         while (result.hasNext()) {
             BindingSet bindingSet = result.next();
-            Value p = bindingSet.getValue("path");
+            Value p = bindingSet.getValue("node");
             println("Path: " + p );
             count++;
         }
         println("Number of results: " + count);
         result.close();
-        
+ /*      
         println("\nShortest breadth-first path connecting Valjean to Bossuet using everyone.");
         queryString = "(select ?path" +
           "(breadth-first-search-paths !lm:character11 !lm:character64 everyone 10 ?path))";
@@ -1968,7 +1974,7 @@ public class TutorialExamples {
             println("Neighbors: " + p.stringValue());
         }
         result.close();
-
+ 
         println("\nWho are Valjean's neighbors? (using everyone).");
         queryString = "(select ?name" +
           "(nodal-neighbors !lm:character11 everyone ?member)" +
@@ -1996,22 +2002,23 @@ public class TutorialExamples {
             println("Graph density: " + p.stringValue());
         }
         result.close();
-
+ 
         println("\nValjean's cliques? Should be two (using associates).");
-        queryString = "(select ?clique" +
-          "(clique !lm:character11 associates ?clique))";
+        queryString = "(select ?member" +
+          "(clique !lm:character11 associates ?clique)" +
+          "(member ?member ?clique))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         result = tupleQuery.evaluate();
         count = 0;
         while (result.hasNext()) {
             BindingSet bindingSet = result.next();
-            Value p = bindingSet.getValue("clique");
+            Value p = bindingSet.getValue("member");
             println("Clique: " + p );
             count++;
         }
         println("Number of results: " + count);
         result.close();
-        
+*/        
         println("\nValjean's actor-degree-centrality to his ego group at depth 1 (using associates).");
         queryString = "(select ?centrality" +
           "(ego-group !lm:character11 1 associates ?group)" +
@@ -2292,7 +2299,7 @@ public class TutorialExamples {
                 case 18: example18(); break;                                    
                 case 19: example19(); break;                                    
                 case 20: example20(); break;                                    
-//                case 21: example21(); break;        Commented out pending rfe9149 1/25/2010 BDC                          
+ //               case 21: example21(); break;      //  Commented out pending rfe9149 1/25/2010 BDC                          
                 case 22: example22(); break;
                 default: println("Example" + choice + "() is not available in this release.");
                 }
