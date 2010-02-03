@@ -63,47 +63,47 @@ public class AGAbstractTest {
     	}
     	return serverUrl;
     }
-    
-    private static String findServerUrl1() {
-        String host = or(ifBlank(System.getenv("AGRAPH_HOST"), null),
-                ifBlank(System.getProperty("AGRAPH_HOST"), null));
-        String port = or(ifBlank(System.getenv("AGRAPH_PORT"), null),
-                ifBlank(System.getProperty("AGRAPH_PORT"), null));
-        
-        if ((host == null || host.equals("localhost")) && port == null) {
-        	String root = ifBlank(System.getProperty("AGRAPH_ROOT"), null);
-        	File cfg;
-        	if (root == null) {
-            	cfg = new File( new File(
-            			System.getProperty("java.io.tmpdir"),
-            			System.getProperty("user.name")),
-            			"agraph-tests.cfg");
-        	} else {
-            	cfg = new File( new File(root), "agraph-tests.cfg");
-        	}
-        	if (cfg.exists()) {
-                try {
-                	System.out.println("Reading agraph cfg: " + cfg.getAbsolutePath());
-                    for (String line: readLines(cfg)) {
-                        if (line.trim().startsWith("PortFile")) {
-                            File portFile = new File(get(line.split(" "), 1, "").trim());
-                            if (portFile.exists()) {
-                                port = readLines(portFile).get(0);
-                                host = "localhost";
-                            }
-                            break;
-                        }
-                    }
-                } catch (Exception e) {
-                    throw new RuntimeException("Trying to read PortFile from config file: " + cfg.getAbsolutePath(), e);
-                }
-            } else {
-            	System.err.println("Agraph cfg not found: " + cfg.getAbsolutePath());
-            }
-        }
-        
-        return "http://" + or(host, "localhost") + ":" + or(port, "10035");
-    }
+
+	private static String findServerUrl1() {
+		String host = or(ifBlank(System.getenv("AGRAPH_HOST"), null),
+				ifBlank(System.getProperty("AGRAPH_HOST"), null));
+		String port = or(ifBlank(System.getenv("AGRAPH_PORT"), null),
+				ifBlank(System.getProperty("AGRAPH_PORT"), null));
+		
+		if ((host == null || host.equals("localhost")) && port == null) {
+			String root = ifBlank(System.getProperty("AGRAPH_ROOT"), null);
+			File cfg;
+			if (root == null) {
+            	cfg = new File( new File( new File(System.getProperty("java.io.tmpdir"),
+   							  					   System.getProperty("user.name")),
+   							  			  "ag40"),
+            					"agraph-tests.cfg");
+			} else {
+				cfg = new File( new File(root), "agraph-tests.cfg");
+			}
+			if (cfg.exists()) {
+				try {
+					System.out.println("Reading agraph cfg: " + cfg.getAbsolutePath());
+					for (String line: readLines(cfg)) {
+						if (line.trim().startsWith("PortFile")) {
+							File portFile = new File(get(line.split(" "), 1, "").trim());
+							if (portFile.exists()) {
+								port = readLines(portFile).get(0);
+								host = "localhost";
+							}
+							break;
+						}
+					}
+				} catch (Exception e) {
+					throw new RuntimeException("Trying to read PortFile from config file: " + cfg.getAbsolutePath(), e);
+				}
+			} else {
+				System.err.println("Agraph cfg not found: " + cfg.getAbsolutePath());
+			}
+		}
+		
+		return "http://" + or(host, "localhost") + ":" + or(port, "10035");
+	}
     
     public static String username() {
         return or(System.getenv("AGRAPH_USER"), "test");
