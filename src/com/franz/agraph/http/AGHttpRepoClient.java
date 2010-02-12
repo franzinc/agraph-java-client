@@ -682,31 +682,47 @@ public class AGHttpRepoClient implements Closeable {
 		}
 	}
 
-	public void registerFreetextPredicate(URI predicate)
+	public void createFreetextIndex(String name, URI[] predicates)
 			throws RepositoryException {
-		String url = AGProtocol.getFreetextPredicatesLocation(getSessionRoot());
-		String pred_nt = NTriplesUtil.toNTriplesString(predicate);
-		Header[] headers = {};
-		NameValuePair[] params = { new NameValuePair(
-				AGProtocol.FTI_PREDICATE_PARAM_NAME, pred_nt) };
+		String url = AGProtocol.getFreetextIndexLocation(getSessionRoot(), name);
+		List<NameValuePair> params = new ArrayList<NameValuePair>();
+		if (predicates != null) {
+			for (URI predicate : predicates) {
+				String pred = NTriplesUtil.toNTriplesString(predicate);
+				params.add(new NameValuePair("predicate", pred));
+			}
+		}
 		try {
-			getHTTPClient().post(url, headers, params, null, null);
+			getHTTPClient().put(url, new Header[0], params.toArray(new NameValuePair[params.size()]), null);
 		} catch (HttpException e) {
 			throw new RepositoryException(e);
-		} catch (RDFParseException e) {
+		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		} catch (IOException e) {
 			throw new RepositoryException(e);
 		}
 	}
 
-	public String[] getFreetextPredicates() throws RepositoryException {
-		String url = AGProtocol.getFreetextPredicatesLocation(getSessionRoot());
-		Header[] headers = new Header[0];
-		NameValuePair[] params = new NameValuePair[0];
+	public String[] getFreetextPredicates(String index)
+			throws RepositoryException {
+		String url = AGProtocol.getFreetextIndexLocation(getSessionRoot(), index) + "/predicates";
 		AGResponseHandler handler = new AGResponseHandler("");
 		try {
-			getHTTPClient().get(url, headers, params, handler);
+			getHTTPClient().get(url, new Header[0], new NameValuePair[0], handler);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		}
+		return handler.getString().split("\n");
+	}
+
+	public String[] getFreetextIndices()
+			throws RepositoryException {
+		String url = AGProtocol.getFreetextIndexLocation(getSessionRoot());
+		AGResponseHandler handler = new AGResponseHandler("");
+		try {
+			getHTTPClient().get(url, new Header[0], new NameValuePair[0], handler);
 		} catch (IOException e) {
 			throw new RepositoryException(e);
 		} catch (AGHttpException e) {

@@ -11,6 +11,7 @@ package com.franz.agraph.repository;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.net.URLEncoder;
 
 import org.openrdf.OpenRDFException;
 import org.openrdf.model.Value;
@@ -148,7 +149,7 @@ public class AGCatalog {
 
 	// TODO this should be part of AGProtocol.
 	public String getRepositoryURL(String repositoryID) {
-		return repositoriesURL + "/" + repositoryID;
+		return repositoriesURL + "/" + URLEncoder.encode(repositoryID);
 	}
 	
 	/**

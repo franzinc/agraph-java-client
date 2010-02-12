@@ -12,6 +12,7 @@
 package com.franz.agraph.http;
 
 import org.openrdf.http.protocol.Protocol;
+import java.net.URLEncoder;
 
 /**
  *
@@ -141,7 +142,7 @@ public class AGProtocol extends Protocol {
 	/**
 	 * Relative location of the freetext predicates service.
 	 */
-	public static final String FTI_PREDICATES = "predicates";
+	public static final String FTI_INDICES = "indices";
 	
 	/**
 	 * Parameter name for the 'predicate' parameter for freetext.
@@ -418,7 +419,7 @@ public class AGProtocol extends Protocol {
 	 * Location of a named catalog
 	 */
 	public static final String getNamedCatalogLocation(String serverURL, String catalogName) {
-		return getNamedCatalogsURL(serverURL) + "/" + catalogName;
+		return getNamedCatalogsURL(serverURL) + "/" + URLEncoder.encode(catalogName);
 	}
 	
 	/**
@@ -456,8 +457,12 @@ public class AGProtocol extends Protocol {
 		return sessionRoot + "/" + FREETEXT;
 	}
 
-	public static String getFreetextPredicatesLocation(String sessionRoot) {
-		return getFreetextLocation(sessionRoot) + "/" + FTI_PREDICATES;
+	public static String getFreetextIndexLocation(String sessionRoot) {
+		return getFreetextLocation(sessionRoot) + "/" + FTI_INDICES;
+	}
+
+	public static String getFreetextIndexLocation(String sessionRoot, String name) {
+		return getFreetextLocation(sessionRoot) + "/" + FTI_INDICES + "/" + URLEncoder.encode(name);
 	}
 
 	public static String getMappingLocation(String sessionRoot) {
@@ -477,7 +482,7 @@ public class AGProtocol extends Protocol {
 	}
 	
 	public static String getFederationLocation(String serverRoot, String federationName) {
-		return getFederatedLocation(serverRoot) + "/" + federationName;
+		return getFederatedLocation(serverRoot) + "/" + URLEncoder.encode(federationName);
 	}
 
 	public static String getFunctorLocation(String serverRoot) {
@@ -538,7 +543,7 @@ public class AGProtocol extends Protocol {
 
 	public static String getSNAGeneratorLocation(String sessionRoot,
 			String generator) {
-		return getSNAGeneratorsLocation(sessionRoot) + "/" + generator;
+		return getSNAGeneratorsLocation(sessionRoot) + "/" + URLEncoder.encode(generator);
 	}
 
 	public static String getSNANeighborMatricesLocation(String sessionRoot) {
@@ -548,7 +553,7 @@ public class AGProtocol extends Protocol {
 	public static String getSNANeighborMatrixLocation(String sessionRoot,
 			String matrix) {
 		// TODO Auto-generated method stub
-		return getSNANeighborMatricesLocation(sessionRoot) + "/" + matrix;
+		return getSNANeighborMatricesLocation(sessionRoot) + "/" + URLEncoder.encode(matrix);
 	}
 	
 }

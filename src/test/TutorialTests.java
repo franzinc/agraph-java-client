@@ -374,7 +374,7 @@ public class TutorialTests extends AGAbstractTest {
 	    ValueFactory f = conn.getValueFactory();
 	    String exns = "http://example.org/people/";
         conn.setNamespace("ex", exns);
-	    conn.registerFreetextPredicate(f.createURI(exns,"fullname"));
+		conn.createFreetextIndex("fti", new URI[]{f.createURI(exns,"fullname")});
 	    URI alice = f.createURI(exns, "alice1");
 	    URI person = f.createURI(exns, "Person");
 	    URI fullname = f.createURI(exns, "fullname");    

@@ -420,17 +420,21 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	 * objects of data added to the repository having this predicate will be
 	 * text indexed and searchable.
 	 */
-	public void registerFreetextPredicate(URI predicate)
+	public void createFreetextIndex(String name, URI[] predicates)
 			throws RepositoryException {
-		getHttpRepoClient().registerFreetextPredicate(predicate);
+		getHttpRepoClient().createFreetextIndex(name, predicates);
 	}
 
 	// TODO: return RepositoryResult<URI>?
 	/**
 	 * Gets the predicates that have been registered for text indexing.
 	 */
-	public String[] getFreetextPredicates() throws RepositoryException {
-		return getHttpRepoClient().getFreetextPredicates();
+	public String[] getFreetextPredicates(String index) throws RepositoryException {
+		return getHttpRepoClient().getFreetextPredicates(index);
+	}
+
+	public String[] getFreetextIndices() throws RepositoryException {
+		return getHttpRepoClient().getFreetextIndices();
 	}
 
 	/**
