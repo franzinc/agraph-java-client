@@ -1689,6 +1689,14 @@ public class TutorialExamples {
         //URI sphericalSystemKM = conn.registerSphericalType(5, AGProtocol.KM_PARAM_VALUE);
         //URI sphericalSystemDegree = conn.registerSphericalType(5, AGProtocol.DEGREE_PARAM_VALUE);
         URI sphericalSystemDegree = conn.registerSphericalType(5, "degree");
+
+        // Test to see if the system knows about the two registered geo subtypes.
+		String[] types = conn.getGeoTypes();
+		System.out.println("Types:");
+		for (String t: types) {
+			System.out.println(t);				
+		}
+        
         URI amsterdam = vf.createURI(exns, "amsterdam");
         URI london = vf.createURI(exns, "london");
         URI sanfrancisco = vf.createURI(exns, "sanfrancisco");
@@ -1806,7 +1814,7 @@ public class TutorialExamples {
         }
         println("Number of results: " + count);
         result.close();
-        println("foo");
+       
         println("\nValjean's ego group in one list depth 1 (using associates).");
         queryString = "(select (?member)" +
           "(ego-group !lm:character11 1 associates ?group)" +
@@ -1854,9 +1862,9 @@ public class TutorialExamples {
         }
         println("Number of results: " + count);
         result.close();
-/*
+
         println("\nShortest breadth-first path connecting Valjean to Bossuet using intimates. (Should be no path.)");
-        queryString = "(select ?node" +
+        queryString = "(select (?node)" +
           "(breadth-first-search-paths !lm:character11 !lm:character64 intimates 10 ?path)" +
           "(member ?node ?path))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -1866,10 +1874,29 @@ public class TutorialExamples {
             BindingSet bindingSet = result.next();
             Value p = bindingSet.getValue("node");
             println("Path: " + p );
+            count++;
         }
         println("Number of results: " + count);
         result.close();
- */     
+        
+        println("9999999999999999999999999999999999999999999999999999999999999999999999999999");
+        println("\nShortest breadth-first path connecting Valjean to Bossuet using associates. ");
+        queryString = "(select (?node)" +
+          "(breadth-first-search-paths !lm:character11 !lm:character64 associates 5 ?path)" +
+          "(member ?node ?path))";
+        tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
+        result = tupleQuery.evaluate();
+        count = 0;
+        while (result.hasNext()) {
+            BindingSet bindingSet = result.next();
+            Value p = bindingSet.getValue("node");
+            println("Node on path: " + p );
+            count++;
+        }
+        println("Number of results: " + count);
+        result.close();
+        println("9999999999999999999999999999999999999999999999999999999999999999999999999999");
+
         println("\nShortest breadth-first path connecting Valjean to Bossuet using associates.");
         queryString = "(select ?node" +
           "(breadth-first-search-paths !lm:character11 !lm:character64 associates 10 ?paths)" +
@@ -1886,7 +1913,7 @@ public class TutorialExamples {
         }
         println("Number of results: " + count);
         result.close();
- /*      
+      
         println("\nShortest breadth-first path connecting Valjean to Bossuet using everyone.");
         queryString = "(select ?path" +
           "(breadth-first-search-paths !lm:character11 !lm:character64 everyone 10 ?path))";
@@ -2018,7 +2045,7 @@ public class TutorialExamples {
         }
         println("Number of results: " + count);
         result.close();
-*/        
+        
         println("\nValjean's actor-degree-centrality to his ego group at depth 1 (using associates).");
         queryString = "(select ?centrality" +
           "(ego-group !lm:character11 1 associates ?group)" +
@@ -2299,7 +2326,7 @@ public class TutorialExamples {
                 case 18: example18(); break;                                    
                 case 19: example19(); break;                                    
                 case 20: example20(); break;                                    
- //               case 21: example21(); break;      //  Commented out pending rfe9149 1/25/2010 BDC                          
+                case 21: example21(); break;      //  Commented out pending rfe9149 1/25/2010 BDC                          
                 case 22: example22(); break;
                 default: println("Example" + choice + "() is not available in this release.");
                 }
