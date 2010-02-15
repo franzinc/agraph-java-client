@@ -8,6 +8,8 @@
 
 package com.franz.agraph.jena;
 
+import java.util.ArrayList;
+
 import org.openrdf.http.protocol.UnauthorizedException;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
@@ -21,7 +23,9 @@ import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGValueFactory;
 import com.franz.util.Closeable;
 import com.hp.hpl.jena.graph.BulkUpdateHandler;
+import com.hp.hpl.jena.graph.Capabilities;
 import com.hp.hpl.jena.graph.Graph;
+import com.hp.hpl.jena.graph.GraphUtil;
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.graph.TransactionHandler;
 import com.hp.hpl.jena.graph.Triple;
@@ -30,6 +34,7 @@ import com.hp.hpl.jena.graph.impl.GraphBase;
 import com.hp.hpl.jena.shared.AddDeniedException;
 import com.hp.hpl.jena.shared.DeleteDeniedException;
 import com.hp.hpl.jena.shared.PrefixMapping;
+import com.hp.hpl.jena.util.iterator.ClosableIterator;
 import com.hp.hpl.jena.util.iterator.ExtendedIterator;
 
 public class AGGraph extends GraphBase implements Graph, Closeable {
@@ -59,6 +64,12 @@ public class AGGraph extends GraphBase implements Graph, Closeable {
 		return graphNode;
 	}
 
+	public String getGraphName() {
+		if (graphNode == null)
+			return "default-graph";
+		return graphNode.toString();
+	}
+	
 	Resource getGraphContext() {
 		return context;
 	}
@@ -67,15 +78,22 @@ public class AGGraph extends GraphBase implements Graph, Closeable {
 		return conn;
 	}
 
-	@Override
-	public void close() {
-	}
+	//@Override
+	//public void close() {
+	//}
 
 	@Override
 	public BulkUpdateHandler getBulkUpdateHandler() {
 		return new AGBulkUpdateHandler(this);
 	}
 
+    @Override
+    public Capabilities getCapabilities()
+    { 
+    	if (capabilities == null) capabilities = new AGCapabilities();
+    	return capabilities;
+    }
+    
 	@Override
 	public PrefixMapping getPrefixMapping() {
 		return new AGPrefixMapping(this);
@@ -86,12 +104,38 @@ public class AGGraph extends GraphBase implements Graph, Closeable {
 		return new AGTransactionHandler(this);
 	}
 
-	@Override
+	/*@Override
 	public String toString() {
 		if (graphNode == null)
 			return "default-graph";
 		return graphNode.toString();
-	}
+	}*/
+	@Override
+    public String toString() 
+        { return toString(getGraphName()+(closed ? " (closed) " : " (size: " + graphBaseSize() + ")."),this); }
+
+    /**
+    Answer a human-consumable representation of <code>that</code>. The 
+    string <code>prefix</code> will appear near the beginning of the string. Nodes
+    may be prefix-compressed using <code>that</code>'s prefix-mapping. This
+    default implementation will display all the triples exposed by the graph (ie
+    including reification triples if it is Standard).
+*/
+public static String toString( String prefix, Graph that )
+   {
+   //PrefixMapping pm = that.getPrefixMapping();
+	StringBuffer b = new StringBuffer( prefix + " {" );
+	String gap = "";
+	ClosableIterator<Triple> it = GraphUtil.findAll( that );
+	while (it.hasNext()) 
+       {
+		b.append( gap );
+		gap = "; ";
+		b.append( it.next().toString() );
+	    } 
+	b.append( "}" );
+	return b.toString();
+  }
 
 	public Dataset getDataset() {
 		DatasetImpl dataset = new DatasetImpl();
@@ -114,13 +158,22 @@ public class AGGraph extends GraphBase implements Graph, Closeable {
 	protected ExtendedIterator<Triple> graphBaseFind(TripleMatch m) {
 		RepositoryResult<Statement> result;
 		try {
-			result = conn.getStatements(vf.asResource(m.getMatchSubject()), vf
-					.asURI(m.getMatchPredicate()), vf.asValue(m
+			// TODO: allow arbitrary values in subject and predicate positions? 
+			Node s = m.getMatchSubject();
+			Node p = m.getMatchPredicate();
+			// quickly return no results if RDF constraints for subject and predicate
+			// are violated, as occurs in the Jena test suite for Graph. 
+			if ((s!=null && s.isLiteral()) || 
+					(p!=null && (p.isLiteral() || p.isBlank()))) {
+				result = conn.createRepositoryResult(new ArrayList<Statement>());
+			} else {
+				result = conn.getStatements(vf.asResource(s), vf.asURI(p), vf.asValue(m
 					.getMatchObject()), inferred, context);
+			}
 		} catch (RepositoryException e) {
 			throw new RuntimeException(e);
 		}
-		return new AGTripleIterator(result);
+		return new AGTripleIterator(this, result);
 	}
 
 	@Override

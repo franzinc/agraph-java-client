@@ -128,7 +128,6 @@ public class TutorialTests extends AGAbstractTest {
         assertSetsEqual(mapKeep(new String[] {"an", "at"}, inputs).values(), stmts);
     }
 
-    @Category(TestSuites.Broken.class)
     @Test
     public void example5() throws Exception {
         example2setup();

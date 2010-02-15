@@ -102,7 +102,7 @@ public class AGValueFactory extends ValueFactoryImpl {
 			if (node.getLiteralDatatypeURI()!=null) {
 				URI datatype = createURI(node.getLiteralDatatypeURI());
 				val = createLiteral(node.getLiteralLexicalForm(), datatype);
-			} else if (lang!=null && lang!="") {
+			} else if (lang!=null && !lang.equals("")) {
 				val = createLiteral(node.getLiteralLexicalForm(),lang);
 			} else {
 				// TODO
@@ -134,6 +134,10 @@ public class AGValueFactory extends ValueFactoryImpl {
 			uri = null;
 		} else if (node.isURI()) {
 			uri = createURI(node.getURI());
+		} else if (node.isBlank()) {
+			// TODO: research this more, seems to be needed for the test 
+			// suite, as blank nodes appear in the predicate position
+			uri = createURI("http://anon/" + node.getBlankNodeLabel());
 		} else {
 			throw new IllegalArgumentException("Cannot convert Node to URI: " + node);
 		}

@@ -4,6 +4,7 @@ import org.openrdf.repository.RepositoryException;
 
 import com.hp.hpl.jena.graph.TransactionHandler;
 import com.hp.hpl.jena.shared.Command;
+import com.hp.hpl.jena.shared.JenaException;
 
 public class AGTransactionHandler implements TransactionHandler {
 
@@ -48,7 +49,17 @@ public class AGTransactionHandler implements TransactionHandler {
 
 	@Override
 	public Object executeInTransaction(Command c) {
-		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+		try {
+			begin();
+			c.execute();
+			commit();
+		} catch (Throwable e) {
+			throw new JenaException(e);
+		}
+		
+		// TODO determine what object to return here, currently the 
+		// command is executed for side effects rather than a result.
+		return null;
 	}
 
 	@Override

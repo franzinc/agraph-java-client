@@ -72,13 +72,13 @@ public class AGAbstractTest {
 		
 		if ((host == null || host.equals("localhost")) && port == null) {
 			File portFile = new File("../agraph/lisp/agraph.port");
-			System.out.println("Reading agraph.port: " + portFile.getAbsolutePath());
 			try {
+				host = "localhost";
 				if (portFile.exists()) {
+					System.out.println("Reading agraph.port: " + portFile.getAbsolutePath());
 					port = readLines(portFile).get(0);
-					host = "localhost";
 				} else {
-					throw new RuntimeException("PortFile not found.");
+					port = "10035";
 				}
 			} catch (Exception e) {
 				throw new RuntimeException("Trying to read PortFile: " + portFile.getAbsolutePath(), e);

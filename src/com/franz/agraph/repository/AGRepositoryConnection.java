@@ -260,7 +260,7 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	/**
 	 * Creates a RepositoryResult for the supplied element set.
 	 */
-	protected <E> RepositoryResult<E> createRepositoryResult(
+	public <E> RepositoryResult<E> createRepositoryResult(
 			Iterable<? extends E> elements) {
 		return new RepositoryResult<E>(
 				new CloseableIteratorIteration<E, RepositoryException>(elements
