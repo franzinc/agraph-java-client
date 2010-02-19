@@ -1427,8 +1427,8 @@ spherical/degrees/-180.0/180.0/-90.0/90.0/5.0&gt;)
     <li><a href="#SNA Search - Ego Group">SNA Search - Ego Group</a></li>
     <li><a href="#SNA Search - Path from A to B">SNA Search - Path from A to B</a></li>
     <li><a href="#Graph Measures">Graph Measures</a></li>
-    <li><a href="#Cliques">Cliques</a></li>
-    <li><a href="#Actor Centrality">Actor Centrality</a></li> 
+<!--    <li><a href="#Cliques">Cliques</a></li>
+-->    <li><a href="#Actor Centrality">Actor Centrality</a></li> 
     <li><a href="#Group Centrality">Group Centrality</a></li> 
 </ul>
 <p>Most (but not all) of AllegroGraph's SNA features can be accessed from Java. We access them in multiple ways:</p>
@@ -1572,6 +1572,7 @@ spherical/degrees/-180.0/180.0/-90.0/90.0/5.0&gt;)
 </pre>
 <p>We used the<strong> ego-group</strong> function to return a list of Valjean's ego-group members, bound to the variable <strong>?group</strong>, and then we used ?group to feed that subgraph to the <strong>graph-density</strong> function. The return value, <strong>?density</strong>, came back as a string describing a float, and had to be converted to a Java float using <strong>.toJava()</strong>.</p>
 <pre class="output">Graph density of Valjean's ego group? (using associates).<br>Graph density: 3.2142857e-1</pre>
+<!-- Commented out until the clique function is more graceful in Java. BDC
 <h3 id="Cliques">Cliques</h3>
 <p>A &quot;clique&quot; is a subgraph where every node is connected to every other node by predicates specified in some generator. AllegroGraph, using everyone (&quot;knows,&quot; &quot;knows_well,&quot; and &quot;barely_knows&quot;), found that Valjean participates in 239 cliques! </p>
 <p><img src="valjeanBigClique.jpg" width="859" height="301"> </p>
@@ -1588,6 +1589,7 @@ spherical/degrees/-180.0/180.0/-90.0/90.0/5.0&gt;)
 <p>AllegroGraph returns two cliques:</p>
 <pre class="output">Valjean's cliques? Should be two (using associates).<br>Clique: &quot;({character11} {character25} {character24})&quot;<br>Clique: &quot;({character11} {character55} {character26})&quot;<br>Number of results: 2</pre>
 <p>The first list is the clique with Marius and Cosette. The second one represents the Thernardier clique. </p>
+-->
 <h3 id="Actor Centrality">Actor Centrality </h3>
 <p>AllegroGraph lets us measure the relative importance of a node in a subgraph using the <strong>actor-degree-centrality()</strong> function. For instance, it should be obvious that Valjean is very &quot;central&quot; to his own ego group (depth of one link), because he is linked directly to all other links in the subgraph. In that case he is linked to 7 of 7 possible nodes, and his actor-degree-centrality value is 7/7 = 1. </p>
 <p>However, we can regenerate Valjean's ego group using a depth of 2. This adds three nodes that are not directly connected to Valjean. How &quot;central&quot; is he then?</p>

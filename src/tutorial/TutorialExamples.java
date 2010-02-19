@@ -1644,7 +1644,6 @@ public class TutorialExamples {
     public static void example20() throws Exception {
         AGRepositoryConnection conn = example1(false);
         AGValueFactory vf = conn.getValueFactory();
-        conn = example1(false);
         conn.clear();
         println("Starting example20().");
         String exns = "http://example.org/people/";
@@ -1690,13 +1689,6 @@ public class TutorialExamples {
         //URI sphericalSystemDegree = conn.registerSphericalType(5, AGProtocol.DEGREE_PARAM_VALUE);
         URI sphericalSystemDegree = conn.registerSphericalType(5, "degree");
 
-        // Test to see if the system knows about the two registered geo subtypes.
-		String[] types = conn.getGeoTypes();
-		System.out.println("Types:");
-		for (String t: types) {
-			System.out.println(t);				
-		}
-        
         URI amsterdam = vf.createURI(exns, "amsterdam");
         URI london = vf.createURI(exns, "london");
         URI sanfrancisco = vf.createURI(exns, "sanfrancisco");
@@ -1865,7 +1857,7 @@ public class TutorialExamples {
 
         println("\nShortest breadth-first path connecting Valjean to Bossuet using intimates. (Should be no path.)");
         queryString = "(select (?node)" +
-          "(breadth-first-search-paths !lm:character11 !lm:character64 intimates 10 ?path)" +
+          "(breadth-first-search-path !lm:character11 !lm:character64 intimates 5 ?path)" +
           "(member ?node ?path))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         result = tupleQuery.evaluate();
@@ -1879,10 +1871,9 @@ public class TutorialExamples {
         println("Number of results: " + count);
         result.close();
         
-        println("9999999999999999999999999999999999999999999999999999999999999999999999999999");
         println("\nShortest breadth-first path connecting Valjean to Bossuet using associates. ");
         queryString = "(select (?node)" +
-          "(breadth-first-search-paths !lm:character11 !lm:character64 associates 5 ?path)" +
+          "(breadth-first-search-path !lm:character11 !lm:character64 associates 5 ?path)" +
           "(member ?node ?path))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         result = tupleQuery.evaluate();
@@ -1895,12 +1886,44 @@ public class TutorialExamples {
         }
         println("Number of results: " + count);
         result.close();
-        println("9999999999999999999999999999999999999999999999999999999999999999999999999999");
 
-        println("\nShortest breadth-first path connecting Valjean to Bossuet using associates.");
-        queryString = "(select ?node" +
-          "(breadth-first-search-paths !lm:character11 !lm:character64 associates 10 ?paths)" +
-          "(member ?path ?paths)" +
+
+        println("\nShortest breadth-first path connecting Valjean to Bossuet using everyone.");
+        queryString = "(select (?node)" +
+          "(breadth-first-search-path !lm:character11 !lm:character64 everyone 5 ?path)" +
+          "(member ?node ?path))";
+        tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
+        result = tupleQuery.evaluate();
+        count = 0;
+        while (result.hasNext()) {
+            BindingSet bindingSet = result.next();
+            Value p = bindingSet.getValue("node");
+            println("Node on Path: " + p );
+            count++;
+        }
+        println("Number of results: " + count);
+        result.close();
+ 
+       
+        println("\nReturn depth-first path connecting Valjean to Bossuet using associates (should be one).");
+        queryString = "(select (?node)" +
+          "(depth-first-search-path !lm:character11 !lm:character64 associates 10 ?path)" +
+          "(member ?node ?path))";
+        tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
+        result = tupleQuery.evaluate();
+        count = 0;
+        while (result.hasNext()) {
+            BindingSet bindingSet = result.next();
+            Value p = bindingSet.getValue("node");
+            println("Node on Path: " + p );
+            count++;
+        }
+        println("Number of results: " + count);
+        result.close();
+        
+        println("\nShortest bidirectional path connecting Valjean to Bossuet using associates (should be two).");
+        queryString = "(select (?node)" +
+          "(bidirectional-search-path !lm:character11 !lm:character64 associates ?path)" +
           "(member ?node ?path))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         result = tupleQuery.evaluate();
@@ -1913,71 +1936,9 @@ public class TutorialExamples {
         }
         println("Number of results: " + count);
         result.close();
-      
-        println("\nShortest breadth-first path connecting Valjean to Bossuet using everyone.");
-        queryString = "(select ?path" +
-          "(breadth-first-search-paths !lm:character11 !lm:character64 everyone 10 ?path))";
-        tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
-        result = tupleQuery.evaluate();
-        count = 0;
-        while (result.hasNext()) {
-            BindingSet bindingSet = result.next();
-            Value p = bindingSet.getValue("path");
-            println("Path: " + p );
-            count++;
-        }
-        println("Number of results: " + count);
-        result.close();
- 
-        println("\nShortest breadth-first path connecting Valjean to Bossuet using associates (should be two).");
-        queryString = "(select ?path" +
-          "(breadth-first-search-paths !lm:character11 !lm:character64 associates ?path))";
-        tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
-        result = tupleQuery.evaluate();
-        count = 0;
-        while (result.hasNext()) {
-            BindingSet bindingSet = result.next();
-            Value p = bindingSet.getValue("path");
-            println("Path: " + p );
-            count++;
-        }
-        println("Number of results: " + count);
-        result.close();
-        
-        // Note that depth-first-search-paths may return more than one path of different lengths.  
-        // None of them are guaranteed to be "the shortest path."
-        println("\nReturn depth-first path connecting Valjean to Bossuet using associates (should be one).");
-        queryString = "(select ?path" +
-          "(depth-first-search-path !lm:character11 !lm:character64 associates 10 ?path))";
-        tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
-        result = tupleQuery.evaluate();
-        count = 0;
-        while (result.hasNext()) {
-            BindingSet bindingSet = result.next();
-            Value p = bindingSet.getValue("path");
-            println("Path: " + p );
-            count++;
-        }
-        println("Number of results: " + count);
-        result.close();
-        
-        println("\nShortest bidirectional path connecting Valjean to Bossuet using associates (should be two).");
-        queryString = "(select ?path" +
-          "(bidirectional-search-paths !lm:character11 !lm:character64 associates ?path))";
-        tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
-        result = tupleQuery.evaluate();
-        count = 0;
-        while (result.hasNext()) {
-            BindingSet bindingSet = result.next();
-            Value p = bindingSet.getValue("path");
-            println("Path: " + p );
-            count++;
-        }
-        println("Number of results: " + count);
-        result.close();
         
         println("\nNodal degree of Valjean (should be seven).");
-        queryString = "(select ?degree" +
+        queryString = "(select (?degree)" +
           "(nodal-degree !lm:character11 associates ?degree))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         result = tupleQuery.evaluate();
@@ -1990,7 +1951,7 @@ public class TutorialExamples {
         result.close();
         
         println("\nHow many neighbors are around Valjean? (should be 36).");
-        queryString = "(select ?neighbors" +
+        queryString = "(select (?neighbors)" +
           "(nodal-degree !lm:character11 everyone ?neighbors))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         result = tupleQuery.evaluate();
@@ -2003,7 +1964,7 @@ public class TutorialExamples {
         result.close();
  
         println("\nWho are Valjean's neighbors? (using everyone).");
-        queryString = "(select ?name" +
+        queryString = "(select (?name)" +
           "(nodal-neighbors !lm:character11 everyone ?member)" +
           "(q ?member !dc:title ?name))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -2018,7 +1979,7 @@ public class TutorialExamples {
         result.close();
 
         println("\nGraph density of Valjean's ego group? (using associates).");
-        queryString = "(select ?density" +
+        queryString = "(select (?density)" +
           "(ego-group !lm:character11 1 associates ?group)" +
           "(graph-density ?group associates ?density))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -2030,8 +1991,8 @@ public class TutorialExamples {
         }
         result.close();
  
-        println("\nValjean's cliques? Should be two (using associates).");
-        queryString = "(select ?member" +
+/*        println("\nValjean's cliques? Should be two (using associates).");
+        queryString = "(select (?member)" +
           "(clique !lm:character11 associates ?clique)" +
           "(member ?member ?clique))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -2045,9 +2006,9 @@ public class TutorialExamples {
         }
         println("Number of results: " + count);
         result.close();
-        
+*/        
         println("\nValjean's actor-degree-centrality to his ego group at depth 1 (using associates).");
-        queryString = "(select ?centrality" +
+        queryString = "(select (?centrality)" +
           "(ego-group !lm:character11 1 associates ?group)" +
           "(actor-degree-centrality !lm:character11 ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -2060,7 +2021,7 @@ public class TutorialExamples {
         result.close();
         
         println("\nValjean's actor-degree-centrality to his ego group at depth 2 (using associates).");
-        queryString = "(select ?centrality" +
+        queryString = "(select (?centrality)" +
           "(ego-group !lm:character11 2 associates ?group)" +
           "(actor-degree-centrality !lm:character11 ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -2073,7 +2034,7 @@ public class TutorialExamples {
         result.close();
 
         println("\nValjean's actor-closeness-centrality to his ego group at depth 1 (using associates).");
-        queryString = "(select ?centrality" +
+        queryString = "(select (?centrality)" +
           "(ego-group !lm:character11 1 associates ?group)" +
           "(actor-closeness-centrality !lm:character11 ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -2086,7 +2047,7 @@ public class TutorialExamples {
         result.close();
 
         println("\nValjean's actor-closeness-centrality to his ego group at depth 2 (using associates).");
-        queryString = "(select ?centrality" +
+        queryString = "(select (?centrality)" +
           "(ego-group !lm:character11 2 associates ?group)" +
           "(actor-closeness-centrality !lm:character11 ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -2099,7 +2060,7 @@ public class TutorialExamples {
         result.close();
 
         println("\nValjean's actor-betweenness-centrality to his ego group at depth 2 (using associates).");
-        queryString = "(select ?centrality" +
+        queryString = "(select (?centrality)" +
           "(ego-group !lm:character11 2 associates ?group)" +
           "(actor-betweenness-centrality !lm:character11 ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -2119,7 +2080,7 @@ public class TutorialExamples {
         //  equal degree) to 1 (when one actor is connected to every other and no
         //  other actors have connections."
         println("\nGroup-degree-centrality of Valjean's ego group at depth 1 (using associates).");
-        queryString = "(select ?centrality" +
+        queryString = "(select (?centrality)" +
           "(ego-group !lm:character11 1 associates ?group)" +
           "(group-degree-centrality ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -2132,7 +2093,7 @@ public class TutorialExamples {
         result.close();
 
         println("\nGroup-degree-centrality of Valjean's ego group at depth 2 (using associatese).");
-        queryString = "(select ?centrality" +
+        queryString = "(select (?centrality)" +
           "(ego-group !lm:character11 2 associates ?group)" +
           "(group-degree-centrality ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -2151,7 +2112,7 @@ public class TutorialExamples {
         //  value and the [actor-closeness-centrality][] of all other actors.
         //  This value is then normalized so that it ranges between 0 and 1."
         println("\nGroup-closeness-centrality of Valjean's ego group at depth 1 (using associates).");
-        queryString = "(select ?centrality" +
+        queryString = "(select (?centrality)" +
           "(ego-group !lm:character11 1 associates ?group)" +
           "(group-closeness-centrality ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -2164,7 +2125,7 @@ public class TutorialExamples {
         result.close();
 
         println("\nGroup-closeness-centrality of Valjean's ego group at depth 2 (using associates).");
-        queryString = "(select ?centrality" +
+        queryString = "(select (?centrality)" +
           "(ego-group !lm:character11 2 associates ?group)" +
           "(group-closeness-centrality ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -2183,7 +2144,7 @@ public class TutorialExamples {
         //  value and the [actor-betweenness-centrality][] of all other actors.
         //  This value is then normalized so that it ranges between 0 and 1.
         println("\nGroup-betweenness-centrality of Valjean's ego group at depth 1 (using associates).");
-        queryString = "(select ?centrality" +
+        queryString = "(select (?centrality)" +
           "(ego-group !lm:character11 1 associates ?group)" +
           "(group-betweenness-centrality ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -2196,7 +2157,7 @@ public class TutorialExamples {
         result.close();
 
         println("\nGroup-betweenness-centrality of Valjean's ego group at depth 1 (using associates).");
-        queryString = "(select ?centrality" +
+        queryString = "(select (?centrality)" +
           "(ego-group !lm:character11 2 associates ?group)" +
           "(group-betweenness-centrality ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -2294,7 +2255,7 @@ public class TutorialExamples {
             // for choosing by editing this code
             choices.add(1);
         } else if (args[0].equals("all")) {
-            for (int i = 1; i <= 22; i++) {
+            for (int i = 1; i <= 23; i++) {
                 choices.add(i);
             }
         } else {
@@ -2326,7 +2287,7 @@ public class TutorialExamples {
                 case 18: example18(); break;                                    
                 case 19: example19(); break;                                    
                 case 20: example20(); break;                                    
-                case 21: example21(); break;      //  Commented out pending rfe9149 1/25/2010 BDC                          
+                case 21: example21(); break;                                
                 case 22: example22(); break;
                 default: println("Example" + choice + "() is not available in this release.");
                 }
