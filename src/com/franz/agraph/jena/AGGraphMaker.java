@@ -8,19 +8,30 @@
 
 package com.franz.agraph.jena;
 
+import java.util.Map;
+
+import org.openrdf.repository.RepositoryException;
+
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.util.Closeable;
 import com.hp.hpl.jena.graph.GraphMaker;
 import com.hp.hpl.jena.graph.Node;
+import com.hp.hpl.jena.shared.AlreadyExistsException;
+import com.hp.hpl.jena.shared.DoesNotExistException;
 import com.hp.hpl.jena.shared.ReificationStyle;
+import com.hp.hpl.jena.util.CollectionFactory;
 import com.hp.hpl.jena.util.iterator.ExtendedIterator;
+import com.hp.hpl.jena.util.iterator.NiceIterator;
 
 public class AGGraphMaker implements GraphMaker, Closeable {
 
 	private AGRepositoryConnection conn;
 	private AGGraph defaultGraph;
 	
-	public AGGraphMaker(AGRepositoryConnection conn) {
+	// TODO make this persistent?
+    protected Map<String, AGGraph> created = CollectionFactory.createHashedMap();
+
+    public AGGraphMaker(AGRepositoryConnection conn) {
 		this.conn = conn;
 	}
 
@@ -42,7 +53,8 @@ public class AGGraphMaker implements GraphMaker, Closeable {
 
 	@Override
 	public AGGraph createGraph() {
-		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+		Node anon = Node.createAnon();
+		return new AGGraph(this,anon);
 	}
 
 	@Override
@@ -52,8 +64,25 @@ public class AGGraphMaker implements GraphMaker, Closeable {
 
 	@Override
 	public AGGraph createGraph(String uri, boolean strict) {
-		// TODO: strictness
-		return new AGGraph(this, Node.createURI(uri));
+        AGGraph g = created.get( uri );
+        if (g == null) {
+        	Node node = Node.createURI(absUriFromString(uri));
+        	g = new AGGraph(this, node);
+        	created.put(uri, g);
+        } else if (strict) {
+        	throw new AlreadyExistsException( uri );
+        }
+		return g;
+	}
+
+	private String absUriFromString(String name) {
+		String uri = name;
+		if (name.indexOf(':') < 0) {
+			// TODO: absolute uri's must contain a ':'
+			// GraphMaker tests don't supply absolute URI's
+			uri = "urn:x-franz:"+name;
+		}
+		return uri;
 	}
 
 	@Override
@@ -62,18 +91,18 @@ public class AGGraphMaker implements GraphMaker, Closeable {
 	}
 
 	@Override
-	public boolean hasGraph(String name) {
-		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+	public boolean hasGraph(String uri) {
+		return null!=created.get(uri);
 	}
 
 	@Override
 	public ExtendedIterator<String> listGraphs() {
-		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+		return new NiceIterator<String>().andThen(created.keySet().iterator());
 	}
 
 	@Override
 	public AGGraph openGraph() {
-		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+		return getGraph();
 	}
 
 	@Override
@@ -83,13 +112,32 @@ public class AGGraphMaker implements GraphMaker, Closeable {
 
 	@Override
 	public AGGraph openGraph(String uri, boolean strict) {
-		// TODO deal with strictness
-		return new AGGraph(this, Node.createURI(uri));
+        AGGraph g = created.get( uri );
+        if (g == null) {
+        	if (strict) {
+        		throw new DoesNotExistException( uri );
+        	} else {
+        		Node node = Node.createURI(absUriFromString(uri));
+        		g = new AGGraph(this, node);
+        		created.put(uri, g);
+        	}
+        }
+		return g;
 	}
 
 	@Override
-	public void removeGraph(String name) {
-		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+	public void removeGraph(String uri) {
+        AGGraph g = created.get( uri );
+        if (g == null) {
+    		throw new DoesNotExistException( uri );
+    	} else {
+    		try {
+				g.getConnection().clear(g.getGraphContext());
+				created.remove(uri);
+			} catch (RepositoryException e) {
+				throw new RuntimeException(e);
+			}
+    	}
 	}
 
 }

@@ -31,7 +31,15 @@ public class AGPrefixMapping implements PrefixMapping {
 
 	@Override
 	public String expandPrefix(String prefixed) {
-		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+		String[] parts = prefixed.split(":");
+		String expanded = prefixed;
+		if (parts.length==2) {
+			String uri = getNsPrefixURI(parts[0]);
+			if (uri!=null) {
+				expanded = uri + parts[1];
+			}
+		}
+		return expanded;
 	}
 
 	@Override
@@ -53,7 +61,9 @@ public class AGPrefixMapping implements PrefixMapping {
 	public String getNsPrefixURI(String prefix) {
 		String uri = null;
 		try {
-			uri = getGraph().getConnection().getNamespace(prefix);
+			if (prefix!=null && !prefix.equals("")) {
+				uri = getGraph().getConnection().getNamespace(prefix);
+			}
 		} catch (RepositoryException e) {
 			throw new RuntimeException(e);
 		}
