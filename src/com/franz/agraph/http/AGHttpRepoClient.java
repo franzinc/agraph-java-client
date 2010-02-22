@@ -569,7 +569,9 @@ public class AGHttpRepoClient implements Closeable {
 		try {
 			getHTTPClient().get(url, headers, new NameValuePair[0], handler);
 		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
+			if (!e.getMessage().equals("Not found.")) {
+				throw new RepositoryException(e);
+			}
 		}
 		return handler.getString();
 	}
