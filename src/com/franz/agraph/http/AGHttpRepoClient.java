@@ -642,7 +642,7 @@ public class AGHttpRepoClient implements Closeable {
 					planner));
 		}
 
-		if (dataset != null) {
+		if (ql==QueryLanguage.SPARQL && dataset != null) {
 			for (URI defaultGraphURI : dataset.getDefaultGraphs()) {
 				String param = Protocol.NULL_PARAM_VALUE;
 				if (defaultGraphURI == null) {
@@ -661,6 +661,7 @@ public class AGHttpRepoClient implements Closeable {
 			}
 		} // TODO: no else clause here assumes AG's default dataset matches
 		// Sesame's, confirm this.
+		// TODO: deal with prolog queries scoped to a graph for Jena
 
 		for (int i = 0; i < bindings.length; i++) {
 			String paramName = Protocol.BINDING_PREFIX + bindings[i].getName();

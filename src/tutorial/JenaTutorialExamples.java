@@ -67,6 +67,7 @@ public class JenaTutorialExamples {
 		println("Available repositories in catalog "
 				+ (catalog.getCatalogName()) + ": "
 				+ catalog.listRepositories());
+		closeAll();
 		catalog.deleteRepository(REPOSITORY_ID);
 		AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);
 		println("Got a repository.");
@@ -607,7 +608,7 @@ public class JenaTutorialExamples {
 		// We'll create two new rdf:type classes. Note that classes are
 		// capitalized.
 		Resource parent = model.createResource("http://example.org/ontology/Parent");
-		Resource child = model.createResource("http://exmaple.org/ontology/Child");
+		Resource child = model.createResource("http://example.org/ontology/Child");
 		// The following triples say that a fatherOf link points from a parent
 		// to a child.
 		model.add(fatherOf, RDFS.domain, parent);

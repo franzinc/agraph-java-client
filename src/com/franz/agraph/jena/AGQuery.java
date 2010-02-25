@@ -8,16 +8,31 @@
 
 package com.franz.agraph.jena;
 
+import org.openrdf.query.QueryLanguage;
+
+import com.franz.agraph.repository.AGQueryLanguage;
+
 public class AGQuery {
 
+	private final QueryLanguage language;
 	private final String queryString;
 	
 	AGQuery(String queryString) {
+		this.language = AGQueryLanguage.SPARQL;
 		this.queryString = queryString;
 	}
 	
+	public AGQuery(QueryLanguage language, String queryString) {
+		this.language = language;
+		this.queryString = queryString;
+	}
+
+	public QueryLanguage getLanguage() {
+		return language;
+	}
+
 	public String getQueryString() {
 		return queryString;
 	}
-
+	
 }

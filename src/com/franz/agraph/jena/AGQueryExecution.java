@@ -10,11 +10,11 @@ package com.franz.agraph.jena;
 
 import org.openrdf.query.GraphQueryResult;
 import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.TupleQueryResult;
 
 import com.franz.agraph.repository.AGBooleanQuery;
 import com.franz.agraph.repository.AGGraphQuery;
-import com.franz.agraph.repository.AGQueryLanguage;
 import com.franz.agraph.repository.AGTupleQuery;
 import com.franz.util.Closeable;
 import com.hp.hpl.jena.query.Dataset;
@@ -48,7 +48,10 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 
 	@Override
 	public boolean execAsk() {
-		AGBooleanQuery bq = model.getGraph().getConnection().prepareBooleanQuery(AGQueryLanguage.SPARQL, query.getQueryString());
+		if (query.getLanguage()!=QueryLanguage.SPARQL) {
+			throw new UnsupportedOperationException(query.getLanguage().getName() + " language does not support ASK queries.");
+		}
+		AGBooleanQuery bq = model.getGraph().getConnection().prepareBooleanQuery(query.getLanguage(), query.getQueryString());
 		boolean result;
 		try {
 			bq.setDataset(model.getGraph().getDataset());
@@ -66,7 +69,10 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 
 	@Override
 	public Model execConstruct(Model m) {
-		AGGraphQuery gq = model.getGraph().getConnection().prepareGraphQuery(AGQueryLanguage.SPARQL, query.getQueryString());
+		if (query.getLanguage()!=QueryLanguage.SPARQL) {
+			throw new UnsupportedOperationException(query.getLanguage().getName() + " language does not support CONSTRUCT queries.");
+		}
+		AGGraphQuery gq = model.getGraph().getConnection().prepareGraphQuery(query.getLanguage(), query.getQueryString());
 		GraphQueryResult result;
 		try {
 			gq.setDataset(model.getGraph().getDataset());
@@ -100,7 +106,7 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 
 	@Override
 	public ResultSet execSelect() {
-		AGTupleQuery tq = model.getGraph().getConnection().prepareTupleQuery(AGQueryLanguage.SPARQL, query.getQueryString());
+		AGTupleQuery tq = model.getGraph().getConnection().prepareTupleQuery(query.getLanguage(), query.getQueryString());
 		TupleQueryResult result;
 		try {
 			tq.setDataset(model.getGraph().getDataset());

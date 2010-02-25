@@ -17,7 +17,6 @@ import org.openrdf.repository.RepositoryException;
 
 import com.franz.agraph.repository.AGValueFactory;
 import com.hp.hpl.jena.graph.BulkUpdateHandler;
-import com.hp.hpl.jena.graph.Graph;
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.graph.impl.SimpleBulkUpdateHandler;
 
