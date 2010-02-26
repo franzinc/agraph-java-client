@@ -12,6 +12,10 @@ import org.openrdf.query.QueryLanguage;
 
 import com.franz.agraph.repository.AGQueryLanguage;
 
+/**
+ * The class of queries that can be posed to AllegroGraph via Jena.  
+ *
+ */
 public class AGQuery {
 
 	private final QueryLanguage language;

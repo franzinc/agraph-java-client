@@ -12,6 +12,11 @@ import org.openrdf.query.QueryLanguage;
 
 import com.franz.agraph.repository.AGQueryLanguage;
 
+/**
+ * 
+ * A class for creating AGQuery instances.
+ *
+ */
 public class AGQueryFactory {
 
 	public static AGQuery create(String queryString) {

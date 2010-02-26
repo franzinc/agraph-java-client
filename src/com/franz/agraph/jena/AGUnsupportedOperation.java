@@ -1,6 +1,10 @@
 package com.franz.agraph.jena;
 
-public class AGUnsupportedOperation {
+/**
+ * A utility class for operations not currently supported by AllegroGraph.
+ *
+ */
+class AGUnsupportedOperation {
 
 	public static final String message = "This method is not currently supported.";
 	

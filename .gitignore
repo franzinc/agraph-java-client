@@ -7,3 +7,5 @@ agraph*.tar.gz
 DIST
 agraph-clj.jar
 /build.out
+javadoc
+temp.*

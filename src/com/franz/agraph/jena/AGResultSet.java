@@ -19,6 +19,10 @@ import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.sparql.engine.binding.Binding;
 
+/**
+ * Implements the Jena ResultSet interface for AllegroGraph.
+ * 
+ */
 public class AGResultSet implements ResultSet {
 
 	private final TupleQueryResult result;

@@ -16,6 +16,10 @@ import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.reasoner.Reasoner;
 import com.hp.hpl.jena.reasoner.ReasonerException;
 
+/**
+ * Implements the Jena Reasoner interface for AllegroGraph.
+ * 
+ */
 public class AGReasoner implements Reasoner {
 
 	@Override

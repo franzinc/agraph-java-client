@@ -37,6 +37,10 @@ import com.hp.hpl.jena.shared.PrefixMapping;
 import com.hp.hpl.jena.util.iterator.ClosableIterator;
 import com.hp.hpl.jena.util.iterator.ExtendedIterator;
 
+/**
+ * Implements the Jena Graph interface for AllegroGraph.
+ * 
+ */
 public class AGGraph extends GraphBase implements Graph, Closeable {
 
 	private final AGGraphMaker maker;

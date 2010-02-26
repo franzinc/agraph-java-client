@@ -17,6 +17,10 @@ import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
 
+/**
+ * Implements the Jena QuerySolution interface for AllegroGraph.
+ * 
+ */
 public class AGQuerySolution implements QuerySolution {
 
 	private final BindingSet bs;

@@ -9,6 +9,11 @@
 package com.franz.agraph.jena;
 
 
+/**
+ * 
+ * A class for creating QueryExecution instances.
+ *
+ */
 public class AGQueryExecutionFactory {
 
 	public static AGQueryExecution create(AGQuery query, AGModel model) {

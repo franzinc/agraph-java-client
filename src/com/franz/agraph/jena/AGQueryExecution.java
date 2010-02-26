@@ -26,6 +26,10 @@ import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.sparql.util.Context;
 import com.hp.hpl.jena.util.FileManager;
 
+/**
+ * Implements the Jena QueryExecution interface for AllegroGraph.
+ * 
+ */
 public class AGQueryExecution implements QueryExecution, Closeable {
 
 	private final AGQuery query;

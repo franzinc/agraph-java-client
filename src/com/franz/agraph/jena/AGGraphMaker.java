@@ -23,6 +23,10 @@ import com.hp.hpl.jena.util.CollectionFactory;
 import com.hp.hpl.jena.util.iterator.ExtendedIterator;
 import com.hp.hpl.jena.util.iterator.NiceIterator;
 
+/**
+ * Implements the Jena GraphMaker interface for AllegroGraph.
+ * 
+ */
 public class AGGraphMaker implements GraphMaker, Closeable {
 
 	private AGRepositoryConnection conn;

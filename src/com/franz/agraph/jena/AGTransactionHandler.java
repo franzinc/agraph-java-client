@@ -6,6 +6,10 @@ import com.hp.hpl.jena.graph.TransactionHandler;
 import com.hp.hpl.jena.shared.Command;
 import com.hp.hpl.jena.shared.JenaException;
 
+/**
+ * Implements the Jena TransactionHandler interface for AllegroGraph.
+ * 
+ */
 public class AGTransactionHandler implements TransactionHandler {
 
 	private final AGGraph graph;

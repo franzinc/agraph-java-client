@@ -3,6 +3,10 @@ package com.franz.agraph.jena;
 import com.hp.hpl.jena.graph.Capabilities;
 import com.hp.hpl.jena.graph.impl.AllCapabilities;
 
+/**
+ * Implements the Jena Capabilities interface for AllegroGraph.
+ * 
+ */
 public class AGCapabilities extends AllCapabilities implements Capabilities {
 
 	@Override

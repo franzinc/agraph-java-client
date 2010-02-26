@@ -12,6 +12,9 @@ prepush: FORCE
 build: FORCE
 	ant build
 
+javadoc: FORCE
+	ant -f javadoc.xml
+
 tags: FORCE
 	rm -f TAGS
 	find . -name '*.java' -print0 | xargs -0 etags -a

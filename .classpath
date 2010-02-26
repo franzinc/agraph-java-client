@@ -3,10 +3,18 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/jena-2.6.0/arq-extra.jar"/>
-	<classpathentry kind="lib" path="lib/jena-2.6.0/arq.jar"/>
+	<classpathentry kind="lib" path="lib/jena-2.6.0/arq.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="file:/C:/Program Files/Jena/ARQ-2.7.0/doc/javadoc"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="lib" path="lib/jena-2.6.0/icu4j_3_4.jar"/>
 	<classpathentry kind="lib" path="lib/jena-2.6.0/iri.jar"/>
-	<classpathentry kind="lib" path="lib/jena-2.6.0/jena.jar" sourcepath="/Jena 2.6.0/src"/>
+	<classpathentry kind="lib" path="lib/jena-2.6.0/jena.jar" sourcepath="/Jena 2.6.0/src">
+		<attributes>
+			<attribute name="javadoc_location" value="file:/C:/Program Files/Jena/Jena-2.6.0/doc/javadoc"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="lib" path="lib/jena-2.6.0/jenatest.jar" sourcepath="C:/Program Files/Jena/Jena-2.6.0/src"/>
 	<classpathentry kind="lib" path="lib/jena-2.6.0/json.jar">
 		<attributes>

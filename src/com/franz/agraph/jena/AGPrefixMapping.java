@@ -17,6 +17,10 @@ import org.openrdf.repository.RepositoryResult;
 
 import com.hp.hpl.jena.shared.PrefixMapping;
 
+/**
+ * Implements the Jena PrefixMapping interface for AllegroGraph.
+ * 
+ */
 public class AGPrefixMapping implements PrefixMapping {
 
 	AGGraph graph;

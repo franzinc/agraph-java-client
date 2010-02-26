@@ -23,6 +23,10 @@ import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.impl.ModelCom;
 
+/**
+ * Implements the Jena Model interface for AllegroGraph.
+ * 
+ */
 public class AGModel extends ModelCom implements Model, Closeable {
 
 	public AGModel(AGGraph base) {

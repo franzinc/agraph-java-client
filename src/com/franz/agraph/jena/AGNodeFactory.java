@@ -18,6 +18,12 @@ import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.rdf.model.AnonId;
 
+/**
+ * 
+ * A utility class for creating Jena Nodes and Triples
+ * from Sesame Values and Statements.
+ *
+ */
 public class AGNodeFactory {
 	
 	public static Triple asTriple(Statement st) {

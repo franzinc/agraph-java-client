@@ -16,6 +16,11 @@ import com.franz.util.Closeable;
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.util.iterator.NiceIterator;
 
+/**
+ * 
+ * A utility class for iterating over Jena Triples.
+ *
+ */
 public class AGTripleIterator extends NiceIterator<Triple>
 implements Closeable {
 	
