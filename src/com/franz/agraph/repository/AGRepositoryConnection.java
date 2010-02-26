@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.openrdf.OpenRDFUtil;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Namespace;
@@ -89,8 +90,8 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	protected void addWithoutCommit(Resource subject, URI predicate,
 			Value object, Resource... contexts) throws RepositoryException {
 		Statement st = new StatementImpl(subject, predicate, object);
-		JSONArray rows = new JSONArray().put(encodeJSON(st, contexts));
-		getHttpRepoClient().uploadJSON(rows, contexts);
+		JSONArray rows = encodeJSON(st,contexts);
+		getHttpRepoClient().uploadJSON(rows);
 	}
 
 	@Override
@@ -99,10 +100,20 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		OpenRDFUtil.verifyContextNotNull(contexts);
 		JSONArray rows = new JSONArray();
 		for (Statement st : statements) {
-			JSONArray row = encodeJSON(st, contexts);
-			rows.put(row);
+			JSONArray rows_st = encodeJSON(st);
+			append(rows, rows_st);
 		}
 		getHttpRepoClient().uploadJSON(rows, contexts);
+	}
+
+	private void append(JSONArray rows, JSONArray rowsSt) {
+		for (int i=0;i<rowsSt.length();i++) {
+			try {
+				rows.put(rowsSt.get(i));
+			} catch (JSONException e) {
+				throw new RuntimeException(e);
+			}
+		}
 	}
 
 	@Override
@@ -112,20 +123,33 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		OpenRDFUtil.verifyContextNotNull(contexts);
 		JSONArray rows = new JSONArray();
 		while (statementIter.hasNext()) {
-			rows.put(encodeJSON(statementIter.next(), contexts));
+			append(rows, encodeJSON(statementIter.next(),contexts));
 		}
-		getHttpRepoClient().uploadJSON(rows, contexts);
+		getHttpRepoClient().uploadJSON(rows);
 	}
 
 	private JSONArray encodeJSON(Statement st, Resource... contexts) {
-		JSONArray row = new JSONArray().put(
+		JSONArray rows = new JSONArray();
+		if (contexts.length==0) {
+			JSONArray row = new JSONArray().put(
 				NTriplesUtil.toNTriplesString(st.getSubject())).put(
 				NTriplesUtil.toNTriplesString(st.getPredicate())).put(
 				NTriplesUtil.toNTriplesString(st.getObject()));
-		if (contexts.length == 0 && st.getContext() != null) {
-			row.put(NTriplesUtil.toNTriplesString(st.getContext()));
+			if (st.getContext() != null) {
+				row.put(NTriplesUtil.toNTriplesString(st.getContext()));
+			}
+			rows.put(row);
+		} else {
+			for (Resource c: contexts) {
+				JSONArray row = new JSONArray().put(
+						NTriplesUtil.toNTriplesString(st.getSubject())).put(
+								NTriplesUtil.toNTriplesString(st.getPredicate())).put(
+										NTriplesUtil.toNTriplesString(st.getObject()));
+				row.put(NTriplesUtil.toNTriplesString(c));
+				rows.put(row);
+			}
 		}
-		return row;
+		return rows;
 	}
 
 	@Override
@@ -159,10 +183,9 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		OpenRDFUtil.verifyContextNotNull(contexts);
 		JSONArray rows = new JSONArray();
 		for (Statement st : statements) {
-			JSONArray row = encodeJSON(st, contexts);
-			rows.put(row);
+			append(rows, encodeJSON(st,contexts));
 		}
-		getHttpRepoClient().deleteJSON(rows, contexts);
+		getHttpRepoClient().deleteJSON(rows);
 	}
     
 	@Override
@@ -172,10 +195,9 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		OpenRDFUtil.verifyContextNotNull(contexts);
 		JSONArray rows = new JSONArray();
 		while (statements.hasNext()) {
-			JSONArray row = encodeJSON(statements.next(), contexts);
-			rows.put(row);
+			append(rows, encodeJSON(statements.next(),contexts));
 		}
-		getHttpRepoClient().deleteJSON(rows, contexts);
+		getHttpRepoClient().deleteJSON(rows);
 	}
 
 	@Override
