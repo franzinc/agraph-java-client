@@ -145,7 +145,9 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 						NTriplesUtil.toNTriplesString(st.getSubject())).put(
 								NTriplesUtil.toNTriplesString(st.getPredicate())).put(
 										NTriplesUtil.toNTriplesString(st.getObject()));
-				row.put(NTriplesUtil.toNTriplesString(c));
+				if (c != null) {
+					row.put(NTriplesUtil.toNTriplesString(c));
+				}
 				rows.put(row);
 			}
 		}
