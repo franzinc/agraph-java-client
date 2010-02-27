@@ -13,6 +13,7 @@ package com.franz.agraph.http;
 
 import static com.franz.agraph.http.AGProtocol.AMOUNT_PARAM_NAME;
 import static org.openrdf.http.protocol.Protocol.ACCEPT_PARAM_NAME;
+import static com.franz.agraph.http.AGProtocol.OVERRIDE_PARAM_NAME;
 import info.aduna.net.http.HttpClientUtil;
 
 import java.io.IOException;
@@ -287,7 +288,7 @@ implements Closeable {
 	public void putRepository(String repositoryURL) throws IOException,
 			RepositoryException, UnauthorizedException, AGHttpException {
 		Header[] headers = new Header[0];
-		NameValuePair[] params = new NameValuePair[0];
+		NameValuePair[] params = { new NameValuePair(OVERRIDE_PARAM_NAME, "false") };
 		put(repositoryURL,headers,params,null);
 	}
 

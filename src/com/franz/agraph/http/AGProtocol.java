@@ -69,6 +69,11 @@ public class AGProtocol extends Protocol {
 	public static final String AUTOCOMMIT_PARAM_NAME = "autoCommit";
 	
 	/**
+	 * Parameter name for the 'override' parameter for put on a repository.
+	 */
+	public static final String OVERRIDE_PARAM_NAME = "override";
+
+	/**
 	 * Relative location of session close.
 	 */
 	public static final String CLOSE = "close";

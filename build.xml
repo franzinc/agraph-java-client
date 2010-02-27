@@ -88,10 +88,11 @@
         <attribute name="tasknamex" default="java"/>
         <attribute name="classname"/>
         <attribute name="arg"/>
+        <attribute name="maxmemory" default="128m"/>
         <sequential>
             <property name="log" value="info"/>
             <java classname="@{classname}" failonerror="true" taskname="@{tasknamex}"
-                  fork="true">
+                  fork="true" maxmemory="@{maxmemory}">
                 <sysproperty key="org.apache.commons.logging.Log"
                              value="org.apache.commons.logging.impl.SimpleLog"/>
                 <sysproperty key="org.apache.commons.logging.simplelog.defaultlog"
@@ -175,7 +176,7 @@
     <target name="test-stress-events"
             depends="compile"
             description="Run test.stress.Events">
-        <run-java tasknamex="ev" classname="test.stress.Events" arg=""/>
+        <run-java tasknamex="ev" classname="test.stress.Events" arg="" maxmemory="512m"/>
     </target>
     
     <target name="tutorial"
