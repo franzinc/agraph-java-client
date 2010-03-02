@@ -44,6 +44,7 @@ import org.openrdf.rio.rdfxml.RDFXMLWriter;
 import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGQueryLanguage;
 import com.franz.agraph.repository.AGRepository;
+import com.franz.agraph.repository.AGAbstractRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
 import com.franz.agraph.repository.AGValueFactory;
@@ -1455,7 +1456,7 @@ public class TutorialExamples {
      */
     public static void example16() throws Exception {
         AGRepositoryConnection conn = example6();
-        AGRepository myRepository = conn.getRepository();
+        AGAbstractRepository myRepository = conn.getRepository();
         AGCatalog catalog = myRepository.getCatalog();
         // create two ordinary stores, and one federated store:
         AGRepository redRepo = catalog.createRepository("redthingsjv");
@@ -1471,7 +1472,7 @@ public class TutorialExamples {
         greenConn.clear();
         ValueFactory gf = greenConn.getValueFactory();
         AGServer server = myRepository.getCatalog().getServer();
-        AGRepository rainbowRepo = server.createFederation("rainbowthingsjv", redRepo, greenRepo);
+        AGAbstractRepository rainbowRepo = server.federate(redRepo, greenRepo);
         rainbowRepo.initialize();
         println("Federation is writable? " + rainbowRepo.isWritable());
         AGRepositoryConnection rainbowConn = rainbowRepo.getConnection();

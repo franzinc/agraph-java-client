@@ -175,11 +175,6 @@ public class AGProtocol extends Protocol {
 	public static final String MAPPING_PREDICATE = "predicate";
 	
 	/**
-	 * Relative location of the federated service.
-	 */
-	public static final String FEDERATED = "federated";
-	
-	/**
 	 * Parameter name for the 'url' parameter for federation.
 	 */
 	public static final String URL_PARAM_NAME = "url";
@@ -402,13 +397,6 @@ public class AGProtocol extends Protocol {
 	}
 	
 	/**
-	 * Location of the federated pseudo-catalog service
-	 */
-	public static final String getFederatedCatalogURL(String serverURL) {
-		return serverURL + "/" + FEDERATED;
-	}
-	
-	/**
 	 * Location of the named catalogs service
 	 */
 	public static final String getNamedCatalogsURL(String serverURL) {
@@ -477,14 +465,6 @@ public class AGProtocol extends Protocol {
 		return getMappingLocation(sessionRoot) + "/" + MAPPING_PREDICATE;
 	}
 	
-	public static String getFederatedLocation(String serverRoot) {
-		return serverRoot + "/" + FEDERATED;
-	}
-	
-	public static String getFederationLocation(String serverRoot, String federationName) {
-		return getFederatedLocation(serverRoot) + "/" + URLEncoder.encode(federationName);
-	}
-
 	public static String getFunctorLocation(String serverRoot) {
 		return serverRoot + "/" + FUNCTOR;
 	}
@@ -495,10 +475,6 @@ public class AGProtocol extends Protocol {
 
 	public static String getRootCatalogRepositoriesLocation(String catalogURL) {
 		return catalogURL + "/" + REPOSITORIES;
-	}
-
-	public static String getFederatedRepositoriesLocation(String catalogURL) {
-		return catalogURL;
 	}
 
 	public static String getEvalLocation(String sessionRoot) {

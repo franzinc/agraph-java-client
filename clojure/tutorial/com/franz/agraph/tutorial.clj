@@ -382,7 +382,6 @@
             green-rep (repo-init (repository cat "greenthings" :renew))
             green-con (repo-connection green-rep rcon-args)
             rainbow-rep (repo-init (repo-federation server
-                                                    "rainbowthings"
                                                     red-rep green-rep))
             rainbow-con (repo-connection rainbow-rep rcon-args)
             rf (value-factory red-con)

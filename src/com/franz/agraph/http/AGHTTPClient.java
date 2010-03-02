@@ -336,6 +336,25 @@ implements Closeable {
 		return handler.getString().split("\n");
 	}
 
+	public String openSession(String spec, boolean autocommit) throws RepositoryException {
+		String url = AGProtocol.getSessionURL(serverURL);
+		Header[] headers = new Header[0];
+		NameValuePair[] data = { new NameValuePair("store", spec),
+								 new NameValuePair(AGProtocol.AUTOCOMMIT_PARAM_NAME,
+												   Boolean.toString(autocommit)),
+								 new NameValuePair(AGProtocol.LIFETIME_PARAM_NAME,
+												   Long.toString(3600)) }; // TODO have some kind of policy for this
+		AGResponseHandler handler = new AGResponseHandler("");
+		try {
+			post(url, headers, data, null, handler);
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		} catch (RDFParseException e) {}
+		return handler.getString();
+	}
+
     @Override
     public void close() {
         Util.close(this.mManager);

@@ -211,8 +211,7 @@
         ;; create two ordinary stores, and one federated store: 
         red-con (ag-repo-con cat "redthings" rcon-args)
         green-con (ag-repo-con cat "greenthings" rcon-args)
-        rainbow-con (repo-federation server "rainbowthings"
-                                     [red-con green-con] rcon-args)
+        rainbow-con (repo-federation server [red-con green-con] rcon-args)
         rf (value-factory red-con)
         gf (value-factory green-con)
         rbf (value-factory rainbow-con)]

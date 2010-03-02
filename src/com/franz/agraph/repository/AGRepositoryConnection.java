@@ -26,12 +26,14 @@ import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
+import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.NamespaceImpl;
 import org.openrdf.model.impl.StatementImpl;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.TupleQueryResult;
+import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
@@ -53,18 +55,13 @@ import com.franz.util.Closeable;
 public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		RepositoryConnection, Closeable {
 
-	private final AGRepository repository;
+	private final AGAbstractRepository repository;
 	private final AGHttpRepoClient repoclient;
 
-	/**
-	 * @param repository
-	 * @throws RepositoryException
-	 */
-	public AGRepositoryConnection(AGRepository repository)
-			throws RepositoryException {
+	public AGRepositoryConnection(AGAbstractRepository repository, AGHttpRepoClient client) {
 		super(repository);
 		this.repository = repository;
-		repoclient = new AGHttpRepoClient(this);
+		this.repoclient = client;
 	}
 
 	/*
@@ -73,7 +70,7 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	 */
 
 	@Override
-	public AGRepository getRepository() {
+	public AGAbstractRepository getRepository() {
 		return repository;
 	}
 

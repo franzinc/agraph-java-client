@@ -29,8 +29,7 @@ import com.franz.agraph.http.AGProtocol;
  * 
  * A catalog is a grouping of repositories.  The root catalog is the 
  * default, unnamed catalog that is available with every server.  It
- * is also possible to create any number of named catalogs.  There is 
- * also a special catalog that groups federations in the server.
+ * is also possible to create any number of named catalogs.
  */
 public class AGCatalog {
 
@@ -41,7 +40,6 @@ public class AGCatalog {
 	private final String repositoriesURL;
 
 	public static final int ROOT_CATALOG = 0;
-	public static final int FEDERATED_CATALOG = 1;
 	public static final int NAMED_CATALOG = 2;
 
 	/**
@@ -61,7 +59,7 @@ public class AGCatalog {
 
 	/**
 	 * Creates an AGCatalog instance for a special catalog in the given server,
-	 * either the root catalog or the federated catalog.
+	 * such as the root catalog.
 	 * 
 	 * @param server the server housing the catalog.
 	 * @param catalogType the type of the special catalog.
@@ -72,11 +70,6 @@ public class AGCatalog {
 			catalogName = "/";
 			catalogURL = AGProtocol.getRootCatalogURL(server.getServerURL());
 			repositoriesURL = AGProtocol.getRootCatalogRepositoriesLocation(catalogURL);
-			break;
-		case FEDERATED_CATALOG:
-			catalogName = "federated";
-			catalogURL = AGProtocol.getFederatedCatalogURL(server.getServerURL());
-			repositoriesURL = AGProtocol.getFederatedRepositoriesLocation(catalogURL);
 			break;
 		default:
 			throw new IllegalArgumentException("Invalid Catalog Type: "	+ catalogType);
@@ -95,8 +88,7 @@ public class AGCatalog {
 	}
 
 	/**
-	 * Returns the name of this catalog.  The root and federated catalog
-	 * also have names, "/" and "federated", respectively.
+	 * Returns the name of this catalog.  The root catalog has the name "/".
 	 * 
 	 * @return the name of this catalog.
 	 */
@@ -137,7 +129,6 @@ public class AGCatalog {
 		case ROOT_CATALOG:
 			catalogPrefixedRepositoryID = repositoryID;
 			break;
-		case FEDERATED_CATALOG:
 		case NAMED_CATALOG:
 			catalogPrefixedRepositoryID = getCatalogName() + ":" + repositoryID;
 			break;

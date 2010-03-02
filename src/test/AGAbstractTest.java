@@ -36,6 +36,7 @@ import org.openrdf.repository.RepositoryResult;
 
 import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGRepository;
+import com.franz.agraph.repository.AGAbstractRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
 import com.franz.agraph.repository.AGValueFactory;
@@ -171,7 +172,7 @@ public class AGAbstractTest {
         return conn;
    }
    
-    AGRepositoryConnection getConnection(AGRepository repo) throws RepositoryException {
+    AGRepositoryConnection getConnection(AGAbstractRepository repo) throws RepositoryException {
         AGRepositoryConnection conn = repo.getConnection();
         closeLater(conn);
         return conn;

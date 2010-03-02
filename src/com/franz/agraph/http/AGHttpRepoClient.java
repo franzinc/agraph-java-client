@@ -52,10 +52,10 @@ import org.openrdf.rio.RDFHandler;
 import org.openrdf.rio.RDFHandlerException;
 import org.openrdf.rio.RDFParseException;
 import org.openrdf.rio.ntriples.NTriplesUtil;
+import org.openrdf.repository.Repository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.util.Closeable;
 
 /**
@@ -63,13 +63,12 @@ import com.franz.util.Closeable;
  */
 public class AGHttpRepoClient implements Closeable {
 
-	private final AGRepositoryConnection repoconnection;
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	// delay using a dedicated session until necessary
 	private boolean usingDedicatedSession = false;
 	private boolean autoCommit = true;
-	private String sessionRoot;
+	private String sessionRoot, repoRoot;
 
 	// TODO: choose proper defaults
 	private long lifetimeInSeconds = 3600;
@@ -77,18 +76,20 @@ public class AGHttpRepoClient implements Closeable {
 	private BooleanQueryResultFormat preferredBQRFormat = BooleanQueryResultFormat.TEXT;
 	private RDFFormat preferredRDFFormat = RDFFormat.TRIX;
 
-	public AGHttpRepoClient(AGRepositoryConnection repoconnection)
-			throws RepositoryException {
-		this.repoconnection = repoconnection;
-		sessionRoot = getRepositoryURL();
+	private AGHTTPClient client;
+	private Repository repo;
+
+    public AGHttpRepoClient(Repository repo, AGHTTPClient client, String repoRoot, String sessionRoot) {
+		this.repo = repo;
+		this.sessionRoot = sessionRoot;
+		this.repoRoot = repoRoot;
+		this.client = client;
 	}
 
-	public AGRepositoryConnection getRepositoryConnection() {
-		return repoconnection;
-	}
-
-	public String getSessionRoot() {
-		return sessionRoot;
+	public String getRoot() throws RepositoryException {
+		if (sessionRoot != null) return sessionRoot;
+		else if (repoRoot != null) return repoRoot;
+		else throw new RepositoryException("This session-only connection has been closed. Re-open a new one to start using it again.");
 	}
 
 	public TupleQueryResultFormat getPreferredTQRFormat() {
@@ -117,22 +118,17 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	public String getServerURL() {
-		return getRepositoryConnection().getRepository().getCatalog()
-				.getServer().getServerURL();
-	}
-
-	public String getRepositoryURL() {
-		return getRepositoryConnection().getRepository().getRepositoryURL();
+		return client.getServerURL();
 	}
 
 	public AGHTTPClient getHTTPClient() {
-		return getRepositoryConnection().getRepository().getHTTPClient();
+		return client;
 	}
 
 	private void useDedicatedSession(boolean autoCommit)
 			throws RepositoryException, UnauthorizedException {
-		if (!usingDedicatedSession) {
-			String url = getSessionURL(getRepositoryURL());
+		if (sessionRoot == null) {
+			String url = getSessionURL(getRoot());
 			Header[] headers = new Header[0];
 			NameValuePair[] data = {
 					new NameValuePair(AGProtocol.LIFETIME_PARAM_NAME, Long
@@ -153,25 +149,25 @@ public class AGHttpRepoClient implements Closeable {
 			if (logger.isDebugEnabled())
 				logger.debug("openSession: {}", sessionRoot);
 			sessionRoot = handler.getString();
-			usingDedicatedSession = true;
 		}
 	}
 
 	private void closeSession(String sessionRoot) throws IOException,
 			RepositoryException, UnauthorizedException {
-		String url = AGProtocol.getSessionCloseLocation(sessionRoot);
-		Header[] headers = new Header[0];
-		NameValuePair[] params = new NameValuePair[0];
-		try {
-			getHTTPClient().post(url, headers, params, null, null);
-			if (logger.isDebugEnabled())
-				logger.debug("closeSession: {}", url);
-		} catch (RDFParseException e) {
-			// bug.
-			throw new RuntimeException(e);
-		} finally {
-			usingDedicatedSession = false;
-			this.sessionRoot = getRepositoryURL();
+		if (sessionRoot != null) {
+			String url = AGProtocol.getSessionCloseLocation(sessionRoot);
+			Header[] headers = new Header[0];
+			NameValuePair[] params = new NameValuePair[0];
+			try {
+				getHTTPClient().post(url, headers, params, null, null);
+				if (logger.isDebugEnabled())
+					logger.debug("closeSession: {}", url);
+			} catch (RDFParseException e) {
+				// bug.
+				throw new RuntimeException(e);
+			} finally {
+				sessionRoot = null;
+			}
 		}
 	}
 
@@ -179,7 +175,7 @@ public class AGHttpRepoClient implements Closeable {
 			boolean includeInferred, RDFHandler handler, Resource... contexts)
 			throws IOException, RDFHandlerException, RepositoryException,
 			UnauthorizedException {
-		String uri = Protocol.getStatementsLocation(getSessionRoot());
+		String uri = Protocol.getStatementsLocation(getRoot());
 		Header[] headers = { new Header(ACCEPT_PARAM_NAME,
 				getPreferredRDFFormat().getDefaultMIMEType()) };
 
@@ -209,9 +205,7 @@ public class AGHttpRepoClient implements Closeable {
 							uri,
 							headers,
 							params.toArray(new NameValuePair[params.size()]),
-							new AGResponseHandler(getRepositoryConnection()
-									.getRepository(), handler,
-									getPreferredRDFFormat()));
+							new AGResponseHandler(repo, handler, getPreferredRDFFormat()));
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
@@ -220,7 +214,7 @@ public class AGHttpRepoClient implements Closeable {
 	public void addStatements(Resource subj, URI pred, Value obj,
 			Resource... contexts) throws IOException, RepositoryException,
 			UnauthorizedException {
-		String uri = Protocol.getStatementsLocation(getSessionRoot());
+		String uri = Protocol.getStatementsLocation(getRoot());
 		Header[] headers = { new Header("Content-Type", RDFFormat.NTRIPLES
 				.getDefaultMIMEType()) };
 		List<NameValuePair> params = new ArrayList<NameValuePair>(5);
@@ -251,7 +245,7 @@ public class AGHttpRepoClient implements Closeable {
 
 	public void deleteStatements(Resource subj, URI pred, Value obj,
 			Resource... contexts) throws RepositoryException {
-		String url = Protocol.getStatementsLocation(getSessionRoot());
+		String url = Protocol.getStatementsLocation(getRoot());
 		Header[] headers = {};
 
 		List<NameValuePair> params = new ArrayList<NameValuePair>(5);
@@ -285,7 +279,7 @@ public class AGHttpRepoClient implements Closeable {
 		if (!autoCommit) {
 			useDedicatedSession(false);
 		}
-		String url = AGProtocol.getAutoCommitLocation(getSessionRoot());
+		String url = AGProtocol.getAutoCommitLocation(getRoot());
 		Header[] headers = {};
 		NameValuePair[] params = { new NameValuePair(AGProtocol.ON_PARAM_NAME,
 				Boolean.toString(autoCommit)) };
@@ -306,7 +300,7 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	public void commit() throws RepositoryException {
-		String url = getSessionRoot() + "/" + AGProtocol.COMMIT;
+		String url = getRoot() + "/" + AGProtocol.COMMIT;
 		Header[] headers = {};
 		try {
 			getHTTPClient().post(url, headers, new NameValuePair[0],
@@ -322,7 +316,7 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	public void rollback() throws RepositoryException {
-		String url = getSessionRoot() + "/" + AGProtocol.ROLLBACK;
+		String url = getRoot() + "/" + AGProtocol.ROLLBACK;
 		Header[] headers = {};
 		try {
 			getHTTPClient().post(url, headers, new NameValuePair[0],
@@ -338,7 +332,7 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	public void clearNamespaces() throws RepositoryException {
-		String url = Protocol.getNamespacesLocation(getSessionRoot());
+		String url = Protocol.getNamespacesLocation(getRoot());
 		Header[] headers = {};
 		try {
 			getHTTPClient().delete(url, headers, new NameValuePair[0]);
@@ -393,13 +387,13 @@ public class AGHttpRepoClient implements Closeable {
 
 	public void uploadJSON(JSONArray rows, Resource... contexts)
 	throws RepositoryException {
-		String url = Protocol.getStatementsLocation(getSessionRoot());
+		String url = Protocol.getStatementsLocation(getRoot());
 		uploadJSON(url, rows, contexts);
 	}
 
 	public void deleteJSON(JSONArray rows, Resource... contexts)
 	throws RepositoryException {
-		uploadJSON(AGProtocol.getStatementsDeleteLocation(getSessionRoot()), rows, contexts);
+		uploadJSON(AGProtocol.getStatementsDeleteLocation(getRoot()), rows, contexts);
 	}
 
 	public void uploadJSON(String url, JSONArray rows, Resource... contexts)
@@ -438,7 +432,7 @@ public class AGHttpRepoClient implements Closeable {
 			boolean overwrite, String serverSideFile, URI serverSideURL,
 			RDFFormat dataFormat, Resource... contexts) throws IOException,
 			RDFParseException, RepositoryException, UnauthorizedException {
-		String url = Protocol.getStatementsLocation(getSessionRoot());
+		String url = Protocol.getStatementsLocation(getRoot());
 		upload(url, reqEntity, baseURI, overwrite, serverSideFile, serverSideURL, dataFormat, contexts);
 	}
 
@@ -496,7 +490,7 @@ public class AGHttpRepoClient implements Closeable {
 	public void getContextIDs(TupleQueryResultHandler handler)
 			throws IOException, TupleQueryResultHandlerException,
 			RepositoryException, UnauthorizedException {
-		String url = Protocol.getContextsLocation(getSessionRoot());
+		String url = Protocol.getContextsLocation(getRoot());
 		Header[] headers = { new Header(ACCEPT_PARAM_NAME,
 				getPreferredTQRFormat().getDefaultMIMEType()) };
 		try {
@@ -504,8 +498,7 @@ public class AGHttpRepoClient implements Closeable {
 					url,
 					headers,
 					new NameValuePair[0],
-					new AGResponseHandler(getRepositoryConnection()
-							.getRepository(), handler));
+					new AGResponseHandler(repo, handler));
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
@@ -513,7 +506,7 @@ public class AGHttpRepoClient implements Closeable {
 
 	public long size(Resource... contexts) throws IOException,
 			RepositoryException, UnauthorizedException {
-		String url = Protocol.getSizeLocation(getSessionRoot());
+		String url = Protocol.getSizeLocation(getRoot());
 		Header[] headers = {};
 		String[] encodedContexts = Protocol.encodeContexts(contexts);
 		NameValuePair[] contextParams = new NameValuePair[encodedContexts.length];
@@ -545,7 +538,7 @@ public class AGHttpRepoClient implements Closeable {
 	public void getNamespaces(TupleQueryResultHandler handler)
 			throws IOException, TupleQueryResultHandlerException,
 			RepositoryException, UnauthorizedException {
-		String url = Protocol.getNamespacesLocation(getSessionRoot());
+		String url = Protocol.getNamespacesLocation(getRoot());
 		Header[] headers = { new Header(ACCEPT_PARAM_NAME,
 				getPreferredTQRFormat().getDefaultMIMEType()) };
 		try {
@@ -553,8 +546,7 @@ public class AGHttpRepoClient implements Closeable {
 					url,
 					headers,
 					new NameValuePair[0],
-					new AGResponseHandler(getRepositoryConnection()
-							.getRepository(), handler));
+					new AGResponseHandler(repo, handler));
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
@@ -562,7 +554,7 @@ public class AGHttpRepoClient implements Closeable {
 
 	public String getNamespace(String prefix) throws IOException,
 			RepositoryException, UnauthorizedException {
-		String url = Protocol.getNamespacePrefixLocation(getSessionRoot(),
+		String url = Protocol.getNamespacePrefixLocation(getRoot(),
 				prefix);
 		Header[] headers = {};
 		AGResponseHandler handler = new AGResponseHandler("");
@@ -578,7 +570,7 @@ public class AGHttpRepoClient implements Closeable {
 
 	public void setNamespacePrefix(String prefix, String name)
 			throws RepositoryException {
-		String url = Protocol.getNamespacePrefixLocation(getSessionRoot(),
+		String url = Protocol.getNamespacePrefixLocation(getRoot(),
 				prefix);
 		Header[] headers = {};
 		NameValuePair[] params = {};
@@ -595,7 +587,7 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	public void removeNamespacePrefix(String prefix) throws RepositoryException {
-		String url = Protocol.getNamespacePrefixLocation(getSessionRoot(),
+		String url = Protocol.getNamespacePrefixLocation(getRoot(),
 				prefix);
 		Header[] headers = {};
 		try {
@@ -611,7 +603,7 @@ public class AGHttpRepoClient implements Closeable {
 			String query, Dataset dataset, boolean includeInferred,
 			String planner, Binding... bindings) throws HttpException,
 			RepositoryException, RDFParseException, IOException {
-		String url = getSessionRoot();
+		String url = getRoot();
 		List<Header> headers = new ArrayList<Header>(5);
 		headers.add(new Header("Content-Type", Protocol.FORM_MIME_TYPE
 				+ "; charset=utf-8"));
@@ -673,9 +665,10 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	public void close() throws RepositoryException {
-		if (usingDedicatedSession) {
+		if (sessionRoot != null) {
 			try {
 				closeSession(sessionRoot);
+				sessionRoot = null;
 			} catch (IOException e) {
 				throw new RepositoryException(e);
 			}
@@ -684,7 +677,7 @@ public class AGHttpRepoClient implements Closeable {
 
 	public void createFreetextIndex(String name, URI[] predicates)
 			throws RepositoryException {
-		String url = AGProtocol.getFreetextIndexLocation(getSessionRoot(), name);
+		String url = AGProtocol.getFreetextIndexLocation(getRoot(), name);
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
 		if (predicates != null) {
 			for (URI predicate : predicates) {
@@ -705,7 +698,7 @@ public class AGHttpRepoClient implements Closeable {
 
 	public String[] getFreetextPredicates(String index)
 			throws RepositoryException {
-		String url = AGProtocol.getFreetextIndexLocation(getSessionRoot(), index) + "/predicates";
+		String url = AGProtocol.getFreetextIndexLocation(getRoot(), index) + "/predicates";
 		AGResponseHandler handler = new AGResponseHandler("");
 		try {
 			getHTTPClient().get(url, new Header[0], new NameValuePair[0], handler);
@@ -719,7 +712,7 @@ public class AGHttpRepoClient implements Closeable {
 
 	public String[] getFreetextIndices()
 			throws RepositoryException {
-		String url = AGProtocol.getFreetextIndexLocation(getSessionRoot());
+		String url = AGProtocol.getFreetextIndexLocation(getRoot());
 		AGResponseHandler handler = new AGResponseHandler("");
 		try {
 			getHTTPClient().get(url, new Header[0], new NameValuePair[0], handler);
@@ -733,7 +726,7 @@ public class AGHttpRepoClient implements Closeable {
 
 	public void registerPredicateMapping(URI predicate, URI primitiveType)
 			throws RepositoryException {
-		String url = AGProtocol.getPredicateMappingLocation(getSessionRoot());
+		String url = AGProtocol.getPredicateMappingLocation(getRoot());
 		String pred_nt = NTriplesUtil.toNTriplesString(predicate);
 		String primtype_nt = NTriplesUtil.toNTriplesString(primitiveType);
 		Header[] headers = {};
@@ -754,7 +747,7 @@ public class AGHttpRepoClient implements Closeable {
 
 	public void deletePredicateMapping(URI predicate)
 			throws RepositoryException {
-		String url = AGProtocol.getPredicateMappingLocation(getSessionRoot());
+		String url = AGProtocol.getPredicateMappingLocation(getRoot());
 		String pred_nt = NTriplesUtil.toNTriplesString(predicate);
 		Header[] headers = {};
 		NameValuePair[] params = { new NameValuePair(
@@ -769,7 +762,7 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	public String[] getPredicateMappings() throws RepositoryException {
-		String url = AGProtocol.getPredicateMappingLocation(getSessionRoot());
+		String url = AGProtocol.getPredicateMappingLocation(getRoot());
 		Header[] headers = new Header[0];
 		NameValuePair[] params = new NameValuePair[0];
 		AGResponseHandler handler = new AGResponseHandler("");
@@ -785,7 +778,7 @@ public class AGHttpRepoClient implements Closeable {
 
 	public void registerDatatypeMapping(URI datatype, URI primitiveType)
 			throws RepositoryException {
-		String url = AGProtocol.getDatatypeMappingLocation(getSessionRoot());
+		String url = AGProtocol.getDatatypeMappingLocation(getRoot());
 		String datatype_nt = NTriplesUtil.toNTriplesString(datatype);
 		String primtype_nt = NTriplesUtil.toNTriplesString(primitiveType);
 		Header[] headers = {};
@@ -805,7 +798,7 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	public void deleteDatatypeMapping(URI datatype) throws RepositoryException {
-		String url = AGProtocol.getDatatypeMappingLocation(getSessionRoot());
+		String url = AGProtocol.getDatatypeMappingLocation(getRoot());
 		String datatype_nt = NTriplesUtil.toNTriplesString(datatype);
 		Header[] headers = {};
 		NameValuePair[] params = { new NameValuePair(
@@ -820,7 +813,7 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	public String[] getDatatypeMappings() throws RepositoryException {
-		String url = AGProtocol.getPredicateMappingLocation(getSessionRoot());
+		String url = AGProtocol.getPredicateMappingLocation(getRoot());
 		Header[] headers = new Header[0];
 		NameValuePair[] params = new NameValuePair[0];
 		AGResponseHandler handler = new AGResponseHandler("");
@@ -835,7 +828,7 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	public void clearMappings() throws RepositoryException {
-		String url = AGProtocol.getMappingLocation(getSessionRoot());
+		String url = AGProtocol.getMappingLocation(getRoot());
 		Header[] headers = {};
 		NameValuePair[] params = {};
 		try {
@@ -859,7 +852,7 @@ public class AGHttpRepoClient implements Closeable {
 
 	public void addRules(InputStream rulestream) throws RepositoryException {
 		useDedicatedSession(isAutoCommit());
-		String url = AGProtocol.getFunctorLocation(getSessionRoot());
+		String url = AGProtocol.getFunctorLocation(getRoot());
 		Header[] headers = {};
 		NameValuePair[] params = {};
 		try {
@@ -888,7 +881,7 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	public String evalInServer(InputStream stream) throws RepositoryException {
-		String url = AGProtocol.getEvalLocation(getSessionRoot());
+		String url = AGProtocol.getEvalLocation(getRoot());
 		Header[] headers = {};
 		NameValuePair[] params = {};
 		AGResponseHandler handler = new AGResponseHandler("");
@@ -906,7 +899,7 @@ public class AGHttpRepoClient implements Closeable {
 
 	public void ping() throws RepositoryException {
 		if (usingDedicatedSession) {
-			String url = AGProtocol.getSessionPingLocation(getSessionRoot());
+			String url = AGProtocol.getSessionPingLocation(getRoot());
 			Header[] headers = {};
 			try {
 				getHTTPClient().get(url, headers, new NameValuePair[0], null);
@@ -921,7 +914,7 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	public String[] getGeoTypes() throws RepositoryException {
-		String url = AGProtocol.getGeoTypesLocation(getSessionRoot());
+		String url = AGProtocol.getGeoTypesLocation(getRoot());
 		Header[] headers = {};
 		AGResponseHandler handler = new AGResponseHandler("");
 		try {
@@ -938,7 +931,7 @@ public class AGHttpRepoClient implements Closeable {
 
 	public String registerCartesianType(float stripWidth, float xmin, float xmax,
 			float ymin, float ymax) throws RepositoryException {
-		String url = AGProtocol.getGeoTypesCartesianLocation(getSessionRoot());
+		String url = AGProtocol.getGeoTypesCartesianLocation(getRoot());
 		Header[] headers = {};
 		NameValuePair[] params = {
 				new NameValuePair(AGProtocol.STRIP_WIDTH_PARAM_NAME, Float.toString(stripWidth)),
@@ -962,7 +955,7 @@ public class AGHttpRepoClient implements Closeable {
 
 	public String registerSphericalType(float stripWidth, String unit, float latmin, float longmin,
 			float latmax, float longmax) throws RepositoryException {
-		String url = AGProtocol.getGeoTypesSphericalLocation(getSessionRoot());
+		String url = AGProtocol.getGeoTypesSphericalLocation(getRoot());
 		Header[] headers = {};
 		NameValuePair[] params = {
 				new NameValuePair(AGProtocol.STRIP_WIDTH_PARAM_NAME, Float.toString(stripWidth)),
@@ -989,7 +982,7 @@ public class AGHttpRepoClient implements Closeable {
 		if (points.size()<3) {
 			throw new IllegalArgumentException("A minimum of three points are required to register a polygon.");
 		}
-		String url = AGProtocol.getGeoPolygonLocation(getSessionRoot());
+		String url = AGProtocol.getGeoPolygonLocation(getRoot());
 		Header[] headers = {};
 		List<NameValuePair> params = new ArrayList<NameValuePair>(7);
 		params.add(new NameValuePair(AGProtocol.RESOURCE_PARAM_NAME, polygon));
@@ -1010,7 +1003,7 @@ public class AGHttpRepoClient implements Closeable {
 	public void getGeoBox(String type_uri, String predicate_uri, float xmin, float xmax,
 			float ymin, float ymax, int limit, boolean infer, AGResponseHandler handler) 
 	throws RepositoryException {
-		String url = AGProtocol.getGeoBoxLocation(getSessionRoot());
+		String url = AGProtocol.getGeoBoxLocation(getRoot());
 		Header[] headers = { new Header(ACCEPT_PARAM_NAME,
 				getPreferredRDFFormat().getDefaultMIMEType()) };
 		List<NameValuePair> params = new ArrayList<NameValuePair>(7);
@@ -1043,7 +1036,7 @@ public class AGHttpRepoClient implements Closeable {
 	public void getGeoCircle(String type_uri, String predicate_uri, float x, float y,
 			float radius, int limit, boolean infer, AGResponseHandler handler) 
 	throws RepositoryException {
-		String url = AGProtocol.getGeoCircleLocation(getSessionRoot());
+		String url = AGProtocol.getGeoCircleLocation(getRoot());
 		Header[] headers = { new Header(ACCEPT_PARAM_NAME,
 				getPreferredRDFFormat().getDefaultMIMEType()) };
 		List<NameValuePair> params = new ArrayList<NameValuePair>(7);
@@ -1074,7 +1067,7 @@ public class AGHttpRepoClient implements Closeable {
 
 	public void getGeoHaversine(String type_uri, String predicate_uri, float lat, float lon, float radius, String unit, int limit, boolean infer, AGResponseHandler handler) 
 	throws RepositoryException {
-		String url = AGProtocol.getGeoHaversineLocation(getSessionRoot());
+		String url = AGProtocol.getGeoHaversineLocation(getRoot());
 		Header[] headers = { new Header(ACCEPT_PARAM_NAME,
 				getPreferredRDFFormat().getDefaultMIMEType()) };
 		List<NameValuePair> params = new ArrayList<NameValuePair>(7);
@@ -1105,7 +1098,7 @@ public class AGHttpRepoClient implements Closeable {
 	
 	public void getGeoPolygon(String type_uri, String predicate_uri, String polygon, int limit, boolean infer, AGResponseHandler handler) 
 	throws RepositoryException {
-		String url = AGProtocol.getGeoPolygonLocation(getSessionRoot());
+		String url = AGProtocol.getGeoPolygonLocation(getRoot());
 		Header[] headers = { new Header(ACCEPT_PARAM_NAME,
 				getPreferredRDFFormat().getDefaultMIMEType()) };
 		List<NameValuePair> params = new ArrayList<NameValuePair>(7);
@@ -1134,7 +1127,7 @@ public class AGHttpRepoClient implements Closeable {
 	
 	public void registerSNAGenerator(String generator, List<String> objectOfs, List<String> subjectOfs, List<String> undirecteds, String query) throws RepositoryException {
 		useDedicatedSession(autoCommit);
-		String url = AGProtocol.getSNAGeneratorLocation(getSessionRoot(), generator);
+		String url = AGProtocol.getSNAGeneratorLocation(getRoot(), generator);
 		Header[] headers = {};
 		List<NameValuePair> params = new ArrayList<NameValuePair>(7);
 		for (String objectOf: objectOfs) {
@@ -1161,7 +1154,7 @@ public class AGHttpRepoClient implements Closeable {
 	}
 	
 	public void registerSNANeighborMatrix(String matrix, String generator, List<String> group, int depth) throws RepositoryException {
-		String url = AGProtocol.getSNANeighborMatrixLocation(getSessionRoot(), matrix);
+		String url = AGProtocol.getSNANeighborMatrixLocation(getRoot(), matrix);
 		Header[] headers = {};
 		List<NameValuePair> params = new ArrayList<NameValuePair>(7);
 		params.add(new NameValuePair(AGProtocol.GENERATOR_PARAM_NAME, generator));

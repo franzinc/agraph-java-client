@@ -55,6 +55,7 @@ import org.openrdf.rio.rdfxml.RDFXMLWriter;
 
 import com.franz.agraph.repository.AGQueryLanguage;
 import com.franz.agraph.repository.AGRepository;
+import com.franz.agraph.repository.AGAbstractRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
 import com.franz.agraph.repository.AGValueFactory;
@@ -545,8 +546,8 @@ public class TutorialTests extends AGAbstractTest {
         AGRepositoryConnection greenConn = getConnection(greenRepo);
         greenConn.clear();
         ValueFactory gf = greenConn.getValueFactory();
-        AGServer server = repo.getCatalog().getServer();
-        AGRepository rainbowRepo = server.createFederation("rainbowthingsjv", redRepo, greenRepo);
+        AGServer server = cat.getServer();
+        AGAbstractRepository rainbowRepo = server.federate(redRepo, greenRepo);
         closeLater(rainbowRepo);
         rainbowRepo.initialize();
         assertFalse("Federation is writable?", rainbowRepo.isWritable());

@@ -21,13 +21,14 @@ import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryException;
 
 import com.franz.agraph.http.AGHTTPClient;
+import com.franz.agraph.http.AGHttpRepoClient;
 import com.franz.util.Closeable;
 
 /**
  * Implements the Sesame Repository interface for AllegroGraph.
  * 
  */
-public class AGRepository implements Repository, Closeable {
+public class AGRepository implements AGAbstractRepository, Closeable {
 
 	private final AGCatalog catalog;
 	private final String repositoryID;
@@ -84,15 +85,6 @@ public class AGRepository implements Repository, Closeable {
 		return repositoryURL;
 	}
 	
-	/**
-	 * Returns true iff this repository is a federation.
-	 * 
-	 * @return true iff this repository is a federation.
-	 */
-	public boolean isFederation() {
-		return (AGCatalog.FEDERATED_CATALOG == getCatalog().getCatalogType());
-	}
-	
 	public AGValueFactory getValueFactory() {
 		return vf;
 	}
@@ -105,7 +97,8 @@ public class AGRepository implements Repository, Closeable {
 	}
 
 	public AGRepositoryConnection getConnection() throws RepositoryException {
-		return new AGRepositoryConnection(this);
+		AGHttpRepoClient repoclient = new AGHttpRepoClient(this, getCatalog().getHTTPClient(), repositoryURL, null);
+		return new AGRepositoryConnection(this, repoclient);
 	}
 
 	/**
@@ -145,6 +138,12 @@ public class AGRepository implements Repository, Closeable {
         }
         result = Boolean.parseBoolean(writable.stringValue());
         return result;
+	}
+
+	public String getSpec() {
+		String cname = getCatalog().getCatalogName(), name = getRepositoryID();
+		if (cname == null) return "<" + name + ">";
+		else return "<" + cname + ":" + name + ">";
 	}
 
 	/**

@@ -19,6 +19,7 @@ import org.openrdf.model.Value;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.TupleQueryResult;
 import org.openrdf.repository.RepositoryException;
+import org.openrdf.repository.Repository;
 
 import com.franz.agraph.http.AGErrorType;
 import com.franz.agraph.http.AGHTTPClient;
@@ -35,8 +36,6 @@ public class AGServer implements Closeable {
 	private final String serverURL;
 	private final AGHTTPClient httpClient;
 	private final AGCatalog rootCatalog;
-	private final AGCatalog federatedCatalog;
-	
 	
 	/**
 	 * Creates an AGServer instance for interacting with an AllegroGraph
@@ -51,7 +50,6 @@ public class AGServer implements Closeable {
 		httpClient = new AGHTTPClient(serverURL); 
 		httpClient.setUsernameAndPassword(username, password);
 		rootCatalog = new AGCatalog(this,AGCatalog.ROOT_CATALOG);
-		federatedCatalog = new AGCatalog(this,AGCatalog.FEDERATED_CATALOG);
 	}
 	
 	/**
@@ -74,15 +72,6 @@ public class AGServer implements Closeable {
 	 */
 	public AGCatalog getRootCatalog() {
 		return rootCatalog;
-	}
-	
-	/**
-	 * Returns the catalog housing all federations for this AllegroGraph server.
-	 * 
-	 * @return the federated catalog. 
-	 */
-	public AGCatalog getFederatedCatalog() {
-		return federatedCatalog;
 	}
 	
 	/**
@@ -117,55 +106,17 @@ public class AGServer implements Closeable {
 		return new AGCatalog(this, catalogID);
 	}
 
-	/**
-	 * Creates a federation over the specified component repositories,
-	 * naming it by federationName.
-	 *  
-	 * @param federationName the name of the federation.
-	 * @param repositories the component repositories.
-	 * @return the federation instance.
-	 * @throws RepositoryException
-	 */
-	public AGRepository createFederation(String federationName, AGRepository... repositories) 
-	throws RepositoryException {
-		String url = AGProtocol.getFederationLocation(getServerURL(), federationName); 
-		Header[] headers = {};
-		List<NameValuePair> params = new ArrayList<NameValuePair>(3);
-		for (AGRepository repo : repositories) {
-			params.add(new NameValuePair(AGProtocol.REPO_PARAM_NAME, repo.getCatalogPrefixedRepositoryID()));
-			// TODO: deal with remote repositories
-			// params.add(new NameValuePair(AGProtocol.URL_PARAM_NAME, repo.getRepositoryURL()));
-		}
-		try {
-			getHTTPClient().put(url,headers,params.toArray(new NameValuePair[params.size()]),null);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
-		} catch (AGHttpException e) {
-			if (AGErrorType.PRECONDITION_FAILED == e.getErrorInfo()
-					.getErrorType()) {
-				// don't error if repo already exists
-				// TODO: check if repo exists first
-			} else {
-				throw new RepositoryException(e);
-			}
-		}
-		return new AGRepository(getFederatedCatalog(),federationName);
+	public AGVirtualRepository virtualRepository(String spec) {
+		return new AGVirtualRepository(this, spec, null);
 	}
-	
-	/**
-	 * Deletes a federation by name.
-	 * 
-	 * @param federationName the name of the federation to delete.
-	 * @throws RepositoryException
-	 */
-	public void deleteFederation(String federationName)	throws RepositoryException {
-		String url = AGProtocol.getFederationLocation(getServerURL(), federationName); 
-		Header[] headers = new Header[0];
-		try {
-			getHTTPClient().delete(url,headers,null);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
-		}
+
+	public AGVirtualRepository federate(AGAbstractRepository... repositories) {
+		String[] specstrings = new String[repositories.length];
+		for (int i = 0; i < repositories.length; i++)
+			specstrings[i] = repositories[i].getSpec();
+		String spec = AGVirtualRepository.federatedSpec(specstrings);
+
+		return new AGVirtualRepository(this, spec, null);
 	}
 
     @Override
