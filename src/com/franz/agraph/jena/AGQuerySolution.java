@@ -10,8 +10,10 @@ package com.franz.agraph.jena;
 
 import java.util.Iterator;
 
+import org.openrdf.model.Value;
 import org.openrdf.query.BindingSet;
 
+import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.RDFNode;
@@ -33,27 +35,32 @@ public class AGQuerySolution implements QuerySolution {
 
 	@Override
 	public boolean contains(String varName) {
-		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+		return bs.hasBinding(varName);
 	}
 
 	@Override
 	public RDFNode get(String varName) {
-		return model.asRDFNode(AGNodeFactory.asNode(bs.getValue(varName)));
+		Value val = bs.getValue(varName);
+		if (val==null) {
+			return null;
+		}
+		Node node = AGNodeFactory.asNode(val);
+		return model.asRDFNode(node);
 	}
 
 	@Override
 	public Literal getLiteral(String varName) {
-		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+		return (Literal)get(varName);
 	}
 
 	@Override
 	public Resource getResource(String varName) {
-		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+		return (Resource)get(varName);
 	}
 
 	@Override
 	public Iterator<String> varNames() {
-		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+		return bs.getBindingNames().iterator();
 	}
 
 	@Override

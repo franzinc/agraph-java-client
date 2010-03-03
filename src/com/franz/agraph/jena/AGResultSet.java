@@ -35,12 +35,12 @@ public class AGResultSet implements ResultSet {
 
 	@Override
 	public Model getResourceModel() {
-		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+		return model;
 	}
 
 	@Override
 	public List<String> getResultVars() {
-		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+		return result.getBindingNames();
 	}
 
 	@Override
@@ -82,8 +82,11 @@ public class AGResultSet implements ResultSet {
 
 	@Override
 	public void remove() {
-		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
-
+		try {
+			result.remove();
+		} catch (QueryEvaluationException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 }
