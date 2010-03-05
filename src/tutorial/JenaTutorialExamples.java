@@ -685,7 +685,6 @@ public class JenaTutorialExamples {
 					throw new IllegalArgumentException("There is no example "
 							+ choice);
 				}
-				closeAll();
 			}
 		} finally {
 			closeAll();
