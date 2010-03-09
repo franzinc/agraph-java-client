@@ -71,6 +71,7 @@ public class TutorialExamples {
         println("Available repositories in catalog " + 
                 (catalog.getCatalogName()) + ": " + 
                 catalog.listRepositories());
+        closeAll();
         catalog.deleteRepository(REPOSITORY_ID);
         AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);
         println("Got a repository.");
@@ -1728,14 +1729,8 @@ public class TutorialExamples {
      * Social Network Analysis
     */
     public static void example21() throws Exception {
-    	AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
-    	AGCatalog catalog = server.getCatalog(CATALOG_ID);
-    	catalog.deleteRepository(REPOSITORY_ID);
-    	AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);
-    	myRepository.initialize();
-    	AGValueFactory vf = myRepository.getValueFactory();
-    	AGRepositoryConnection conn = myRepository.getConnection();
-    	closeBeforeExit(conn);
+    	AGRepositoryConnection conn = example1(false);
+    	AGValueFactory vf = conn.getValueFactory();
     	conn.add(new File("src/tutorial/java-lesmis.rdf"), null, RDFFormat.RDFXML);
     	println("Loaded " + conn.size() + " java-lesmis.rdf triples.");
     	
@@ -2291,7 +2286,6 @@ public class TutorialExamples {
                 case 22: example22(); break;
                 default: println("Example" + choice + "() is not available in this release.");
                 }
-                closeAll();
             }
         } finally {
             closeAll();

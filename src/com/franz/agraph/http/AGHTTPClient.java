@@ -37,6 +37,7 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
+import org.openrdf.http.protocol.Protocol;
 import org.openrdf.http.protocol.UnauthorizedException;
 import org.openrdf.query.TupleQueryResult;
 import org.openrdf.query.impl.TupleQueryResultBuilder;
@@ -104,6 +105,7 @@ implements Closeable {
 		for (Header header : headers) {
 			post.addRequestHeader(header);
 		}
+		post.addRequestHeader("Accept-encoding", "gzip");
 		post.setQueryString(params);
 		if (requestEntity != null) {
 			post.setRequestEntity(requestEntity);
@@ -139,6 +141,7 @@ implements Closeable {
 		for (Header header : headers) {
 			get.addRequestHeader(header);
 		}
+		get.addRequestHeader("Accept-encoding", "gzip");
 		get.setQueryString(params);
 		try {
 			int httpCode = getHttpClient().executeMethod(get);
