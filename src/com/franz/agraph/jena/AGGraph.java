@@ -68,7 +68,7 @@ public class AGGraph extends GraphBase implements Graph, Closeable {
 		return graphNode;
 	}
 
-	public String getGraphName() {
+	public String getName() {
 		if (graphNode == null)
 			return "default-graph";
 		return graphNode.toString();
@@ -116,7 +116,7 @@ public class AGGraph extends GraphBase implements Graph, Closeable {
 	}*/
 	@Override
     public String toString() 
-        { return toString(getGraphName()+(closed ? " (closed) " : " (size: " + graphBaseSize() + ")."),this); }
+        { return toString(getName()+(closed ? " (closed) " : " (size: " + graphBaseSize() + ")."),this); }
 
     /**
     Answer a human-consumable representation of <code>that</code>. The 
@@ -131,7 +131,8 @@ public static String toString( String prefix, Graph that )
 	StringBuffer b = new StringBuffer( prefix + " {" );
 	String gap = "";
 	ClosableIterator<Triple> it = GraphUtil.findAll( that );
-	while (it.hasNext()) 
+	int count = 0;
+	while (it.hasNext() && count < 20) 
        {
 		b.append( gap );
 		gap = "; ";

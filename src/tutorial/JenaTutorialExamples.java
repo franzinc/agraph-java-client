@@ -321,9 +321,9 @@ public class JenaTutorialExamples {
 		model_vcards.read(new FileInputStream(path1), baseURI);
 		model.read(new FileInputStream(path2), baseURI, "N-TRIPLE");
 		println("After loading, model_vcards contains " + model_vcards.size()
-				+ " triples in graph '" + model_vcards.getGraph() 
+				+ " triples in graph '" + model_vcards.getGraph().getName() 
 				+ "'\n    and model contains " + model.size() 
-				+ " triples in graph '" + model.getGraph() + "'.");
+				+ " triples in graph '" + model.getGraph().getName() + "'.");
 		return maker;
 	}
 
@@ -335,16 +335,18 @@ public class JenaTutorialExamples {
 		AGModel model = new AGModel(maker.getGraph());
 		AGModel model_vcards = new AGModel(maker.openGraph("http://example.org#vcards"));
 		println("\nMatch all and print subjects and graph (model)");
+		String graphName = model.getGraph().getName();
 		StmtIterator statements = model.listStatements();
 		for (int i = 0; i < 25 && statements.hasNext(); i++) {
 			Statement stmt = statements.next();
-			println(stmt.getSubject() + "  " + stmt.getModel().getGraph());
+			println(stmt.getSubject() + "  " + graphName);
 		}
 		println("\nMatch all and print subjects and graph (model_vcards)");
+		String vcardsName = model_vcards.getGraph().getName();
 		statements = model_vcards.listStatements();
 		for (int i = 0; i < 25 && statements.hasNext(); i++) {
 			Statement stmt = statements.next();
-			println(stmt.getSubject() + "  " + stmt.getModel().getGraph());
+			println(stmt.getSubject() + "  " + vcardsName);
 		}
 		statements.close();
 		
