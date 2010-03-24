@@ -2239,6 +2239,220 @@ public class TutorialExamples {
         printRows("\nUsing getStatements() on conn2; should find Valjean:",
                 1, conn2.getStatements(null, null, valjean, false));
     }
+    /**
+     * Duplicate triples and duplicate results
+     */
+    public static void example23() throws Exception {
+        AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
+        AGCatalog catalog = server.getCatalog(CATALOG_ID);
+        AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);
+        myRepository.initialize();
+        AGValueFactory vf = myRepository.getValueFactory();
+        AGRepositoryConnection conn = myRepository.getConnection();
+        closeBeforeExit(conn);
+        conn.clear();
+        String baseURI = "http://example.org/";
+
+        // Demonstrate blank node behavior. 
+        conn.add(new File("src/tutorial/java-blankNodes1.rdf"), baseURI, RDFFormat.RDFXML);
+        println("\nLoaded " + conn.size() + " java-blankNodes1.rdf triples via conn.");
+        printRows("\nTwo books, with one author as blank node in each book.",
+                10000, conn.getStatements(null, null, null, false));
+        conn.clear();
+        
+        conn.add(new File("src/tutorial/java-blankNodes2.rdf"), baseURI, RDFFormat.RDFXML);
+        println("\nLoaded " + conn.size() + " java-blankNodes2.rdf triples via conn.");
+        printRows("\nTwo books, with one author identified by URI but in striped syntax in each book.",
+                10000, conn.getStatements(null, null, null, false));
+        conn.clear();
+
+        conn.add(new File("src/tutorial/java-blankNodes3.rdf"), baseURI, RDFFormat.RDFXML);
+        println("\nLoaded " + conn.size() + " java-blankNodes3.rdf triples via conn.");
+        printRows("\nTwo books, with one author linked by a URI.",
+                10000, conn.getStatements(null, null, null, false));
+        conn.clear();
+
+        conn.add(new File("src/tutorial/java-blankNodes4.rdf"), baseURI, RDFFormat.RDFXML);
+        println("\nLoaded " + conn.size() + " java-blankNodes4.rdf triples via conn.");
+        printRows("\nTwo books, with one author as a literal value.",
+                10000, conn.getStatements(null, null, null, false));
+        conn.clear();
+
+        // Load Kennedy file.
+        conn.add(new File("src/tutorial/java-kennedy.ntriples"), baseURI, RDFFormat.NTRIPLES);
+        println("\nAfter loading there are " + conn.size() + " kennedy triples.");
+        
+        conn.setNamespace("kdy", "http://www.franz.com/simple#");
+    	String exns = "http://www.franz.com/simple#";
+        conn.setNamespace("exns", exns);
+        URI TedKennedy = vf.createURI(exns, "person17");
+        URI hasChild = vf.createURI(exns, "has-child");
+        printRows("\nUsing getStatements() find children of Ted Kennedy: three children.",
+                10000, conn.getStatements(TedKennedy, hasChild, null, false));
+
+        println("\nSPARQL matches for two children of Ted Kennedy, inept pattern.");
+        String queryString = 
+        	"SELECT ?o1 ?o2 " +
+            "WHERE {kdy:person17 kdy:has-child ?o1 . " +
+            "       kdy:person17 kdy:has-child ?o2 . }";
+        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        TupleQueryResult result = tupleQuery.evaluate();
+        try {
+        	while (result.hasNext()) {
+            BindingSet bindingSet = result.next();
+            Value o1 = bindingSet.getValue("o1");
+            Value o2 = bindingSet.getValue("o2");
+            println(o1 + " and " + o2);
+            }    
+        } finally {
+        	result.close();
+        }
+
+        println("\nSPARQL matches for two children of Ted Kennedy, better pattern.");
+        String queryString2 = 
+         "SELECT ?o1 ?o2 " +
+            "WHERE {kdy:person17 kdy:has-child ?o1 . " +
+            "       kdy:person17 kdy:has-child ?o2 . " +
+            "       filter (?o1 < ?o2)}";
+        TupleQuery tupleQuery2 = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString2);
+        TupleQueryResult result2 = tupleQuery2.evaluate();
+        try {
+            while (result2.hasNext()) {
+            BindingSet bindingSet = result2.next();
+            Value o1 = bindingSet.getValue("o1");
+            Value o2 = bindingSet.getValue("o2");
+            println(o1 + " and " + o2);
+            }    
+        } finally {
+         result2.close();
+        }
+       
+        println("\nProlog select query to parallel the previous SPARQL query.");
+        queryString = "(select (?o1 ?o2)" +
+          "(q !kdy:person17 !kdy:has-child ?o1)" +
+          "(q !kdy:person17 !kdy:has-child ?o2)" +
+          "(lispp (upi< ?o1 ?o2)))";
+        tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
+        result = tupleQuery.evaluate();
+        while (result.hasNext()) {
+            BindingSet bindingSet = result.next();
+            Value o1 = bindingSet.getValue("o1");
+            Value o2 = bindingSet.getValue("o2");
+            println(o1.stringValue() + " and " + o2.stringValue());
+        }
+        result.close();
+
+        println("\nSPARQL matches for two children of Ted Kennedy, even better pattern.");
+        String queryString3 = 
+         "SELECT ?o1 ?o2 " +
+            "WHERE {kdy:person17 kdy:has-child ?o1 . " +
+            "       kdy:person17 kdy:has-child ?o2 . " +
+            "       filter (?o1 < ?o2)}" +
+            "       LIMIT 1";
+        TupleQuery tupleQuery3 = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString3);
+        TupleQueryResult result3 = tupleQuery3.evaluate();
+        try {
+            while (result3.hasNext()) {
+            BindingSet bindingSet = result3.next();
+            Value o1 = bindingSet.getValue("o1");
+            Value o2 = bindingSet.getValue("o2");
+            println(o1 + " and " + o2);
+            }    
+        } finally {
+            result3.close();
+        }
+
+        // Load Kennedy triples again.
+        println("\nReload 1214 java-kennedy.ntriples.");
+        conn.add(new File("src/tutorial/java-kennedy.ntriples"), baseURI, RDFFormat.NTRIPLES);
+        println("\nAfter loading there are " + conn.size() + " kennedy triples.");
+
+        printRows("\nUsing getStatements() find children of Ted Kennedy: duplicate triples present.",
+                10000, conn.getStatements(TedKennedy, hasChild, null, false));
+
+        println("\nSPARQL matches for children of Ted Kennedy.");
+        String queryString4 = 
+        	"SELECT ?o WHERE {kdy:person17 kdy:has-child ?o} ORDER BY ?o";
+        TupleQuery tupleQuery4 = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString4);
+        TupleQueryResult result4 = tupleQuery4.evaluate();
+        try {
+        	while (result4.hasNext()) {
+            BindingSet bindingSet = result4.next();
+            Value o = bindingSet.getValue("o");
+            println(o);
+            }    
+        } finally {
+        	result4.close();
+        }
+
+        println("\nSPARQL DISTINCT matches for children of Ted Kennedy.");
+        String queryString5 = 
+        	"SELECT DISTINCT ?o WHERE {kdy:person17 kdy:has-child ?o} ORDER BY ?o";
+        TupleQuery tupleQuery5 = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString5);
+        TupleQueryResult result5 = tupleQuery5.evaluate();
+        try {
+        	while (result5.hasNext()) {
+            BindingSet bindingSet = result5.next();
+            Value o = bindingSet.getValue("o");
+            println(o);
+            }    
+        } finally {
+        	result5.close();
+        }
+        
+        println("\nSPARQL REDUCED matches for children of Ted Kennedy.");
+        String queryString6 = 
+        	"SELECT REDUCED ?o WHERE {kdy:person17 kdy:has-child ?o} ORDER BY ?o";
+        TupleQuery tupleQuery6 = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString6);
+        TupleQueryResult result6 = tupleQuery6.evaluate();
+        try {
+        	while (result6.hasNext()) {
+            BindingSet bindingSet = result6.next();
+            Value o = bindingSet.getValue("o");
+            println(o);
+            }    
+        } finally {
+        	result6.close();
+        }
+        
+        println("\nSPARQL matches for children of Ted Kennedy, limit 2.");
+        String queryString7 = 
+        	"SELECT ?o WHERE {kdy:person17 kdy:has-child ?o} LIMIT 2";
+        TupleQuery tupleQuery7 = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString7);
+        TupleQueryResult result7 = tupleQuery7.evaluate();
+        try {
+        	while (result7.hasNext()) {
+            BindingSet bindingSet = result7.next();
+            Value o = bindingSet.getValue("o");
+            println(o);
+            }    
+        } finally {
+        	result7.close();
+        }
+        
+        // Test to see if triple is present before adding it.
+        URI newParent = vf.createURI(exns, "person100");
+        URI newChild = vf.createURI(exns, "person101");
+        println("\nTest before adding triple, first trial: ");
+        if (conn.getStatements(newParent, hasChild, newChild, false).hasNext()) {
+        	println("Did not add new triple.");
+        } else {
+        	conn.add(newParent, hasChild, newChild);
+        	println("Added new statement.");
+        }   
+        
+        println("\nTest before adding triple, second trial: ");
+        if (conn.getStatements(newParent, hasChild, newChild, false).hasNext()) {
+        	println("Did not add new triple.");
+        } else {
+        	conn.add(newParent, hasChild, newChild);
+        	println("Added new statement.");
+        }   
+        
+        conn.close();
+        myRepository.shutDown();
+    
+    }
 
     /**
      * Usage: all
@@ -2285,6 +2499,7 @@ public class TutorialExamples {
                 case 20: example20(); break;                                    
                 case 21: example21(); break;                                
                 case 22: example22(); break;
+                case 23: example23(); break;
                 default: println("Example" + choice + "() is not available in this release.");
                 }
             }

@@ -35,9 +35,9 @@ creating, querying and maintaining RDF data, and for managing the stored triples
       <li><a href="#Importing Triples">Importing Triples</a></li>
 	  <li><a href="#Exporting Triples">Exporting Triples</a></li>      
       <li><a href="#Datasets and Contexts">Datasets and Contexts</a></li>
+      <li><a href="#Namespaces">Namespaces</a></li>
     </ul></td>
     <td width="295"><ul>
-      <li><a href="#Namespaces">Namespaces</a></li>
       <li><a href="#Free Text Search">Free Text Search</a></li>
       <li><a href="#Ask, Describe, and Construct Queries">Ask, Describe, and Construct Queries</a></li>
       <li><a href="#Parametric Queries">Parametric Queries</a></li>
@@ -49,7 +49,8 @@ creating, querying and maintaining RDF data, and for managing the stored triples
       <li><a href="#Geospatial Search">Geospatial Search</a> </li>
       <li><a href="#Social Network Analysis">Social Network Analysis</a> </li>
       <li><a href="#Transaction">Transactions </a></li>
-      </ul>
+      <li><a href="#Duplicate Triples">Duplicate Triples</a> </li>
+    </ul>
     <p>&nbsp;</p></td>
   </tr>
 </table>
@@ -122,7 +123,7 @@ In Windows XP, you can set an environment variable by
 </ol>
 -->
 <h2 id="PrerequisitesLinux">Prerequisites (Linux) &nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
-<p>The tutorial examples can be run on a Linux system, running AllegroGraph and the examples on the same computer (&quot;localhost&quot;). The tutorial assumes that AllegroGraph has been installed and configured using the procedure posted on <a href="http://www.franz.com/agraph/support/documentation/4.0m1/server-installation.html">this webpage</a>. </p>
+<p>The tutorial examples can be run on a Linux system, running AllegroGraph and the examples on the same computer (&quot;localhost&quot;). The tutorial assumes that AllegroGraph has been installed and configured using the procedure posted on <a href="http://www.franz.com/agraph/support/documentation/4.0/server-installation.html">this webpage</a>. </p>
 <h2 id="Terminology">Terminology&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>We need to clarify some terminology before proceeding. </p>
 <ul>
@@ -1690,7 +1691,112 @@ Using getStatements() on conn2 should find Valjean:
 (http://www.franz.com/lesmis#character11, http://purl.org/dc/elements/1.1/title, "Valjean") [null]
 Number of results: 1</pre>
 <p>The Les Miserables triples are visible in both sessions. So too are the Kennedy triples. </p>
-<p>&nbsp;</p>
-<p><font color="#CCCCCC">February 18, 2010 4.0 release</font></p>
+<h2 id="Duplicate Triples">Duplicate Triples (example23()) &nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
+<p>Most people find it annoying when a query returns multiple copies of the same information. This can happen in mulitple ways, and there are multiple strategies for reducing or eliminating the problem. There are two broad strategies to pursue:</p>
+<ul>
+  <li>Don't create duplicate triples. It is surprisingly easy to fill the triple store with duplicates if you are not careful to generate clean RDF files.</li>
+  <li>Filter the duplicate results from the output of your queries. SPARQL in particular has features that reduce or eliminate duplicate results. </li>
+</ul>
+<h3>Tighten Up Your Queries</h3>
+<p>Triple patterns sometimes act in unexpected ways, resulting in &quot;too many&quot; matches.</p>
+<p><strong>Example23()</strong> revives the Kennedy family tree. It loads the <strong>java-kennedy.ntriples</strong> file, resulting in 1214 triples.</p>
+<p>This example focuses on the three children of Ted Kennedy (person17). A simple <strong>getStatements() </strong>query shows us that all three are, in fact, present. They are person72, person74, and person76. </p>
+<pre class="output">Using getStatements() find children of Ted Kennedy: three children.<br>(http://www.franz.com/simple#person17, http://www.franz.com/simple#has-child, http://www.franz.com/simple#person72) [null]<br>(http://www.franz.com/simple#person17, http://www.franz.com/simple#has-child, http://www.franz.com/simple#person74) [null]<br>(http://www.franz.com/simple#person17, http://www.franz.com/simple#has-child, http://www.franz.com/simple#person76) [null]<br>Number of results: 3</pre>
+<p>Let's imagine that for some bureaucratic or legal reason we need to retrieve any two of the senator's three children from the triple store. We might begin with a SPARQL query like this one:</p>
+<pre class="input">    SELECT ?o1 ?o2 <br>       WHERE {kdy:person17 kdy:has-child ?o1 .<br>              kdy:person17 kdy:has-child ?o2 .} </pre>
+<p>Since there are only three ways to retrieve a pair from a pool of three, we might be startled to get nine answers:</p>
+<pre class="output">SPARQL matches for two children of Ted Kennedy, inept pattern.<br>&lt;http://www.franz.com/simple#person72&gt; and &lt;http://www.franz.com/simple#person72&gt;<br>&lt;http://www.franz.com/simple#person72&gt; and &lt;http://www.franz.com/simple#person74&gt;<br>&lt;http://www.franz.com/simple#person72&gt; and &lt;http://www.franz.com/simple#person76&gt;<br>&lt;http://www.franz.com/simple#person74&gt; and &lt;http://www.franz.com/simple#person72&gt;<br>&lt;http://www.franz.com/simple#person74&gt; and &lt;http://www.franz.com/simple#person74&gt;<br>&lt;http://www.franz.com/simple#person74&gt; and &lt;http://www.franz.com/simple#person76&gt;<br>&lt;http://www.franz.com/simple#person76&gt; and &lt;http://www.franz.com/simple#person72&gt;<br>&lt;http://www.franz.com/simple#person76&gt; and &lt;http://www.franz.com/simple#person74&gt;<br>&lt;http://www.franz.com/simple#person76&gt; and &lt;http://www.franz.com/simple#person76&gt; </pre>
+<p>Three of these matches involve the same triple matching both patterns, claiming that each person is a sibling of himself. The other six are permutations of the correct answers, in which we first discover that person72 is a sibling of person74, and then subsequently discover that person74 is a sibling of person72. We didn't need to receive that information twice. </p>
+<p>Let's eliminate the useless duplications with a simple trick. Here it is in SPARQL: </p>
+<pre class="input">    SELECT ?o1 ?o2 <br>       WHERE {kdy:person17 kdy:has-child ?o1 .<br>              kdy:person17 kdy:has-child ?o2 .<br>              filter (?o1 &lt; ?o2)} </pre>
+<p>And this is the equivalent query in Prolog. Note that <strong>lispp</strong> is correct, not a typo:</p>
+<pre class="input">    (select (?o1 ?o2)<br>            (q !kdy:person17 !kdy:has-child ?o1)<br>            (q !kdy:person17 !kdy:has-child ?o2) <br>			(lispp (upi&lt; ?o1 ?o2)))</pre>
+<p>The inequality insures that the two object variables cannot be bound to the same value, eliminating the sibling-of-self issue, and also that only one of the persons can be bound to ?o1, which eliminates the duplication issue. Now we have the expected three results:</p>
+<pre class="output">SPARQL matches for two children of Ted Kennedy, better pattern.<br>&lt;http://www.franz.com/simple#person72&gt; and &lt;http://www.franz.com/simple#person74&gt;<br>&lt;http://www.franz.com/simple#person72&gt; and &lt;http://www.franz.com/simple#person76&gt;<br>&lt;http://www.franz.com/simple#person74&gt; and &lt;http://www.franz.com/simple#person76&gt;
+</pre>
+<p>Our task, however, is to pluck &quot;any two&quot; of the children from the triple store and then stop. That's easy in SPARQL:</p>
+<pre class="input">    SELECT ?o1 ?o2 <br>       WHERE {kdy:person17 kdy:has-child ?o1 .<br>              kdy:person17 kdy:has-child ?o2 .<br>              filter (?o1 &lt; ?o2)}<br>              LIMIT 1 </pre>
+<p>This query returns one result that is guaranteed to reference two different children. </p>
+<p>The moral of this example is that triple patterns often return more information than you expected, and need to be rewritten to make them less exuberant. You may be able to reduce the incidence of duplicate results simply by writing better queries. </p>
+<h3>Tighten Up Your RDF</h3>
+<p>The Resource Description Framework (RDF) has many fine qualities, but there are also a few RDF features that create headaches for users. One of these is the ability to encode resources as &quot;blank nodes.&quot; This is a convenience to the person who is generating the data, but it often creates problems for the data consumer.</p>
+<p>Here's a simple example. These two RDF resource descriptions represent two books by the same author. The author is described using a &quot;blank node&quot; within the book resource description:</p>
+<pre class="input">  &lt;rdf:Description rdf:about=&quot;http://www.franz.com/tutorial#book1&quot;&gt;<br>    &lt;dc:title&gt;The Call of the Wild&lt;/dc:title&gt;<br>    <strong>&lt;dc:creator&gt;<br>	   &lt;foaf:Person foaf:name=&quot;Jack London&quot;/&gt; <br>    &lt;/dc:creator&gt;</strong><br>  &lt;/rdf:Description&gt;<br>  <br>  &lt;rdf:Description rdf:about=&quot;http://www.franz.com/tutorial#book2&quot;&gt;<br>    &lt;dc:title&gt;White Fang&lt;/dc:title&gt;<br>    <strong>&lt;dc:creator&gt;<br>	   &lt;foaf:Person foaf:name=&quot;Jack London&quot;/&gt; <br>    &lt;/dc:creator&gt;</strong><br>  &lt;/rdf:Description&gt; </pre>
+<p>This is a common RDF format used by programs that transcribe databases into RDF. In this format, there is no resource URI designated for the author resource. Therefore, the RDF parser will generate a URI to use as the subject value of the new resource. The problem is that it generates a new URI each time it encounters an embedded resource. We wind up with eight triples and two different &quot;Jack London&quot; resources:</p>
+<pre class="output">Two books, with one author as blank node in each book.<br>(http://www.franz.com/tutorial#book1, http://purl.org/dc/elements/1.1/creator, _:189) [null]<br>(http://www.franz.com/tutorial#book1, http://purl.org/dc/elements/1.1/title, &quot;The Call of the Wild&quot;) [null]
+
+(http://www.franz.com/tutorial#book2, http://purl.org/dc/elements/1.1/creator, _:190) [null]<br>(http://www.franz.com/tutorial#book2, http://purl.org/dc/elements/1.1/title, &quot;White Fang&quot;) [null]<br>
+(_:190, http://xmlns.com/foaf/0.1/name, &quot;Jack London&quot;) [null]<br>(_:190, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://xmlns.com/foaf/0.1/Person) [null]<br>
+(_:189, http://xmlns.com/foaf/0.1/name, &quot;Jack London&quot;) [null]<br>(_:189, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://xmlns.com/foaf/0.1/Person) [null]<br><br>Number of results: 8</pre>
+<p>You can see the two books, each with a title and a creator. Then there are two &quot;anonymous&quot; resources with generated subject URIs, both of which represent the same author. This is very undesirable. </p>
+<p>Duplicate <em>resources</em> are difficult to remove or fix. They have different subject values, which mean their triples are technically not duplicates of each other. The author resources are directly linked to book resources, one-to-one, meaning that you can't just delete the extra authors. That would leave book resources linked to authors that don't exist anymore. </p>
+<p>Clearly we don't want to be in this situation. We have to back out and generate the RDF a different way. </p>
+<p>We might decide to fix this problem by rewriting the resource descriptions. This time we'll be sure that the formerly anonymous nodes are set up with URIs. This way we'll get only one author resource. This format is what RDF calls &quot;striped syntax.&quot;</p>
+<pre class="input">  &lt;rdf:Description rdf:about=&quot;http://www.franz.com/tutorial#book1&quot;&gt;<br>    &lt;dc:title&gt;The Call of the Wild&lt;/dc:title&gt;<br>    &lt;dc:creator&gt;<br>	   <strong>&lt;foaf:Person rdf:about=&quot;#Jack&quot;&gt;<br>	      &lt;foaf:name&gt;Jack London&lt;/foaf:name&gt; <br>	   &lt;/foaf:Person&gt;</strong><br>	&lt;/dc:creator&gt;<br>  &lt;/rdf:Description&gt;<br>  <br>  &lt;rdf:Description rdf:about=&quot;http://www.franz.com/tutorial#book2&quot;&gt;<br>    &lt;dc:title&gt;White Fang&lt;/dc:title&gt;<br>    &lt;dc:creator&gt;<br>	   <strong>&lt;foaf:Person rdf:about=&quot;#Jack&quot;&gt;<br>	      &lt;foaf:name&gt;Jack London&lt;/foaf:name&gt; <br>	   &lt;/foaf:Person&gt;</strong><br>	&lt;/dc:creator&gt;<br>  &lt;/rdf:Description&gt;</pre>
+<p>Even though we have embedded two resource descriptions, we gave them both the same URI (&quot;#Jack&quot;). Did this solve the problem? We now have only one &quot;Jack London&quot; resource, but we still have eight triples! </p>
+<pre class="output">Two books, with one author identified by URI but in striped syntax in each book.<br>(http://www.franz.com/tutorial#book1, http://purl.org/dc/elements/1.1/creator, http://example.org#Jack) [null]<br>(http://www.franz.com/tutorial#book1, http://purl.org/dc/elements/1.1/title, &quot;The Call of the Wild&quot;) [null]<br>
+(http://www.franz.com/tutorial#book2, http://purl.org/dc/elements/1.1/creator, http://example.org#Jack) [null]<br>(http://www.franz.com/tutorial#book2, http://purl.org/dc/elements/1.1/title, &quot;White Fang&quot;) [null]<br>
+(http://example.org#Jack, http://xmlns.com/foaf/0.1/name, &quot;Jack London&quot;) [null]<br>(http://example.org#Jack, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://xmlns.com/foaf/0.1/Person) [null]<br>
+(http://example.org#Jack, http://xmlns.com/foaf/0.1/name, &quot;Jack London&quot;) [null]<br>(http://example.org#Jack, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://xmlns.com/foaf/0.1/Person) [null]<br>Number of results: 8</pre>
+<p>We have only one &quot;Jack London&quot; author resource, which means we will have a more useful graph than before, but <em>every triple in that resource is duplicated</em>. If we had cataloged fifty books by Jack London, there would be fifty copies of each of these triples. The &quot;striped syntax&quot; generates floods of duplicate triples. </p>
+<p>It is much better to avoid blank nodes and striped syntax altogether. Here are the same two books, using a separate author resource that is linked to the books by a URI:</p>
+<pre class="input">  &lt;rdf:Description rdf:about=&quot;http://www.franz.com/tutorial#book5&quot;&gt;<br>    &lt;dc:title&gt;The Call of the Wild&lt;/dc:title&gt;<br>    <strong>&lt;dc:creator rdf:resource=&quot;http://www.franz.com/tutorial#author1&quot;/&gt;</strong><br>  &lt;/rdf:Description&gt;<br>  <br>  &lt;rdf:Description rdf:about=&quot;http://www.franz.com/tutorial#book6&quot;&gt;<br>    &lt;dc:title&gt;White Fang&lt;/dc:title&gt;<br>    <strong>&lt;dc:creator rdf:resource=&quot;http://www.franz.com/tutorial#author1&quot;/&gt;</strong><br>  &lt;/rdf:Description&gt;<br>  <br>  &lt;rdf:Description <strong>rdf:about=&quot;http://www.franz.com/tutorial#author1&quot;</strong>&gt;<br>    &lt;dc:title&gt;Jack London&lt;/dc:title&gt;<br>  &lt;/rdf:Description&gt; </pre>
+<p>This is arguably the &quot;best&quot; syntax to follow because one author resource is directly connected to all of that author's books. The graph is rich in nodes and connections, while avoiding duplicate triples. This example creates six triples, none of which are duplicates:</p>
+<pre class="output">Two books, with one author linked by a URI.<br>(http://www.franz.com/tutorial#book5, http://purl.org/dc/elements/1.1/creator, http://www.franz.com/tutorial#author1) [null]<br>(http://www.franz.com/tutorial#book5, http://purl.org/dc/elements/1.1/title, &quot;The Call of the Wild&quot;) [null]<br>
+(http://www.franz.com/tutorial#book6, http://purl.org/dc/elements/1.1/creator, http://www.franz.com/tutorial#author1) [null]<br>(http://www.franz.com/tutorial#book6, http://purl.org/dc/elements/1.1/title, &quot;White Fang&quot;) [null]<br>
+(http://www.franz.com/tutorial#author1, http://purl.org/dc/elements/1.1/title, &quot;Jack London&quot;) [null]<br>(http://www.franz.com/tutorial#author1, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://xmlns.com/foaf/0.1/Person) [null]<br>Number of results: 6</pre>
+<p>There is only one way to simplify the example from here. Perhaps you really don't need author resources at all. It could be sufficient to know the name of a book's author and never reify the author as a node in the graph. In that case, you can pare down the resource descriptions by including the author name as a literal string:</p>
+<pre  class="input">  &lt;rdf:Description rdf:about=&quot;http://www.franz.com/tutorial#book3&quot;&gt;<br>    &lt;dc:title&gt;The Call of the Wild&lt;/dc:title&gt;<br>    <strong>&lt;dc:creator&gt;Jack London&lt;/dc:creator&gt;</strong><br>  &lt;/rdf:Description&gt;<br>  <br>  &lt;rdf:Description rdf:about=&quot;http://www.franz.com/tutorial#book4&quot;&gt;<br>    &lt;dc:title&gt;White Fang&lt;/dc:title&gt;<br>    <strong>&lt;dc:creator&gt;Jack London&lt;/dc:creator&gt;</strong><br>  &lt;/rdf:Description&gt;   
+</pre>
+<p>This example generates only four triples, none of which are duplicates. We have two books, and no author resource. </p>
+<pre class="output" >Two books, with one author as a literal value.<br>(http://www.franz.com/tutorial#book3, http://purl.org/dc/elements/1.1/creator, &quot;Jack London&quot;) [null]<br>(http://www.franz.com/tutorial#book3, http://purl.org/dc/elements/1.1/title, &quot;The Call of the Wild&quot;) [null]
+
+(http://www.franz.com/tutorial#book4, http://purl.org/dc/elements/1.1/creator, &quot;Jack London&quot;&quot;) [null]<br>(http://www.franz.com/tutorial#book4, http://purl.org/dc/elements/1.1/title, &quot;White Fang&quot;) [null]<br><br>Number of results: 4</pre>
+<p>The lesson here is to keep the representation simple. The fewer resources there are, the faster everything will work. </p>
+<h3>Don't Create Duplicate Triples</h3>
+<p>Now we'll consider the situation where we have multiple copies of the same information in the triple store. This is the classic &quot;duplicate triples&quot; situation. </p>
+<p>True duplicate triples do not occur by accident. They occur only when you have loaded the same information into the triple store more than once. </p>
+<p>This is easy to demonstrate. Let's load the Kennedy graph into an empty triple store:</p>
+<pre class="output">
+After loading, there are 1214 kennedy triples.</pre>
+<p>Then just load the same file again:</p>
+<pre class="output">
+After loading, there are 2428 kennedy triples.</pre>
+<p>Now there are two copies of every Kennedy triple. If you add the same triple multiple times, you will get multiple copies of it. </p>
+<h3></h3>
+<h3>Filter Out Duplicate Results </h3>
+<p>In practice, our advice &quot;don't create duplicate triples&quot; may be difficult to follow. Some data feeds contain duplicated information and there is no convenient or efficient way to filter it out. So now you have duplicated data in the system. How much trouble might that cause?</p>
+<p>This simple query should return three matches, one for each of Ted Kennedy's three children: </p>
+<pre class="input">    SELECT ?o WHERE {kdy:person17 kdy:has-child ?o}</pre>
+<p>However, because each of the expected triples has a duplicate, we get six answers instead of three: </p>
+<pre class="output">SPARQL matches for children of Ted Kennedy.<br>http://www.franz.com/simple#person72<br>http://www.franz.com/simple#person72<br>http://www.franz.com/simple#person74<br>http://www.franz.com/simple#person74<br>http://www.franz.com/simple#person76<br>http://www.franz.com/simple#person76</pre>
+<p>That's a nuisance, but SPARQL provides an easy way to wipe out the duplicate answers: </p>
+<pre class="input">    SELECT DISTINCT ?o WHERE {kdy:person17 kdy:has-child ?o}</pre>
+<p>The DISTINCT operator does not remove duplicate triples, but it detects and eliminates duplicate variable bindings in the query's output. The duplicate triples are still there in the triple store, but we don't see them in the output:</p>
+<pre class="output">SPARQL DISTINCT matches for children of Ted Kennedy.<br>http://www.franz.com/simple#person72<br>http://www.franz.com/simple#person74<br>http://www.franz.com/simple#person76</pre>
+<p>DISTINCT works by sorting the bindings by each of the bound variables in the result. This forces duplicate results to be adjacent to each other in the result list. Then it runs over the list and eliminates bindings that are the same as the previous binding. As you can imagine, there are situations where forcing an exhaustive sort on a large binding set might use up a lot of time. </p>
+<p>For this reason, SPARQL also offers a REDUCED operator:</p>
+<pre class="input">    SELECT REDUCED ?o WHERE {kdy:person17 kdy:has-child ?o} ORDER BY ?o</pre>
+<p>REDUCED performs the same sweep for duplicates that DISTINCT performs, but it lets you control the sorting. In this example the values of the subject and predicate are fixed, so sorting by the object value is sufficient to force all duplicate bindings to be adjacent to each other. REDUCED is often much faster than DISTINCT.</p>
+<h3>Filtering Duplicate Triples while Loading </h3>
+<p>AllegroGraph could check each incoming triple to see if that information is already present in the triple store, but this process would be very time-consuming, slowing down our extremely-fast <a href="http://www.franz.com/agraph/allegrograph/">load times</a> by orders of magnitude. Loading speed is important to almost everyone, so AllegroGraph does not filter duplicates during the load. </p>
+<p>If loading speed isn't critical in your application, you can add triples one at a time while checking for duplicates as shown here:</p>
+<pre class="input">        if (conn.getStatements(newParent, hasChild, newChild, false).hasNext()) {<br>        	println(&quot;Did not add new triple.&quot;);<br>        } else {<br>        	conn.add(newParent, hasChild, newChild);<br>        	println(&quot;Added new statement.&quot;);<br>        }   </pre>
+<p>If <strong>getStatements()</strong> return any value, then the new triple is already present in the store. If not, then we can add it to the store knowing that it will be unique. </p>
+<p>When you run this example twice it adds a triple the first time, but not the second time:</p>
+<pre class="output">Test before adding triple, first trial: 
+Added new triple.  
+
+
+Test before adding triple, second trial: 
+Did not add new triple.</pre>
+<h3>Duplicates in Federated Stores</h3>
+<p>A <a href="#Federated Repositories">federated store</a> is a single connection to multiple AllegroGraph repositories, possibly on multiple servers at multiple sites. Such systems can have duplicate triples, but deleting them is unwise.</p>
+<p>Presumably any existing repository has a purpose of its own, and has been federated with other respositories to serve some combined purpose. It would be a mistake to delete triples from one repository simply because they also occur elsewhere in the federated store. This could damage the integrity of the individual repositories when they are used in stand-alone mode. By similar reasoning, it is a mistake to add triples to a federated repository. Which repository gets the new triples? </p>
+<p>For all of these reasons, federated stores are &quot;read only&quot; in AllegroGraph. Attempting to add or delete triples in a federated system result in error messages. </p>
+<p>Federation changes the semantics of &quot;duplicate triples.&quot; Be sure to take this into account in your project design. </p>
+
+
+<p><font color="#CCCCCC">March 23, 2010 4.0.2 release</font></p>
 </body>
 </html>
