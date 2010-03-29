@@ -26,14 +26,12 @@ import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.NamespaceImpl;
 import org.openrdf.model.impl.StatementImpl;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.TupleQueryResult;
-import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
@@ -361,7 +359,9 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 			String baseURI) {
 		// TODO: consider having the server parse and process the query,
 		// throw MalformedQueryException, etc.
-		return new AGTupleQuery(this, ql, queryString, baseURI);
+		AGTupleQuery q = new AGTupleQuery(this, ql, queryString, baseURI);
+		q.prepare();
+		return q;
 	}
 
 	@Override
@@ -374,7 +374,9 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 			String baseURI) {
 		// TODO: consider having the server parse and process the query,
 		// throw MalformedQueryException, etc.
-		return new AGGraphQuery(this, ql, queryString, baseURI);
+		AGGraphQuery q = new AGGraphQuery(this, ql, queryString, baseURI);
+		q.prepare();
+		return q;
 	}
 
 	@Override
@@ -388,7 +390,9 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 			String queryString, String baseURI) {
 		// TODO: consider having the server parse and process the query,
 		// throw MalformedQueryException, etc.
-		return new AGBooleanQuery(this, ql, queryString, baseURI);
+		AGBooleanQuery q = new AGBooleanQuery(this, ql, queryString, baseURI);
+		q.prepare();
+		return q;
 	}
 
 	public void removeNamespace(String prefix) throws RepositoryException {

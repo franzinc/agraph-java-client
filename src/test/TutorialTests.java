@@ -472,6 +472,7 @@ public class TutorialTests extends AGAbstractTest {
     public void example14() throws Exception {
         Map<String, Stmt> inputs = example2setup();
         ValueFactory f = conn.getValueFactory();
+        conn.setAutoCommit(false);
         URI alice = f.createURI("http://example.org/people/alice");
         URI bob = f.createURI("http://example.org/people/bob");
         String queryString = "select ?s ?p ?o where { ?s ?p ?o} ";

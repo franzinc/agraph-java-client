@@ -44,9 +44,7 @@ public class AGBooleanQuery extends AGQuery implements BooleanQuery {
 	public boolean evaluate() throws QueryEvaluationException {
 		AGResponseHandler handler = new AGResponseHandler(true);
 		try {
-			httpCon.getHttpRepoClient().query(handler,
-					queryLanguage, queryString, dataset, includeInferred, planner,
-					getBindingsArray());
+			httpCon.getHttpRepoClient().query(this, handler);
 		} catch (HttpException e) {
 			throw new QueryEvaluationException(e);
 		} catch (RepositoryException e) {

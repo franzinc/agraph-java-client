@@ -1,17 +1,12 @@
 package com.franz.agraph.repository;
 
 import java.io.File;
-import java.lang.RuntimeException;
 
-import org.openrdf.repository.Repository;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.model.ValueFactory;
 import org.openrdf.model.BNode;
+import org.openrdf.repository.RepositoryException;
 
-import com.franz.agraph.http.AGHttpRepoClient;
 import com.franz.agraph.http.AGHTTPClient;
-import com.franz.agraph.repository.AGValueFactory;
+import com.franz.agraph.http.AGHttpRepoClient;
 import com.franz.util.Closeable;
 
 public class AGVirtualRepository implements AGAbstractRepository, Closeable {

@@ -1365,6 +1365,7 @@ public class TutorialExamples {
     public static void example14() throws Exception {
         RepositoryConnection conn = example2(false);
         ValueFactory f = conn.getValueFactory();
+        conn.setAutoCommit(false);
         URI alice = f.createURI("http://example.org/people/alice");
         URI bob = f.createURI("http://example.org/people/bob");
         String queryString = "select ?s ?p ?o where { ?s ?p ?o} ";

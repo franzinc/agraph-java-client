@@ -17,7 +17,6 @@ import org.openrdf.model.Value;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.TupleQueryResult;
-import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryException;
 
 import com.franz.agraph.http.AGHTTPClient;

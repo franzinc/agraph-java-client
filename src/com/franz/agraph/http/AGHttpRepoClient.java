@@ -46,16 +46,17 @@ import org.openrdf.query.TupleQueryResultHandlerException;
 import org.openrdf.query.impl.TupleQueryResultBuilder;
 import org.openrdf.query.resultio.BooleanQueryResultFormat;
 import org.openrdf.query.resultio.TupleQueryResultFormat;
+import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFHandler;
 import org.openrdf.rio.RDFHandlerException;
 import org.openrdf.rio.RDFParseException;
 import org.openrdf.rio.ntriples.NTriplesUtil;
-import org.openrdf.repository.Repository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.franz.agraph.repository.AGQuery;
 import com.franz.util.Closeable;
 
 /**
@@ -607,11 +608,13 @@ public class AGHttpRepoClient implements Closeable {
 		}
 	}
 
-	public void query(AGResponseHandler handler, QueryLanguage ql,
-			String query, Dataset dataset, boolean includeInferred,
-			String planner, Binding... bindings) throws HttpException,
+	public void query(AGQuery q, AGResponseHandler handler) throws HttpException,
 			RepositoryException, RDFParseException, IOException {
+
 		String url = getRoot();
+		if (q.isPrepared()) {
+			url = AGProtocol.getSavedQueryLocation(url,q.getName());
+		}
 		List<Header> headers = new ArrayList<Header>(5);
 		headers.add(new Header("Content-Type", Protocol.FORM_MIME_TYPE
 				+ "; charset=utf-8"));
@@ -619,50 +622,64 @@ public class AGHttpRepoClient implements Closeable {
 			headers.add(new Header(ACCEPT_PARAM_NAME, handler
 					.getRequestMIMEType()));
 		}
-		List<NameValuePair> queryParams = getQueryMethodParameters(ql, query,
-				dataset, includeInferred, planner, bindings);
+		List<NameValuePair> queryParams = getQueryMethodParameters(q);
 		getHTTPClient().post(url, headers.toArray(new Header[headers.size()]),
 				queryParams.toArray(new NameValuePair[queryParams.size()]),
 				null, handler);
+		if (sessionRoot!=null && q.getName()!=null) {
+			q.setPrepared(true);
+		}
 	}
 
-	protected List<NameValuePair> getQueryMethodParameters(QueryLanguage ql,
-			String query, Dataset dataset, boolean includeInferred,
-			String planner, Binding... bindings) {
+	protected List<NameValuePair> getQueryMethodParameters(AGQuery q) {
+		QueryLanguage ql = q.getLanguage();
+		Dataset dataset = q.getDataset();
+		boolean includeInferred = q.getIncludeInferred();
+		String planner = q.getPlanner();
+		Binding[] bindings = q.getBindingsArray();
+		String save = q.getName();
+		
 		List<NameValuePair> queryParams = new ArrayList<NameValuePair>(
 				bindings.length + 10);
 
-		queryParams.add(new NameValuePair(Protocol.QUERY_LANGUAGE_PARAM_NAME,
+		if (!q.isPrepared()) {
+			queryParams.add(new NameValuePair(Protocol.QUERY_LANGUAGE_PARAM_NAME,
 				ql.getName()));
-		queryParams.add(new NameValuePair(Protocol.QUERY_PARAM_NAME, query));
-		queryParams.add(new NameValuePair(Protocol.INCLUDE_INFERRED_PARAM_NAME,
+			queryParams.add(new NameValuePair(Protocol.QUERY_PARAM_NAME, q.getQueryString()));
+			queryParams.add(new NameValuePair(Protocol.INCLUDE_INFERRED_PARAM_NAME,
 				Boolean.toString(includeInferred)));
-		if (planner != null) {
-			queryParams.add(new NameValuePair(AGProtocol.PLANNER_PARAM_NAME,
+			if (planner != null) {
+				queryParams.add(new NameValuePair(AGProtocol.PLANNER_PARAM_NAME,
 					planner));
-		}
-
-		if (ql==QueryLanguage.SPARQL && dataset != null) {
-			for (URI defaultGraphURI : dataset.getDefaultGraphs()) {
-				String param = Protocol.NULL_PARAM_VALUE;
-				if (defaultGraphURI == null) {
-					queryParams.add(new NameValuePair(
+			}
+			
+			if (sessionRoot!=null && save!=null) {
+				queryParams.add(new NameValuePair(AGProtocol.SAVE_PARAM_NAME,
+					save));
+			}
+		
+			if (ql==QueryLanguage.SPARQL && dataset != null) {
+				for (URI defaultGraphURI : dataset.getDefaultGraphs()) {
+					String param = Protocol.NULL_PARAM_VALUE;
+					if (defaultGraphURI == null) {
+						queryParams.add(new NameValuePair(
 							Protocol.CONTEXT_PARAM_NAME, param));
-				} else {
-					param = defaultGraphURI.toString();
-					queryParams.add(new NameValuePair(
-							Protocol.DEFAULT_GRAPH_PARAM_NAME, param));
+					} else {
+						param = defaultGraphURI.toString();
+						queryParams.add(new NameValuePair(
+								Protocol.DEFAULT_GRAPH_PARAM_NAME, param));
+					}
 				}
-			}
-			for (URI namedGraphURI : dataset.getNamedGraphs()) {
-				queryParams.add(new NameValuePair(
-						Protocol.NAMED_GRAPH_PARAM_NAME, namedGraphURI
+				for (URI namedGraphURI : dataset.getNamedGraphs()) {
+					queryParams.add(new NameValuePair(
+							Protocol.NAMED_GRAPH_PARAM_NAME, namedGraphURI
 								.toString()));
-			}
-		} // TODO: no else clause here assumes AG's default dataset matches
-		// Sesame's, confirm this.
-		// TODO: deal with prolog queries scoped to a graph for Jena
-
+				}
+			} // TODO: no else clause here assumes AG's default dataset matches
+			// Sesame's, confirm this.
+			// TODO: deal with prolog queries scoped to a graph for Jena
+		}
+		
 		for (int i = 0; i < bindings.length; i++) {
 			String paramName = Protocol.BINDING_PREFIX + bindings[i].getName();
 			String paramValue = Protocol.encodeValue(bindings[i].getValue());

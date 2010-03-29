@@ -24,8 +24,9 @@ public abstract class AGQuery extends AbstractQuery {
 	/**
 	 * The default query planner for SPARQL.
 	 */
-	public static final String SPARQL_COVERAGE_PLANNER = "coverage";  // TODO add these to protocol
+	public static final String SPARQL_COVERAGE_PLANNER = "coverage";  // TODO add to protocol
 	
+	private static long prepareId = 0L;
 	/**
 	 * A query planner for SPARQL that processes queries without doing
 	 * and reordering of clauses or optimization, useful if the user
@@ -43,6 +44,10 @@ public abstract class AGQuery extends AbstractQuery {
 
 	protected String planner;
 	
+	protected String saveName = null;
+	
+	protected boolean prepared = false;
+	
 	public AGQuery(AGRepositoryConnection con, QueryLanguage ql, String queryString, String baseURI) {
 		this.httpCon = con;
 		this.queryLanguage = ql;
@@ -50,6 +55,24 @@ public abstract class AGQuery extends AbstractQuery {
 		this.baseURI = baseURI;
 	}
 
+	/**
+	 * Gets the query language for this query.
+	 * 
+	 * @return the query language.
+	 */
+	public QueryLanguage getLanguage() {
+		return queryLanguage;
+	}
+	
+	/**
+	 * Gets the query string for this query.
+	 * 
+	 * @return the query string.
+	 */
+	public String getQueryString() {
+		return queryString;
+	}
+	
 	/**
 	 * Gets the query planner that processes the query.
 	 * 
@@ -68,7 +91,50 @@ public abstract class AGQuery extends AbstractQuery {
 		this.planner = planner;
 	}
 	
-	protected Binding[] getBindingsArray() {
+	/**
+	 * Schedules the query to be prepared.
+	 */
+	synchronized public void prepare() {
+		setSaveName(String.valueOf(prepareId++));
+	}
+	
+	/**
+	 * Sets the savedName for the prepared query.
+	 * 
+	 * @return the saved name.
+	 */
+	private void setSaveName(String name) {
+		saveName = name;
+	}
+	
+	/**
+	 * Gets the savedName for the query.
+	 * 
+	 * @return the saved name.
+	 */
+	public String getName() {
+		return saveName;
+	}
+	
+	/**
+	 * Gets the prepared flag for the query.
+	 * 
+	 * @return the prepared flag.
+	 */
+	public boolean isPrepared() {
+		return prepared;
+	}
+	
+	/**
+	 * Sets the prepared flag for the query.
+	 * 
+	 * @param the prepared flag.
+	 */
+	public void setPrepared(boolean prepared) {
+		this.prepared = prepared;
+	}
+	
+	public Binding[] getBindingsArray() {
 		BindingSet bindings = this.getBindings();
 
 		Binding[] bindingsArray = new Binding[bindings.size()];

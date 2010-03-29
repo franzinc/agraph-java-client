@@ -8,25 +8,18 @@
 
 package com.franz.agraph.repository;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.NameValuePair;
 import org.openrdf.OpenRDFException;
 import org.openrdf.model.Value;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.TupleQueryResult;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.Repository;
 
-import com.franz.agraph.http.AGErrorType;
 import com.franz.agraph.http.AGHTTPClient;
-import com.franz.agraph.http.AGHttpException;
 import com.franz.agraph.http.AGProtocol;
-import com.franz.util.Util;
 import com.franz.util.Closeable;
+import com.franz.util.Util;
 
 /**
  * The top-level class for interacting with an AllegroGraph server.
