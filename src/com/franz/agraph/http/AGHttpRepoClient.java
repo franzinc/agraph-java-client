@@ -92,6 +92,14 @@ public class AGHttpRepoClient implements Closeable {
 		else throw new RepositoryException("This session-only connection has been closed. Re-open a new one to start using it again.");
 	}
 
+	public void setSessionLifetime(int lifetimeInSeconds) {
+		this.lifetimeInSeconds = lifetimeInSeconds;
+	}
+	
+	public long getSessionLifetime() {
+		return lifetimeInSeconds;
+	}
+	
 	public TupleQueryResultFormat getPreferredTQRFormat() {
 		return preferredTQRFormat;
 	}

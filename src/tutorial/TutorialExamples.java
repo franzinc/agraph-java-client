@@ -2186,6 +2186,7 @@ public class TutorialExamples {
         conn1.clear();
         AGRepositoryConnection conn2 = myRepository.getConnection();
         closeBeforeExit(conn2);
+        conn2.getHttpRepoClient().setSessionLifetime(120);
         conn2.setAutoCommit(false);
         String baseURI = "http://example.org/example/local";
         conn1.add(new File("src/tutorial/java-lesmis.rdf"), baseURI, RDFFormat.RDFXML);
