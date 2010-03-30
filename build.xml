@@ -5,6 +5,7 @@
     <property name="env.AGRAPH_HOST" value=""/>
     <property name="env.AGRAPH_PORT" value=""/>
     <property name="env.root" value=""/>
+    <property name="env.version" value=""/>
     
     <!-- Library. -->
     <property name="src" location="src"/>
@@ -61,6 +62,9 @@
     <target name="build"
             description="Create jar file."
             depends="clean, compile">
+		<tstamp prefix="jar">
+			<format property="datestamp" pattern="yyyy-MM-dd H:mm"/>
+		</tstamp>
         <jar jarfile="${jarfile}">
             <fileset dir="${build}" includes="**/*.class">
                 <exclude name="tutorial/**"/>
@@ -68,7 +72,12 @@
                 <exclude name="*.class"/>
             </fileset>
             <manifest>
-                <attribute name="Class-Path" value="${mf.path}"/>
+				<attribute name="Implementation-Title" value="AllegroGraph Java Client"/>
+				<attribute name="Implementation-Version" value="${env.version}"/>
+				<attribute name="Implementation-Vendor" value="Franz, Inc."/>
+            	<attribute name="Implementation-URL" value="http://www.franz.com/agraph/"/>
+            	<attribute name="Built-At" value="${jar.datestamp}"/>
+            	<attribute name="Class-Path" value="${mf.path}"/>
             </manifest>
         </jar>
     </target>

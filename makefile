@@ -10,7 +10,11 @@ prepush: FORCE
 	ant prepush
 
 build: FORCE
+ifndef VERSION
 	ant build
+else
+	ant -Denv.version=$(VERSION) build
+endif
 
 javadoc: FORCE
 	ant -f javadoc.xml
