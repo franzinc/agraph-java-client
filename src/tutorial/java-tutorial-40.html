@@ -174,7 +174,8 @@ In Windows XP, you can set an environment variable by
 
   This user can also do anything else that allows executing Lisp code, such as defining select-style generators, or doing eval-in-server, as well as loading server-side files. </p>
   <h3>WebView</h3>
-  <p>WebView is AllegroGraph's HTTP-based graphical user interface for user and repository management. To connect to WebView, simply direct your Web browser to the AllegroGraph port of your server. If you have installed AllegroGraph locally (and used the default port number), use:</p>
+  <p>WebView is AllegroGraph's HTTP-based graphical user interface for user and repository management.  It provides a SPARQL endpoint for querying your triple stores as well as various tools that let you create and maintain triple stores interactively. </p>
+  <p>To connect to WebView, simply direct your Web browser to the AllegroGraph port of your server. If you have installed AllegroGraph locally (and used the default port number), use:</p>
   <pre class="output">http://localhost:10035</pre>
   <p>You will be asked to log in. Use the superuser credentials described in the previous section. </p>
   <p>The first page of WebView is a summary of your catalogs, repositories, and federations. Click the <strong>user account</strong> link in the lower left corner of the page. This exposes the <strong>Users and Roles</strong> page.</p>
@@ -1151,20 +1152,20 @@ http://example.org/people/bob http://example.org/people/age &quot;45.1&quot;^^&l
 http://example.org/people/carol http://example.org/people/age &quot;39&quot;  </pre>
 <p>This query picked up integer, double, and string values. </p>
 <h2 id="Federated Repositories">Federated Repositories (example16())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
-<p>AllegroGraph lets you split up your triples among repositories on multiple servers and then search them all in parallel. To do this we query a single &quot;federated&quot; repository that automatically distributes the queries to the secondary repositories and combines the results. From the point of view of your Python code, it looks like you are working with a single repository. </p>
+<p>AllegroGraph lets you split up your triples among repositories on multiple servers and then search them all in parallel. To do this we query a single &quot;federated&quot; repository that automatically distributes the queries to the secondary repositories and combines the results. From the point of view of your Java code, it looks like you are working with a single repository. </p>
 <p>This example begins by defining a small output function that we'll use at the end of the lesson. It prints out responses from different repositories. This example is about red apples and green apples, so the output function talks about apples. </p>
 <pre class="input">    private static void pt(String kind, TupleQueryResult rows) throws Exception {<br>        println(&quot;\n&quot; + kind + &quot; Apples:\t&quot;);<br>        while (rows.hasNext()) {<br>            println(rows.next());<br>        }<br>        rows.close();<br>    }</pre>
 <p>In example16(), we open connections to a redRepository and a greenRepository on the local server. In a typical federation scenario, these respositories would be distributed across multiple servers. We begin with the connection object from example6(), and then climb the object tree to obtain its catalog. </p>
-<pre class="input">    public static void example16() throws Exception {<br>        AGRepositoryConnection conn = example6(false);<br>        AGRepository myRepository = conn.getRepository();<br>        AGCatalog catalog = myRepository.getCatalog();</pre>
+<pre class="input">    public static void example16() throws Exception {<br>        AGRepositoryConnection conn = example6();<br>        AGRepository myRepository = conn.getRepository();<br>        AGCatalog catalog = myRepository.getCatalog();</pre>
 <p>The next few lines establish a &quot;red&quot; repository in the catalog. </p>
-<pre class="input">        AGRepository redRepo = catalog.createRepository(&quot;redthings&quot;);<br>        redRepo.initialize();<br>        RepositoryConnection redConn = redRepo.getConnection();
+<pre class="input">        AGRepository redRepo = catalog.createRepository(&quot;redthingsjv&quot;);<br>        redRepo.initialize();<br>        RepositoryConnection redConn = redRepo.getConnection();
 		closeBeforeExit(redConn);<br>        redConn.clear();<br>        ValueFactory rf = redConn.getValueFactory();</pre>
 <p>Followed by a &quot;green&quot; repository. </p>
-<pre class="input">        AGRepository greenRepo = catalog.createRepository(&quot;greenthings&quot;);<br>        greenRepo.initialize();<br>        RepositoryConnection greenConn = greenRepo.getConnection();
+<pre class="input">        AGRepository greenRepo = catalog.createRepository(&quot;greenthingsjv&quot;);<br>        greenRepo.initialize();<br>        RepositoryConnection greenConn = greenRepo.getConnection();
 		closeBeforeExit(greenConn);<br>        greenConn.clear();<br>        ValueFactory gf = greenConn.getValueFactory();</pre>
-<p>Now we create a &quot;federated&quot; repository, which is connected to the distributed repositories at the back end. First we have to obtain the server object because the server supplies the <strong>createFederation() </strong>method. </p>
+<p>Now we create a &quot;federated&quot; repository, which is connected to the distributed repositories at the back end. First we have to obtain the server object because the server supplies the <strong>federate() </strong>method. </p>
 <pre class="input">
-        AGServer server = myRepository.getCatalog().getServer();<br>        AGRepository rainbowRepo = server.createFederation(&quot;rainbowthings&quot;,redRepo, greenRepo);<br>        rainbowRepo.initialize();<br>        RepositoryConnection rainbowConn = rainbowRepo.getConnection();
+        AGServer server = myRepository.getCatalog().getServer();<br>        AGAbstractRepository rainbowRepo = server.federate(redRepo, greenRepo);<br><br>        rainbowRepo.initialize();<br>        AGRepositoryConnection rainbowConn = rainbowRepo.getConnection();
 		closeBeforeExit(rainbowConn);</pre>
 <p>The next step is to populate the Red and Green repositories with a few triples. Notice that we have two red apples, a green apple, and a famous frog. </p>
 <pre class="input">        String ex = &quot;http://www.demo.com/example#&quot;;<br>        // add a few triples to the red and green stores:<br>        redConn.add(rf.createURI(ex+&quot;mcintosh&quot;), RDF.TYPE, rf.createURI(ex+&quot;Apple&quot;));<br>        redConn.add(rf.createURI(ex+&quot;reddelicious&quot;), RDF.TYPE, rf.createURI(ex+&quot;Apple&quot;));    <br>        greenConn.add(gf.createURI(ex+&quot;pippin&quot;), RDF.TYPE, gf.createURI(ex+&quot;Apple&quot;));<br>        greenConn.add(gf.createURI(ex+&quot;kermitthefrog&quot;), RDF.TYPE, gf.createURI(ex+&quot;Frog&quot;));</pre>
