@@ -1242,25 +1242,47 @@ public class TutorialExamples {
 	    ValueFactory f = conn.getValueFactory();
 	    String exns = "http://example.org/people/";
 	    conn.setNamespace("ex", exns);
-	    conn.createFreetextIndex("fti2", new URI[]{f.createURI(exns,"fullname")});
+	    // Create index1
+	    conn.createFreetextIndex("index1", new URI[]{f.createURI(exns,"fullname")});
+	    // Create parts of person resources.	    
 	    URI alice = f.createURI(exns, "alice1");
+	    URI carroll = f.createURI(exns, "carroll");
 	    URI persontype = f.createURI(exns, "Person");
 	    URI fullname = f.createURI(exns, "fullname");    
 	    Literal alicename = f.createLiteral("Alice B. Toklas");
+	    Literal lewisCarroll = f.createLiteral("Lewis Carroll");
+	    // Create parts of book resources.
 	    URI book =  f.createURI(exns, "book1");
 	    URI booktype = f.createURI(exns, "Book");
-	    URI booktitle = f.createURI(exns, "title");    
+	    URI booktitle = f.createURI(exns, "title");
+	    URI author = f.createURI(exns, "author");
 	    Literal wonderland = f.createLiteral("Alice in Wonderland");
+	    // Add Alice B. Toklas triples
 	    conn.clear();    
 	    conn.add(alice, RDF.TYPE, persontype);
 	    conn.add(alice, fullname, alicename);
+	    // Add Alice in Wonderland triples
 	    conn.add(book, RDF.TYPE, booktype);    
 	    conn.add(book, booktitle, wonderland); 
+	    conn.add(book, author, carroll);
+	    // Add Lewis Carroll triples
+	    conn.add(carroll, RDF.TYPE, persontype);
+	    conn.add(carroll, fullname, lewisCarroll);
+	    // Check triples
+	    RepositoryResult<Statement> statements = conn.getStatements(null, null, null, false);
+        try {
+            while (statements.hasNext()) {
+                println(statements.next());
+            }
+        } finally {
+            statements.close();
+        }
 
 	    println("\nWhole-word match for 'Alice'.");
         String queryString = 
         	"SELECT ?s ?p ?o " +
-        	"WHERE { ?s ?p ?o . ?s fti:match 'Alice' . }";
+        	"WHERE { ?s ?p ?o . " +
+        	"        ?s fti:match 'Alice' . }";
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         TupleQueryResult result = (TupleQueryResult)tupleQuery.evaluate();
         int count = 0;
@@ -1272,7 +1294,8 @@ public class TutorialExamples {
             count += 1;
         }
         result.close();
-            
+        
+           
         println("\nWildcard match for 'Ali*'.");
         queryString = 
         	"SELECT ?s ?p ?o " +
@@ -1321,6 +1344,7 @@ public class TutorialExamples {
         }
         result.close();
 	}
+	
 	
 	/**
      * Ask, Construct, and Describe queries

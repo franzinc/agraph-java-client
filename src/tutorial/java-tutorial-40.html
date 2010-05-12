@@ -1042,28 +1042,31 @@ WHERE { ?s rdf:type ex:person }
 <h2 id="Free Text Search">Free Text Search (example12()) &nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>
 It is common for users to build RDF applications that combine
-some form of "keyword search" with their queries. For example, a user
-might want to retrieve all triples for which the string "Alice" appears
-as a word within the third (object) argument to the triple.  AllegroGraph
-provides a capability for including free text matching within a SPARQL
-query.  It requires, however, that you register the predicates that will participate in text searches so they can be indexed. </p>
+some form of "keyword search" with their queries. For example, a user might want to retrieve all triples for which the string "Alice" appears as a word within the third (object) argument to the triple. AllegroGraph provides a capability for including free text matching within a SPARQL query. It requires, however, that you create and configure indexes appropriate to the searches you want to pursue. </p>
 <p> The example example12() begins by borrowing the connection object from example1(). Then it creates a namespace string and registers the namespace with the connection object, as in the previous example. </p>
 <pre class="input">	public static void example12 () throws Exception {    <br>        AGRepositoryConnection conn = example1(false);<br>	    ValueFactory f = conn.getValueFactory();<br>	    String exns = &quot;http://example.org/people/&quot;;<br>	    conn.setNamespace(&quot;ex&quot;, exns);</pre>
-<p>We have to register the predicates that will participate in text indexing. In the example12() example below, we have
-called the connection method <strong>registerFreeTextPredicate()</strong> to register the predicate "http://example.org/people/fullname" for text indexing. Generating the predicate's URI is a separate step. </p>
-<pre class="input">	    conn.registerFreetextPredicate(f.createURI(exns,&quot;fullname&quot;));</pre>
-<p>The next step is to create two new resources, &quot;Alice1&quot; named &quot;Alice B. Toklas,&quot; and &quot;book1&quot; with the title &quot;Alice in Wonderland.&quot; Notice that we did not register the book title predicate for text indexing. </p>
-<pre class="input">	    URI alice = f.createURI(exns, &quot;alice1&quot;);<br>	    URI persontype = f.createURI(exns, &quot;Person&quot;);<br>	    URI fullname = f.createURI(exns, &quot;fullname&quot;);    <br>	    Literal alicename = f.createLiteral(&quot;Alice B. Toklas&quot;);<br>	    URI book =  f.createURI(exns, &quot;book1&quot;);<br>	    URI booktype = f.createURI(exns, &quot;Book&quot;);<br>	    URI booktitle = f.createURI(exns, &quot;title&quot;);    <br>	    Literal wonderland = f.createLiteral(&quot;Alice in Wonderland&quot;);</pre>
+<p>We have to create an index. AllegroGraph lets you create any number of text indexes, each for a specific purpose. In this case we are indexing the literal values we find in the &quot;fullname&quot; predicate, which we will use in resources that describe people. The createFreeTextIndex() method has many configurable parameters. Their default settings are appropriate to this situation. All we have to provide is a name for the index and the URI of the predicate (or predicates) that contain the text to be indexed. </p>
+<pre class="input">        conn.createFreetextIndex(&quot;index1&quot;, new URI[]{f.createURI(exns,&quot;fullname&quot;)});</pre>
+<p>The next step is to create three new resources. One is a person, &quot;Alice,&quot; whose full name is &quot;Alice B. Toklas.&quot; There will also be a book, &quot;Alice in Wonderland,&quot; which is linked to an author resource, &quot;Lewis Carroll.&quot; The first step is to create some URIs and literal values from which to assemble the triples: </p>
+<pre class="input">	    // Create parts of person resources.	    <br>	    URI alice = f.createURI(exns, &quot;alice1&quot;);<br>	    URI carroll = f.createURI(exns, &quot;carroll&quot;);<br>	    URI persontype = f.createURI(exns, &quot;Person&quot;);<br>	    URI fullname = f.createURI(exns, &quot;fullname&quot;);    <br>	    Literal alicename = f.createLiteral(&quot;Alice B. Toklas&quot;);<br>	    Literal lewisCarroll = f.createLiteral(&quot;Lewis Carroll&quot;);<br>	    // Create parts of book resources.<br>	    URI book =  f.createURI(exns, &quot;book1&quot;);<br>	    URI booktype = f.createURI(exns, &quot;Book&quot;);<br>	    URI booktitle = f.createURI(exns, &quot;title&quot;);<br>	    URI author = f.createURI(exns, &quot;author&quot;);<br>	    Literal wonderland = f.createLiteral(&quot;Alice in Wonderland&quot;);</pre>
 <p>Clear the repository, so our new triples are the only ones available. </p>
 <pre class="input">
         conn.clear()    </pre>
 <p>Add the resource for the new person, Alice B. Toklas: </p>
 <pre class="input">	    conn.add(alice, RDF.TYPE, persontype);<br>	    conn.add(alice, fullname, alicename);</pre>
 <p>Add the new book, <em>Alice in Wonderland</em>. </p>
-<pre class="input">	    conn.add(book, RDF.TYPE, booktype);    <br>	    conn.add(book, booktitle, wonderland); </pre>
+<pre class="input">	    conn.add(book, RDF.TYPE, booktype);    <br>	    conn.add(book, booktitle, wonderland); 
+	    conn.add(book, author, carroll);</pre>
+<p>Note that the book's author predicate links to the resource URI of the Lewis Carroll author resource. The author is a Person with a fullname:</p>
+<pre class="input">	    conn.add(carroll, RDF.TYPE, persontype);<br>	    conn.add(carroll, fullname, lewisCarroll);</pre>
+<p>Let's use getStatements() to retrieve the new triples and inspect them:</p>
+<pre class="output">(http://example.org/people/alice1, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/people/Person) [null]<br>(http://example.org/people/alice1, http://example.org/people/fullname, &quot;Alice B. Toklas&quot;) [null]
+<br>(http://example.org/people/book1, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/people/Book) [null]<br>(http://example.org/people/book1, http://example.org/people/title, &quot;Alice in Wonderland&quot;) [null]<br>(http://example.org/people/book1, http://example.org/people/author, http://example.org/people/carroll) [null]
+<br>(http://example.org/people/carroll, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/people/Person) [null]<br>(http://example.org/people/carroll, http://example.org/people/fullname, &quot;Lewis Carroll&quot;) [null]</pre>
 <p>Now we set up the SPARQL query that looks for triples containing &quot;Alice&quot; in the object position. </p>
 <p>The text match occurs through a &quot;magic&quot; predicate called <strong>fti:match</strong>. This is not an RDF &quot;predicate&quot; but a LISP &quot;predicate,&quot; meaning that it behaves as a true/false test. This predicate  has two arguments. One is  the subject URI of the resources to search. The other is the string pattern to search for, such as &quot;Alice&quot;. Only registered text predicates will be searched. Only full-word matches will be found. </p>
-<pre class="input">	    String queryString = <br>	        &quot;SELECT ?s ?p ?o &quot; +<br>	        &quot;WHERE { ?s ?p ?o . ?s fti:match 'Alice' . }&quot;;</pre>
+<pre class="input">	    String queryString = <br>	        &quot;SELECT ?s ?p ?o &quot; +<br>	        &quot;WHERE { ?s ?p ?o . 
+                     ?s fti:match 'Alice' . }&quot;;</pre>
 <p>There is no need to include a prefix declaration for the 'fti' nickname. That is because 'fti' is included among the built-in namespace/nickname mappings in AllegroGraph.</p>
 <p>When we execute our SPARQL query, it matches the "Alice" within the literal "Alice B. Toklas" because that literal occurs in a triple having the registered <strong>fullname</strong> predicate, but it does not match the "Alice" in the literal "Alice in Wonderland" because the <strong>booktitle</strong> predicate was not registered for text indexing. This query returns <em>all triples</em> of a resource that had a successful match in at least one object value. </p>
 <pre class="input">        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);<br>        TupleQueryResult result = (TupleQueryResult)tupleQuery.evaluate();<br>        int count = 0;<br>        while (result.hasNext()) {<br>            BindingSet bindingSet = result.next();<br>            if (count &lt; 5) {<br>                println(bindingSet);<br>            }<br>            count += 1;<br>        }</pre>
