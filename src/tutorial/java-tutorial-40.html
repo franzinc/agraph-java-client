@@ -168,7 +168,7 @@ In Windows XP, you can set an environment variable by
   <p>In addition, a user account may be given read, write or read/write access to individual repositories. </p>
   <p>You can also define a <strong>role</strong> (such as &quot;librarian&quot;) and give the role a set of permissions and access rules. Then you can assign several users to a shared role. This lets you manage their permissions and access by editing the role instead of the individual user accounts. </p>
   <p>A <strong>superuser</strong> automatically has all possible permissions and unlimited access. A superuser can also create, manage and delete other user accounts. Non-superusers cannot view or edit account settings. </p>
-  <p>A user with the <strong>Start Sessions</strong> permission can use the AllegroGraph features that require spawning a dedicated session, such as <a href="#Dedicated Session">Transactions </a> and <a href="#Social Network Analysis">Social Network Analysis</a>. If you try to use these features without the appropriate permission, you'll encounter authentication errors. </p>
+  <p>A user with the <strong>Start Sessions</strong> permission can use the AllegroGraph features that require spawning a dedicated session, such as <a href="#Transaction">Transactions </a> and <a href="#Social Network Analysis">Social Network Analysis</a>. If you try to use these features without the appropriate permission, you'll encounter authentication errors. </p>
   <p>A user with permission to <strong>Evaluate Arbitrary Code </strong>can run <a href="#Prolog Rule Queries">Prolog Rule Queries</a>. 
 
 
@@ -1040,8 +1040,7 @@ WHERE { ?s rdf:type ex:person }
 </pre>
 
 <h2 id="Free Text Search">Free Text Search (example12()) &nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
-<p>
-It is common for users to build RDF applications that combine
+<p> It is common for users to build RDF applications that combine 
 some form of "keyword search" with their queries. For example, a user might want to retrieve all triples for which the string "Alice" appears as a word within the third (object) argument to the triple. AllegroGraph provides a capability for including free text matching within a SPARQL query. It requires, however, that you create and configure indexes appropriate to the searches you want to pursue. </p>
 <p> The example example12() begins by borrowing the connection object from example1(). Then it creates a namespace string and registers the namespace with the connection object, as in the previous example. </p>
 <pre class="input">	public static void example12 () throws Exception {    <br>        AGRepositoryConnection conn = example1(false);<br>	    ValueFactory f = conn.getValueFactory();<br>	    String exns = &quot;http://example.org/people/&quot;;<br>	    conn.setNamespace(&quot;ex&quot;, exns);</pre>
@@ -1064,7 +1063,7 @@ some form of "keyword search" with their queries. For example, a user might want
 <br>(http://example.org/people/book1, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/people/Book) [null]<br>(http://example.org/people/book1, http://example.org/people/title, &quot;Alice in Wonderland&quot;) [null]<br>(http://example.org/people/book1, http://example.org/people/author, http://example.org/people/carroll) [null]
 <br>(http://example.org/people/carroll, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/people/Person) [null]<br>(http://example.org/people/carroll, http://example.org/people/fullname, &quot;Lewis Carroll&quot;) [null]</pre>
 <p>Now we set up the SPARQL query that looks for triples containing &quot;Alice&quot; in the object position. </p>
-<p>The text match occurs through a &quot;magic&quot; predicate called <strong>fti:match</strong>. This is not an RDF &quot;predicate&quot; but a LISP &quot;predicate,&quot; meaning that it behaves as a true/false test. This predicate  has two arguments. One is  the subject URI of the resources to search. The other is the string pattern to search for, such as &quot;Alice&quot;. Only registered text predicates will be searched. Only full-word matches will be found. </p>
+<p>The text match occurs through a &quot;magic&quot; predicate called <strong>fti:match</strong>. This is not an RDF &quot;predicate&quot; but a LISP &quot;predicate,&quot; meaning that it behaves as a true/false test. This predicate has two arguments. One is the subject URI of the resources to search. The other is the string pattern to search for, such as &quot;Alice&quot;. Only registered text predicates will be searched. Only full-word matches will be found. </p>
 <pre class="input">	    String queryString = <br>	        &quot;SELECT ?s ?p ?o &quot; +<br>	        &quot;WHERE { ?s ?p ?o . 
                      ?s fti:match 'Alice' . }&quot;;</pre>
 <p>There is no need to include a prefix declaration for the 'fti' nickname. That is because 'fti' is included among the built-in namespace/nickname mappings in AllegroGraph.</p>
@@ -1643,7 +1642,7 @@ spherical/degrees/-180.0/180.0/-90.0/90.0/5.0&gt;)
 <h2 id="Transaction">Transaction (example22())</h2>
 <p>Triples are normally loaded one at a time in &quot;auto-commit&quot; mode. Each triple enters the triple store individually. It is possible that a batch of incoming triples, all describing the same resource, might be interrupted for some reason. An interrupted load can leave the triple store in an unknown state. </p>
 <p>In some applications we can't run the risk of having a resource that is incomplete.  To guard against this hazard, AllegroGraph can turn off auto-commit behavior and use &quot;transaction&quot; behavior instead. With auto-commit turned off, we can add triples until we have a complete set, a known state. If anything goes wrong to interrupt the load, we can roll the transaction back and start over. Otherwise, commit the transaction and all the triples enter the store at once. </p>
-<p>In order to use transaction semantics, the user account must have &quot;:session&quot; privileges with AllegroGraph Server. This is an elevated level of privilege. AllegroGraph users are profiled through the </p>
+<p>In order to use transaction semantics, the user account must have &quot;start sessions&quot; privileges with AllegroGraph Server. This is an elevated level of privilege. AllegroGraph users are profiled through the <a href="#Creating Users with WebView">WebView interface.</a></p>
 <p>In practice, transaction semantics require at least two connections to the triple store, one in auto-commit mode and one in transaction mode. Queries should be run against the auto-commit connection, where the resources are always in a known and complete state. The transaction connection is used for loading and commiting batches of triples. </p>
 <p>&quot;Commit&quot; means to make a batch of newly-loaded triples visible in the auto-commit connection. The two sessions are &quot;synched up&quot; by the commit. Any &quot;new&quot; triples added to either connection will suddenly be visible in both connections after a commit. </p>
 <p>&quot;Rollback&quot; means to discard the recent additions to the transaction connection. This, too, synchs up the two sessions. After a rollback, the transaction connection &quot;sees&quot; exactly the same triples as the auto-commit connection does. </p>
@@ -1801,6 +1800,6 @@ Did not add new triple.</pre>
 <p>Federation changes the semantics of &quot;duplicate triples.&quot; Be sure to take this into account in your project design. </p>
 
 
-<p><font color="#CCCCCC">March 23, 2010 4.0.2 release</font></p>
+<p><font color="#CCCCCC">June 8, 2010 4.0.4 release</font></p>
 </body>
 </html>
