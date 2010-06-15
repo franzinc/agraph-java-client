@@ -61,8 +61,8 @@ endif
 	cp agraph.jar $(DIST)/lib/agraph-$(VERSION).jar
 	mkdir -p $(DIST)/lib/sesame-2.3.1
 	cp lib/sesame-2.3.1/*.jar $(DIST)/lib/sesame-2.3.1
-	mkdir -p $(DIST)/lib/jena-2.6.0
-	cp lib/jena-2.6.0/*.jar $(DIST)/lib/jena-2.6.0
+	mkdir -p $(DIST)/lib/jena-2.6.2
+	cp lib/jena-2.6.2/*.jar $(DIST)/lib/jena-2.6.2
 	mkdir -p $(DIST)/doc
 	cp src/tutorial/java-tutorial-40.html $(DIST)/doc
 	cp src/tutorial/jena-tutorial-40.html $(DIST)/doc

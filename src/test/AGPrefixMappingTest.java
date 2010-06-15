@@ -20,8 +20,8 @@ import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
 import com.hp.hpl.jena.graph.Graph;
+import com.hp.hpl.jena.shared.AbstractTestPrefixMapping;
 import com.hp.hpl.jena.shared.PrefixMapping;
-import com.hp.hpl.jena.shared.test.AbstractTestPrefixMapping;
 
 public class AGPrefixMappingTest extends AbstractTestPrefixMapping {
 
