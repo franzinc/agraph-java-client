@@ -16,12 +16,20 @@ import com.franz.util.Closeable;
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.util.iterator.NiceIterator;
 
+/**
+ * 
+ * A utility class for iterating over Jena Triples.
+ *
+ */
 public class AGTripleIterator extends NiceIterator<Triple>
 implements Closeable {
 	
-	private RepositoryResult<Statement> result;
+	private final AGGraph graph;
+	private final RepositoryResult<Statement> result;
+	private Statement current = null;
 
-	AGTripleIterator(RepositoryResult<Statement> result) {
+	AGTripleIterator(AGGraph graph, RepositoryResult<Statement> result) {
+		this.graph = graph;
 		this.result = result;
 	}
 
@@ -47,7 +55,8 @@ implements Closeable {
 	public Triple next() {
 		Triple tr;
 		try {
-			tr = AGNodeFactory.asTriple(result.next());
+			current = result.next();
+			tr = AGNodeFactory.asTriple(current);
 		} catch (RepositoryException e) {
 			throw new RuntimeException(e);		
 		}
@@ -56,10 +65,13 @@ implements Closeable {
 
 	@Override
 	public void remove() {
-		try {
-			result.remove();
-		} catch (RepositoryException e) {
-			throw new RuntimeException(e);		
+		if (current != null) {
+			Triple tr = AGNodeFactory.asTriple(current);
+			graph.delete(tr);
+			// TODO the following only removes triples from the underlying
+			// collection (in memory), rather than from the store.   
+			//result.remove();
+			current = null;
 		}
 	}
 }

@@ -91,12 +91,12 @@
 
 (defn repo-federation
   "rcons: may be of type AGRepository or AGRepositoryConnection"
-  [#^AGServer server repo-name rcons rcon-args]
-  (-> (.createFederation server repo-name
-                         (into-array AGRepository (map #(cond (instance? AGRepository %) %
-                                                              (nil? %) nil
-                                                              :else (.getRepository #^AGRepositoryConnection %))
-                                                       rcons)))
+  [#^AGServer server rcons rcon-args]
+  (-> (.federate server
+                 (into-array AGRepository (map #(cond (instance? AGRepository %) %
+                                                      (nil? %) nil
+                                                      :else (.getRepository #^AGRepositoryConnection %))
+                                                rcons)))
       open repo-init (repo-connection rcon-args)))
 
 (defn ag-server

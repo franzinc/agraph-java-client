@@ -1,10 +1,23 @@
+/******************************************************************************
+** Copyright (c) 2008-2010 Franz Inc.
+** All rights reserved. This program and the accompanying materials
+** are made available under the terms of the Eclipse Public License v1.0
+** which accompanies this distribution, and is available at
+** http://www.eclipse.org/legal/epl-v10.html
+******************************************************************************/
+
 package com.franz.agraph.jena;
 
 import org.openrdf.repository.RepositoryException;
 
 import com.hp.hpl.jena.graph.TransactionHandler;
 import com.hp.hpl.jena.shared.Command;
+import com.hp.hpl.jena.shared.JenaException;
 
+/**
+ * Implements the Jena TransactionHandler interface for AllegroGraph.
+ * 
+ */
 public class AGTransactionHandler implements TransactionHandler {
 
 	private final AGGraph graph;
@@ -48,7 +61,17 @@ public class AGTransactionHandler implements TransactionHandler {
 
 	@Override
 	public Object executeInTransaction(Command c) {
-		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+		try {
+			begin();
+			c.execute();
+			commit();
+		} catch (Throwable e) {
+			throw new JenaException(e);
+		}
+		
+		// TODO determine what object to return here, currently the 
+		// command is executed for side effects rather than a result.
+		return null;
 	}
 
 	@Override

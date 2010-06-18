@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.openrdf.OpenRDFUtil;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Namespace;
@@ -52,18 +53,13 @@ import com.franz.util.Closeable;
 public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		RepositoryConnection, Closeable {
 
-	private final AGRepository repository;
+	private final AGAbstractRepository repository;
 	private final AGHttpRepoClient repoclient;
 
-	/**
-	 * @param repository
-	 * @throws RepositoryException
-	 */
-	public AGRepositoryConnection(AGRepository repository)
-			throws RepositoryException {
+	public AGRepositoryConnection(AGAbstractRepository repository, AGHttpRepoClient client) {
 		super(repository);
 		this.repository = repository;
-		repoclient = new AGHttpRepoClient(this);
+		this.repoclient = client;
 	}
 
 	/*
@@ -72,7 +68,7 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	 */
 
 	@Override
-	public AGRepository getRepository() {
+	public AGAbstractRepository getRepository() {
 		return repository;
 	}
 
@@ -89,8 +85,8 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	protected void addWithoutCommit(Resource subject, URI predicate,
 			Value object, Resource... contexts) throws RepositoryException {
 		Statement st = new StatementImpl(subject, predicate, object);
-		JSONArray rows = new JSONArray().put(encodeJSON(st, contexts));
-		getHttpRepoClient().uploadJSON(rows, contexts);
+		JSONArray rows = encodeJSON(st,contexts);
+		getHttpRepoClient().uploadJSON(rows);
 	}
 
 	@Override
@@ -99,10 +95,20 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		OpenRDFUtil.verifyContextNotNull(contexts);
 		JSONArray rows = new JSONArray();
 		for (Statement st : statements) {
-			JSONArray row = encodeJSON(st, contexts);
-			rows.put(row);
+			JSONArray rows_st = encodeJSON(st);
+			append(rows, rows_st);
 		}
 		getHttpRepoClient().uploadJSON(rows, contexts);
+	}
+
+	private void append(JSONArray rows, JSONArray rowsSt) {
+		for (int i=0;i<rowsSt.length();i++) {
+			try {
+				rows.put(rowsSt.get(i));
+			} catch (JSONException e) {
+				throw new RuntimeException(e);
+			}
+		}
 	}
 
 	@Override
@@ -112,20 +118,35 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		OpenRDFUtil.verifyContextNotNull(contexts);
 		JSONArray rows = new JSONArray();
 		while (statementIter.hasNext()) {
-			rows.put(encodeJSON(statementIter.next(), contexts));
+			append(rows, encodeJSON(statementIter.next(),contexts));
 		}
-		getHttpRepoClient().uploadJSON(rows, contexts);
+		getHttpRepoClient().uploadJSON(rows);
 	}
 
 	private JSONArray encodeJSON(Statement st, Resource... contexts) {
-		JSONArray row = new JSONArray().put(
+		JSONArray rows = new JSONArray();
+		if (contexts.length==0) {
+			JSONArray row = new JSONArray().put(
 				NTriplesUtil.toNTriplesString(st.getSubject())).put(
 				NTriplesUtil.toNTriplesString(st.getPredicate())).put(
 				NTriplesUtil.toNTriplesString(st.getObject()));
-		if (contexts.length == 0 && st.getContext() != null) {
-			row.put(NTriplesUtil.toNTriplesString(st.getContext()));
+			if (st.getContext() != null) {
+				row.put(NTriplesUtil.toNTriplesString(st.getContext()));
+			}
+			rows.put(row);
+		} else {
+			for (Resource c: contexts) {
+				JSONArray row = new JSONArray().put(
+						NTriplesUtil.toNTriplesString(st.getSubject())).put(
+								NTriplesUtil.toNTriplesString(st.getPredicate())).put(
+										NTriplesUtil.toNTriplesString(st.getObject()));
+				if (c != null) {
+					row.put(NTriplesUtil.toNTriplesString(c));
+				}
+				rows.put(row);
+			}
 		}
-		return row;
+		return rows;
 	}
 
 	@Override
@@ -159,10 +180,9 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		OpenRDFUtil.verifyContextNotNull(contexts);
 		JSONArray rows = new JSONArray();
 		for (Statement st : statements) {
-			JSONArray row = encodeJSON(st, contexts);
-			rows.put(row);
+			append(rows, encodeJSON(st,contexts));
 		}
-		getHttpRepoClient().deleteJSON(rows, contexts);
+		getHttpRepoClient().deleteJSON(rows);
 	}
     
 	@Override
@@ -172,10 +192,9 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		OpenRDFUtil.verifyContextNotNull(contexts);
 		JSONArray rows = new JSONArray();
 		while (statements.hasNext()) {
-			JSONArray row = encodeJSON(statements.next(), contexts);
-			rows.put(row);
+			append(rows, encodeJSON(statements.next(),contexts));
 		}
-		getHttpRepoClient().deleteJSON(rows, contexts);
+		getHttpRepoClient().deleteJSON(rows);
 	}
 
 	@Override
@@ -260,7 +279,7 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	/**
 	 * Creates a RepositoryResult for the supplied element set.
 	 */
-	protected <E> RepositoryResult<E> createRepositoryResult(
+	public <E> RepositoryResult<E> createRepositoryResult(
 			Iterable<? extends E> elements) {
 		return new RepositoryResult<E>(
 				new CloseableIteratorIteration<E, RepositoryException>(elements
@@ -340,7 +359,9 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 			String baseURI) {
 		// TODO: consider having the server parse and process the query,
 		// throw MalformedQueryException, etc.
-		return new AGTupleQuery(this, ql, queryString, baseURI);
+		AGTupleQuery q = new AGTupleQuery(this, ql, queryString, baseURI);
+		q.prepare();
+		return q;
 	}
 
 	@Override
@@ -353,7 +374,9 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 			String baseURI) {
 		// TODO: consider having the server parse and process the query,
 		// throw MalformedQueryException, etc.
-		return new AGGraphQuery(this, ql, queryString, baseURI);
+		AGGraphQuery q = new AGGraphQuery(this, ql, queryString, baseURI);
+		q.prepare();
+		return q;
 	}
 
 	@Override
@@ -367,7 +390,9 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 			String queryString, String baseURI) {
 		// TODO: consider having the server parse and process the query,
 		// throw MalformedQueryException, etc.
-		return new AGBooleanQuery(this, ql, queryString, baseURI);
+		AGBooleanQuery q = new AGBooleanQuery(this, ql, queryString, baseURI);
+		q.prepare();
+		return q;
 	}
 
 	public void removeNamespace(String prefix) throws RepositoryException {
@@ -396,17 +421,21 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	 * objects of data added to the repository having this predicate will be
 	 * text indexed and searchable.
 	 */
-	public void registerFreetextPredicate(URI predicate)
+	public void createFreetextIndex(String name, URI[] predicates)
 			throws RepositoryException {
-		getHttpRepoClient().registerFreetextPredicate(predicate);
+		getHttpRepoClient().createFreetextIndex(name, predicates);
 	}
 
 	// TODO: return RepositoryResult<URI>?
 	/**
 	 * Gets the predicates that have been registered for text indexing.
 	 */
-	public String[] getFreetextPredicates() throws RepositoryException {
-		return getHttpRepoClient().getFreetextPredicates();
+	public String[] getFreetextPredicates(String index) throws RepositoryException {
+		return getHttpRepoClient().getFreetextPredicates(index);
+	}
+
+	public String[] getFreetextIndices() throws RepositoryException {
+		return getHttpRepoClient().getFreetextIndices();
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /******************************************************************************
-** Copyright (c) 2008-2009 Franz Inc.
+** Copyright (c) 2008-2010 Franz Inc.
 ** All rights reserved. This program and the accompanying materials
 ** are made available under the terms of the Eclipse Public License v1.0
 ** which accompanies this distribution, and is available at
@@ -13,6 +13,7 @@ package com.franz.agraph.http;
 
 import static com.franz.agraph.http.AGProtocol.AMOUNT_PARAM_NAME;
 import static org.openrdf.http.protocol.Protocol.ACCEPT_PARAM_NAME;
+import static com.franz.agraph.http.AGProtocol.OVERRIDE_PARAM_NAME;
 import info.aduna.net.http.HttpClientUtil;
 
 import java.io.IOException;
@@ -36,6 +37,7 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
+import org.openrdf.http.protocol.Protocol;
 import org.openrdf.http.protocol.UnauthorizedException;
 import org.openrdf.query.TupleQueryResult;
 import org.openrdf.query.impl.TupleQueryResultBuilder;
@@ -103,6 +105,7 @@ implements Closeable {
 		for (Header header : headers) {
 			post.addRequestHeader(header);
 		}
+		post.addRequestHeader("Accept-encoding", "gzip");
 		post.setQueryString(params);
 		if (requestEntity != null) {
 			post.setRequestEntity(requestEntity);
@@ -138,6 +141,7 @@ implements Closeable {
 		for (Header header : headers) {
 			get.addRequestHeader(header);
 		}
+		get.addRequestHeader("Accept-encoding", "gzip");
 		get.setQueryString(params);
 		try {
 			int httpCode = getHttpClient().executeMethod(get);
@@ -287,7 +291,7 @@ implements Closeable {
 	public void putRepository(String repositoryURL) throws IOException,
 			RepositoryException, UnauthorizedException, AGHttpException {
 		Header[] headers = new Header[0];
-		NameValuePair[] params = new NameValuePair[0];
+		NameValuePair[] params = { new NameValuePair(OVERRIDE_PARAM_NAME, "false") };
 		put(repositoryURL,headers,params,null);
 	}
 
@@ -330,6 +334,25 @@ implements Closeable {
 			throw new RuntimeException(e);
 		}
 		return handler.getString().split("\n");
+	}
+
+	public String openSession(String spec, boolean autocommit) throws RepositoryException {
+		String url = AGProtocol.getSessionURL(serverURL);
+		Header[] headers = new Header[0];
+		NameValuePair[] data = { new NameValuePair("store", spec),
+								 new NameValuePair(AGProtocol.AUTOCOMMIT_PARAM_NAME,
+												   Boolean.toString(autocommit)),
+								 new NameValuePair(AGProtocol.LIFETIME_PARAM_NAME,
+												   Long.toString(3600)) }; // TODO have some kind of policy for this
+		AGResponseHandler handler = new AGResponseHandler("");
+		try {
+			post(url, headers, data, null, handler);
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		} catch (RDFParseException e) {}
+		return handler.getString();
 	}
 
     @Override

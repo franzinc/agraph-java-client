@@ -19,6 +19,10 @@ import com.hp.hpl.jena.reasoner.Reasoner;
 import com.hp.hpl.jena.reasoner.ValidityReport;
 import com.hp.hpl.jena.util.iterator.ExtendedIterator;
 
+/**
+ * Implements the Jena InfGraph interface for AllegroGraph.
+ * 
+ */
 public class AGInfGraph extends AGGraph implements InfGraph {
 
 	private final AGReasoner reasoner;

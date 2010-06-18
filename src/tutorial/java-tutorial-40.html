@@ -12,12 +12,20 @@
 </head>
 <body>
 <h1>Java API Tutorial for AllegroGraph 4.0</h1>
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
 <p>This is a introduction to the Java client API to AllegroGraph RDFStore&#8482; version 4.0 from <a href="http://agraph.franz.com/allegrograph/">Franz Inc.</a> </p>
+=======
+<p>This is an introduction to the Java client API to AllegroGraph RDFStore&#8482; version 4.0 from <a href="http://agraph.franz.com/allegrograph/">Franz Inc.</a> </p>
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
 <p>
 The Java API offers convenient and efficient
 access to an AllegroGraph server from a Java-based application.  This API provides methods for
 creating, querying and maintaining RDF data, and for managing the stored triples. </p>
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
 <p>The Java API emulates the Aduma Sesame API to make it easier to migrate from Sesame to AllegroGraph.&nbsp; &nbsp; </p>
+=======
+<p>The Java API emulates the Aduna Sesame API to make it easier to migrate from Sesame to AllegroGraph.&nbsp; &nbsp; </p>
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
 <h2 id="Contents">Contents</h2>
 <table width="554" border="0" style="vertical-align:top" >
   <tr>
@@ -35,9 +43,15 @@ creating, querying and maintaining RDF data, and for managing the stored triples
       <li><a href="#Importing Triples">Importing Triples</a></li>
 	  <li><a href="#Exporting Triples">Exporting Triples</a></li>      
       <li><a href="#Datasets and Contexts">Datasets and Contexts</a></li>
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
     </ul></td>
     <td width="295"><ul>
       <li><a href="#Namespaces">Namespaces</a></li>
+=======
+      <li><a href="#Namespaces">Namespaces</a></li>
+    </ul></td>
+    <td width="295"><ul>
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
       <li><a href="#Free Text Search">Free Text Search</a></li>
       <li><a href="#Ask, Describe, and Construct Queries">Ask, Describe, and Construct Queries</a></li>
       <li><a href="#Parametric Queries">Parametric Queries</a></li>
@@ -47,9 +61,16 @@ creating, querying and maintaining RDF data, and for managing the stored triples
       <li><a href="#Loading Prolog Rules">Loading Prolog Rules</a> </li>
       <li><a href="#RDFS++ Inference">RDFS++ Inference</a> </li>
       <li><a href="#Geospatial Search">Geospatial Search</a> </li>
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
 <!--      <li><a href="#Social Network Analysis">Social Network Analysis</a> </li>
 -->      <li><a href="#Transaction">Transactions </a></li>
       </ul>
+=======
+      <li><a href="#Social Network Analysis">Social Network Analysis</a> </li>
+      <li><a href="#Transaction">Transactions </a></li>
+      <li><a href="#Duplicate Triples">Duplicate Triples</a> </li>
+    </ul>
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
     <p>&nbsp;</p></td>
   </tr>
 </table>
@@ -58,7 +79,11 @@ creating, querying and maintaining RDF data, and for managing the stored triples
 <p>The Java client tutorial rests on a simple architecture involving AllegroGraph, disk-based data files, Java, and a file of Java examples called TutorialExamples.java.</p>
 <table width="964" border="0">
   <tr>
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
     <td width="286"><p>AllegroGraph 4.0 Server runs as a Windows service in this example. It contains the Java API, which is part of the AllegroGraph installation. </p>
+=======
+    <td width="286"><p>AllegroGraph 4.0 Server contains the Java API, which is part of the AllegroGraph installation. </p>
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
     <p>Java communicates with AllegroGraph through HTTP port 8080 in this example. Java and AllegroGraph may be installed on the same computer, but in practice one server is shared by multiple clients. </p>
     <p>Load TutorialExamples.java into Java to view the tutorial examples. </p></td>
     <td width="668"><img src="allegrographdiagramJava.jpg" width="668" height="443"></td>
@@ -122,12 +147,21 @@ In Windows XP, you can set an environment variable by
 </ol>
 -->
 <h2 id="PrerequisitesLinux">Prerequisites (Linux) &nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
 <p>The tutorial examples can be run on a Linux system, running AllegroGraph and the examples on the same computer (&quot;localhost&quot;). The tutorial assumes that AllegroGraph has been installed and configured using the procedure posted on <a href="http://www.franz.com/agraph/support/documentation/4.0m1/server-installation.html">this webpage</a>. </p>
 <h2 id="Terminology">Terminology&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>We need to clarify some terminology before proceeding. </p>
 <ul>
   <li>&quot;RDF&quot; is the <a href="http://www.w3.org/RDF/">Resource Description Framework</a> defined by the <a href="http://www.w3.org/">World Wide Web Consortium</a> (W3C). It provides a elegantly simple means for describing multi-faceted resource objects and for linking them into complex relationship graphs. AllegroGraph Server creates, searches, and manages such RDF graphs. </li>
   <li>A &quot;URI&quot; is a <a href="http://www.isi.edu/in-notes/rfc2396.txt">Uniform Resource Identifier</a>. It is label used to uniquely identify variosu types of entities in an RDF graph. A typical URI looks a lot like a web address: &lt;http:\\www.company.com\project\class#number&gt;. In spite of the resemblance, a URI is not a web address. It is simply a unique label. </li>
+=======
+<p>The tutorial examples can be run on a Linux system, running AllegroGraph and the examples on the same computer (&quot;localhost&quot;). The tutorial assumes that AllegroGraph has been installed and configured using the procedure posted on <a href="http://www.franz.com/agraph/support/documentation/4.0/server-installation.html">this webpage</a>. </p>
+<h2 id="Terminology">Terminology&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
+<p>We need to clarify some terminology before proceeding. </p>
+<ul>
+  <li>&quot;RDF&quot; is the <a href="http://www.w3.org/RDF/">Resource Description Framework</a> defined by the <a href="http://www.w3.org/">World Wide Web Consortium</a> (W3C). It provides an elegantly simple means for describing multi-faceted resource objects and for linking them into complex relationship graphs. AllegroGraph Server creates, searches, and manages such RDF graphs. </li>
+  <li>A &quot;URI&quot; is a <a href="http://www.isi.edu/in-notes/rfc2396.txt">Uniform Resource Identifier</a>. It is label used to uniquely identify various types of entities in an RDF graph. A typical URI looks a lot like a web address: &lt;http:\\www.company.com\project\class#number&gt;. In spite of the resemblance, a URI is not a web address. It is simply a unique label. </li>
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
   <li>A &quot;triple&quot; is a data statement, a &quot;fact,&quot; stored in RDF format. It states that a  resource has an attribute with a value. It consists of three fields:</li>
   <ul>  <li>Subject: The first field contains the URI that uniquely identifies the resource that this triple describes. </li>
   <li>Predicate: The second field contains the URI identifying a property of this resource, such as its color or size, or a relationship between this resource and another one, such as parentage or ownership. </li>
@@ -162,18 +196,31 @@ In Windows XP, you can set an environment variable by
   <ul>
     <li>Superuser</li>
     <li>Start Session</li>
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
     <li>Evaluate Arbritray Code</li>
+=======
+    <li>Evaluate Arbitrary Code</li>
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
   </ul>
   <p>In addition, a user account may be given read, write or read/write access to individual repositories. </p>
   <p>You can also define a <strong>role</strong> (such as &quot;librarian&quot;) and give the role a set of permissions and access rules. Then you can assign several users to a shared role. This lets you manage their permissions and access by editing the role instead of the individual user accounts. </p>
   <p>A <strong>superuser</strong> automatically has all possible permissions and unlimited access. A superuser can also create, manage and delete other user accounts. Non-superusers cannot view or edit account settings. </p>
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
   <p>A user with the <strong>Start Sessions</strong> permission can use the AllegroGraph features that require spawning a dedicated session, such as <a href="#Dedicated Session">Transactions </a> and <a href="#Social Network Analysis">Social Network Analysis</a>. If you try to use these features without the appropriate permission, you'll encounter authentication errors. </p>
+=======
+  <p>A user with the <strong>Start Sessions</strong> permission can use the AllegroGraph features that require spawning a dedicated session, such as <a href="#Transaction">Transactions </a> and <a href="#Social Network Analysis">Social Network Analysis</a>. If you try to use these features without the appropriate permission, you'll encounter authentication errors. </p>
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
   <p>A user with permission to <strong>Evaluate Arbitrary Code </strong>can run <a href="#Prolog Rule Queries">Prolog Rule Queries</a>. 
 
 
   This user can also do anything else that allows executing Lisp code, such as defining select-style generators, or doing eval-in-server, as well as loading server-side files. </p>
   <h3>WebView</h3>
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
   <p>WebView is AllegroGraph's HTTP-based graphical user interface for user and repository management. To connect to WevView, simply direct your Web browser to the AllegroGraph port of your server. If you have installed AllegroGraph locally (and used the default port number), use:</p>
+=======
+  <p>WebView is AllegroGraph's HTTP-based graphical user interface for user and repository management.  It provides a SPARQL endpoint for querying your triple stores as well as various tools that let you create and maintain triple stores interactively. </p>
+  <p>To connect to WebView, simply direct your Web browser to the AllegroGraph port of your server. If you have installed AllegroGraph locally (and used the default port number), use:</p>
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
   <pre class="output">http://localhost:10035</pre>
   <p>You will be asked to log in. Use the superuser credentials described in the previous section. </p>
   <p>The first page of WebView is a summary of your catalogs, repositories, and federations. Click the <strong>user account</strong> link in the lower left corner of the page. This exposes the <strong>Users and Roles</strong> page.</p>
@@ -183,12 +230,20 @@ In Windows XP, you can set an environment variable by
   <p>The new user will appear in the list of users. Click the [view permissions] link to open a control panel for the new user account:</p>
   <p><img src="webviewNewUser.jpg" width="658" height="171"> </p>
   <p>Use the checkboxes to apply permissions to this account (superuser, start session, evaluate arbitrary code). </p>
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
   <p>It is imporant that you set up access permissions for the new user. Use the form to create an access rule by selecting read, write or read/write access, naming a catalog (or * for all), and naming a repository within that catalog (or * for all). Click the [add] link. This creates an access rule for your new user. The access rule will appear in the permissions display:</p>
+=======
+  <p>It is important that you set up access permissions for the new user. Use the form to create an access rule by selecting read, write or read/write access, naming a catalog (or * for all), and naming a repository within that catalog (or * for all). Click the [add] link. This creates an access rule for your new user. The access rule will appear in the permissions display:</p>
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
   <p><img src="webviewAccessRule.jpg" width="629" height="196"> </p>
   <p>This new user can log in and perform transactions on any repository in the system. </p>
   <p>To repeat, the &quot;test&quot; superuser is all you need to run all of the tutorial examples. This section is for the day when you want to issue more modest credentials to some of your operators. </p>
   <h2 id="Creating a Repository">Creating a Repository (example1()) &nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
 <p>The first task is to our AllegroGraph Server and open a repository. This task is implemented in<strong> example1()</strong> from<strong> TutorialExamples.java</strong>. </p>
+=======
+<p>The first task is to start our AllegroGraph Server and open a repository. This task is implemented in<strong> example1()</strong> from<strong> TutorialExamples.java</strong>. </p>
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
 <p>In <strong>example1()</strong> we build a chain of Java objects,  ending in a &quot;connection&quot; object that lets us manipulate triples in a specific repository. The overall process of generating the connection object follows 
 this diagram:</p>
   <table width="809" border="0">
@@ -227,10 +282,17 @@ this diagram:</p>
 <pre class="output">Available repositories in catalog /: []</pre>
 <p>In the examples, we are careful to delete previous state before continuing. You probably would not do this in your actual application:</p>
 <pre class="input">         catalog.deleteRepository(REPOSITORY_ID); </pre>
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
 <p>The next step is to create a client-side repository object representing the respository we wish to open, by calling the
   <strong>createRepository()</strong> method of the catalog object. We have to provide the name of the desired repository (REPOSITORY_ID in this case, which is bound to the string &quot;javatutorial&quot;). </p>
 <pre class="input">        AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);<br>        println(&quot;Got a repository.&quot;);<br>        myRepository.initialize();<br>        println(&quot;Initialized repository.&quot;);<br>        println(&quot;Repository is writable? &quot; + myRepository.isWritable());</pre>
 <p>A new or renewed repository must be initialized, using the <strong>initialize()</strong> method of the repository object. If you try to initialize a respository twice you get a warning message in the Java window but no exception. Finally we check to see that the repository is writable.</p>
+=======
+<p>The next step is to create a client-side repository object representing the repository we wish to open, by calling the
+  <strong>createRepository()</strong> method of the catalog object. We have to provide the name of the desired repository (REPOSITORY_ID in this case, which is bound to the string &quot;javatutorial&quot;). </p>
+<pre class="input">        AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);<br>        println(&quot;Got a repository.&quot;);<br>        myRepository.initialize();<br>        println(&quot;Initialized repository.&quot;);<br>        println(&quot;Repository is writable? &quot; + myRepository.isWritable());</pre>
+<p>A new or renewed repository must be initialized, using the <strong>initialize()</strong> method of the repository object. If you try to initialize a repository twice you get a warning message in the Java window but no exception. Finally we check to see that the repository is writable.</p>
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
 <pre class="output"> Got a repository.
  Initialized repository.
  Repository is writable? true </pre>
@@ -255,7 +317,11 @@ this diagram:</p>
 
 In example2(), we show how
 to create resources describing two
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
 people, Bob and Alice, by asserting individual triples into the respository. The example also retracts and replaces a triple.  Assertions and retractions to the triple store
+=======
+people, Bob and Alice, by asserting individual triples into the repository. The example also retracts and replaces a triple.  Assertions and retractions to the triple store
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
 are executed by 'add' and 'remove' methods belonging to the connection object, which we obtain by calling the example1() function (described above).
 </p>
 <p>Before asserting a triple, we have to generate the URI values for the subject, predicate and object fields. The Java API to AllegroGraph Server predefines a number of classes and predicates for the RDF, RDFS, XSD, and OWL ontologies.  RDF.TYPE is one of the predefined predicates we will use. </p>
@@ -338,7 +404,11 @@ This is the <strong>example4()</strong> function of TutorialExamples.java. It be
 <pre class="input">        try {<br>            statements.enableDuplicateFilter();<br>            while (statements.hasNext()) {<br>                println(statements.next());<br>            }</pre>
 <p>This prints out the two matching triples for &quot;Alice.&quot; </p>
 <pre class="output">(http://example.org/people/alice, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/ontology/Person) [null]<br>(http://example.org/people/alice, http://example.org/ontology/name, &quot;Alice&quot;) [null]</pre>
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
 <p>At this point it is good form to close the respositoryResponse object because it occupies memory and is rarely reused in most programs. We can also close the connection and shut down the repository. </p>
+=======
+<p>At this point it is good form to close the repositoryResponse object because it occupies memory and is rarely reused in most programs. We can also close the connection and shut down the repository. </p>
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
 <pre class="input">        } finally {<br>            statements.close();<br>        }
         conn.close();<br>        myRepository.shutDown();<br>    }</pre>
 <h2 id="Literal Values">Literal Values (example5())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
@@ -750,7 +820,11 @@ WHERE {?s ?p ?o . filter (fn:lower-case(str(?o)) = &quot;rouge&quot;)}</pre>
 <pre class="input">        URI birthdate = f.createURI(exns, &quot;birthdate&quot;);</pre>
 <p>We'll also need four types of literal values: a date, a time, a datetime, and a datetime with a time-zone offset.</p>
 <pre class="input">        Literal date = f.createLiteral(&quot;1984-12-06&quot;, XMLSchema.DATE);<br>        Literal datetime = f.createLiteral(&quot;1984-12-06T09:00:00&quot;, XMLSchema.DATETIME);<br>        Literal time = f.createLiteral(&quot;09:00:00&quot;, XMLSchema.TIME);<br>        Literal datetimeOffset = f.createLiteral(&quot;1984-12-06T09:00:00+01:00&quot;, XMLSchema.DATETIME);</pre>
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
 <p>It is interesting to notice that these lilteral values print out exactly as we defined them. </p>
+=======
+<p>It is interesting to notice that these literal values print out exactly as we defined them. </p>
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
 <pre class="output">Printing out Literals for date, datetime, time, and datetime with Zulu offset.<br>&quot;1984-12-06&quot;^^&lt;http://www.w3.org/2001/XMLSchema#date&gt;<br>&quot;1984-12-06T09:00:00&quot;^^&lt;http://www.w3.org/2001/XMLSchema#dateTime&gt;<br>&quot;09:00:00&quot;^^&lt;http://www.w3.org/2001/XMLSchema#time&gt;<br>&quot;1984-12-06T09:00:00+01:00&quot;^^&lt;http://www.w3.org/2001/XMLSchema#dateTime&gt;</pre>
 <p>Now we'll add them to the triple store:</p>
 <pre class="input">        conn.add(alice, birthdate, date);<br>        conn.add(bob, birthdate, datetime);<br>        conn.add(carol, birthdate, time);<br>        conn.add(dave, birthdate, datetimeOffset);</pre>
@@ -878,7 +952,11 @@ Now:<span class="output">&quot;1984-12-06T08:00:00Z&quot;</span></pre>
   </tr>
 </table>
 <p>Note that we searched for &quot;1984-12-06T09:00:00+01:00&quot; but found &quot;1984-12-06T08:00:00Z&quot;. It is the same moment in time. </p>
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
 <h2>Importing Triples (example6() and example7()) &nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
+=======
+<h2 id="Importing Triples">Importing Triples (example6() and example7()) &nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
 <p>
 The Java API client can load triples in either RDF/XML format or  NTriples format.  The example below calls the connection object's <strong>add()</strong> method to load 
 an NTriples file, and <strong>addFile()</strong> to load  an RDF/XML file. Both methods work, but the best practice is to use addFile(). </p>
@@ -991,7 +1069,11 @@ We have already seen contexts at work when loading and saving files.  In example
 
 <h2 id="Namespaces">Namespaces (example11()) &nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
 A <i>namespace</i> is that portion of a URI that preceeds the last '#',
+=======
+A <i>namespace</i> is that portion of a URI that precedes the last '#',
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
 '/', or ':' character, inclusive.  The remainder of a URI is called the
 <i>localname</i>.  For example, with respect to the URI "http://example.org/people/alice",
 the namespace is "http://example.org/people/" and the localname is "alice".
@@ -1038,6 +1120,7 @@ WHERE { ?s rdf:type ex:person }
 </pre>
 
 <h2 id="Free Text Search">Free Text Search (example12()) &nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
 <p>
 It is common for users to build RDF applications that combine
 some form of "keyword search" with their queries. For example, a user
@@ -1045,6 +1128,10 @@ might want to retrieve all triples for which the string "Alice" appears
 as a word within the third (object) argument to the triple.  AllegroGraph
 provides a capability for including free text matching within a SPARQL
 query.  It requires, however, that you register the predicates that will participate in text searches so they can be indexed. </p>
+=======
+<p> It is common for users to build RDF applications that combine 
+some form of "keyword search" with their queries. For example, a user might want to retrieve all triples for which the string "Alice" appears as a word within the third (object) argument to the triple. AllegroGraph provides a capability for including free text matching within a SPARQL query. It requires, however, that you create and configure indexes appropriate to the searches you want to pursue. </p>
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
 <p> The example example12() begins by borrowing the connection object from example1(). Then it creates a namespace string and registers the namespace with the connection object, as in the previous example. </p>
 <pre class="input">	public static void example12 () throws Exception {    <br>        AGRepositoryConnection conn = example1(false);<br>	    ValueFactory f = conn.getValueFactory();<br>	    String exns = &quot;http://example.org/people/&quot;;<br>	    conn.setNamespace(&quot;ex&quot;, exns);</pre>
 <p>We have to register the predicates that will participate in text indexing. In the example12() example below, we have
@@ -1060,8 +1147,14 @@ called the connection method <strong>registerFreeTextPredicate()</strong> to reg
 <p>Add the new book, <em>Alice in Wonderland</em>. </p>
 <pre class="input">	    conn.add(book, RDF.TYPE, booktype);    <br>	    conn.add(book, booktitle, wonderland); </pre>
 <p>Now we set up the SPARQL query that looks for triples containing &quot;Alice&quot; in the object position. </p>
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
 <p>The text match occurs through a &quot;magic&quot; predicate called <strong>fti:match</strong>. This is not an RDF &quot;predicate&quot; but a LISP &quot;predicate,&quot; meaning that it behaves as a true/false test. This predicate  has two arguments. One is  the subject URI of the resources to search. The other is the string pattern to search for, such as &quot;Alice&quot;. Only registered text predicates will be searched. Only full-word matches will be found. </p>
 <pre class="input">	    String queryString = <br>	        &quot;SELECT ?s ?p ?o &quot; +<br>	        &quot;WHERE { ?s ?p ?o . ?s fti:match 'Alice' . }&quot;;</pre>
+=======
+<p>The text match occurs through a &quot;magic&quot; predicate called <strong>fti:match</strong>. This is not an RDF &quot;predicate&quot; but a LISP &quot;predicate,&quot; meaning that it behaves as a true/false test. This predicate has two arguments. One is the subject URI of the resources to search. The other is the string pattern to search for, such as &quot;Alice&quot;. Only registered text predicates will be searched. Only full-word matches will be found. </p>
+<pre class="input">	    String queryString = <br>	        &quot;SELECT ?s ?p ?o &quot; +<br>	        &quot;WHERE { ?s ?p ?o . 
+                     ?s fti:match 'Alice' . }&quot;;</pre>
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
 <p>There is no need to include a prefix declaration for the 'fti' nickname. That is because 'fti' is included among the built-in namespace/nickname mappings in AllegroGraph.</p>
 <p>When we execute our SPARQL query, it matches the "Alice" within the literal "Alice B. Toklas" because that literal occurs in a triple having the registered <strong>fullname</strong> predicate, but it does not match the "Alice" in the literal "Alice in Wonderland" because the <strong>booktitle</strong> predicate was not registered for text indexing. This query returns <em>all triples</em> of a resource that had a successful match in at least one object value. </p>
 <pre class="input">        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);<br>        TupleQueryResult result = (TupleQueryResult)tupleQuery.evaluate();<br>        int count = 0;<br>        while (result.hasNext()) {<br>            BindingSet bindingSet = result.next();<br>            if (count &lt; 5) {<br>                println(bindingSet);<br>            }<br>            count += 1;<br>        }</pre>
@@ -1070,7 +1163,11 @@ called the connection method <strong>registerFreeTextPredicate()</strong> to reg
 <p>The text index supports simple wildcard queries. The asterisk (*) may be appended to the end of the pattern to indicate &quot;any number of additional characters.&quot; For instance, this query looks for whole words that begin with &quot;Ali&quot;:</p>
 <pre class="input">        queryString = <br>        	&quot;SELECT ?s ?p ?o &quot; +<br>        	&quot;WHERE { ?s ?p ?o . ?s fti:match 'Ali*' . }&quot;;</pre>
 <p>It finds the same two triples as before.</p>
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
 <p>There is also a single-character wildcard, the questionmark.  You can add as many question marks as you need to the string pattern.  This query looks for a five-letter word that has "l" in the second position, and "c" in the fourth position:</p>
+=======
+<p>There is also a single-character wildcard, the question mark.  You can add as many question marks as you need to the string pattern.  This query looks for a five-letter word that has "l" in the second position and "c" in the fourth position:</p>
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
 <pre class="input">        queryString = <br>        	&quot;SELECT ?s ?p ?o &quot; +<br>        	&quot;WHERE { ?s ?p ?o . ?s fti:match '?l?c?' . }&quot;;</pre>
 <p>This query finds the same two triples as before. </p>
 <p>This time we'll do something a little different.  The free text indexing matches whole words only, even when using wildcards. What if you really need to match a substring in a word of unknown length? You can write a SPARQL query that performs a <strong>regex </strong>match against object values. This can be inefficient compared to indexed search, and the match is not confined to the registered free-text predicates. The following query looks for the substring &quot;lic&quot; in all literal object values:</p>
@@ -1086,7 +1183,11 @@ called the connection method <strong>registerFreeTextPredicate()</strong> to reg
   <li>ASK: Returns a boolean indicating whether a query pattern matches or not. </li>
   <li>DESCRIBE: Returns an RDF graph that describes the resources found. </li>
 </ul>
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
 <p>The example begins by borrowing a connection object from example2(). Then it registers two namespaces for use in the SPARQL queries.:
+=======
+<p>The example begins by borrowing a connection object from example2(). Then it registers two namespaces for use in the SPARQL queries:
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
 <pre class="input">    public static void example13 () throws Exception {<br>        RepositoryConnection conn = example2(false);<br>        conn.setNamespace(&quot;ex&quot;, &quot;http://example.org/people/&quot;);<br>        conn.setNamespace(&quot;ont&quot;, &quot;http://example.org/ontology/&quot;);</pre>
 <p>The example begins with an unconstrained SELECT query so we can see what triples are available for matching. </p>
 <pre class="input">        println(&quot;\nSELECT result:&quot;);<br>        String queryString = &quot;select ?s ?p ?o where { ?s ?p ?o} &quot;;<br>        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);<br>        TupleQueryResult result = tupleQuery.evaluate();<br>        while (result.hasNext()) {<br>            println(result.next());<br>        }<br>        result.close();</pre>
@@ -1096,7 +1197,11 @@ The output for the SELECT query was four triples about Alice and Bob:
 <pre class="input">        queryString = &quot;ask { ?s ont:name \&quot;Alice\&quot; } &quot;;<br>        BooleanQuery booleanQuery = conn.prepareBooleanQuery(QueryLanguage.SPARQL, queryString);<br>        boolean truth = booleanQuery.evaluate(); <br>        println(&quot;\nBoolean result: &quot; + truth);</pre>
 <p>The output of this loop is:</p>
 <pre class="output">Boolean result: true</pre>
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
 <p>The CONSTRUCT query contructs a statement object out of the matching values in the triple pattern. A &quot;statement&quot; is a client-side triple. Construction queries use <strong>prepareGraphQuery()</strong>. The point is that the query can bind variables from existing triples and then &quot;construct&quot; a new triple by recombining the values. </p>
+=======
+<p>The CONSTRUCT query constructs a statement object out of the matching values in the triple pattern. A &quot;statement&quot; is a client-side triple. Construction queries use <strong>prepareGraphQuery()</strong>. The point is that the query can bind variables from existing triples and then &quot;construct&quot; a new triple by recombining the values. </p>
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
 <pre class="input">        queryString = &quot;construct {?s ?p ?o} where { ?s ?p ?o . filter (?o = \&quot;Alice\&quot;) } &quot;;<br>        GraphQuery constructQuery = conn.prepareGraphQuery(QueryLanguage.SPARQL, queryString);<br>        GraphQueryResult gresult = constructQuery.evaluate(); <br>        List statements = new ArrayList();<br>        while (gresult.hasNext()) {<br>            statements.add(gresult.next());<br>        }<br>        println(&quot;\nConstruct result:\n&quot; + statements);</pre>
 <p>The output of this loop is below. It has created a statement from values found in the repository. </p>
 <pre class="output">Construct result:<br>[(http://example.org/people/alice, http://example.org/ontology/name, &quot;Alice&quot;)]</pre>
@@ -1150,6 +1255,7 @@ http://example.org/people/bob http://example.org/people/age &quot;45.1&quot;^^&l
 http://example.org/people/carol http://example.org/people/age &quot;39&quot;  </pre>
 <p>This query picked up integer, double, and string values. </p>
 <h2 id="Federated Repositories">Federated Repositories (example16())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
 <p>AllegroGraph lets you split up your triples among repositories on multiple servers and then search them all in parallel. To do this we query a single &quot;federated&quot; repository that automatically distributes the queries to the secondary repositories and combines the results. From the point of view of your Python code, it looks like you are working with a single repository. </p>
 <p>This example begins by defining a small output function that we'll use at the end of the lesson. It prints out responses from different repositories. This example is about red apples and green apples, so the output function talks about apples. </p>
 <pre class="input">    private static void pt(String kind, TupleQueryResult rows) throws Exception {<br>        println(&quot;\n&quot; + kind + &quot; Apples:\t&quot;);<br>        while (rows.hasNext()) {<br>            println(rows.next());<br>        }<br>        rows.close();<br>    }</pre>
@@ -1164,6 +1270,22 @@ http://example.org/people/carol http://example.org/people/age &quot;39&quot;  </
 <p>Now we create a &quot;federated&quot; respository, which is connected to the distributed repositories at the back end. First we have to obtain the server object because the server supplies the <strong>createFederation() </strong>method. </p>
 <pre class="input">
         AGServer server = myRepository.getCatalog().getServer();<br>        AGRepository rainbowRepo = server.createFederation(&quot;rainbowthings&quot;,redRepo, greenRepo);<br>        rainbowRepo.initialize();<br>        RepositoryConnection rainbowConn = rainbowRepo.getConnection();
+=======
+<p>AllegroGraph lets you split up your triples among repositories on multiple servers and then search them all in parallel. To do this we query a single &quot;federated&quot; repository that automatically distributes the queries to the secondary repositories and combines the results. From the point of view of your Java code, it looks like you are working with a single repository. </p>
+<p>This example begins by defining a small output function that we'll use at the end of the lesson. It prints out responses from different repositories. This example is about red apples and green apples, so the output function talks about apples. </p>
+<pre class="input">    private static void pt(String kind, TupleQueryResult rows) throws Exception {<br>        println(&quot;\n&quot; + kind + &quot; Apples:\t&quot;);<br>        while (rows.hasNext()) {<br>            println(rows.next());<br>        }<br>        rows.close();<br>    }</pre>
+<p>In example16(), we open connections to a redRepository and a greenRepository on the local server. In a typical federation scenario, these respositories would be distributed across multiple servers. We begin with the connection object from example6(), and then climb the object tree to obtain its catalog. </p>
+<pre class="input">    public static void example16() throws Exception {<br>        AGRepositoryConnection conn = example6();<br>        AGRepository myRepository = conn.getRepository();<br>        AGCatalog catalog = myRepository.getCatalog();</pre>
+<p>The next few lines establish a &quot;red&quot; repository in the catalog. </p>
+<pre class="input">        AGRepository redRepo = catalog.createRepository(&quot;redthingsjv&quot;);<br>        redRepo.initialize();<br>        RepositoryConnection redConn = redRepo.getConnection();
+		closeBeforeExit(redConn);<br>        redConn.clear();<br>        ValueFactory rf = redConn.getValueFactory();</pre>
+<p>Followed by a &quot;green&quot; repository. </p>
+<pre class="input">        AGRepository greenRepo = catalog.createRepository(&quot;greenthingsjv&quot;);<br>        greenRepo.initialize();<br>        RepositoryConnection greenConn = greenRepo.getConnection();
+		closeBeforeExit(greenConn);<br>        greenConn.clear();<br>        ValueFactory gf = greenConn.getValueFactory();</pre>
+<p>Now we create a &quot;federated&quot; repository, which is connected to the distributed repositories at the back end. First we have to obtain the server object because the server supplies the <strong>federate() </strong>method. </p>
+<pre class="input">
+        AGServer server = myRepository.getCatalog().getServer();<br>        AGAbstractRepository rainbowRepo = server.federate(redRepo, greenRepo);<br><br>        rainbowRepo.initialize();<br>        AGRepositoryConnection rainbowConn = rainbowRepo.getConnection();
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
 		closeBeforeExit(rainbowConn);</pre>
 <p>The next step is to populate the Red and Green repositories with a few triples. Notice that we have two red apples, a green apple, and a famous frog. </p>
 <pre class="input">        String ex = &quot;http://www.demo.com/example#&quot;;<br>        // add a few triples to the red and green stores:<br>        redConn.add(rf.createURI(ex+&quot;mcintosh&quot;), RDF.TYPE, rf.createURI(ex+&quot;Apple&quot;));<br>        redConn.add(rf.createURI(ex+&quot;reddelicious&quot;), RDF.TYPE, rf.createURI(ex+&quot;Apple&quot;));    <br>        greenConn.add(gf.createURI(ex+&quot;pippin&quot;), RDF.TYPE, gf.createURI(ex+&quot;Apple&quot;));<br>        greenConn.add(gf.createURI(ex+&quot;kermitthefrog&quot;), RDF.TYPE, gf.createURI(ex+&quot;Frog&quot;));</pre>
@@ -1408,7 +1530,11 @@ spherical/degrees/-180.0/180.0/-90.0/90.0/5.0&gt;)
 &quot;+513159.49909-0000459.99970&quot;^^&lt;http://franz.com/ns/allegrograph/3.0/geospatial/spherical/degrees/-180.0/180.0/-90.0/90.0/5.0&gt;)</pre>
 <p>AllegroGraph returns the location of London, but not the nearby Amsterdam.</p>
 
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
 <!-- Commented out 1/25/2010 due to rfe9149. BDC
+=======
+
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
 <h2 id="Social Network Analysis">Social Network Analysis  (example21())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>AllegroGraph includes sophisticated algorithms for social-network analysis (SNA). It can examine an RDF graph of relationships among people (or similar entities, such as businesses) and discover:</p>
 <ul>
@@ -1427,8 +1553,13 @@ spherical/degrees/-180.0/180.0/-90.0/90.0/5.0&gt;)
     <li><a href="#SNA Search - Ego Group">SNA Search - Ego Group</a></li>
     <li><a href="#SNA Search - Path from A to B">SNA Search - Path from A to B</a></li>
     <li><a href="#Graph Measures">Graph Measures</a></li>
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
     <li><a href="#Cliques">Cliques</a></li>
     <li><a href="#Actor Centrality">Actor Centrality</a></li> 
+=======
+<!--    <li><a href="#Cliques">Cliques</a></li>
+-->    <li><a href="#Actor Centrality">Actor Centrality</a></li> 
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
     <li><a href="#Group Centrality">Group Centrality</a></li> 
 </ul>
 <p>Most (but not all) of AllegroGraph's SNA features can be accessed from Java. We access them in multiple ways:</p>
@@ -1513,15 +1644,23 @@ spherical/degrees/-180.0/180.0/-90.0/90.0/5.0&gt;)
       (q ?member !dc:title ?name))
 </pre>
 <p>This produces the same set of result nodes, but under the right circumstances the matrix would run a lot faster than the generator. </p>
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
 <p>This variation returns Valjean's ego group as a single list:</p>
 <pre class="input">    (select ?group
       (ego-group !lm:character11 1 associates ?group))</pre>
     The result in the Java interaction window is: 
 <pre class="output">Valjean's ego group in one list depth 1 (using associates).<br>Group: &quot;({character27} {character25} {character28} {character23} {character26}<br> {character55} {character11} {character24})&quot;<br>Number of results: 1</pre>
+=======
+<p>This variation returns Valjean's ego group as a single list. We use the member functor to pluck the individual nodes from the list: </p>
+<pre class="input">    (select (?member)<br>          (ego-group !lm:character11 1 associates ?group)<br>          (member ?member ?group))</pre>
+   This is the output: 
+<pre class="output">Valjean's ego group in one list depth 1 (using associates).<br>Group: http://www.franz.com/lesmis#character27<br>Group: http://www.franz.com/lesmis#character25<br>Group: http://www.franz.com/lesmis#character28<br>Group: http://www.franz.com/lesmis#character23<br>Group: http://www.franz.com/lesmis#character26<br>Group: http://www.franz.com/lesmis#character55<br>Group: http://www.franz.com/lesmis#character11<br>Group: http://www.franz.com/lesmis#character24<br>Number of results: 8</pre>
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
  
 <h3 id="SNA Search - Path from A to B">SNA Search - Path from A to B</h3>
 <p>In the following examples, we explore the graph for the shortest path from Valjean to Bossuet, using the three generators to place restrictions on the quality of the path. These are the relevant paths between these two characters:</p>
  <img src="pathsValBos.jpg" width="913" height="254"> 
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
 <p>Our first query asks AllegroGraph to use <strong>intimates</strong> to find the shortest possible path between Valjean and Bossuet that is composed entirely of &quot;knows_well&quot; links. Those would be the green arrows in the diagram above. The <strong>breadth-first-search-paths</strong> function asks for a start node and an end node, a generator, an optional maximum path length, and a variable to bind to the resulting path(s). Valjean is character11, and Bossuet is character64.</p>
 <pre class="input">    (select ?path
       (breadth-first-search-paths !lm:character11 !lm:character64 intimates 10 ?path))</pre>
@@ -1541,6 +1680,23 @@ spherical/degrees/-180.0/180.0/-90.0/90.0/5.0&gt;)
 <pre class="output">Shortest breadth-first path connecting Valjean to Bossuet using everyone.<br>Path: &quot;({character11} {character64})&quot;<br>Number of results: 1</pre>
 <p>This is the &quot;barely-knows&quot; link directly from from Valjean to Bossuet. </p>
 <p>The Prolog select query can also use <strong>depth-first-search-path()</strong> and <strong>bidirectional-search-paths()</strong>. Their syntax is essentially identical to that shown above. These algorithms offer different efficiencies:</p>
+=======
+<p>Our first query asks AllegroGraph to use <strong>intimates</strong> to find the shortest possible path between Valjean and Bossuet that is composed entirely of &quot;knows_well&quot; links. Those would be the green arrows in the diagram above. The <strong>breadth-first-search-path</strong> function asks for a start node and an end node, a generator, an optional maximum path length, and a variable to bind to the resulting path. Valjean is character11, and Bossuet is character64.</p>
+<pre class="input">(select (?node)<br>          (breadth-first-search-path !lm:character11 !lm:character64 intimates 5 ?path)<br>          (member ?node ?path))</pre>
+<p>It is easy to examine the diagram and see that there is no such path. Valjean and Bossuet are not well-acquainted, and do not have any chain of well-acquainted mutual friends. AllegroGraph lets us know that.</p>
+<pre class="output">Shortest breadth-first path connecting Valjean to Bossuet using intimates. (Should be no path.)<br>Number of results: 0</pre>
+<p>This time we'll broaden the criteria. What is the shortest path from Valjean to Bossuet, using <strong>associates</strong>? We can follow either &quot;knows_well&quot; or &quot;knows&quot; links across the graph. Those are the green and the blue links in the diagram. </p>
+<pre class="input">(select (?node)<br>          (breadth-first-search-path !lm:character11 !lm:character64 associates 5 ?path)<br>          (member ?node ?path))</pre>
+<p>This function returns the first successful path, which is guaranteed to be a shortest path. </p>
+<pre class="output">Shortest breadth-first path connecting Valjean to Bossuet using associates. <br>Node on path: http://www.franz.com/lesmis#character11<br>Node on path: http://www.franz.com/lesmis#character55<br>Node on path: http://www.franz.com/lesmis#character62<br>Node on path: http://www.franz.com/lesmis#character64<br>Number of results: 4</pre>
+<p>These is the path &quot;Valjean &gt; Marius &gt; Enjolras &gt; Bossuet.&quot; </p>
+<p>Our third query asks for the shortest path from Valjean to Bossuet using <strong>everyone</strong>, which means that &quot;barely-knows&quot; links are permitted in addition to &quot;knows&quot; and &quot;knows_well&quot; links. </p>
+<pre class="input">(select (?node)<br>          (breadth-first-search-path !lm:character11 !lm:character64 everyone 5 ?path)<br>          (member ?node ?path))</pre>
+<p>This time AllegroGraph returns a two-step path:</p>
+<pre class="output">Shortest breadth-first path connecting Valjean to Bossuet using everyone.<br>Node on Path: http://www.franz.com/lesmis#character11<br>Node on Path: http://www.franz.com/lesmis#character64<br>Number of results: 2</pre>
+<p>This is the &quot;barely-knows&quot; link directly from from Valjean to Bossuet. </p>
+<p>The Prolog select query can also use <strong>depth-first-search-path()</strong> and <strong>bidirectional-search-path()</strong>. Their syntax is essentially identical to that shown above. These algorithms offer different efficiencies:</p>
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
 <ul>
   <li>Breadth-first and bidirectional searches explore all paths by incrementing the search radius until a success is achieved. This guarantees that the returned path(s) will be &quot;shortest&quot; paths. They return one or more paths of equal length. </li>
   <li>Depth-first search tries to bypass the costly expansion of all paths by exploring each path to its end, and aborting the search when it locates a successful path. There is no implication that this path is the &quot;shortest&quot; path through the graph. </li>
@@ -1551,14 +1707,22 @@ spherical/degrees/-180.0/180.0/-90.0/90.0/5.0&gt;)
 <p>For instance, we can use the <strong>nodal-degree</strong> function to ask how many nodal neighbors Valjean has, using <strong>everyone</strong> to catalog all the nodes connected to Valjean by &quot;knows,&quot; &quot;barely_knows&quot;, and &quot;knows_well&quot; predicates. There are quite a few of them:</p>
 <p><img src="allLinksValjean.jpg" width="720" height="341"> </p>
 <p>The nodal-degree function requires the URI of the target node (Valjean is character11), the generator, and a variable to bind the returned value to. </p>
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
 <pre class="input">        println(&quot;\nHow many neighbors are around Valjean? (should be 36).&quot;);<br>        queryString = &quot;(select ?neighbors&quot; +<br>          &quot;(nodal-degree !lm:character11 everyone ?neighbors))&quot;;<br>        tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);<br>        result = tupleQuery.evaluate();<br>        while (result.hasNext()) {<br>            BindingSet bindingSet = result.next();<br>            Value p = bindingSet.getValue(&quot;neighbors&quot;);<br>            println(&quot;Neighbors: &quot; + p );<br>            println(&quot;Neighbors: &quot; + p.stringValue());<br>        }<br>        result.close();</pre>
+=======
+<pre class="input">        println(&quot;\nHow many neighbors are around Valjean? (should be 36).&quot;);<br>        queryString = &quot;(select (?neighbors)&quot; +<br>          &quot;(nodal-degree !lm:character11 everyone ?neighbors))&quot;;<br>        tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);<br>        result = tupleQuery.evaluate();<br>        while (result.hasNext()) {<br>            BindingSet bindingSet = result.next();<br>            Value p = bindingSet.getValue(&quot;neighbors&quot;);<br>            println(&quot;Neighbors: &quot; + p );<br>            println(&quot;Neighbors: &quot; + p.stringValue());<br>        }<br>        result.close();</pre>
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
 
 <p>Note that this function returns a string that describes an integer, which in its raw form is difficult for Java to use. We convert the raw value to a Java integer using the <strong>.stringValue() </strong>method that is available to all literal values in the Java API to AllegroGraph. This example prints out both the string value and the converted number.</p>
 <pre class="output">How many neighbors are around Valjean? (should be 36).
 "36"^^&lt;http://www.w3.org/2001/XMLSchema#integer&gt;
 36</pre>
 <p>If you want to see the names of these neighbors, you can use either the <strong>ego-group-member</strong> function described earlier on this page, or the <strong>nodal-neighbors</strong> function shown below:</p>
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
 <pre class="input">        println(&quot;\nWho are Valjean's neighbors? (using everyone).&quot;);<br>        queryString = &quot;(select ?name&quot; +<br>          &quot;(nodal-neighbors !lm:character11 everyone ?member)&quot; +<br>          &quot;(q ?member !dc:title ?name))&quot;;<br>        tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);<br>        result = tupleQuery.evaluate();<br>        count = 0;<br>        while (result.hasNext()) {<br>            BindingSet bindingSet = result.next();<br>            Value p = bindingSet.getValue(&quot;name&quot;);<br>            count++;<br>            println(count + &quot;. &quot; + p.stringValue());<br>        }<br>        result.close();</pre>
+=======
+<pre class="input">        println(&quot;\nWho are Valjean's neighbors? (using everyone).&quot;);<br>        queryString = &quot;(select (?name)&quot; +<br>          &quot;(nodal-neighbors !lm:character11 everyone ?member)&quot; +<br>          &quot;(q ?member !dc:title ?name))&quot;;<br>        tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);<br>        result = tupleQuery.evaluate();<br>        count = 0;<br>        while (result.hasNext()) {<br>            BindingSet bindingSet = result.next();<br>            Value p = bindingSet.getValue(&quot;name&quot;);<br>            count++;<br>            println(count + &quot;. &quot; + p.stringValue());<br>        }<br>        result.close();</pre>
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
 <p>This example enumerates all immediate neighbors of Valjean and returns their names in a numbered list. There are 36 names in the full list. <pre class="output">Who are Valjean's neighbors? (using everyone).<br>1. Isabeau<br>2. Fantine<br>3. Labarre<br>4. Bossuet<br>5. Brevet ...</pre>
 
 <p>Another descriptive statistic is <strong>graph-density</strong>, which measures the density of connections within a subgraph. </p>
@@ -1566,28 +1730,44 @@ spherical/degrees/-180.0/180.0/-90.0/90.0/5.0&gt;)
 <p><img src="graphDensity.jpg" width="806" height="297"> </p>
 <p>Only 9 of 28 possible links are in place in this subgraph, so the graph density is 0.32. The following query asks AllegroGraph to calculate this figure for Valjean's ego group:</p>
 <pre class="input">
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
     (select ?density
+=======
+    (select (?density)
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
       (ego-group !lm:character11 1 associates ?group)
       (graph-density ?group associates ?density))
 </pre>
 <p>We used the<strong> ego-group</strong> function to return a list of Valjean's ego-group members, bound to the variable <strong>?group</strong>, and then we used ?group to feed that subgraph to the <strong>graph-density</strong> function. The return value, <strong>?density</strong>, came back as a string describing a float, and had to be converted to a Java float using <strong>.toJava()</strong>.</p>
 <pre class="output">Graph density of Valjean's ego group? (using associates).<br>Graph density: 3.2142857e-1</pre>
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
+=======
+<!-- Commented out until the clique function is more graceful in Java. BDC
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
 <h3 id="Cliques">Cliques</h3>
 <p>A &quot;clique&quot; is a subgraph where every node is connected to every other node by predicates specified in some generator. AllegroGraph, using everyone (&quot;knows,&quot; &quot;knows_well,&quot; and &quot;barely_knows&quot;), found that Valjean participates in 239 cliques! </p>
 <p><img src="valjeanBigClique.jpg" width="859" height="301"> </p>
 <p>It is counterintuitive that a &quot;clique&quot; should be composed mainly of people who &quot;barely_know&quot; each other, so let's try the same experiment using &quot;associates,&quot; which restricts the cliques to people Valjean &quot;knows&quot; or &quot;knows_well.&quot; In this case, AllegroGraph returns two cliques. One contains Valjean, Cosette, and Marius. The other contains Valjean and the Thenardiers. </p>
 <p><img src="valjeanSmallCliques.jpg" width="397" height="248"> </p>
 <p>This is the query that finds Valjean's &quot;associates&quot; cliques:</p>
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
 <pre class="input">
     (select ?clique
       (clique !lm:character11 associates ?clique))
 </pre>
+=======
+<pre class="input">select (?member)<br>          (clique !lm:character11 associates ?clique)<br>          (member ?member ?clique))</pre>
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
 
 
 
 <p>AllegroGraph returns two cliques:</p>
 <pre class="output">Valjean's cliques? Should be two (using associates).<br>Clique: &quot;({character11} {character25} {character24})&quot;<br>Clique: &quot;({character11} {character55} {character26})&quot;<br>Number of results: 2</pre>
 <p>The first list is the clique with Marius and Cosette. The second one represents the Thernardier clique. </p>
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
+=======
+-->
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
 <h3 id="Actor Centrality">Actor Centrality </h3>
 <p>AllegroGraph lets us measure the relative importance of a node in a subgraph using the <strong>actor-degree-centrality()</strong> function. For instance, it should be obvious that Valjean is very &quot;central&quot; to his own ego group (depth of one link), because he is linked directly to all other links in the subgraph. In that case he is linked to 7 of 7 possible nodes, and his actor-degree-centrality value is 7/7 = 1. </p>
 <p>However, we can regenerate Valjean's ego group using a depth of 2. This adds three nodes that are not directly connected to Valjean. How &quot;central&quot; is he then?</p>
@@ -1641,6 +1821,7 @@ spherical/degrees/-180.0/180.0/-90.0/90.0/5.0&gt;)
 <p> Group-betweenness-centrality() is measured by first finding the actor whose actor-betweenness-centrality<br>
   is maximized and then summing the difference between this maximum value and the actor-betweenness-centrality of all other actors. This value is then normalized so that it ranges between 0 and 1. </p>
 <p>Valjean's smaller ego group has a group-betweenness-centrality of 0.904. The value for the larger ego group is 0.704. Even by this measure, the larger group is less cohesive. </p>
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
 -->
 
 <p>&nbsp;</p>
@@ -1648,6 +1829,12 @@ spherical/degrees/-180.0/180.0/-90.0/90.0/5.0&gt;)
 <p>Triples are normally loaded one at a time in &quot;auto-commit&quot; mode. Each triple enters the triple store individually. It is possible that a batch of incoming triples, all describing the same resource, might be interrupted for some reason. An interrupted load can leave the triple store in an unknown state. </p>
 <p>In some applications we can't run the risk of having a resource that is incomplete.  To guard against this hazard, AllegroGraph can turn off auto-commit behavior and use &quot;transaction&quot; behavior instead. With auto-commit turned off, we can add triples until we have a complete set, a known state. If anything goes wrong to interrupt the load, we can roll the transaction back and start over. Otherwise, commit the transaction and all the triples enter the store at once. </p>
 <p>In order to use transaction semantics, the user account must have &quot;:session&quot; privileges with AllegroGraph Server. This is an elevated level of privilege. AllegroGraph users are profiled through the </p>
+=======
+<h2 id="Transaction">Transaction (example22())</h2>
+<p>Triples are normally loaded one at a time in &quot;auto-commit&quot; mode. Each triple enters the triple store individually. It is possible that a batch of incoming triples, all describing the same resource, might be interrupted for some reason. An interrupted load can leave the triple store in an unknown state. </p>
+<p>In some applications we can't run the risk of having a resource that is incomplete.  To guard against this hazard, AllegroGraph can turn off auto-commit behavior and use &quot;transaction&quot; behavior instead. With auto-commit turned off, we can add triples until we have a complete set, a known state. If anything goes wrong to interrupt the load, we can roll the transaction back and start over. Otherwise, commit the transaction and all the triples enter the store at once. </p>
+<p>In order to use transaction semantics, the user account must have &quot;start sessions&quot; privileges with AllegroGraph Server. This is an elevated level of privilege. AllegroGraph users are profiled through the <a href="#Creating Users with WebView">WebView interface.</a></p>
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
 <p>In practice, transaction semantics require at least two connections to the triple store, one in auto-commit mode and one in transaction mode. Queries should be run against the auto-commit connection, where the resources are always in a known and complete state. The transaction connection is used for loading and commiting batches of triples. </p>
 <p>&quot;Commit&quot; means to make a batch of newly-loaded triples visible in the auto-commit connection. The two sessions are &quot;synched up&quot; by the commit. Any &quot;new&quot; triples added to either connection will suddenly be visible in both connections after a commit. </p>
 <p>&quot;Rollback&quot; means to discard the recent additions to the transaction connection. This, too, synchs up the two sessions. After a rollback, the transaction connection &quot;sees&quot; exactly the same triples as the auto-commit connection does. </p>
@@ -1699,7 +1886,117 @@ Using getStatements() on conn2 should find Valjean:
 (http://www.franz.com/lesmis#character11, http://purl.org/dc/elements/1.1/title, "Valjean") [null]
 Number of results: 1</pre>
 <p>The Les Miserables triples are visible in both sessions. So too are the Kennedy triples. </p>
+<<<<<<< HEAD:src/tutorial/java-tutorial-40.html
 <p>&nbsp;</p>
 <p><font color="#CCCCCC">February 2, 2010 4.0 m3 release</font></p>
+=======
+<h2 id="Duplicate Triples">Duplicate Triples (example23()) &nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
+<p>Most people find it annoying when a query returns multiple copies of the same information. This can happen in mulitple ways, and there are multiple strategies for reducing or eliminating the problem. There are two broad strategies to pursue:</p>
+<ul>
+  <li>Don't create duplicate triples. It is surprisingly easy to fill the triple store with duplicates if you are not careful to generate clean RDF files.</li>
+  <li>Filter the duplicate results from the output of your queries. SPARQL in particular has features that reduce or eliminate duplicate results. </li>
+</ul>
+<h3>Tighten Up Your Queries</h3>
+<p>Triple patterns sometimes act in unexpected ways, resulting in &quot;too many&quot; matches.</p>
+<p><strong>Example23()</strong> revives the Kennedy family tree. It loads the <strong>java-kennedy.ntriples</strong> file, resulting in 1214 triples.</p>
+<p>This example focuses on the three children of Ted Kennedy (person17). A simple <strong>getStatements() </strong>query shows us that all three are, in fact, present. They are person72, person74, and person76. </p>
+<pre class="output">Using getStatements() find children of Ted Kennedy: three children.<br>(http://www.franz.com/simple#person17, http://www.franz.com/simple#has-child, http://www.franz.com/simple#person72) [null]<br>(http://www.franz.com/simple#person17, http://www.franz.com/simple#has-child, http://www.franz.com/simple#person74) [null]<br>(http://www.franz.com/simple#person17, http://www.franz.com/simple#has-child, http://www.franz.com/simple#person76) [null]<br>Number of results: 3</pre>
+<p>Let's imagine that for some bureaucratic or legal reason we need to retrieve any two of the senator's three children from the triple store. We might begin with a SPARQL query like this one:</p>
+<pre class="input">    SELECT ?o1 ?o2 <br>       WHERE {kdy:person17 kdy:has-child ?o1 .<br>              kdy:person17 kdy:has-child ?o2 .} </pre>
+<p>Since there are only three ways to retrieve a pair from a pool of three, we might be startled to get nine answers:</p>
+<pre class="output">SPARQL matches for two children of Ted Kennedy, inept pattern.<br>&lt;http://www.franz.com/simple#person72&gt; and &lt;http://www.franz.com/simple#person72&gt;<br>&lt;http://www.franz.com/simple#person72&gt; and &lt;http://www.franz.com/simple#person74&gt;<br>&lt;http://www.franz.com/simple#person72&gt; and &lt;http://www.franz.com/simple#person76&gt;<br>&lt;http://www.franz.com/simple#person74&gt; and &lt;http://www.franz.com/simple#person72&gt;<br>&lt;http://www.franz.com/simple#person74&gt; and &lt;http://www.franz.com/simple#person74&gt;<br>&lt;http://www.franz.com/simple#person74&gt; and &lt;http://www.franz.com/simple#person76&gt;<br>&lt;http://www.franz.com/simple#person76&gt; and &lt;http://www.franz.com/simple#person72&gt;<br>&lt;http://www.franz.com/simple#person76&gt; and &lt;http://www.franz.com/simple#person74&gt;<br>&lt;http://www.franz.com/simple#person76&gt; and &lt;http://www.franz.com/simple#person76&gt; </pre>
+<p>Three of these matches involve the same triple matching both patterns, claiming that each person is a sibling of himself. The other six are permutations of the correct answers, in which we first discover that person72 is a sibling of person74, and then subsequently discover that person74 is a sibling of person72. We didn't need to receive that information twice. </p>
+<p>Let's eliminate the useless duplications with a simple trick. Here it is in SPARQL: </p>
+<pre class="input">    SELECT ?o1 ?o2 <br>       WHERE {kdy:person17 kdy:has-child ?o1 .<br>              kdy:person17 kdy:has-child ?o2 .<br>              filter (?o1 &lt; ?o2)} </pre>
+<p>And this is the equivalent query in Prolog. Note that <strong>lispp</strong> is correct, not a typo:</p>
+<pre class="input">    (select (?o1 ?o2)<br>            (q !kdy:person17 !kdy:has-child ?o1)<br>            (q !kdy:person17 !kdy:has-child ?o2) <br>			(lispp (upi&lt; ?o1 ?o2)))</pre>
+<p>The inequality insures that the two object variables cannot be bound to the same value, eliminating the sibling-of-self issue, and also that only one of the persons can be bound to ?o1, which eliminates the duplication issue. Now we have the expected three results:</p>
+<pre class="output">SPARQL matches for two children of Ted Kennedy, better pattern.<br>&lt;http://www.franz.com/simple#person72&gt; and &lt;http://www.franz.com/simple#person74&gt;<br>&lt;http://www.franz.com/simple#person72&gt; and &lt;http://www.franz.com/simple#person76&gt;<br>&lt;http://www.franz.com/simple#person74&gt; and &lt;http://www.franz.com/simple#person76&gt;
+</pre>
+<p>Our task, however, is to pluck &quot;any two&quot; of the children from the triple store and then stop. That's easy in SPARQL:</p>
+<pre class="input">    SELECT ?o1 ?o2 <br>       WHERE {kdy:person17 kdy:has-child ?o1 .<br>              kdy:person17 kdy:has-child ?o2 .<br>              filter (?o1 &lt; ?o2)}<br>              LIMIT 1 </pre>
+<p>This query returns one result that is guaranteed to reference two different children. </p>
+<p>The moral of this example is that triple patterns often return more information than you expected, and need to be rewritten to make them less exuberant. You may be able to reduce the incidence of duplicate results simply by writing better queries. </p>
+<h3>Tighten Up Your RDF</h3>
+<p>The Resource Description Framework (RDF) has many fine qualities, but there are also a few RDF features that create headaches for users. One of these is the ability to encode resources as &quot;blank nodes.&quot; This is a convenience to the person who is generating the data, but it often creates problems for the data consumer.</p>
+<p>Here's a simple example. These two RDF resource descriptions represent two books by the same author. The author is described using a &quot;blank node&quot; within the book resource description:</p>
+<pre class="input">  &lt;rdf:Description rdf:about=&quot;http://www.franz.com/tutorial#book1&quot;&gt;<br>    &lt;dc:title&gt;The Call of the Wild&lt;/dc:title&gt;<br>    <strong>&lt;dc:creator&gt;<br>	   &lt;foaf:Person foaf:name=&quot;Jack London&quot;/&gt; <br>    &lt;/dc:creator&gt;</strong><br>  &lt;/rdf:Description&gt;<br>  <br>  &lt;rdf:Description rdf:about=&quot;http://www.franz.com/tutorial#book2&quot;&gt;<br>    &lt;dc:title&gt;White Fang&lt;/dc:title&gt;<br>    <strong>&lt;dc:creator&gt;<br>	   &lt;foaf:Person foaf:name=&quot;Jack London&quot;/&gt; <br>    &lt;/dc:creator&gt;</strong><br>  &lt;/rdf:Description&gt; </pre>
+<p>This is a common RDF format used by programs that transcribe databases into RDF. In this format, there is no resource URI designated for the author resource. Therefore, the RDF parser will generate a URI to use as the subject value of the new resource. The problem is that it generates a new URI each time it encounters an embedded resource. We wind up with eight triples and two different &quot;Jack London&quot; resources:</p>
+<pre class="output">Two books, with one author as blank node in each book.<br>(http://www.franz.com/tutorial#book1, http://purl.org/dc/elements/1.1/creator, _:189) [null]<br>(http://www.franz.com/tutorial#book1, http://purl.org/dc/elements/1.1/title, &quot;The Call of the Wild&quot;) [null]
+
+(http://www.franz.com/tutorial#book2, http://purl.org/dc/elements/1.1/creator, _:190) [null]<br>(http://www.franz.com/tutorial#book2, http://purl.org/dc/elements/1.1/title, &quot;White Fang&quot;) [null]<br>
+(_:190, http://xmlns.com/foaf/0.1/name, &quot;Jack London&quot;) [null]<br>(_:190, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://xmlns.com/foaf/0.1/Person) [null]<br>
+(_:189, http://xmlns.com/foaf/0.1/name, &quot;Jack London&quot;) [null]<br>(_:189, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://xmlns.com/foaf/0.1/Person) [null]<br><br>Number of results: 8</pre>
+<p>You can see the two books, each with a title and a creator. Then there are two &quot;anonymous&quot; resources with generated subject URIs, both of which represent the same author. This is very undesirable. </p>
+<p>Duplicate <em>resources</em> are difficult to remove or fix. They have different subject values, which mean their triples are technically not duplicates of each other. The author resources are directly linked to book resources, one-to-one, meaning that you can't just delete the extra authors. That would leave book resources linked to authors that don't exist anymore. </p>
+<p>Clearly we don't want to be in this situation. We have to back out and generate the RDF a different way. </p>
+<p>We might decide to fix this problem by rewriting the resource descriptions. This time we'll be sure that the formerly anonymous nodes are set up with URIs. This way we'll get only one author resource. This format is what RDF calls &quot;striped syntax.&quot;</p>
+<pre class="input">  &lt;rdf:Description rdf:about=&quot;http://www.franz.com/tutorial#book1&quot;&gt;<br>    &lt;dc:title&gt;The Call of the Wild&lt;/dc:title&gt;<br>    &lt;dc:creator&gt;<br>	   <strong>&lt;foaf:Person rdf:about=&quot;#Jack&quot;&gt;<br>	      &lt;foaf:name&gt;Jack London&lt;/foaf:name&gt; <br>	   &lt;/foaf:Person&gt;</strong><br>	&lt;/dc:creator&gt;<br>  &lt;/rdf:Description&gt;<br>  <br>  &lt;rdf:Description rdf:about=&quot;http://www.franz.com/tutorial#book2&quot;&gt;<br>    &lt;dc:title&gt;White Fang&lt;/dc:title&gt;<br>    &lt;dc:creator&gt;<br>	   <strong>&lt;foaf:Person rdf:about=&quot;#Jack&quot;&gt;<br>	      &lt;foaf:name&gt;Jack London&lt;/foaf:name&gt; <br>	   &lt;/foaf:Person&gt;</strong><br>	&lt;/dc:creator&gt;<br>  &lt;/rdf:Description&gt;</pre>
+<p>Even though we have embedded two resource descriptions, we gave them both the same URI (&quot;#Jack&quot;). Did this solve the problem? We now have only one &quot;Jack London&quot; resource, but we still have eight triples! </p>
+<pre class="output">Two books, with one author identified by URI but in striped syntax in each book.<br>(http://www.franz.com/tutorial#book1, http://purl.org/dc/elements/1.1/creator, http://example.org#Jack) [null]<br>(http://www.franz.com/tutorial#book1, http://purl.org/dc/elements/1.1/title, &quot;The Call of the Wild&quot;) [null]<br>
+(http://www.franz.com/tutorial#book2, http://purl.org/dc/elements/1.1/creator, http://example.org#Jack) [null]<br>(http://www.franz.com/tutorial#book2, http://purl.org/dc/elements/1.1/title, &quot;White Fang&quot;) [null]<br>
+(http://example.org#Jack, http://xmlns.com/foaf/0.1/name, &quot;Jack London&quot;) [null]<br>(http://example.org#Jack, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://xmlns.com/foaf/0.1/Person) [null]<br>
+(http://example.org#Jack, http://xmlns.com/foaf/0.1/name, &quot;Jack London&quot;) [null]<br>(http://example.org#Jack, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://xmlns.com/foaf/0.1/Person) [null]<br>Number of results: 8</pre>
+<p>We have only one &quot;Jack London&quot; author resource, which means we will have a more useful graph than before, but <em>every triple in that resource is duplicated</em>. If we had cataloged fifty books by Jack London, there would be fifty copies of each of these triples. The &quot;striped syntax&quot; generates floods of duplicate triples. </p>
+<p>It is much better to avoid blank nodes and striped syntax altogether. Here are the same two books, using a separate author resource that is linked to the books by a URI:</p>
+<pre class="input">  &lt;rdf:Description rdf:about=&quot;http://www.franz.com/tutorial#book5&quot;&gt;<br>    &lt;dc:title&gt;The Call of the Wild&lt;/dc:title&gt;<br>    <strong>&lt;dc:creator rdf:resource=&quot;http://www.franz.com/tutorial#author1&quot;/&gt;</strong><br>  &lt;/rdf:Description&gt;<br>  <br>  &lt;rdf:Description rdf:about=&quot;http://www.franz.com/tutorial#book6&quot;&gt;<br>    &lt;dc:title&gt;White Fang&lt;/dc:title&gt;<br>    <strong>&lt;dc:creator rdf:resource=&quot;http://www.franz.com/tutorial#author1&quot;/&gt;</strong><br>  &lt;/rdf:Description&gt;<br>  <br>  &lt;rdf:Description <strong>rdf:about=&quot;http://www.franz.com/tutorial#author1&quot;</strong>&gt;<br>    &lt;dc:title&gt;Jack London&lt;/dc:title&gt;<br>  &lt;/rdf:Description&gt; </pre>
+<p>This is arguably the &quot;best&quot; syntax to follow because one author resource is directly connected to all of that author's books. The graph is rich in nodes and connections, while avoiding duplicate triples. This example creates six triples, none of which are duplicates:</p>
+<pre class="output">Two books, with one author linked by a URI.<br>(http://www.franz.com/tutorial#book5, http://purl.org/dc/elements/1.1/creator, http://www.franz.com/tutorial#author1) [null]<br>(http://www.franz.com/tutorial#book5, http://purl.org/dc/elements/1.1/title, &quot;The Call of the Wild&quot;) [null]<br>
+(http://www.franz.com/tutorial#book6, http://purl.org/dc/elements/1.1/creator, http://www.franz.com/tutorial#author1) [null]<br>(http://www.franz.com/tutorial#book6, http://purl.org/dc/elements/1.1/title, &quot;White Fang&quot;) [null]<br>
+(http://www.franz.com/tutorial#author1, http://purl.org/dc/elements/1.1/title, &quot;Jack London&quot;) [null]<br>(http://www.franz.com/tutorial#author1, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://xmlns.com/foaf/0.1/Person) [null]<br>Number of results: 6</pre>
+<p>There is only one way to simplify the example from here. Perhaps you really don't need author resources at all. It could be sufficient to know the name of a book's author and never reify the author as a node in the graph. In that case, you can pare down the resource descriptions by including the author name as a literal string:</p>
+<pre  class="input">  &lt;rdf:Description rdf:about=&quot;http://www.franz.com/tutorial#book3&quot;&gt;<br>    &lt;dc:title&gt;The Call of the Wild&lt;/dc:title&gt;<br>    <strong>&lt;dc:creator&gt;Jack London&lt;/dc:creator&gt;</strong><br>  &lt;/rdf:Description&gt;<br>  <br>  &lt;rdf:Description rdf:about=&quot;http://www.franz.com/tutorial#book4&quot;&gt;<br>    &lt;dc:title&gt;White Fang&lt;/dc:title&gt;<br>    <strong>&lt;dc:creator&gt;Jack London&lt;/dc:creator&gt;</strong><br>  &lt;/rdf:Description&gt;   
+</pre>
+<p>This example generates only four triples, none of which are duplicates. We have two books, and no author resource. </p>
+<pre class="output" >Two books, with one author as a literal value.<br>(http://www.franz.com/tutorial#book3, http://purl.org/dc/elements/1.1/creator, &quot;Jack London&quot;) [null]<br>(http://www.franz.com/tutorial#book3, http://purl.org/dc/elements/1.1/title, &quot;The Call of the Wild&quot;) [null]
+
+(http://www.franz.com/tutorial#book4, http://purl.org/dc/elements/1.1/creator, &quot;Jack London&quot;&quot;) [null]<br>(http://www.franz.com/tutorial#book4, http://purl.org/dc/elements/1.1/title, &quot;White Fang&quot;) [null]<br><br>Number of results: 4</pre>
+<p>The lesson here is to keep the representation simple. The fewer resources there are, the faster everything will work. </p>
+<h3>Don't Create Duplicate Triples</h3>
+<p>Now we'll consider the situation where we have multiple copies of the same information in the triple store. This is the classic &quot;duplicate triples&quot; situation. </p>
+<p>True duplicate triples do not occur by accident. They occur only when you have loaded the same information into the triple store more than once. </p>
+<p>This is easy to demonstrate. Let's load the Kennedy graph into an empty triple store:</p>
+<pre class="output">
+After loading, there are 1214 kennedy triples.</pre>
+<p>Then just load the same file again:</p>
+<pre class="output">
+After loading, there are 2428 kennedy triples.</pre>
+<p>Now there are two copies of every Kennedy triple. If you add the same triple multiple times, you will get multiple copies of it. </p>
+<h3></h3>
+<h3>Filter Out Duplicate Results </h3>
+<p>In practice, our advice &quot;don't create duplicate triples&quot; may be difficult to follow. Some data feeds contain duplicated information and there is no convenient or efficient way to filter it out. So now you have duplicated data in the system. How much trouble might that cause?</p>
+<p>This simple query should return three matches, one for each of Ted Kennedy's three children: </p>
+<pre class="input">    SELECT ?o WHERE {kdy:person17 kdy:has-child ?o}</pre>
+<p>However, because each of the expected triples has a duplicate, we get six answers instead of three: </p>
+<pre class="output">SPARQL matches for children of Ted Kennedy.<br>http://www.franz.com/simple#person72<br>http://www.franz.com/simple#person72<br>http://www.franz.com/simple#person74<br>http://www.franz.com/simple#person74<br>http://www.franz.com/simple#person76<br>http://www.franz.com/simple#person76</pre>
+<p>That's a nuisance, but SPARQL provides an easy way to wipe out the duplicate answers: </p>
+<pre class="input">    SELECT DISTINCT ?o WHERE {kdy:person17 kdy:has-child ?o}</pre>
+<p>The DISTINCT operator does not remove duplicate triples, but it detects and eliminates duplicate variable bindings in the query's output. The duplicate triples are still there in the triple store, but we don't see them in the output:</p>
+<pre class="output">SPARQL DISTINCT matches for children of Ted Kennedy.<br>http://www.franz.com/simple#person72<br>http://www.franz.com/simple#person74<br>http://www.franz.com/simple#person76</pre>
+<p>DISTINCT works by sorting the bindings by each of the bound variables in the result. This forces duplicate results to be adjacent to each other in the result list. Then it runs over the list and eliminates bindings that are the same as the previous binding. As you can imagine, there are situations where forcing an exhaustive sort on a large binding set might use up a lot of time. </p>
+<p>For this reason, SPARQL also offers a REDUCED operator:</p>
+<pre class="input">    SELECT REDUCED ?o WHERE {kdy:person17 kdy:has-child ?o} ORDER BY ?o</pre>
+<p>REDUCED performs the same sweep for duplicates that DISTINCT performs, but it lets you control the sorting. In this example the values of the subject and predicate are fixed, so sorting by the object value is sufficient to force all duplicate bindings to be adjacent to each other. REDUCED is often much faster than DISTINCT.</p>
+<h3>Filtering Duplicate Triples while Loading </h3>
+<p>AllegroGraph could check each incoming triple to see if that information is already present in the triple store, but this process would be very time-consuming, slowing down our extremely-fast <a href="http://www.franz.com/agraph/allegrograph/">load times</a> by orders of magnitude. Loading speed is important to almost everyone, so AllegroGraph does not filter duplicates during the load. </p>
+<p>If loading speed isn't critical in your application, you can add triples one at a time while checking for duplicates as shown here:</p>
+<pre class="input">        if (conn.getStatements(newParent, hasChild, newChild, false).hasNext()) {<br>        	println(&quot;Did not add new triple.&quot;);<br>        } else {<br>        	conn.add(newParent, hasChild, newChild);<br>        	println(&quot;Added new statement.&quot;);<br>        }   </pre>
+<p>If <strong>getStatements()</strong> return any value, then the new triple is already present in the store. If not, then we can add it to the store knowing that it will be unique. </p>
+<p>When you run this example twice it adds a triple the first time, but not the second time:</p>
+<pre class="output">Test before adding triple, first trial: 
+Added new triple.  
+
+
+Test before adding triple, second trial: 
+Did not add new triple.</pre>
+<h3>Duplicates in Federated Stores</h3>
+<p>A <a href="#Federated Repositories">federated store</a> is a single connection to multiple AllegroGraph repositories, possibly on multiple servers at multiple sites. Such systems can have duplicate triples, but deleting them is unwise.</p>
+<p>Presumably any existing repository has a purpose of its own, and has been federated with other respositories to serve some combined purpose. It would be a mistake to delete triples from one repository simply because they also occur elsewhere in the federated store. This could damage the integrity of the individual repositories when they are used in stand-alone mode. By similar reasoning, it is a mistake to add triples to a federated repository. Which repository gets the new triples? </p>
+<p>For all of these reasons, federated stores are &quot;read only&quot; in AllegroGraph. Attempting to add or delete triples in a federated system result in error messages. </p>
+<p>Federation changes the semantics of &quot;duplicate triples.&quot; Be sure to take this into account in your project design. </p>
+
+
+<p><font color="#CCCCCC">June 8, 2010 4.0.4 release</font></p>
+>>>>>>> origin/v4.0.5:src/tutorial/java-tutorial-40.html
 </body>
 </html>

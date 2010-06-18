@@ -1,5 +1,5 @@
 /******************************************************************************
-** Copyright (c) 2008-2009 Franz Inc.
+** Copyright (c) 2008-2010 Franz Inc.
 ** All rights reserved. This program and the accompanying materials
 ** are made available under the terms of the Eclipse Public License v1.0
 ** which accompanies this distribution, and is available at
@@ -67,6 +67,7 @@ public class JenaTutorialExamples {
 		println("Available repositories in catalog "
 				+ (catalog.getCatalogName()) + ": "
 				+ catalog.listRepositories());
+		closeAll();
 		catalog.deleteRepository(REPOSITORY_ID);
 		AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);
 		println("Got a repository.");
@@ -320,9 +321,9 @@ public class JenaTutorialExamples {
 		model_vcards.read(new FileInputStream(path1), baseURI);
 		model.read(new FileInputStream(path2), baseURI, "N-TRIPLE");
 		println("After loading, model_vcards contains " + model_vcards.size()
-				+ " triples in graph '" + model_vcards.getGraph() 
+				+ " triples in graph '" + model_vcards.getGraph().getName() 
 				+ "'\n    and model contains " + model.size() 
-				+ " triples in graph '" + model.getGraph() + "'.");
+				+ " triples in graph '" + model.getGraph().getName() + "'.");
 		return maker;
 	}
 
@@ -334,16 +335,18 @@ public class JenaTutorialExamples {
 		AGModel model = new AGModel(maker.getGraph());
 		AGModel model_vcards = new AGModel(maker.openGraph("http://example.org#vcards"));
 		println("\nMatch all and print subjects and graph (model)");
+		String graphName = model.getGraph().getName();
 		StmtIterator statements = model.listStatements();
 		for (int i = 0; i < 25 && statements.hasNext(); i++) {
 			Statement stmt = statements.next();
-			println(stmt.getSubject() + "  " + stmt.getModel().getGraph());
+			println(stmt.getSubject() + "  " + graphName);
 		}
 		println("\nMatch all and print subjects and graph (model_vcards)");
+		String vcardsName = model_vcards.getGraph().getName();
 		statements = model_vcards.listStatements();
 		for (int i = 0; i < 25 && statements.hasNext(); i++) {
 			Statement stmt = statements.next();
-			println(stmt.getSubject() + "  " + stmt.getModel().getGraph());
+			println(stmt.getSubject() + "  " + vcardsName);
 		}
 		statements.close();
 		
@@ -607,7 +610,7 @@ public class JenaTutorialExamples {
 		// We'll create two new rdf:type classes. Note that classes are
 		// capitalized.
 		Resource parent = model.createResource("http://example.org/ontology/Parent");
-		Resource child = model.createResource("http://exmaple.org/ontology/Child");
+		Resource child = model.createResource("http://example.org/ontology/Child");
 		// The following triples say that a fatherOf link points from a parent
 		// to a child.
 		model.add(fatherOf, RDFS.domain, parent);
@@ -684,7 +687,6 @@ public class JenaTutorialExamples {
 					throw new IllegalArgumentException("There is no example "
 							+ choice);
 				}
-				closeAll();
 			}
 		} finally {
 			closeAll();

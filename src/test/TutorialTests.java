@@ -55,6 +55,7 @@ import org.openrdf.rio.rdfxml.RDFXMLWriter;
 
 import com.franz.agraph.repository.AGQueryLanguage;
 import com.franz.agraph.repository.AGRepository;
+import com.franz.agraph.repository.AGAbstractRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
 import com.franz.agraph.repository.AGValueFactory;
@@ -128,7 +129,6 @@ public class TutorialTests extends AGAbstractTest {
         assertSetsEqual(mapKeep(new String[] {"an", "at"}, inputs).values(), stmts);
     }
 
-    @Category(TestSuites.Broken.class)
     @Test
     public void example5() throws Exception {
         example2setup();
@@ -375,7 +375,7 @@ public class TutorialTests extends AGAbstractTest {
 	    ValueFactory f = conn.getValueFactory();
 	    String exns = "http://example.org/people/";
         conn.setNamespace("ex", exns);
-	    conn.registerFreetextPredicate(f.createURI(exns,"fullname"));
+		conn.createFreetextIndex("fti", new URI[]{f.createURI(exns,"fullname")});
 	    URI alice = f.createURI(exns, "alice1");
 	    URI person = f.createURI(exns, "Person");
 	    URI fullname = f.createURI(exns, "fullname");    
@@ -472,6 +472,7 @@ public class TutorialTests extends AGAbstractTest {
     public void example14() throws Exception {
         Map<String, Stmt> inputs = example2setup();
         ValueFactory f = conn.getValueFactory();
+        conn.setAutoCommit(false);
         URI alice = f.createURI("http://example.org/people/alice");
         URI bob = f.createURI("http://example.org/people/bob");
         String queryString = "select ?s ?p ?o where { ?s ?p ?o} ";
@@ -546,8 +547,8 @@ public class TutorialTests extends AGAbstractTest {
         AGRepositoryConnection greenConn = getConnection(greenRepo);
         greenConn.clear();
         ValueFactory gf = greenConn.getValueFactory();
-        AGServer server = repo.getCatalog().getServer();
-        AGRepository rainbowRepo = server.createFederation("rainbowthingsjv", redRepo, greenRepo);
+        AGServer server = cat.getServer();
+        AGAbstractRepository rainbowRepo = server.federate(redRepo, greenRepo);
         closeLater(rainbowRepo);
         rainbowRepo.initialize();
         assertFalse("Federation is writable?", rainbowRepo.isWritable());

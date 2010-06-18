@@ -1,5 +1,5 @@
 /******************************************************************************
-** Copyright (c) 2008-2009 Franz Inc.
+** Copyright (c) 2008-2010 Franz Inc.
 ** All rights reserved. This program and the accompanying materials
 ** are made available under the terms of the Eclipse Public License v1.0
 ** which accompanies this distribution, and is available at
@@ -9,17 +9,26 @@
 package com.franz.agraph.jena;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
+import org.apache.xerces.util.XMLChar;
 import org.openrdf.model.Namespace;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
 
+import com.hp.hpl.jena.rdf.model.impl.Util;
 import com.hp.hpl.jena.shared.PrefixMapping;
 
+/**
+ * Implements the Jena PrefixMapping interface for AllegroGraph.
+ * 
+ */
 public class AGPrefixMapping implements PrefixMapping {
 
 	AGGraph graph;
+    protected boolean locked;
 	
 	public AGPrefixMapping(AGGraph graph) {
 		this.graph = graph;
@@ -31,7 +40,13 @@ public class AGPrefixMapping implements PrefixMapping {
 
 	@Override
 	public String expandPrefix(String prefixed) {
-		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+        int colon = prefixed.indexOf( ':' );
+        if (colon < 0) {
+            return prefixed;
+        } else {
+            String uri = getNsPrefixURI( prefixed.substring( 0, colon ) );
+            return uri == null ? prefixed : uri + prefixed.substring( colon + 1 );
+        }
 	}
 
 	@Override
@@ -53,7 +68,9 @@ public class AGPrefixMapping implements PrefixMapping {
 	public String getNsPrefixURI(String prefix) {
 		String uri = null;
 		try {
-			uri = getGraph().getConnection().getNamespace(prefix);
+			if (prefix!=null) {
+				uri = getGraph().getConnection().getNamespace(prefix);
+			}
 		} catch (RepositoryException e) {
 			throw new RuntimeException(e);
 		}
@@ -80,26 +97,46 @@ public class AGPrefixMapping implements PrefixMapping {
 
 	@Override
 	public PrefixMapping lock() {
-		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+        locked = true; 
+        return this;
 	}
 
 	@Override
 	public String qnameFor(String uri) {
-		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+        int split = Util.splitNamespace( uri );
+        String ns = uri.substring( 0, split ), local = uri.substring( split );
+        if (local.equals( "" )) return null;
+        String prefix = getNsURIPrefix(ns);
+        return prefix == null ? null : prefix + ":" + local;
 	}
 
 	@Override
 	public PrefixMapping removeNsPrefix(String prefix) {
-		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+        checkUnlocked();
+		try {
+			getGraph().getConnection().removeNamespace(prefix);
+		} catch (RepositoryException e) {
+			throw new RuntimeException(e);
+		}
+		return this;
 	}
 
 	@Override
 	public boolean samePrefixMappingAs(PrefixMapping other) {
-		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+		return getNsPrefixMap().equals(other.getNsPrefixMap());
 	}
 
 	@Override
 	public PrefixMapping setNsPrefix(String prefix, String uri) {
+        checkUnlocked();
+		// TODO support an empty prefix for the default namespace 
+        if (prefix.length() > 0 && !XMLChar.isValidNCName( prefix ))
+        	// required by AbstractTestPrefixMapping#testCheckNames()
+            throw new PrefixMapping.IllegalPrefixException( prefix ); 
+		if (uri==null)
+			// required by AbstractTestPrefixMapping#testNullURITrapped()
+			// TODO: why not an IllegalArgumentException?
+			throw new NullPointerException("null URIs are prohibited as arguments to setNsPrefix");
 		try {
 			getGraph().getConnection().setNamespace(prefix, uri);
 		} catch (RepositoryException e) {
@@ -108,25 +145,72 @@ public class AGPrefixMapping implements PrefixMapping {
 		return this;
 	}
 
-	@Override
+    protected void checkUnlocked()
+    { if (locked) throw new PrefixMapping.JenaLockedException( this ); }
+
+    @Override
 	public PrefixMapping setNsPrefixes(PrefixMapping other) {
-		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+		return setNsPrefixes(other.getNsPrefixMap());
 	}
 
 	@Override
 	public PrefixMapping setNsPrefixes(Map<String, String> map) {
-		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+		checkUnlocked();
+		// TODO do this in a single http request when that is available
+		for (String key: map.keySet()) {
+			setNsPrefix(key, map.get(key));
+		}
+		return this;
 	}
 
 	@Override
 	public String shortForm(String uri) {
-		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+		// TODO speed this up
+		Map<String,String> map = getNsPrefixMap();
+		for (Entry<String, String> s: map.entrySet()) {
+			if (uri.startsWith(s.getValue())) {
+				return s.getKey() + ":" + uri.substring(s.getValue().length());
+			}
+		}
+		return uri;
 	}
 
 	@Override
 	public PrefixMapping withDefaultMappings(PrefixMapping map) {
-		return null;
-		//throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+		Map<String,String> thisMap = getNsPrefixMap();
+		Map<String,String> otherMap = map.getNsPrefixMap();
+		for (String key: otherMap.keySet()) {
+			String value = otherMap.get(key);
+			if (!thisMap.containsKey(key)&&!thisMap.containsValue(value)) {
+				setNsPrefix(key,value);
+			}
+		}
+		return this;
 	}
+
+	public String toString() {
+		return toString(20);
+	}
+	
+	public String toString(int max)
+	   {
+		Map<String,String> map = getNsPrefixMap();
+		int size = map.size();
+		int count = 0; 
+		Iterator<String> it = map.keySet().iterator();
+		StringBuffer b = new StringBuffer(this.getClass().getSimpleName()+"(size: " + size + "){" );
+		String gap = "";
+		for (; it.hasNext() && count < max; count++) {
+			b.append( gap );
+			gap = ", ";
+			String key = it.next();
+			b.append( key + "=" + map.get(key));
+		    }
+		if (count==max && it.hasNext()) {
+			b.append(",...");
+		}
+		b.append( "}" );
+		return b.toString();
+	  }
 
 }

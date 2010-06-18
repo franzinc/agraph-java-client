@@ -1,5 +1,5 @@
 /******************************************************************************
-** Copyright (c) 2008-2009 Franz Inc.
+** Copyright (c) 2008-2010 Franz Inc.
 ** All rights reserved. This program and the accompanying materials
 ** are made available under the terms of the Eclipse Public License v1.0
 ** which accompanies this distribution, and is available at
@@ -19,6 +19,10 @@ import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.sparql.engine.binding.Binding;
 
+/**
+ * Implements the Jena ResultSet interface for AllegroGraph.
+ * 
+ */
 public class AGResultSet implements ResultSet {
 
 	private final TupleQueryResult result;
@@ -31,12 +35,12 @@ public class AGResultSet implements ResultSet {
 
 	@Override
 	public Model getResourceModel() {
-		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+		return model;
 	}
 
 	@Override
 	public List<String> getResultVars() {
-		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+		return result.getBindingNames();
 	}
 
 	@Override
@@ -78,8 +82,11 @@ public class AGResultSet implements ResultSet {
 
 	@Override
 	public void remove() {
-		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
-
+		try {
+			result.remove();
+		} catch (QueryEvaluationException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 }

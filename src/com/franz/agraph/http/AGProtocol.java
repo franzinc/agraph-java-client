@@ -13,6 +13,9 @@ package com.franz.agraph.http;
 
 import org.openrdf.http.protocol.Protocol;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+
 /**
  *
  */
@@ -69,6 +72,11 @@ public class AGProtocol extends Protocol {
 	public static final String AUTOCOMMIT_PARAM_NAME = "autoCommit";
 	
 	/**
+	 * Parameter name for the 'override' parameter for put on a repository.
+	 */
+	public static final String OVERRIDE_PARAM_NAME = "override";
+
+	/**
 	 * Relative location of session close.
 	 */
 	public static final String CLOSE = "close";
@@ -77,6 +85,11 @@ public class AGProtocol extends Protocol {
 	 * Relative location of the session ping service.
 	 */
 	public static final String PING = "ping";
+	
+	/**
+	 * Relative location of the session prepared queries service.
+	 */
+	public static final String QUERIES = "queries";
 	
 	/**
 	 * Relative location of the blank nodes service.
@@ -136,7 +149,7 @@ public class AGProtocol extends Protocol {
 	/**
 	 * Relative location of the freetext predicates service.
 	 */
-	public static final String FTI_PREDICATES = "predicates";
+	public static final String FTI_INDICES = "indices";
 	
 	/**
 	 * Parameter name for the 'predicate' parameter for freetext.
@@ -169,11 +182,6 @@ public class AGProtocol extends Protocol {
 	public static final String MAPPING_PREDICATE = "predicate";
 	
 	/**
-	 * Relative location of the federated service.
-	 */
-	public static final String FEDERATED = "federated";
-	
-	/**
 	 * Parameter name for the 'url' parameter for federation.
 	 */
 	public static final String URL_PARAM_NAME = "url";
@@ -188,6 +196,11 @@ public class AGProtocol extends Protocol {
 	 */
 	public static final String PLANNER_PARAM_NAME = "planner";
 		
+	/**
+	 * Parameter name for the name to 'save' a prepared query
+	 */
+	public static final String SAVE_PARAM_NAME = "save";
+	
 	/**
 	 * Relative location of the Geo service.
 	 */
@@ -396,13 +409,6 @@ public class AGProtocol extends Protocol {
 	}
 	
 	/**
-	 * Location of the federated pseudo-catalog service
-	 */
-	public static final String getFederatedCatalogURL(String serverURL) {
-		return serverURL + "/" + FEDERATED;
-	}
-	
-	/**
 	 * Location of the named catalogs service
 	 */
 	public static final String getNamedCatalogsURL(String serverURL) {
@@ -413,7 +419,7 @@ public class AGProtocol extends Protocol {
 	 * Location of a named catalog
 	 */
 	public static final String getNamedCatalogLocation(String serverURL, String catalogName) {
-		return getNamedCatalogsURL(serverURL) + "/" + catalogName;
+		return getNamedCatalogsURL(serverURL) + "/" + encode(catalogName);
 	}
 	
 	/**
@@ -439,6 +445,14 @@ public class AGProtocol extends Protocol {
 		return getSessionURL(sessionRoot) + "/" + PING;
 	}
 
+	public static final String getQueriesLocation(String sessionRoot) {
+		return sessionRoot + "/" + QUERIES;
+	}
+	
+	public static final String getSavedQueryLocation(String sessionRoot, String queryName) {
+		return getQueriesLocation(sessionRoot) + "/" + encode(queryName);
+	}
+	
 	public static final String getAutoCommitLocation(String sessionRoot) {
 		return getSessionURL(sessionRoot) + "/" + AUTOCOMMIT;
 	}
@@ -451,8 +465,12 @@ public class AGProtocol extends Protocol {
 		return sessionRoot + "/" + FREETEXT;
 	}
 
-	public static String getFreetextPredicatesLocation(String sessionRoot) {
-		return getFreetextLocation(sessionRoot) + "/" + FTI_PREDICATES;
+	public static String getFreetextIndexLocation(String sessionRoot) {
+		return getFreetextLocation(sessionRoot) + "/" + FTI_INDICES;
+	}
+
+	public static String getFreetextIndexLocation(String sessionRoot, String name) {
+		return getFreetextLocation(sessionRoot) + "/" + FTI_INDICES + "/" + encode(name);
 	}
 
 	public static String getMappingLocation(String sessionRoot) {
@@ -467,14 +485,6 @@ public class AGProtocol extends Protocol {
 		return getMappingLocation(sessionRoot) + "/" + MAPPING_PREDICATE;
 	}
 	
-	public static String getFederatedLocation(String serverRoot) {
-		return serverRoot + "/" + FEDERATED;
-	}
-	
-	public static String getFederationLocation(String serverRoot, String federationName) {
-		return getFederatedLocation(serverRoot) + "/" + federationName;
-	}
-
 	public static String getFunctorLocation(String serverRoot) {
 		return serverRoot + "/" + FUNCTOR;
 	}
@@ -485,10 +495,6 @@ public class AGProtocol extends Protocol {
 
 	public static String getRootCatalogRepositoriesLocation(String catalogURL) {
 		return catalogURL + "/" + REPOSITORIES;
-	}
-
-	public static String getFederatedRepositoriesLocation(String catalogURL) {
-		return catalogURL;
 	}
 
 	public static String getEvalLocation(String sessionRoot) {
@@ -533,7 +539,7 @@ public class AGProtocol extends Protocol {
 
 	public static String getSNAGeneratorLocation(String sessionRoot,
 			String generator) {
-		return getSNAGeneratorsLocation(sessionRoot) + "/" + generator;
+		return getSNAGeneratorsLocation(sessionRoot) + "/" + encode(generator);
 	}
 
 	public static String getSNANeighborMatricesLocation(String sessionRoot) {
@@ -542,8 +548,14 @@ public class AGProtocol extends Protocol {
 
 	public static String getSNANeighborMatrixLocation(String sessionRoot,
 			String matrix) {
-		// TODO Auto-generated method stub
-		return getSNANeighborMatricesLocation(sessionRoot) + "/" + matrix;
+		return getSNANeighborMatricesLocation(sessionRoot) + "/" + encode(matrix);
 	}
 	
+	public static String encode(String s) {
+		try {
+			return URLEncoder.encode(s,"UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			throw new RuntimeException("This JVM does not support UTF-8?");
+		}
+	}
 }

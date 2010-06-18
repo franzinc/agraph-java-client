@@ -21,6 +21,10 @@ import com.hp.hpl.jena.reasoner.Derivation;
 import com.hp.hpl.jena.reasoner.Reasoner;
 import com.hp.hpl.jena.reasoner.ValidityReport;
 
+/**
+ * Implements the Jena InfModel interface for AllegroGraph.
+ * 
+ */
 public class AGInfModel extends AGModel implements InfModel {
 	
 	private final AGReasoner reasoner;

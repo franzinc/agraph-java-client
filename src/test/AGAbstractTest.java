@@ -36,6 +36,7 @@ import org.openrdf.repository.RepositoryResult;
 
 import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGRepository;
+import com.franz.agraph.repository.AGAbstractRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
 import com.franz.agraph.repository.AGValueFactory;
@@ -72,13 +73,13 @@ public class AGAbstractTest {
 		
 		if ((host == null || host.equals("localhost")) && port == null) {
 			File portFile = new File("../agraph/lisp/agraph.port");
-			System.out.println("Reading agraph.port: " + portFile.getAbsolutePath());
 			try {
+				host = "localhost";
 				if (portFile.exists()) {
+					System.out.println("Reading agraph.port: " + portFile.getAbsolutePath());
 					port = readLines(portFile).get(0);
-					host = "localhost";
 				} else {
-					throw new RuntimeException("PortFile not found.");
+					port = "10035";
 				}
 			} catch (Exception e) {
 				throw new RuntimeException("Trying to read PortFile: " + portFile.getAbsolutePath(), e);
@@ -171,7 +172,7 @@ public class AGAbstractTest {
         return conn;
    }
    
-    AGRepositoryConnection getConnection(AGRepository repo) throws RepositoryException {
+    AGRepositoryConnection getConnection(AGAbstractRepository repo) throws RepositoryException {
         AGRepositoryConnection conn = repo.getConnection();
         closeLater(conn);
         return conn;

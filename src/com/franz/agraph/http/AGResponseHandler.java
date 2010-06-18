@@ -1,5 +1,5 @@
 /******************************************************************************
-** Copyright (c) 2008-2009 Franz Inc.
+** Copyright (c) 2008-2010 Franz Inc.
 ** All rights reserved. This program and the accompanying materials
 ** are made available under the terms of the Eclipse Public License v1.0
 ** which accompanies this distribution, and is available at
@@ -10,6 +10,7 @@ package com.franz.agraph.http;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HeaderElement;
@@ -119,6 +120,7 @@ public class AGResponseHandler {
 	
 	public void handleResponse(HttpMethod method) throws IOException, RepositoryException {
 
+		InputStream response = getInputStream(method);
 		String mimeType = getResponseMIMEType(method);
 		try {
 			if (rdfhandler != null) {
@@ -130,8 +132,7 @@ public class AGResponseHandler {
 						.getValueFactory());
 				parser.setPreserveBNodeIDs(true);
 				parser.setRDFHandler(rdfhandler);
-				parser.parse(method.getResponseBodyAsStream(), method.getURI()
-						.getURI());
+				parser.parse(response, method.getURI().getURI());
 			} else if (tqrhandler != null) {
 				TupleQueryResultFormat format = TupleQueryResultFormat.SPARQL; // TODO:
 				// .matchMIMEType(mimeType,
@@ -139,7 +140,7 @@ public class AGResponseHandler {
 				TupleQueryResultParser parser = QueryResultIO.createParser(
 						format, repository.getValueFactory());
 				parser.setTupleQueryResultHandler(tqrhandler);
-				parser.parse(method.getResponseBodyAsStream());
+				parser.parse(response);
 
 			} else if (true == bqrHandler) {
 				BooleanQueryResultFormat format = BooleanQueryResultFormat.TEXT; // TODO:
@@ -147,19 +148,17 @@ public class AGResponseHandler {
 																					// booleanFormats);
 				BooleanQueryResultParser parser = QueryResultIO
 						.createParser(format);
-				bqrresult = parser.parse(method.getResponseBodyAsStream());
+				bqrresult = parser.parse(response);
 			} else if (true == longHandler) {
 				try {
-					InputStream is = method.getResponseBodyAsStream();
-					String str = streamToString(is);
+					String str = streamToString(response);
 					longresult = Long.parseLong(str);
 				} catch (NumberFormatException e) {
 					throw new RepositoryException(
 							"Server responded with invalid long value", e);
 				}
 			} else if (true == stringHandler) {
-				InputStream is = method.getResponseBodyAsStream();
-				stringresult = streamToString(is);
+				stringresult = streamToString(response);
 			} else {
 				throw new RuntimeException(
 						"Cannot handle response, unexpected type.");
@@ -208,6 +207,15 @@ public class AGResponseHandler {
 		return null;
 	}
 
+	protected static InputStream getInputStream(HttpMethod method) throws IOException {
+		InputStream is = method.getResponseBodyAsStream();
+		Header h = method.getResponseHeader("Content-Encoding");
+		if (h!=null && h.getValue().equals("gzip")) {
+			is = new GZIPInputStream(is);
+		}
+		return is;
+	}
+	
 	protected static String streamToString(InputStream in) throws IOException {
 		// TODO: protect against buffering very large streams
 	    StringBuffer out = new StringBuffer();

@@ -307,7 +307,7 @@
                 rcon]
     (let [f (.getValueFactory repo)
           exns "http://example.org/people/"]
-      (.registerFreeTextPredicate repo (str exns "fullname"))
+      (.createFreetextIndex repo "index1" (to-array (list (str exns "fullname"))))
       (let [alice (uri f exns "alice1")
             persontype (uri f exns "Person")
             fullname (uri f exns "fullname")
@@ -382,7 +382,6 @@
             green-rep (repo-init (repository cat "greenthings" :renew))
             green-con (repo-connection green-rep rcon-args)
             rainbow-rep (repo-init (repo-federation server
-                                                    "rainbowthings"
                                                     red-rep green-rep))
             rainbow-con (repo-connection rainbow-rep rcon-args)
             rf (value-factory red-con)

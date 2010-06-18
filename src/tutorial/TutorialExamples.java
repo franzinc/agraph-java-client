@@ -1,5 +1,9 @@
 /******************************************************************************
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
 ** Copyright (c) 2008-2009 Franz Inc.
+=======
+** Copyright (c) 2008-2010 Franz Inc.
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
 ** All rights reserved. This program and the accompanying materials
 ** are made available under the terms of the Eclipse Public License v1.0
 ** which accompanies this distribution, and is available at
@@ -44,6 +48,10 @@ import org.openrdf.rio.rdfxml.RDFXMLWriter;
 import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGQueryLanguage;
 import com.franz.agraph.repository.AGRepository;
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
+=======
+import com.franz.agraph.repository.AGAbstractRepository;
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
 import com.franz.agraph.repository.AGValueFactory;
@@ -71,6 +79,10 @@ public class TutorialExamples {
         println("Available repositories in catalog " + 
                 (catalog.getCatalogName()) + ": " + 
                 catalog.listRepositories());
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
+=======
+        closeAll();
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
         catalog.deleteRepository(REPOSITORY_ID);
         AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);
         println("Got a repository.");
@@ -1240,6 +1252,7 @@ public class TutorialExamples {
 	    ValueFactory f = conn.getValueFactory();
 	    String exns = "http://example.org/people/";
 	    conn.setNamespace("ex", exns);
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
 	    conn.registerFreetextPredicate(f.createURI(exns,"fullname"));
 	    URI alice = f.createURI(exns, "alice1");
 	    URI persontype = f.createURI(exns, "Person");
@@ -1254,11 +1267,53 @@ public class TutorialExamples {
 	    conn.add(alice, fullname, alicename);
 	    conn.add(book, RDF.TYPE, booktype);    
 	    conn.add(book, booktitle, wonderland); 
+=======
+	    // Create index1
+	    conn.createFreetextIndex("index1", new URI[]{f.createURI(exns,"fullname")});
+	    // Create parts of person resources.	    
+	    URI alice = f.createURI(exns, "alice1");
+	    URI carroll = f.createURI(exns, "carroll");
+	    URI persontype = f.createURI(exns, "Person");
+	    URI fullname = f.createURI(exns, "fullname");    
+	    Literal alicename = f.createLiteral("Alice B. Toklas");
+	    Literal lewisCarroll = f.createLiteral("Lewis Carroll");
+	    // Create parts of book resources.
+	    URI book =  f.createURI(exns, "book1");
+	    URI booktype = f.createURI(exns, "Book");
+	    URI booktitle = f.createURI(exns, "title");
+	    URI author = f.createURI(exns, "author");
+	    Literal wonderland = f.createLiteral("Alice in Wonderland");
+	    // Add Alice B. Toklas triples
+	    conn.clear();    
+	    conn.add(alice, RDF.TYPE, persontype);
+	    conn.add(alice, fullname, alicename);
+	    // Add Alice in Wonderland triples
+	    conn.add(book, RDF.TYPE, booktype);    
+	    conn.add(book, booktitle, wonderland); 
+	    conn.add(book, author, carroll);
+	    // Add Lewis Carroll triples
+	    conn.add(carroll, RDF.TYPE, persontype);
+	    conn.add(carroll, fullname, lewisCarroll);
+	    // Check triples
+	    RepositoryResult<Statement> statements = conn.getStatements(null, null, null, false);
+        try {
+            while (statements.hasNext()) {
+                println(statements.next());
+            }
+        } finally {
+            statements.close();
+        }
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
 
 	    println("\nWhole-word match for 'Alice'.");
         String queryString = 
         	"SELECT ?s ?p ?o " +
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
         	"WHERE { ?s ?p ?o . ?s fti:match 'Alice' . }";
+=======
+        	"WHERE { ?s ?p ?o . " +
+        	"        ?s fti:match 'Alice' . }";
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         TupleQueryResult result = (TupleQueryResult)tupleQuery.evaluate();
         int count = 0;
@@ -1270,7 +1325,12 @@ public class TutorialExamples {
             count += 1;
         }
         result.close();
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
             
+=======
+        
+           
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
         println("\nWildcard match for 'Ali*'.");
         queryString = 
         	"SELECT ?s ?p ?o " +
@@ -1320,6 +1380,10 @@ public class TutorialExamples {
         result.close();
 	}
 	
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
+=======
+	
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
 	/**
      * Ask, Construct, and Describe queries
      */ 
@@ -1363,6 +1427,10 @@ public class TutorialExamples {
     public static void example14() throws Exception {
         RepositoryConnection conn = example2(false);
         ValueFactory f = conn.getValueFactory();
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
+=======
+        conn.setAutoCommit(false);
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
         URI alice = f.createURI("http://example.org/people/alice");
         URI bob = f.createURI("http://example.org/people/bob");
         String queryString = "select ?s ?p ?o where { ?s ?p ?o} ";
@@ -1454,7 +1522,11 @@ public class TutorialExamples {
      */
     public static void example16() throws Exception {
         AGRepositoryConnection conn = example6();
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
         AGRepository myRepository = conn.getRepository();
+=======
+        AGAbstractRepository myRepository = conn.getRepository();
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
         AGCatalog catalog = myRepository.getCatalog();
         // create two ordinary stores, and one federated store:
         AGRepository redRepo = catalog.createRepository("redthingsjv");
@@ -1470,7 +1542,11 @@ public class TutorialExamples {
         greenConn.clear();
         ValueFactory gf = greenConn.getValueFactory();
         AGServer server = myRepository.getCatalog().getServer();
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
         AGRepository rainbowRepo = server.createFederation("rainbowthingsjv", redRepo, greenRepo);
+=======
+        AGAbstractRepository rainbowRepo = server.federate(redRepo, greenRepo);
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
         rainbowRepo.initialize();
         println("Federation is writable? " + rainbowRepo.isWritable());
         AGRepositoryConnection rainbowConn = rainbowRepo.getConnection();
@@ -1644,7 +1720,10 @@ public class TutorialExamples {
     public static void example20() throws Exception {
         AGRepositoryConnection conn = example1(false);
         AGValueFactory vf = conn.getValueFactory();
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
         conn = example1(false);
+=======
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
         conn.clear();
         println("Starting example20().");
         String exns = "http://example.org/people/";
@@ -1689,6 +1768,10 @@ public class TutorialExamples {
         //URI sphericalSystemKM = conn.registerSphericalType(5, AGProtocol.KM_PARAM_VALUE);
         //URI sphericalSystemDegree = conn.registerSphericalType(5, AGProtocol.DEGREE_PARAM_VALUE);
         URI sphericalSystemDegree = conn.registerSphericalType(5, "degree");
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
+=======
+
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
         URI amsterdam = vf.createURI(exns, "amsterdam");
         URI london = vf.createURI(exns, "london");
         URI sanfrancisco = vf.createURI(exns, "sanfrancisco");
@@ -1728,6 +1811,7 @@ public class TutorialExamples {
      * Social Network Analysis
     */
     public static void example21() throws Exception {
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
     	AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
     	AGCatalog catalog = server.getCatalog(CATALOG_ID);
     	catalog.deleteRepository(REPOSITORY_ID);
@@ -1736,6 +1820,10 @@ public class TutorialExamples {
     	AGValueFactory vf = myRepository.getValueFactory();
     	AGRepositoryConnection conn = myRepository.getConnection();
     	closeBeforeExit(conn);
+=======
+    	AGRepositoryConnection conn = example1(false);
+    	AGValueFactory vf = conn.getValueFactory();
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
     	conn.add(new File("src/tutorial/java-lesmis.rdf"), null, RDFFormat.RDFXML);
     	println("Loaded " + conn.size() + " java-lesmis.rdf triples.");
     	
@@ -1806,7 +1894,11 @@ public class TutorialExamples {
         }
         println("Number of results: " + count);
         result.close();
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
         println("foo");
+=======
+       
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
         println("\nValjean's ego group in one list depth 1 (using associates).");
         queryString = "(select (?member)" +
           "(ego-group !lm:character11 1 associates ?group)" +
@@ -1854,10 +1946,17 @@ public class TutorialExamples {
         }
         println("Number of results: " + count);
         result.close();
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
 /*
         println("\nShortest breadth-first path connecting Valjean to Bossuet using intimates. (Should be no path.)");
         queryString = "(select ?node" +
           "(breadth-first-search-paths !lm:character11 !lm:character64 intimates 10 ?path)" +
+=======
+
+        println("\nShortest breadth-first path connecting Valjean to Bossuet using intimates. (Should be no path.)");
+        queryString = "(select (?node)" +
+          "(breadth-first-search-path !lm:character11 !lm:character64 intimates 5 ?path)" +
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
           "(member ?node ?path))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         result = tupleQuery.evaluate();
@@ -1866,6 +1965,7 @@ public class TutorialExamples {
             BindingSet bindingSet = result.next();
             Value p = bindingSet.getValue("node");
             println("Path: " + p );
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
         }
         println("Number of results: " + count);
         result.close();
@@ -1874,6 +1974,16 @@ public class TutorialExamples {
         queryString = "(select ?node" +
           "(breadth-first-search-paths !lm:character11 !lm:character64 associates 10 ?paths)" +
           "(member ?path ?paths)" +
+=======
+            count++;
+        }
+        println("Number of results: " + count);
+        result.close();
+        
+        println("\nShortest breadth-first path connecting Valjean to Bossuet using associates. ");
+        queryString = "(select (?node)" +
+          "(breadth-first-search-path !lm:character11 !lm:character64 associates 5 ?path)" +
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
           "(member ?node ?path))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         result = tupleQuery.evaluate();
@@ -1881,27 +1991,46 @@ public class TutorialExamples {
         while (result.hasNext()) {
             BindingSet bindingSet = result.next();
             Value p = bindingSet.getValue("node");
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
             println("Path: " + p );
+=======
+            println("Node on path: " + p );
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
             count++;
         }
         println("Number of results: " + count);
         result.close();
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
  /*      
         println("\nShortest breadth-first path connecting Valjean to Bossuet using everyone.");
         queryString = "(select ?path" +
           "(breadth-first-search-paths !lm:character11 !lm:character64 everyone 10 ?path))";
+=======
+
+
+        println("\nShortest breadth-first path connecting Valjean to Bossuet using everyone.");
+        queryString = "(select (?node)" +
+          "(breadth-first-search-path !lm:character11 !lm:character64 everyone 5 ?path)" +
+          "(member ?node ?path))";
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         result = tupleQuery.evaluate();
         count = 0;
         while (result.hasNext()) {
             BindingSet bindingSet = result.next();
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
             Value p = bindingSet.getValue("path");
             println("Path: " + p );
+=======
+            Value p = bindingSet.getValue("node");
+            println("Node on Path: " + p );
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
             count++;
         }
         println("Number of results: " + count);
         result.close();
  
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
         println("\nShortest breadth-first path connecting Valjean to Bossuet using associates (should be two).");
         queryString = "(select ?path" +
           "(breadth-first-search-paths !lm:character11 !lm:character64 associates ?path))";
@@ -1922,27 +2051,49 @@ public class TutorialExamples {
         println("\nReturn depth-first path connecting Valjean to Bossuet using associates (should be one).");
         queryString = "(select ?path" +
           "(depth-first-search-path !lm:character11 !lm:character64 associates 10 ?path))";
+=======
+       
+        println("\nReturn depth-first path connecting Valjean to Bossuet using associates (should be one).");
+        queryString = "(select (?node)" +
+          "(depth-first-search-path !lm:character11 !lm:character64 associates 10 ?path)" +
+          "(member ?node ?path))";
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         result = tupleQuery.evaluate();
         count = 0;
         while (result.hasNext()) {
             BindingSet bindingSet = result.next();
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
             Value p = bindingSet.getValue("path");
             println("Path: " + p );
+=======
+            Value p = bindingSet.getValue("node");
+            println("Node on Path: " + p );
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
             count++;
         }
         println("Number of results: " + count);
         result.close();
         
         println("\nShortest bidirectional path connecting Valjean to Bossuet using associates (should be two).");
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
         queryString = "(select ?path" +
           "(bidirectional-search-paths !lm:character11 !lm:character64 associates ?path))";
+=======
+        queryString = "(select (?node)" +
+          "(bidirectional-search-path !lm:character11 !lm:character64 associates ?path)" +
+          "(member ?node ?path))";
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         result = tupleQuery.evaluate();
         count = 0;
         while (result.hasNext()) {
             BindingSet bindingSet = result.next();
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
             Value p = bindingSet.getValue("path");
+=======
+            Value p = bindingSet.getValue("node");
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
             println("Path: " + p );
             count++;
         }
@@ -1950,7 +2101,11 @@ public class TutorialExamples {
         result.close();
         
         println("\nNodal degree of Valjean (should be seven).");
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
         queryString = "(select ?degree" +
+=======
+        queryString = "(select (?degree)" +
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
           "(nodal-degree !lm:character11 associates ?degree))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         result = tupleQuery.evaluate();
@@ -1963,7 +2118,11 @@ public class TutorialExamples {
         result.close();
         
         println("\nHow many neighbors are around Valjean? (should be 36).");
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
         queryString = "(select ?neighbors" +
+=======
+        queryString = "(select (?neighbors)" +
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
           "(nodal-degree !lm:character11 everyone ?neighbors))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         result = tupleQuery.evaluate();
@@ -1976,7 +2135,11 @@ public class TutorialExamples {
         result.close();
  
         println("\nWho are Valjean's neighbors? (using everyone).");
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
         queryString = "(select ?name" +
+=======
+        queryString = "(select (?name)" +
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
           "(nodal-neighbors !lm:character11 everyone ?member)" +
           "(q ?member !dc:title ?name))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -1991,7 +2154,11 @@ public class TutorialExamples {
         result.close();
 
         println("\nGraph density of Valjean's ego group? (using associates).");
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
         queryString = "(select ?density" +
+=======
+        queryString = "(select (?density)" +
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
           "(ego-group !lm:character11 1 associates ?group)" +
           "(graph-density ?group associates ?density))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -2003,8 +2170,13 @@ public class TutorialExamples {
         }
         result.close();
  
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
         println("\nValjean's cliques? Should be two (using associates).");
         queryString = "(select ?member" +
+=======
+/*        println("\nValjean's cliques? Should be two (using associates).");
+        queryString = "(select (?member)" +
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
           "(clique !lm:character11 associates ?clique)" +
           "(member ?member ?clique))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -2020,7 +2192,11 @@ public class TutorialExamples {
         result.close();
 */        
         println("\nValjean's actor-degree-centrality to his ego group at depth 1 (using associates).");
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
         queryString = "(select ?centrality" +
+=======
+        queryString = "(select (?centrality)" +
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
           "(ego-group !lm:character11 1 associates ?group)" +
           "(actor-degree-centrality !lm:character11 ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -2033,7 +2209,11 @@ public class TutorialExamples {
         result.close();
         
         println("\nValjean's actor-degree-centrality to his ego group at depth 2 (using associates).");
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
         queryString = "(select ?centrality" +
+=======
+        queryString = "(select (?centrality)" +
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
           "(ego-group !lm:character11 2 associates ?group)" +
           "(actor-degree-centrality !lm:character11 ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -2046,7 +2226,11 @@ public class TutorialExamples {
         result.close();
 
         println("\nValjean's actor-closeness-centrality to his ego group at depth 1 (using associates).");
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
         queryString = "(select ?centrality" +
+=======
+        queryString = "(select (?centrality)" +
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
           "(ego-group !lm:character11 1 associates ?group)" +
           "(actor-closeness-centrality !lm:character11 ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -2059,7 +2243,11 @@ public class TutorialExamples {
         result.close();
 
         println("\nValjean's actor-closeness-centrality to his ego group at depth 2 (using associates).");
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
         queryString = "(select ?centrality" +
+=======
+        queryString = "(select (?centrality)" +
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
           "(ego-group !lm:character11 2 associates ?group)" +
           "(actor-closeness-centrality !lm:character11 ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -2072,7 +2260,11 @@ public class TutorialExamples {
         result.close();
 
         println("\nValjean's actor-betweenness-centrality to his ego group at depth 2 (using associates).");
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
         queryString = "(select ?centrality" +
+=======
+        queryString = "(select (?centrality)" +
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
           "(ego-group !lm:character11 2 associates ?group)" +
           "(actor-betweenness-centrality !lm:character11 ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -2092,7 +2284,11 @@ public class TutorialExamples {
         //  equal degree) to 1 (when one actor is connected to every other and no
         //  other actors have connections."
         println("\nGroup-degree-centrality of Valjean's ego group at depth 1 (using associates).");
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
         queryString = "(select ?centrality" +
+=======
+        queryString = "(select (?centrality)" +
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
           "(ego-group !lm:character11 1 associates ?group)" +
           "(group-degree-centrality ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -2105,7 +2301,11 @@ public class TutorialExamples {
         result.close();
 
         println("\nGroup-degree-centrality of Valjean's ego group at depth 2 (using associatese).");
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
         queryString = "(select ?centrality" +
+=======
+        queryString = "(select (?centrality)" +
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
           "(ego-group !lm:character11 2 associates ?group)" +
           "(group-degree-centrality ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -2124,7 +2324,11 @@ public class TutorialExamples {
         //  value and the [actor-closeness-centrality][] of all other actors.
         //  This value is then normalized so that it ranges between 0 and 1."
         println("\nGroup-closeness-centrality of Valjean's ego group at depth 1 (using associates).");
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
         queryString = "(select ?centrality" +
+=======
+        queryString = "(select (?centrality)" +
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
           "(ego-group !lm:character11 1 associates ?group)" +
           "(group-closeness-centrality ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -2137,7 +2341,11 @@ public class TutorialExamples {
         result.close();
 
         println("\nGroup-closeness-centrality of Valjean's ego group at depth 2 (using associates).");
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
         queryString = "(select ?centrality" +
+=======
+        queryString = "(select (?centrality)" +
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
           "(ego-group !lm:character11 2 associates ?group)" +
           "(group-closeness-centrality ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -2156,7 +2364,11 @@ public class TutorialExamples {
         //  value and the [actor-betweenness-centrality][] of all other actors.
         //  This value is then normalized so that it ranges between 0 and 1.
         println("\nGroup-betweenness-centrality of Valjean's ego group at depth 1 (using associates).");
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
         queryString = "(select ?centrality" +
+=======
+        queryString = "(select (?centrality)" +
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
           "(ego-group !lm:character11 1 associates ?group)" +
           "(group-betweenness-centrality ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -2169,7 +2381,11 @@ public class TutorialExamples {
         result.close();
 
         println("\nGroup-betweenness-centrality of Valjean's ego group at depth 1 (using associates).");
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
         queryString = "(select ?centrality" +
+=======
+        queryString = "(select (?centrality)" +
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
           "(ego-group !lm:character11 2 associates ?group)" +
           "(group-betweenness-centrality ?group associates ?centrality))";
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
@@ -2202,6 +2418,10 @@ public class TutorialExamples {
         conn1.clear();
         AGRepositoryConnection conn2 = myRepository.getConnection();
         closeBeforeExit(conn2);
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
+=======
+        conn2.getHttpRepoClient().setSessionLifetime(120);
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
         conn2.setAutoCommit(false);
         String baseURI = "http://example.org/example/local";
         conn1.add(new File("src/tutorial/java-lesmis.rdf"), baseURI, RDFFormat.RDFXML);
@@ -2255,6 +2475,223 @@ public class TutorialExamples {
         printRows("\nUsing getStatements() on conn2; should find Valjean:",
                 1, conn2.getStatements(null, null, valjean, false));
     }
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
+=======
+    /**
+     * Duplicate triples and duplicate results
+     */
+    public static void example23() throws Exception {
+        AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
+        AGCatalog catalog = server.getCatalog(CATALOG_ID);
+        AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);
+        myRepository.initialize();
+        AGValueFactory vf = myRepository.getValueFactory();
+        AGRepositoryConnection conn = myRepository.getConnection();
+        closeBeforeExit(conn);
+        conn.clear();
+        String baseURI = "http://example.org/";
+
+        // Demonstrate blank node behavior. 
+        conn.add(new File("src/tutorial/java-blankNodes1.rdf"), baseURI, RDFFormat.RDFXML);
+        println("\nLoaded " + conn.size() + " java-blankNodes1.rdf triples via conn.");
+        printRows("\nTwo books, with one author as blank node in each book.",
+                10000, conn.getStatements(null, null, null, false));
+        conn.clear();
+        
+        conn.add(new File("src/tutorial/java-blankNodes2.rdf"), baseURI, RDFFormat.RDFXML);
+        println("\nLoaded " + conn.size() + " java-blankNodes2.rdf triples via conn.");
+        printRows("\nTwo books, with one author identified by URI but in striped syntax in each book.",
+                10000, conn.getStatements(null, null, null, false));
+        conn.clear();
+
+        conn.add(new File("src/tutorial/java-blankNodes3.rdf"), baseURI, RDFFormat.RDFXML);
+        println("\nLoaded " + conn.size() + " java-blankNodes3.rdf triples via conn.");
+        printRows("\nTwo books, with one author linked by a URI.",
+                10000, conn.getStatements(null, null, null, false));
+        conn.clear();
+
+        conn.add(new File("src/tutorial/java-blankNodes4.rdf"), baseURI, RDFFormat.RDFXML);
+        println("\nLoaded " + conn.size() + " java-blankNodes4.rdf triples via conn.");
+        printRows("\nTwo books, with one author as a literal value.",
+                10000, conn.getStatements(null, null, null, false));
+        conn.clear();
+
+        // Load Kennedy file.
+        conn.add(new File("src/tutorial/java-kennedy.ntriples"), baseURI, RDFFormat.NTRIPLES);
+        println("\nAfter loading there are " + conn.size() + " kennedy triples.");
+        
+        conn.setNamespace("kdy", "http://www.franz.com/simple#");
+    	String exns = "http://www.franz.com/simple#";
+        conn.setNamespace("exns", exns);
+        URI TedKennedy = vf.createURI(exns, "person17");
+        URI hasChild = vf.createURI(exns, "has-child");
+        printRows("\nUsing getStatements() find children of Ted Kennedy: three children.",
+                10000, conn.getStatements(TedKennedy, hasChild, null, false));
+
+        println("\nSPARQL matches for two children of Ted Kennedy, inept pattern.");
+        String queryString = 
+        	"SELECT ?o1 ?o2 " +
+            "WHERE {kdy:person17 kdy:has-child ?o1 . " +
+            "       kdy:person17 kdy:has-child ?o2 . }";
+        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        TupleQueryResult result = tupleQuery.evaluate();
+        try {
+        	while (result.hasNext()) {
+            BindingSet bindingSet = result.next();
+            Value o1 = bindingSet.getValue("o1");
+            Value o2 = bindingSet.getValue("o2");
+            println(o1 + " and " + o2);
+            }    
+        } finally {
+        	result.close();
+        }
+
+        println("\nSPARQL matches for two children of Ted Kennedy, better pattern.");
+        String queryString2 = 
+         "SELECT ?o1 ?o2 " +
+            "WHERE {kdy:person17 kdy:has-child ?o1 . " +
+            "       kdy:person17 kdy:has-child ?o2 . " +
+            "       filter (?o1 < ?o2)}";
+        TupleQuery tupleQuery2 = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString2);
+        TupleQueryResult result2 = tupleQuery2.evaluate();
+        try {
+            while (result2.hasNext()) {
+            BindingSet bindingSet = result2.next();
+            Value o1 = bindingSet.getValue("o1");
+            Value o2 = bindingSet.getValue("o2");
+            println(o1 + " and " + o2);
+            }    
+        } finally {
+         result2.close();
+        }
+       
+        println("\nProlog select query to parallel the previous SPARQL query.");
+        queryString = "(select (?o1 ?o2)" +
+          "(q !kdy:person17 !kdy:has-child ?o1)" +
+          "(q !kdy:person17 !kdy:has-child ?o2)" +
+          "(lispp (upi< ?o1 ?o2)))";
+        tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
+        result = tupleQuery.evaluate();
+        while (result.hasNext()) {
+            BindingSet bindingSet = result.next();
+            Value o1 = bindingSet.getValue("o1");
+            Value o2 = bindingSet.getValue("o2");
+            println(o1.stringValue() + " and " + o2.stringValue());
+        }
+        result.close();
+
+        println("\nSPARQL matches for two children of Ted Kennedy, even better pattern.");
+        String queryString3 = 
+         "SELECT ?o1 ?o2 " +
+            "WHERE {kdy:person17 kdy:has-child ?o1 . " +
+            "       kdy:person17 kdy:has-child ?o2 . " +
+            "       filter (?o1 < ?o2)}" +
+            "       LIMIT 1";
+        TupleQuery tupleQuery3 = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString3);
+        TupleQueryResult result3 = tupleQuery3.evaluate();
+        try {
+            while (result3.hasNext()) {
+            BindingSet bindingSet = result3.next();
+            Value o1 = bindingSet.getValue("o1");
+            Value o2 = bindingSet.getValue("o2");
+            println(o1 + " and " + o2);
+            }    
+        } finally {
+            result3.close();
+        }
+
+        // Load Kennedy triples again.
+        println("\nReload 1214 java-kennedy.ntriples.");
+        conn.add(new File("src/tutorial/java-kennedy.ntriples"), baseURI, RDFFormat.NTRIPLES);
+        println("\nAfter loading there are " + conn.size() + " kennedy triples.");
+
+        printRows("\nUsing getStatements() find children of Ted Kennedy: duplicate triples present.",
+                10000, conn.getStatements(TedKennedy, hasChild, null, false));
+
+        println("\nSPARQL matches for children of Ted Kennedy.");
+        String queryString4 = 
+        	"SELECT ?o WHERE {kdy:person17 kdy:has-child ?o} ORDER BY ?o";
+        TupleQuery tupleQuery4 = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString4);
+        TupleQueryResult result4 = tupleQuery4.evaluate();
+        try {
+        	while (result4.hasNext()) {
+            BindingSet bindingSet = result4.next();
+            Value o = bindingSet.getValue("o");
+            println(o);
+            }    
+        } finally {
+        	result4.close();
+        }
+
+        println("\nSPARQL DISTINCT matches for children of Ted Kennedy.");
+        String queryString5 = 
+        	"SELECT DISTINCT ?o WHERE {kdy:person17 kdy:has-child ?o} ORDER BY ?o";
+        TupleQuery tupleQuery5 = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString5);
+        TupleQueryResult result5 = tupleQuery5.evaluate();
+        try {
+        	while (result5.hasNext()) {
+            BindingSet bindingSet = result5.next();
+            Value o = bindingSet.getValue("o");
+            println(o);
+            }    
+        } finally {
+        	result5.close();
+        }
+        
+        println("\nSPARQL REDUCED matches for children of Ted Kennedy.");
+        String queryString6 = 
+        	"SELECT REDUCED ?o WHERE {kdy:person17 kdy:has-child ?o} ORDER BY ?o";
+        TupleQuery tupleQuery6 = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString6);
+        TupleQueryResult result6 = tupleQuery6.evaluate();
+        try {
+        	while (result6.hasNext()) {
+            BindingSet bindingSet = result6.next();
+            Value o = bindingSet.getValue("o");
+            println(o);
+            }    
+        } finally {
+        	result6.close();
+        }
+        
+        println("\nSPARQL matches for children of Ted Kennedy, limit 2.");
+        String queryString7 = 
+        	"SELECT ?o WHERE {kdy:person17 kdy:has-child ?o} LIMIT 2";
+        TupleQuery tupleQuery7 = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString7);
+        TupleQueryResult result7 = tupleQuery7.evaluate();
+        try {
+        	while (result7.hasNext()) {
+            BindingSet bindingSet = result7.next();
+            Value o = bindingSet.getValue("o");
+            println(o);
+            }    
+        } finally {
+        	result7.close();
+        }
+        
+        // Test to see if triple is present before adding it.
+        URI newParent = vf.createURI(exns, "person100");
+        URI newChild = vf.createURI(exns, "person101");
+        println("\nTest before adding triple, first trial: ");
+        if (conn.getStatements(newParent, hasChild, newChild, false).hasNext()) {
+        	println("Did not add new triple.");
+        } else {
+        	conn.add(newParent, hasChild, newChild);
+        	println("Added new statement.");
+        }   
+        
+        println("\nTest before adding triple, second trial: ");
+        if (conn.getStatements(newParent, hasChild, newChild, false).hasNext()) {
+        	println("Did not add new triple.");
+        } else {
+        	conn.add(newParent, hasChild, newChild);
+        	println("Added new statement.");
+        }   
+        
+        conn.close();
+        myRepository.shutDown();
+    
+    }
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
 
     /**
      * Usage: all
@@ -2267,7 +2704,11 @@ public class TutorialExamples {
             // for choosing by editing this code
             choices.add(1);
         } else if (args[0].equals("all")) {
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
             for (int i = 1; i <= 22; i++) {
+=======
+            for (int i = 1; i <= 23; i++) {
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
                 choices.add(i);
             }
         } else {
@@ -2299,11 +2740,19 @@ public class TutorialExamples {
                 case 18: example18(); break;                                    
                 case 19: example19(); break;                                    
                 case 20: example20(); break;                                    
+<<<<<<< HEAD:src/tutorial/TutorialExamples.java
  //               case 21: example21(); break;      //  Commented out pending rfe9149 1/25/2010 BDC                          
                 case 22: example22(); break;
                 default: println("Example" + choice + "() is not available in this release.");
                 }
                 closeAll();
+=======
+                case 21: example21(); break;                                
+                case 22: example22(); break;
+                case 23: example23(); break;
+                default: println("Example" + choice + "() is not available in this release.");
+                }
+>>>>>>> origin/v4.0.5:src/tutorial/TutorialExamples.java
             }
         } finally {
             closeAll();

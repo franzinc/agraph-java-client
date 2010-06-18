@@ -1,5 +1,5 @@
 /******************************************************************************
-** Copyright (c) 2008-2009 Franz Inc.
+** Copyright (c) 2008-2010 Franz Inc.
 ** All rights reserved. This program and the accompanying materials
 ** are made available under the terms of the Eclipse Public License v1.0
 ** which accompanies this distribution, and is available at
@@ -18,6 +18,12 @@ import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.rdf.model.AnonId;
 
+/**
+ * 
+ * A utility class for creating Jena Nodes and Triples
+ * from Sesame Values and Statements.
+ *
+ */
 public class AGNodeFactory {
 	
 	public static Triple asTriple(Statement st) {

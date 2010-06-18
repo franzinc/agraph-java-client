@@ -20,6 +20,10 @@ import com.hp.hpl.jena.graph.BulkUpdateHandler;
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.graph.impl.SimpleBulkUpdateHandler;
 
+/**
+ * Implements the Jena BulkUpdateHandler interface for AllegroGraph.
+ * 
+ */
 public class AGBulkUpdateHandler extends SimpleBulkUpdateHandler implements
 		BulkUpdateHandler {
 
@@ -62,5 +66,15 @@ public class AGBulkUpdateHandler extends SimpleBulkUpdateHandler implements
 		}
 		if (notify)
 			manager.notifyDeleteList(graph, triples);
+	}
+	
+	@Override
+	public void removeAll() {
+		try {
+			graph.getConnection().clear(graph.getGraphContext());
+			notifyRemoveAll(); 
+		} catch (RepositoryException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }
