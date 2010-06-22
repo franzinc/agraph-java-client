@@ -59,6 +59,7 @@ endif
 	done
 	mkdir -p $(DIST)/lib
 	cp agraph.jar $(DIST)/lib/agraph-$(VERSION).jar
+	cp lib/json.jar $(DIST)/lib/json.jar
 	mkdir -p $(DIST)/lib/sesame-2.3.1
 	cp lib/sesame-2.3.1/*.jar $(DIST)/lib/sesame-2.3.1
 	mkdir -p $(DIST)/lib/jena-2.6.2
