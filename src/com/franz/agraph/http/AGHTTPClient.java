@@ -12,8 +12,8 @@
 package com.franz.agraph.http;
 
 import static com.franz.agraph.http.AGProtocol.AMOUNT_PARAM_NAME;
-import static org.openrdf.http.protocol.Protocol.ACCEPT_PARAM_NAME;
 import static com.franz.agraph.http.AGProtocol.OVERRIDE_PARAM_NAME;
+import static org.openrdf.http.protocol.Protocol.ACCEPT_PARAM_NAME;
 import info.aduna.net.http.HttpClientUtil;
 
 import java.io.IOException;
@@ -37,7 +37,6 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
-import org.openrdf.http.protocol.Protocol;
 import org.openrdf.http.protocol.UnauthorizedException;
 import org.openrdf.query.TupleQueryResult;
 import org.openrdf.query.impl.TupleQueryResultBuilder;
@@ -51,8 +50,8 @@ import org.openrdf.sail.memory.MemoryStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.franz.util.Util;
 import com.franz.util.Closeable;
+import com.franz.util.Util;
 
 /**
  * TODO: another pass over this class for response and error handling

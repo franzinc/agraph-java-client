@@ -37,7 +37,9 @@ public class TestSuites {
     @IncludeCategory(Temp.class)
     @SuiteClasses( { TutorialTests.class,
         QuickTests.class,
-        AGRepositoryConnectionTests.class })
+        AGRepositoryConnectionTests.class,
+        JenaTests.class
+    })
     public static class Temp {}
     
     /**
@@ -48,7 +50,9 @@ public class TestSuites {
     @ExcludeCategory(NonPrepushTest.class)
     @SuiteClasses( { TutorialTests.class,
         QuickTests.class,
-        AGRepositoryConnectionTests.class })
+        AGRepositoryConnectionTests.class,
+        JenaTests.class
+    })
     public static class Prepush {}
     
     /**

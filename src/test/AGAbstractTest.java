@@ -8,10 +8,8 @@
 
 package test;
 
-import static com.franz.util.Util.close;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static test.Util.close;
 import static test.Util.ifBlank;
 import static test.Util.or;
 import static test.Util.readLines;
@@ -23,7 +21,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -34,15 +31,14 @@ import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
 
+import com.franz.agraph.repository.AGAbstractRepository;
 import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGRepository;
-import com.franz.agraph.repository.AGAbstractRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
 import com.franz.agraph.repository.AGValueFactory;
-import com.franz.util.Closeable;
 
-public class AGAbstractTest {
+public class AGAbstractTest extends Closer {
 
     static public final String CATALOG_ID = "java-tutorial";
     
@@ -53,8 +49,6 @@ public class AGAbstractTest {
     protected static String repoId;
     
     protected AGValueFactory vf;
-    
-    private Stack<Closeable> toClose = new Stack<Closeable>();
     
     private static String serverUrl;
 
@@ -147,10 +141,7 @@ public class AGAbstractTest {
     @After
     public void tearDown() throws Exception {
         vf = null;
-        while (toClose.isEmpty() == false) {
-            Closeable conn = toClose.pop();
-            close(conn);
-        }
+        super.close();
         conn = null;
         repo = null;
     }
@@ -158,12 +149,7 @@ public class AGAbstractTest {
     @AfterClass
     public static void tearDownOnce() throws Exception {
         cat = null;
-        server = close(server);
-    }
-
-    public <CloseableType extends Closeable>  CloseableType closeLater(CloseableType c) {
-        toClose.add(c);
-        return c;
+        server = Closer.close(server);
     }
 
     AGRepositoryConnection getConnection() throws RepositoryException {
