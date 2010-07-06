@@ -49,6 +49,7 @@ public abstract class AGQuery extends AbstractQuery {
 	protected boolean prepared = false;
 	
 	public AGQuery(AGRepositoryConnection con, QueryLanguage ql, String queryString, String baseURI) {
+		super.setIncludeInferred(false); // set default
 		this.httpCon = con;
 		this.queryLanguage = ql;
 		this.queryString = queryString;
