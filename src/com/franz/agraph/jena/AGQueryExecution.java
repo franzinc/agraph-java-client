@@ -21,6 +21,7 @@ import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.query.QueryExecution;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
+import com.hp.hpl.jena.rdf.model.InfModel;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.sparql.util.Context;
@@ -56,6 +57,9 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 			throw new UnsupportedOperationException(query.getLanguage().getName() + " language does not support ASK queries.");
 		}
 		AGBooleanQuery bq = model.getGraph().getConnection().prepareBooleanQuery(query.getLanguage(), query.getQueryString());
+		if (model instanceof InfModel) {
+			bq.setIncludeInferred(true);
+		}
 		boolean result;
 		try {
 			bq.setDataset(model.getGraph().getDataset());
@@ -77,6 +81,9 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 			throw new UnsupportedOperationException(query.getLanguage().getName() + " language does not support CONSTRUCT queries.");
 		}
 		AGGraphQuery gq = model.getGraph().getConnection().prepareGraphQuery(query.getLanguage(), query.getQueryString());
+		if (model instanceof InfModel) {
+			gq.setIncludeInferred(true);
+		}
 		GraphQueryResult result;
 		try {
 			gq.setDataset(model.getGraph().getDataset());
@@ -111,6 +118,9 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 	@Override
 	public ResultSet execSelect() {
 		AGTupleQuery tq = model.getGraph().getConnection().prepareTupleQuery(query.getLanguage(), query.getQueryString());
+		if (model instanceof InfModel) {
+			tq.setIncludeInferred(true);
+		}
 		TupleQueryResult result;
 		try {
 			tq.setDataset(model.getGraph().getDataset());

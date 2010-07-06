@@ -17,6 +17,8 @@ import static test.Stmt.stmts;
 import java.util.ArrayList;
 import java.util.List;
 
+import junit.framework.Assert;
+
 import org.junit.Test;
 import org.junit.experimental.categories.Categories;
 import org.junit.experimental.categories.Category;
@@ -32,6 +34,21 @@ import org.openrdf.query.QueryLanguage;
 import org.openrdf.repository.RepositoryResult;
 
 import test.TestSuites.NonPrepushTest;
+
+import com.franz.agraph.jena.AGGraph;
+import com.franz.agraph.jena.AGGraphMaker;
+import com.franz.agraph.jena.AGInfModel;
+import com.franz.agraph.jena.AGModel;
+import com.franz.agraph.jena.AGQuery;
+import com.franz.agraph.jena.AGQueryExecution;
+import com.franz.agraph.jena.AGQueryExecutionFactory;
+import com.franz.agraph.jena.AGQueryFactory;
+import com.franz.agraph.jena.AGReasoner;
+import com.hp.hpl.jena.query.ResultSet;
+import com.hp.hpl.jena.rdf.model.Property;
+import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.rdf.model.StmtIterator;
+import com.hp.hpl.jena.vocabulary.OWL;
 
 public class QuickTests extends AGAbstractTest {
 
@@ -98,7 +115,7 @@ public class QuickTests extends AGAbstractTest {
     }
     
     @Test
-    @Category(TestSuites.Temp.class)
+    @Category(TestSuites.Prepush.class)
     public void bulkDelete() throws Exception {
         URI alice = vf.createURI("http://example.org/people/alice");
         URI firstname = vf.createURI("http://example.org/ontology/firstname");
@@ -111,6 +128,58 @@ public class QuickTests extends AGAbstractTest {
         assertEquals("size", 2, conn.size());
         conn.remove(input);
         assertEquals("size", 0, conn.size());
+    }
+    
+    @Test
+    @Category(TestSuites.Prepush.class)
+    public void jenaReasoning() throws Exception {
+        AGGraphMaker maker = new AGGraphMaker(conn);
+        AGGraph graph = maker.getGraph();
+        AGModel model = new AGModel(graph);
+        try {
+        	Resource bob = model.createResource("http://example.org/people/bob");
+        	Resource dave = model.createResource("http://example.org/people/dave");
+        	Property fatherOf = model.createProperty("http://example.org/ontology/fatherOf");
+        	Property hasFather = model.createProperty("http://example.org/ontology/hasFather");
+        	
+        	model.add(hasFather, OWL.inverseOf, fatherOf);
+        	model.add(bob, fatherOf, dave);
+            
+        	AGQuery query = AGQueryFactory.create("select * where { <http://example.org/people/dave> <http://example.org/ontology/hasFather> ?o . }");
+        	{
+                AGInfModel inf = new AGInfModel(new AGReasoner(), model);
+                
+            	StmtIterator stmts = inf.listStatements(dave, hasFather, bob);
+    			Assert.assertTrue("with reasoning", stmts.hasNext());
+    			stmts.close();
+    			
+        		AGQueryExecution exe = AGQueryExecutionFactory.create(query, inf);
+        		try {
+        			ResultSet results = exe.execSelect();
+        			Assert.assertTrue("with reasoning", results.hasNext());
+        		} finally {
+                	Util.close(exe);
+                	Util.close(inf);
+        		}
+        	}
+        	{
+        		StmtIterator stmts = model.listStatements(dave, hasFather, bob);
+    			Assert.assertFalse("without reasoning", stmts.hasNext());
+    			stmts.close();
+    			
+    			AGQueryExecution exe = AGQueryExecutionFactory.create(query, model);
+        		try {
+        			ResultSet results = exe.execSelect();
+        			Assert.assertFalse("without reasoning", results.hasNext());
+        		} finally {
+                	Util.close(exe);
+        		}
+        	}
+        } finally {
+        	Util.close(model);
+        	Util.close(graph);
+        	Util.close(maker);
+        }
     }
 
 }
