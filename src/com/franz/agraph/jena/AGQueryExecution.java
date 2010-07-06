@@ -56,6 +56,7 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 			throw new UnsupportedOperationException(query.getLanguage().getName() + " language does not support ASK queries.");
 		}
 		AGBooleanQuery bq = model.getGraph().getConnection().prepareBooleanQuery(query.getLanguage(), query.getQueryString());
+		bq.setIncludeInferred(model.getGraph().inferred);
 		boolean result;
 		try {
 			bq.setDataset(model.getGraph().getDataset());
@@ -77,6 +78,7 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 			throw new UnsupportedOperationException(query.getLanguage().getName() + " language does not support CONSTRUCT queries.");
 		}
 		AGGraphQuery gq = model.getGraph().getConnection().prepareGraphQuery(query.getLanguage(), query.getQueryString());
+		gq.setIncludeInferred(model.getGraph().inferred);
 		GraphQueryResult result;
 		try {
 			gq.setDataset(model.getGraph().getDataset());
@@ -111,6 +113,7 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 	@Override
 	public ResultSet execSelect() {
 		AGTupleQuery tq = model.getGraph().getConnection().prepareTupleQuery(query.getLanguage(), query.getQueryString());
+		tq.setIncludeInferred(model.getGraph().inferred);
 		TupleQueryResult result;
 		try {
 			tq.setDataset(model.getGraph().getDataset());

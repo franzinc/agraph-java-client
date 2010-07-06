@@ -18,10 +18,17 @@ import com.franz.agraph.jena.AGGraph;
 import com.franz.agraph.jena.AGGraphMaker;
 import com.franz.agraph.jena.AGInfModel;
 import com.franz.agraph.jena.AGModel;
+import com.franz.agraph.jena.AGQuery;
+import com.franz.agraph.jena.AGQueryExecution;
+import com.franz.agraph.jena.AGQueryExecutionFactory;
+import com.franz.agraph.jena.AGQueryFactory;
 import com.franz.agraph.jena.AGReasoner;
+import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.rdf.model.StmtIterator;
+import com.hp.hpl.jena.vocabulary.OWL;
 
 public class JenaTests extends AGAbstractTest {
 
@@ -107,4 +114,40 @@ public class JenaTests extends AGAbstractTest {
 		//Assert.assertEquals("infModel should be full", 2, infModel.size());
     }
     
+    @Test
+    @Category(TestSuites.Prepush.class)
+    public void jenaReasoning_bug19484() throws Exception {
+        AGGraphMaker maker = closeLater( new AGGraphMaker(conn));
+        AGGraph graph = closeLater( maker.getGraph());
+        AGModel model = closeLater( new AGModel(graph));
+        
+        Resource bob = model.createResource("http://example.org/people/bob");
+        Resource dave = model.createResource("http://example.org/people/dave");
+        Property fatherOf = model.createProperty("http://example.org/ontology/fatherOf");
+        Property hasFather = model.createProperty("http://example.org/ontology/hasFather");
+        
+        model.add(hasFather, OWL.inverseOf, fatherOf);
+        model.add(bob, fatherOf, dave);
+        
+        AGQuery query = AGQueryFactory.create("select * where { <http://example.org/people/dave> <http://example.org/ontology/hasFather> ?o . }");
+        {
+        	AGInfModel inf = closeLater( new AGInfModel(new AGReasoner(), model));
+        	
+        	StmtIterator stmts = closeLater( inf.listStatements(dave, hasFather, bob));
+        	Assert.assertTrue("with reasoning", stmts.hasNext());
+        	
+        	AGQueryExecution exe = closeLater( AGQueryExecutionFactory.create(query, inf));
+        	ResultSet results = exe.execSelect();
+        	Assert.assertTrue("with reasoning", results.hasNext());
+        }
+        {
+        	StmtIterator stmts = closeLater( model.listStatements(dave, hasFather, bob));
+        	Assert.assertFalse("without reasoning", stmts.hasNext());
+        	
+        	AGQueryExecution exe = closeLater( AGQueryExecutionFactory.create(query, model));
+        	ResultSet results = exe.execSelect();
+        	Assert.assertFalse("without reasoning", results.hasNext());
+        }
+    }
+
 }
