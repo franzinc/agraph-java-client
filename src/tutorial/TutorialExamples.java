@@ -61,7 +61,7 @@ public class TutorialExamples {
     static final String FOAF_NS = "http://xmlns.com/foaf/0.1/";
 
     /**
-     * Creating a Repository
+     * Creating a Repository test
      */
     public static AGRepositoryConnection example1(boolean close) throws Exception {
         // Tests getting the repository up. 
@@ -1350,38 +1350,61 @@ public class TutorialExamples {
      * Ask, Construct, and Describe queries
      */ 
     public static void example13 () throws Exception {
-        RepositoryConnection conn = example2(false);
-        conn.setNamespace("ex", "http://example.org/people/");
-        conn.setNamespace("ont", "http://example.org/ontology/");
-        println("\nSELECT result:");
-        String queryString = "select ?s ?p ?o where { ?s ?p ?o} ";
+        RepositoryConnection conn = example6();
+        conn.setNamespace("kdy", "http://www.franz.com/simple#");
+        // We don't want the vcards this time. This is how to delete an entire subgraph.
+        ValueFactory vf = conn.getValueFactory();
+        URI context = vf.createURI("http://example.org#vcards");
+        conn.remove((Resource)null, (URI)null, (Value)null, context);
+        println("\nRemoved vcards.");
+        // SELECT query
+        String queryString = "select ?s where { ?s rdf:type kdy:person} limit 5";
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         TupleQueryResult result = tupleQuery.evaluate();
+        println("\nSELECT some persons:");
         while (result.hasNext()) {
             println(result.next());
         }
         result.close();
-        queryString = "ask { ?s ont:name \"Alice\" } ";
+        // ASK query
+        queryString = "ask { ?s kdy:first-name 'John' } ";
         BooleanQuery booleanQuery = conn.prepareBooleanQuery(QueryLanguage.SPARQL, queryString);
         boolean truth = booleanQuery.evaluate(); 
-        println("\nBoolean result: " + truth);
-        queryString = "construct {?s ?p ?o} where { ?s ?p ?o . filter (?o = \"Alice\") } ";
+        println("\nASK: Is there anyone named John? " + truth);
+        queryString = "ask { ?s kdy:first-name 'Alice' } ";
+        BooleanQuery booleanQuery2 = conn.prepareBooleanQuery(QueryLanguage.SPARQL, queryString);
+        boolean truth2 = booleanQuery2.evaluate(); 
+        println("\nASK: Is there anyone named Alice? " + truth2);
+        // CONSTRUCT query
+        println("\nConstructing has-grandchild triples.");
+        queryString = "construct {?a kdy:has-grandchild ?c}" + 
+	                  "    where { ?a kdy:has-child ?b . " +
+	                  "            ?b kdy:has-child ?c . }";
         GraphQuery constructQuery = conn.prepareGraphQuery(QueryLanguage.SPARQL, queryString);
         GraphQueryResult gresult = constructQuery.evaluate(); 
-        List<Statement> statements = new ArrayList<Statement>();
         while (gresult.hasNext()) {
-            statements.add(gresult.next());
+            conn.add(gresult.next());  // adding new triples to the store
         }
-        println("\nConstruct result:\n" + statements);
-        queryString = "describe ?s where { ?s ?p ?o . filter (?o = \"Alice\") } ";
+        gresult.close();
+        String queryString3 = "select ?s ?o where { ?s kdy:has-grandchild ?o} limit 5";
+        TupleQuery tupleQuery3 = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString3);
+        TupleQueryResult result3 = tupleQuery3.evaluate();
+        println("\nShow the has-grandchild triples:");
+        while (result3.hasNext()) {
+            println(result3.next());
+        }
+        result3.close();
+        // DESCRIBE query
+        queryString = "describe ?s ?o where { ?s kdy:has-grandchild ?o . } limit 1";
         GraphQuery describeQuery = conn.prepareGraphQuery(QueryLanguage.SPARQL, queryString);
         gresult = describeQuery.evaluate(); 
-        println("\nDescribe result:");
+        println("\nDescribe one grandparent and one grandchild:");
         while (gresult.hasNext()) {
             println(gresult.next());
         }
         gresult.close();
     }
+
 
     /**
      * Parametric Queries
@@ -2583,6 +2606,5 @@ public class TutorialExamples {
         }
     }
     
-
-
 }
+// Update July 7, 2010 AG 4.1
