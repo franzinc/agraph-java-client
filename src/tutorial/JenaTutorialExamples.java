@@ -485,13 +485,17 @@ public class JenaTutorialExamples {
 	 * Ask, Construct, and Describe queries
 	 */
 	public static void example13() throws Exception {
-		AGModel model = example2(false);
-		model.setNsPrefix("ex", "http://example.org/people/");
-		model.setNsPrefix("ont", "http://example.org/ontology/");
-		println("\nSELECT result:");
-		String queryString = "select ?s ?p ?o where { ?s ?p ?o} ";
+		AGGraphMaker maker = example6();
+		AGModel model = new AGModel(maker.getGraph());
+		model.setNsPrefix("kdy", "http://www.franz.com/simple#");
+        // We don't want the vcards this time. This is how to delete an entire subgraph.
+		maker.removeGraph("http://example.org#vcards");
+        println("\nRemoved vcards.");
+        // SELECT query
+		String queryString = "select ?s where { ?s rdf:type kdy:person} limit 5";
         AGQuery query = AGQueryFactory.create(queryString);
         QueryExecution qe = AGQueryExecutionFactory.create(query, model);
+        println("\nSELECT some persons:");        
 		try {
 			ResultSet results = qe.execSelect();
 			while (results.hasNext()) {
@@ -500,36 +504,48 @@ public class JenaTutorialExamples {
 		} finally {
 			qe.close();
 		}
-		queryString = "ask { ?s ont:name \"Alice\" } ";
+		// ASK query
+		queryString = "ask { ?s kdy:first-name 'John' } ";
         query = AGQueryFactory.create(queryString);
         qe = AGQueryExecutionFactory.create(query, model);
 		try {
-			println("\nBoolean result: " + qe.execAsk());
+			println("\nASK: Is there anyone named John? " + qe.execAsk());
 		} finally {
 			qe.close();
 		}
-		queryString = "construct {?s ?p ?o} where { ?s ?p ?o . filter (?o = \"Alice\") } ";
+		queryString = "ask { ?s kdy:first-name 'Alice' } ";
+        query = AGQueryFactory.create(queryString);
+        qe = AGQueryExecutionFactory.create(query, model);
+		try {
+			println("\nASK: Is there anyone named Alice? " + qe.execAsk());
+		} finally {
+			qe.close();
+		}
+        // CONSTRUCT query
+        println("\nConstructing has-grandchild triples.");
+        queryString = "construct {?a kdy:has-grandchild ?c}" + 
+        "    where { ?a kdy:has-child ?b . " +
+        "            ?b kdy:has-child ?c . }";
         query = AGQueryFactory.create(queryString);
         qe = AGQueryExecutionFactory.create(query, model);
 		try {
 			Model m = qe.execConstruct();
-			println("\nConstruct result:");
-			m.write(System.out);
+			model.add(m);   // add new triples to the store
 		} finally {
 			qe.close();
 		}
-		queryString = "describe ?s where { ?s ?p ?o . filter (?o = \"Alice\") } ";
+        // DESCRIBE query
+		queryString = "describe ?s ?o where { ?s kdy:has-grandchild ?o . } limit 1";
         query = AGQueryFactory.create(queryString);
         qe = AGQueryExecutionFactory.create(query, model);
 		try {
 			Model m = qe.execDescribe();
-			println("\nDescribe result:");
+			println("\nDescribe one grandparent and one grandchild:");
 			m.write(System.out);
 		} finally {
 			qe.close();
 		}
 	}
-
 	/**
 	 * RDFS++ Reasoning
 	 */
@@ -743,3 +759,4 @@ public class JenaTutorialExamples {
 	}
 
 }
+//Update July 9, 2010 AG 4.1
