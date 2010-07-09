@@ -39,7 +39,7 @@ creating, querying and maintaining RDF data, and for managing the stored triples
     </ul></td>
     <td width="295"><ul>
       <li><a href="#Free Text Search">Free Text Search</a></li>
-      <li><a href="#Ask, Describe, and Construct Queries">Ask, Describe, and Construct Queries</a></li>
+      <li><a href="#Ask, Describe, and Construct Queries">Select, Ask, Describe, and Construct Queries</a></li>
       <li><a href="#Parametric Queries">Parametric Queries</a></li>
       <li><a href="#Range Matches">Range Matches</a></li>
       <li><a href="#Federated Repositories">Federated Repositories</a></li>  
@@ -1076,32 +1076,38 @@ called the connection method <strong>registerFreeTextPredicate()</strong> to reg
 <p>This query returns two triples, but they are not quite the same as before:</p>
 <pre class="output">Substring match for 'lic'.<br>[s=http://example.org/people/alice1;p=http://example.org/people/fullname;o=&quot;Alice B. Toklas&quot;]<br>[s=http://example.org/people/book1;p=http://example.org/people/title;o=&quot;Alice in Wonderland&quot;]</pre>
 <p>As you can see, the regex match found &quot;lic&quot; in &quot;Alice in Wonderland,&quot; which was not a registered free-text predicate. It made this match by doing a string comparison against every object value in the triple store. Even though you can streamline the SPARQL query considerably by writing more restrictive patterns, this is still inherently less efficient than using the indexed approach. </p>
-<h2 id="Ask, Describe, and Construct Queries">Ask, Describe, and Construct Queries (example13())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
+<h2 id="Ask, Describe, and Construct Queries">Select, Ask, Describe, and Construct Queries (example13())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>SPARQL provides alternatives to the standard SELECT query. Example example13() exercises these alternatives to show how AllegroGraph Server handles them. </p>
+
 <ul>
-  <li>    SELECT: Returns all, or a subset of, the variables bound in a query pattern match. </li>
-  <li>CONSTRUCT: Returns an RDF graph constructed by substituting variables in a set of triple templates. </li>
-  <li>ASK: Returns a boolean indicating whether a query pattern matches or not. </li>
-  <li>DESCRIBE: Returns an RDF graph that describes the resources found. </li>
+  <li> SELECT: Returns variables bound in a query pattern match. </li>
+  <li>ASK: Returns a boolean indicating whether a query matches or not. </li>
+  <li>CONSTRUCT: Returns triples constructed by substituting variables in a set of triple templates. </li>
+  <li>DESCRIBE: Returns all of the triples of a matching resource. </li>
 </ul>
-<p>The example begins by borrowing a connection object from example2(). Then it registers two namespaces for use in the SPARQL queries:
-<pre class="input">    public static void example13 () throws Exception {<br>        RepositoryConnection conn = example2(false);<br>        conn.setNamespace(&quot;ex&quot;, &quot;http://example.org/people/&quot;);<br>        conn.setNamespace(&quot;ont&quot;, &quot;http://example.org/ontology/&quot;);</pre>
-<p>The example begins with an unconstrained SELECT query so we can see what triples are available for matching. </p>
-<pre class="input">        println(&quot;\nSELECT result:&quot;);<br>        String queryString = &quot;select ?s ?p ?o where { ?s ?p ?o} &quot;;<br>        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);<br>        TupleQueryResult result = tupleQuery.evaluate();<br>        while (result.hasNext()) {<br>            println(result.next());<br>        }<br>        result.close();</pre>
-The output for the SELECT query was four triples about Alice and Bob:
-<pre class="output">SELECT result:<br>[s=http://example.org/people/alice;p=http://example.org/ontology/name;o=&quot;Alice&quot;]<br>[s=http://example.org/people/alice;p=http://www.w3.org/1999/02/22-rdf-syntax-ns#type;o=http://example.org/ontology/Person]<br>[s=http://example.org/people/bob;p=http://www.w3.org/1999/02/22-rdf-syntax-ns#type;o=http://example.org/ontology/Person]<br>[s=http://example.org/people/bob;p=http://example.org/ontology/name;o=&quot;Bob&quot;]</pre>
-<p>The ASK query returns a Boolean, depending on whether the triple pattern matched any triples. In this case it looks for any ont:name triplecontaining the value &quot;Alice.&quot; Note that the ASK query uses a different construction method than the SELECT query:<strong> prepareBooleanQuery()</strong>. </p>
-<pre class="input">        queryString = &quot;ask { ?s ont:name \&quot;Alice\&quot; } &quot;;<br>        BooleanQuery booleanQuery = conn.prepareBooleanQuery(QueryLanguage.SPARQL, queryString);<br>        boolean truth = booleanQuery.evaluate(); <br>        println(&quot;\nBoolean result: &quot; + truth);</pre>
+<p>The example begins by borrowing a connection object from example6(). This connects to a repository that contains vcard and Kennedy data. We'll need to register a Kennedy namespace to make the queries easier to read. 
+<pre class="input">    public static void example13 () throws Exception {<br>        RepositoryConnection conn = example6();<br>        conn.setNamespace(&quot;kdy&quot;, &quot;http://www.franz.com/simple#&quot;);</pre>
+<p>As it happens, we don't need the vcard data this time, so we'll remove it. This is an example of how to delete an entire subgraph (the vcards &quot;context&quot;):</p>
+<pre class=input>        ValueFactory vf = conn.getValueFactory();<br>        URI context = vf.createURI(&quot;http://example.org#vcards&quot;);<br>        conn.remove((Resource)null, (URI)null, (Value)null, context);</pre>
+<p>The example begins with a SELECT query so we can see some of the Kennedy resources. </p>
+<pre class="input">        String queryString = &quot;select ?s where { ?s rdf:type kdy:person} limit 5&quot;;<br>        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);<br>        TupleQueryResult result = tupleQuery.evaluate();<br>        println(&quot;\nSELECT some persons:&quot;);<br>        while (result.hasNext()) {<br>            println(result.next());<br>        }</pre>
+Note that SELECT returns variable bindings. In this case it returns subject URIs of five people:
+<pre class="output">SELECT some persons:<br>[s=http://www.franz.com/simple#person1]<br>[s=http://www.franz.com/simple#person2]<br>[s=http://www.franz.com/simple#person3]<br>[s=http://www.franz.com/simple#person4]<br>[s=http://www.franz.com/simple#person5]</pre>
+<p>The ASK query returns a Boolean, depending on whether the triple pattern matched any triples. In this case we ran two tests; one seeking &quot;John&quot; and the other looking for &quot;Alice.&quot; Note that the ASK query uses a different construction method than the SELECT query:<strong> prepareBooleanQuery()</strong>. </p>
+<pre class="input">        queryString = &quot;ask { ?s kdy:first-name 'John' } &quot;;<br>        BooleanQuery booleanQuery = conn.prepareBooleanQuery(QueryLanguage.SPARQL, queryString);<br>        boolean truth = booleanQuery.evaluate(); <br>        println(&quot;\nASK: Is there anyone named John? &quot; + truth);<br>
+        queryString = &quot;ask { ?s kdy:first-name 'Alice' } &quot;;<br>        BooleanQuery booleanQuery2 = conn.prepareBooleanQuery(QueryLanguage.SPARQL, queryString);<br>        boolean truth2 = booleanQuery2.evaluate(); <br>        println(&quot;\nASK: Is there anyone named Alice? &quot; + truth2);</pre>
 <p>The output of this loop is:</p>
-<pre class="output">Boolean result: true</pre>
-<p>The CONSTRUCT query constructs a statement object out of the matching values in the triple pattern. A &quot;statement&quot; is a client-side triple. Construction queries use <strong>prepareGraphQuery()</strong>. The point is that the query can bind variables from existing triples and then &quot;construct&quot; a new triple by recombining the values. </p>
-<pre class="input">        queryString = &quot;construct {?s ?p ?o} where { ?s ?p ?o . filter (?o = \&quot;Alice\&quot;) } &quot;;<br>        GraphQuery constructQuery = conn.prepareGraphQuery(QueryLanguage.SPARQL, queryString);<br>        GraphQueryResult gresult = constructQuery.evaluate(); <br>        List statements = new ArrayList();<br>        while (gresult.hasNext()) {<br>            statements.add(gresult.next());<br>        }<br>        println(&quot;\nConstruct result:\n&quot; + statements);</pre>
-<p>The output of this loop is below. It has created a statement from values found in the repository. </p>
-<pre class="output">Construct result:<br>[(http://example.org/people/alice, http://example.org/ontology/name, &quot;Alice&quot;)]</pre>
-The DESCRIBE query returns a &quot;graph,&quot; meaning all triples of the matching resources.  It uses <strong>prepareGraphQuery()</strong>. 
-<pre class="input">        queryString = &quot;describe ?s where { ?s ?p ?o . filter (?o = \&quot;Alice\&quot;) } &quot;;<br>        GraphQuery describeQuery = conn.prepareGraphQuery(QueryLanguage.SPARQL, queryString);<br>        gresult = describeQuery.evaluate(); <br>        println(&quot;\nDescribe result:&quot;);<br>        while (gresult.hasNext()) {<br>            println(gresult.next());<br>        }<br>        gresult.close();<br>        conn.close();</pre>
-<p>The output of this loop is:</p>
-<pre class="output">Describe result:<br>(http://example.org/people/alice, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://example.org/ontology/Person)<br>(http://example.org/people/alice, http://example.org/ontology/name, &quot;Alice&quot;)</pre>
+<pre class="output">ASK: Is there anyone named John? true
+ASK: Is there anyone named Alice? false</pre>
+<p>The CONSTRUCT query contructs a statement object out of the matching values in the triple pattern. A &quot;statement&quot; is a client-side triple. Construction queries use <strong>prepareGraphQuery()</strong>. The point is that the query can bind variables from existing triples and then &quot;construct&quot; a<em> new triple</em> by recombining the values. This query constructs new triples using a <strong>kdy:has-grandchild</strong> predicate. </p>
+<pre class="input">        queryString = &quot;construct {?a kdy:has-grandchild ?c}&quot; + <br>	                  &quot;    where { ?a kdy:has-child ?b . &quot; +<br>	                  &quot;            ?b kdy:has-child ?c . }&quot;;<br>        GraphQuery constructQuery = conn.prepareGraphQuery(QueryLanguage.SPARQL, queryString);<br>        GraphQueryResult gresult = constructQuery.evaluate(); ; </pre>
+<p>The CONSTRUCT query does not actually add the new triples to the store. You have to iterate through the results and add them yourself: </p>
+<pre class="input">        while (gresult.hasNext()) {<br>            conn.add(gresult.next());  // adding new triples to the store<br>        }</pre>
+<p>The DESCRIBE query returns a &quot;graph,&quot; meaning all triples of the matching resources. It uses <strong>prepareGraphQuery()</strong>. In this case we asked SPARQL to describe one grandparent and one grandchild. (This confirms that the kdy:has-grandchild triples successfully entered the triple store.) </p>
+<pre class="input">        queryString = &quot;describe ?s ?o where { ?s kdy:has-grandchild ?o . } limit 1&quot;;<br>        GraphQuery describeQuery = conn.prepareGraphQuery(QueryLanguage.SPARQL, queryString);<br>        gresult = describeQuery.evaluate(); <br>        println(&quot;\nDescribe one grandparent and one grandchild:&quot;);<br>        while (gresult.hasNext()) {<br>            println(gresult.next());<br>        }</pre>
+<p>The output of this loop is lengthy, because the Kennedy resources have many triples. One block of triples looked like this, showing the new has-grandchild triples: </p>
+<pre class="output">(http://www.franz.com/simple#person1, http://www.franz.com/simple#has-grandchild, http://www.franz.com/simple#person20)<br>(http://www.franz.com/simple#person1, http://www.franz.com/simple#has-grandchild, http://www.franz.com/simple#person22)<br>(http://www.franz.com/simple#person1, http://www.franz.com/simple#has-grandchild, http://www.franz.com/simple#person24)<br>(http://www.franz.com/simple#person1, http://www.franz.com/simple#has-grandchild, http://www.franz.com/simple#person25)<br>(http://www.franz.com/simple#person1, http://www.franz.com/simple#has-grandchild, http://www.franz.com/simple#person26)<br>
+</pre>
 <h2 id="Parametric Queries">Parametric Queries (example14())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
  <p>The Java API to AllegroGraph Server lets you set up a SPARQL query and then fix the value of one of the query variables prior to matching the triples. This is more efficient than testing for the same value in the body of the query. </p>
  <p>In <strong>example14()</strong> we set up two-triple resources for Bob and Alice, and then use an unconstrained SPARQL query to retrieve the triples. Normally this query would find all four triples, but by binding the subject value ahead of time, we can retrieve the &quot;Bob&quot; triples separately from the &quot;Alice&quot; triples.</p>
@@ -1794,6 +1800,6 @@ Did not add new triple.</pre>
 <p>Federation changes the semantics of &quot;duplicate triples.&quot; Be sure to take this into account in your project design. </p>
 
 
-<p><font color="#CCCCCC">June 8, 2010 4.0.4 release</font></p>
+<p><font color="#CCCCCC">July 7, 2010 AG 4.1</font></p>
 </body>
 </html>

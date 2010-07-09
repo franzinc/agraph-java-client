@@ -38,7 +38,7 @@ creating, querying and maintaining RDF data, and for managing the stored triples
 	  <li><a href="#Exporting Triples">Exporting Triples</a></li>      
       <li><a href="#Namespaces">Namespaces</a></li>
       <!--<li><a href="#Free Text Search">Free Text Search</a></li> -->
-      <li><a href="#Ask, Describe, and Construct Queries">Ask, Describe, and Construct Queries</a></li>
+      <li><a href="#Ask, Describe, and Construct Queries">Select, Ask, Describe, and Construct Queries</a></li>
       <!--<li><a href="#Parametric Queries">Parametric Queries</a></li>
       <li><a href="#Range Matches">Range Matches</a></li>
       <li><a href="#Federated Repositories">Federated Repositories</a></li>  
@@ -546,162 +546,37 @@ called the connection method <strong>registerFreeTextPredicate()</strong> to reg
 <pre class="output">Substring match for 'lic'.<br>[s=http://example.org/people/alice1;p=http://example.org/people/fullname;o=&quot;Alice B. Toklas&quot;]<br>[s=http://example.org/people/book1;p=http://example.org/people/title;o=&quot;Alice in Wonderland&quot;]</pre>
 <p>As you can see, the regex match found &quot;lic&quot; in &quot;Alice in Wonderland,&quot; which was not a registered free-text predicate. It made this match by doing a string comparison against every object value in the triple store. Even though you can streamline the SPARQL query considerably by writing more restrictive patterns, this is still inherently less efficient than using the indexed approach. </p>
 -->
-<h2 id="Ask, Describe, and Construct Queries">Ask, Describe, and Construct Queries (example13())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
-<p>SPARQL provides alternatives to the standard SELECT query. Example13() exercises these alternatives to show how AllegroGraph Server handles them. </p>
+<h2 id="Ask, Describe, and Construct Queries">Select, Ask, Describe, and Construct Queries (example13())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
+<p>SPARQL provides alternatives to the standard SELECT query. Example example13() exercises these alternatives to show how AllegroGraph Server handles them using the Jena API. </p>
 <ul>
-  <li>    SELECT: Returns all, or a subset of, the variables bound in a query pattern match. </li>
-  <li>CONSTRUCT: Returns an RDF graph constructed by substituting variables in a set of triple templates. </li>
-  <li>ASK: Returns a boolean indicating whether a query pattern matches or not. </li>
-  <li>DESCRIBE: Returns an RDF graph that describes all the attributes of the resources that matched the query. </li>
+  <li> SELECT: Returns variables bound in a query pattern match. </li>
+  <li>ASK: Returns a boolean indicating whether a query matches or not. </li>
+  <li>CONSTRUCT: Returns triples constructed by substituting variables in a set of triple templates. </li>
+  <li>DESCRIBE: Returns all of the triples of a matching resource. </li>
 </ul>
-<p>The example begins by borrowing a<strong> model</strong> object from example2(). Then it registers two namespaces for use in the SPARQL queries:
-<pre class="input">	public static void example13() throws Exception {<br>		AGModel model = example2(false);<br>		model.setNsPrefix(&quot;ex&quot;, &quot;http://example.org/people/&quot;);<br>		model.setNsPrefix(&quot;ont&quot;, &quot;http://example.org/ontology/&quot;);</pre>
-<p>The example begins with an unconstrained SELECT query so we can see what triples are available for matching. Note that we use the AGQueryExecutionFactory's <strong>execSelect()</strong> method to evaluate the query: </p>
-<pre class="input">		println(&quot;\nSELECT result:&quot;);<br>		String queryString = &quot;select ?s ?p ?o where { ?s ?p ?o} &quot;;<br>        AGQuery query = AGQueryFactory.create(queryString);<br>        QueryExecution qe = AGQueryExecutionFactory.create(query, model);<br>		try {<br>			ResultSet results = qe.execSelect();<br>			while (results.hasNext()) {<br>				println(results.next());<br>			}<br>		} finally {<br>			qe.close();<br>		}</pre>
-The output for the SELECT query was four triples about Alice and Bob:
-<pre class="output">SELECT result:<br>[s=http://example.org/people/alice;p=http://example.org/ontology/name;o=&quot;Alice&quot;]<br>[s=http://example.org/people/alice;p=http://www.w3.org/1999/02/22-rdf-syntax-ns#type;o=http://example.org/ontology/Person]<br>[s=http://example.org/people/bob;p=http://www.w3.org/1999/02/22-rdf-syntax-ns#type;o=http://example.org/ontology/Person]<br>[s=http://example.org/people/bob;p=http://example.org/ontology/name;o=&quot;Bob&quot;]</pre>
-<p>The ASK query returns a Boolean, depending on whether the triple pattern matched any triples. In this case it looks for any ont:name triplecontaining the value &quot;Alice.&quot; Note that the ASK query is evaluated by <strong>execAsk()</strong> . </p>
-<pre class="input">		queryString = &quot;ask { ?s ont:name \&quot;Alice\&quot; } &quot;;<br>        query = AGQueryFactory.create(queryString);<br>        qe = AGQueryExecutionFactory.create(query, model);<br>		try {<br>			println(&quot;\nBoolean result: &quot; + qe.execAsk());<br>		} finally {<br>			qe.close();<br>		}</pre>
-<p>The output of this query is:</p>
-<pre class="output">Boolean result: true</pre>
-<p>The CONSTRUCT query actually creates a new model and &quot;contructs&quot; triples out of the matching values in the triple pattern. Construction queries use <strong>execConstruct()</strong>. The point is that the query can bind variables from existing triples and then &quot;construct&quot; a new triple by recombining the values. </p>
-<pre class="input">		queryString = &quot;construct {?s ?p ?o} where { ?s ?p ?o . filter (?o = \&quot;Alice\&quot;) } &quot;;<br>        query = AGQueryFactory.create(queryString);<br>        qe = AGQueryExecutionFactory.create(query, model);<br>		try {<br>			Model m = qe.execConstruct();<br>			println(&quot;\nConstruct result:&quot;);<br>			m.write(System.out);<br>		} finally {<br>			qe.close();<br>		}</pre>
-<p>The output of this loop is below. It has created a resource description from values found in the repository. </p>
-<pre class="output">Construct result:<br>&lt;rdf:RDF<br>    xmlns:rdf=&quot;http://www.w3.org/1999/02/22-rdf-syntax-ns#&quot;<br>    xmlns:j.0=&quot;http://example.org/ontology/&quot; &gt; <br>  &lt;rdf:Description rdf:about=&quot;http://example.org/people/alice&quot;&gt;<br>    &lt;j.0:name&gt;Alice&lt;/j.0:name&gt;<br>  &lt;/rdf:Description&gt;<br>&lt;/rdf:RDF&gt;</pre>
-The DESCRIBE query returns a &quot;graph,&quot; meaning all triples of the matching resources.  It uses <strong>execDescribe()</strong>. 
-<pre class="input">		queryString = &quot;describe ?s where { ?s ?p ?o . filter (?o = \&quot;Alice\&quot;) } &quot;;<br>        query = AGQueryFactory.create(queryString);<br>        qe = AGQueryExecutionFactory.create(query, model);<br>		try {<br>			Model m = qe.execDescribe();<br>			println(&quot;\nDescribe result:&quot;);<br>			m.write(System.out);<br>		} finally {<br>			qe.close();<br>		}</pre>
+<p>The example begins by borrowing an AGGraphMaker object from example6(). From the maker object we can generate an AGModel object. This connects to an existing repository that contains vcard and Kennedy data. We'll need to register a Kennedy namespace to make the queries easier to read. 
+<pre class="input">	public static void example13() throws Exception {<br>		AGGraphMaker maker = example6();<br>		AGModel model = new AGModel(maker.getGraph());<br>		model.setNsPrefix(&quot;kdy&quot;, &quot;http://www.franz.com/simple#&quot;);</pre>
+<p>As it happens, we don't need the vcard data this time, so we'll remove it. This is an example of how to delete an entire subgraph (the vcards &quot;context&quot;) using Jena:</p>
+<pre class=input>		maker.removeGraph(&quot;http://example.org#vcards&quot;);</pre>
+<p>The example begins with a SELECT query so we can see some of the Kennedy resources. Note the use of the <strong>qe.exectSelect()</strong> method to evaluate the query. </p>
+<pre class="input">        String queryString = &quot;select ?s where { ?s rdf:type kdy:person} limit 5&quot;;<br>        AGQuery query = AGQueryFactory.create(queryString);<br>        QueryExecution qe = AGQueryExecutionFactory.create(query, model);<br>        println(&quot;\nSELECT some persons:&quot;);        <br>		try {<br>			ResultSet results = <strong>qe.execSelect();</strong><br>			while (results.hasNext()) {<br>				println(results.next());<br>			}<br>		} finally {<br>			qe.close();<br>		}</pre>
+Note that SELECT returns variable bindings. In this case it returns subject URIs of five people:
+<pre class="output">SELECT some persons:<br>[s=http://www.franz.com/simple#person1]<br>[s=http://www.franz.com/simple#person2]<br>[s=http://www.franz.com/simple#person3]<br>[s=http://www.franz.com/simple#person4]<br>[s=http://www.franz.com/simple#person5]</pre>
+<p>The ASK query returns a Boolean, depending on whether the triple pattern matched any triples. In this case we ran two tests; one seeking &quot;John&quot; and the other looking for &quot;Alice.&quot; Note that the ASK query uses a different construction method than the SELECT query:<strong> qe.execAsk()</strong>. </p>
+<pre class="input">        queryString = &quot;ask { ?s kdy:first-name 'John' } &quot;;<br>        query = AGQueryFactory.create(queryString);<br>        qe = AGQueryExecutionFactory.create(query, model);<br>		try {<br>			println(&quot;\nASK: Is there anyone named John? &quot; + <strong>qe.execAsk()</strong>);<br>		} finally {<br>			qe.close();<br>		}
+<br>        queryString = &quot;ask { ?s kdy:first-name 'Alice' } &quot;;<br>        query = AGQueryFactory.create(queryString);<br>        qe = AGQueryExecutionFactory.create(query, model);<br>		try {<br>			println(&quot;\nASK: Is there anyone named Alice? &quot; + <strong>qe.execAsk()</strong>);<br>		} finally {<br>			qe.close();<br>		}</pre>
 <p>The output of this loop is:</p>
-<pre class="output">Describe result:<br>&lt;rdf:RDF<br>    xmlns:rdf=&quot;http://www.w3.org/1999/02/22-rdf-syntax-ns#&quot;<br>    xmlns:j.0=&quot;http://example.org/ontology/&quot; &gt; <br>  &lt;rdf:Description rdf:about=&quot;http://example.org/people/alice&quot;&gt;<br>    &lt;j.0:name&gt;Alice&lt;/j.0:name&gt;<br>    &lt;rdf:type rdf:resource=&quot;http://example.org/ontology/Person&quot;/&gt;<br>  &lt;/rdf:Description&gt;<br>&lt;/rdf:RDF&gt;</pre>
-<!--
-<h2 id="Parametric Queries">Parametric Queries (example14())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
- <p>The Java API to AllegroGraph Server lets you set up a SPARQL query and then fix the value of one of the query variables prior to matching the triples. This is more efficient than testing for the same value in the body of the query. </p>
- <p>In <strong>example14()</strong> we set up two-triple resources for Bob and Alice, and then use an unconstrained SPARQL query to retrieve the triples. Normally this query would find all four triples, but by binding the subject value ahead of time, we can retrieve the &quot;Bob&quot; triples separately from the &quot;Alice&quot; triples.</p>
- <p>The example begins by borrowing a connection object from example2(). This means there are already Bob and Alice resources in the repository. We do need to recreate the URIs for the two resources, however. </p>
- <pre class="input">    public static void example14() throws Exception {<br>        RepositoryConnection conn = example2(false);<br>        ValueFactory f = conn.getValueFactory();<br>        URI alice = f.createURI(&quot;http://example.org/people/alice&quot;);<br>        URI bob = f.createURI(&quot;http://example.org/people/bob&quot;);</pre>
-<p>The SPARQL query is the simple, unconstrained query that returns all triples. We use <strong>prepareTupleQuery()</strong> to create the query object. </p>
-<pre class="input">        String queryString = &quot;select ?s ?p ?o where { ?s ?p ?o} &quot;;<br>        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);</pre>
-<p>Before evaluating the query, however, we'll use the query object's <strong>setBinding()</strong> method to assign Alice's URI to the &quot;s&quot; variable in the query. This means that all matching triples are required to have Alice's URI in the subject position of the triple. </p>
-<pre class="input">        tupleQuery.setBinding(&quot;s&quot;, alice);<br>        TupleQueryResult result = tupleQuery.evaluate();<br>        println(&quot;\nFacts about Alice:&quot;);            <br>        while (result.hasNext()) {<br>            println(result.next());<br>        }<br>        result.close();</pre>
-<p>The output of this loop consists of all triples that describe Alice:</p>
-<pre class="output">Facts about Alice:<br>[s=http://example.org/people/alice;p=http://www.w3.org/1999/02/22-rdf-syntax-ns#type;o=http://example.org/ontology/Person]<br>[s=http://example.org/people/alice;p=http://example.org/ontology/name;o=&quot;Alice&quot;]</pre>
-<p>Now we'll run the same query again, but this time we'll constrain &quot;s&quot; to be Bob's URI. The query will return all triples that describe Bob. </p>
-<pre class="input">        tupleQuery.setBinding(&quot;s&quot;, bob);<br>        println(&quot;\nFacts about Bob:&quot;);    <br>        result = tupleQuery.evaluate();<br>        while (result.hasNext()) {<br>            println(result.next());<br>        }<br>        result.close();<br>        conn.close();</pre>
- The output of this loop is:
- <pre class="output">Facts about Bob:<br>[s=http://example.org/people/bob;p=http://example.org/ontology/name;o=&quot;Bob&quot;]<br>[s=http://example.org/people/bob;p=http://www.w3.org/1999/02/22-rdf-syntax-ns#type;o=http://example.org/ontology/Person]</pre>
- <h2 id="Range Matches">Range Matches (example15())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
- <p>Example example15() demonstrates how to set up a query that matches a range of values. In this case, we'll retrieve all people between 30 and 50 years old (inclusive). We can accomplish this using a SPARQL query to take advantage of AllegroGraph's automatic typing of literal values. </p>
- <p>This example begins by getting a connection object from example1(), and then clearing the repository of the existing triples. </p>
- <pre class="input">    public static void example15() throws Exception {<br>        println(&quot;Starting example example15().&quot;);<br>        AGRepositoryConnection conn = example1(false);<br>        ValueFactory f = conn.getValueFactory();<br>        conn.clear();</pre>
-<p>Then we register a namespace to use in the query. </p>
-<pre class="input">        String exns = &quot;http://example.org/people/&quot;;<br>        conn.setNamespace(&quot;ex&quot;, exns);</pre>
-<p>Next we need to set up the URIs for Alice, Bob, Carol and the predicate &quot;age&quot;. </p>
-<pre class="input">        URI alice = f.createURI(exns, &quot;alice&quot;);<br>        URI bob = f.createURI(exns, &quot;bob&quot;);<br>        URI carol = f.createURI(exns, &quot;carol&quot;);    <br>        URI age = f.createURI(exns, &quot;age&quot;);    </pre>
-<p>The next step is to create age triples for the three people. Notice that the values are inconsistent. One is an integer; one is a float; and one is a number in a string. Good programming would require more consistency here, but real-world data often breaks the rules. </p>
-<pre class="input">        conn.add(alice, age, f.createLiteral(42));<br>        conn.add(bob, age, f.createLiteral(45.1));<br>        conn.add(carol, age, f.createLiteral(&quot;39&quot;));</pre>
-<p>AllegroGraph's internal datatype mapping automatically transforms 42 into an XMLSchema#int, and 45.1 into an XMLSchema#double. The string, however, is treated as a literal string value. </p>
-<p>The next step is to use SPARQL to retrieve all triples where the age value is between 30 and 50. Note that the literal numbers 30 and 50 are converted internally to integers, but the test also permits floats (doubles) to match, too. </p>
-<pre class="input">        println(&quot;\nRange query for integers and floats.&quot;);<br>        String queryString = <br>        	&quot;SELECT ?s ?p ?o  &quot; +<br>        	&quot;WHERE { ?s ?p ?o . &quot; +<br>        	&quot;FILTER ((?o &gt;= 30) &amp;&amp; (?o &lt;= 50)) }&quot;;<br>        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);<br>        TupleQueryResult result = tupleQuery.evaluate();</pre>
-<p>The result object contains:</p>
-<pre class="output">Range query for integers and floats.<br>http://example.org/people/alice http://example.org/people/age &quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#int&gt;<br>http://example.org/people/bob http://example.org/people/age &quot;45.1&quot;^^&lt;http://www.w3.org/2001/XMLSchema#double&gt;</pre>
-<p>It has matched 42 and 45.1, but not &quot;39&quot;. </p>
-<p>What if we want to pick up the odd values that were created as strings? SPARQL lets us cast the triple's object value as an integer before making the test. That query looks like this:</p>
-<pre class="input">         String queryString = 
-         &quot;PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt; &quot; +
-         &quot;SELECT ?s ?p ?o &quot; +
-         &quot;WHERE { ?s ?p ?o . &quot; +
-         &quot;FILTER ((xsd:integer(?o) &gt;= 30) &amp;&amp; (xsd:integer(?o) &lt;= 50)) }&quot;;</pre>
-
-<p>Note that we had to add a PREFIX line to accommodate the xsd: namespace. The <strong>xsd:integer(?o)</strong> element takes the current object value and attempts to coerce it to be an integer. If successful, the test goes forward.</p>
-<p>The output of this query is:</p>
-<pre class="output">Range query for integers, floats, and integers in strings.
-http://example.org/people/alice http://example.org/people/age &quot;42&quot;^^&lt;http://www.w3.org/2001/XMLSchema#int&gt;
-http://example.org/people/bob http://example.org/people/age &quot;45.1&quot;^^&lt;http://www.w3.org/2001/XMLSchema#double&gt;
-http://example.org/people/carol http://example.org/people/age &quot;39&quot;  </pre>
-<p>This query picked up integer, double, and string values. </p>
-<h2 id="Federated Repositories">Federated Repositories (example16())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
-<p>AllegroGraph lets you split up your triples among repositories on multiple servers and then search them all in parallel. To do this we query a single &quot;federated&quot; repository that automatically distributes the queries to the secondary repositories and combines the results. From the point of view of your Python code, it looks like you are working with a single repository. </p>
-<p>This example begins by defining a small output function that we'll use at the end of the lesson. It prints out responses from different repositories. This example is about red apples and green apples, so the output function talks about apples. </p>
-<pre class="input">    private static void pt(String kind, TupleQueryResult rows) throws Exception {<br>        println(&quot;\n&quot; + kind + &quot; Apples:\t&quot;);<br>        while (rows.hasNext()) {<br>            println(rows.next());<br>        }<br>        rows.close();<br>    }</pre>
-<p>In example16(), we open connections to a redRepository and a greenRepository on the local server. In a typical federation scenario, these respositories would be distributed across multiple servers. We begin with the connection object from example6(), and then climb the object tree to obtain its catalog. </p>
-<pre class="input">    public static void example16() throws Exception {<br>        AGRepositoryConnection conn = example6(false);<br>        AGRepository myRepository = conn.getRepository();<br>        AGCatalog catalog = myRepository.getCatalog();</pre>
-<p>The next few lines establish a &quot;red&quot; repository in the catalog. </p>
-<pre class="input">        AGRepository redRepo = catalog.createRepository(&quot;redthings&quot;);<br>        redRepo.initialize();<br>        RepositoryConnection redConn = redRepo.getConnection();
-		closeBeforeExit(redConn);<br>        redConn.clear();<br>        ValueFactory rf = redConn.getValueFactory();</pre>
-<p>Followed by a &quot;green&quot; repository. </p>
-<pre class="input">        AGRepository greenRepo = catalog.createRepository(&quot;greenthings&quot;);<br>        greenRepo.initialize();<br>        RepositoryConnection greenConn = greenRepo.getConnection();
-		closeBeforeExit(greenConn);<br>        greenConn.clear();<br>        ValueFactory gf = greenConn.getValueFactory();</pre>
-<p>Now we create a &quot;federated&quot; respository, which is connected to the distributed repositories at the back end. First we have to obtain the server object because the server supplies the <strong>createFederation() </strong>method. </p>
-<pre class="input">
-        AGServer server = myRepository.getCatalog().getServer();<br>        AGRepository rainbowRepo = server.createFederation(&quot;rainbowthings&quot;,redRepo, greenRepo);<br>        rainbowRepo.initialize();<br>        RepositoryConnection rainbowConn = rainbowRepo.getConnection();
-		closeBeforeExit(rainbowConn);</pre>
-<p>The next step is to populate the Red and Green repositories with a few triples. Notice that we have two red apples, a green apple, and a famous frog. </p>
-<pre class="input">        String ex = &quot;http://www.demo.com/example#&quot;;<br>        // add a few triples to the red and green stores:<br>        redConn.add(rf.createURI(ex+&quot;mcintosh&quot;), RDF.TYPE, rf.createURI(ex+&quot;Apple&quot;));<br>        redConn.add(rf.createURI(ex+&quot;reddelicious&quot;), RDF.TYPE, rf.createURI(ex+&quot;Apple&quot;));    <br>        greenConn.add(gf.createURI(ex+&quot;pippin&quot;), RDF.TYPE, gf.createURI(ex+&quot;Apple&quot;));<br>        greenConn.add(gf.createURI(ex+&quot;kermitthefrog&quot;), RDF.TYPE, gf.createURI(ex+&quot;Frog&quot;));</pre>
-<p>It is necessary to register the &quot;ex&quot; namespace in all three repositories so we can use it in the upcoming query. </p>
-<pre class="input">        redConn.setNamespace(&quot;ex&quot;, ex);<br>        greenConn.setNamespace(&quot;ex&quot;, ex);<br>        rainbowConn.setNamespace(&quot;ex&quot;, ex);</pre>
-<p>Now we write a query that retrieves Apples from the Red repository, the Green repository, and the federated repository, and prints out the results. </p>
-<pre class="input">        String queryString = &quot;select ?s where { ?s rdf:type ex:Apple }&quot;;<br>        // query each of the stores; observe that the federated one is the union of the other two:<br>        pt(&quot;red&quot;, redConn.prepareTupleQuery(QueryLanguage.SPARQL, queryString).evaluate());<br>        pt(&quot;green&quot;, greenConn.prepareTupleQuery(QueryLanguage.SPARQL, queryString).evaluate());<br>        pt(&quot;federated&quot;, rainbowConn.prepareTupleQuery(QueryLanguage.SPARQL, queryString).evaluate());<br>    }</pre>
-<p>The output is shown below. The federated response combines the individual responses. (There are no frogs.) </p>
-<pre class="output">Red Apples:	<br>[s=http://www.demo.com/example#reddelicious]<br>[s=http://www.demo.com/example#mcintosh]<br>
-Green Apples: <br>[s=http://www.demo.com/example#pippin]<br>
-Federated Apples: <br>[s=http://www.demo.com/example#reddelicious]<br>[s=http://www.demo.com/example#mcintosh]<br>[s=http://www.demo.com/example#pippin]</pre>
-<h2 id="Prolog Rule Queries">Prolog Rule Queries (example17())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
-<p>AllegroGraph Server lets us load Prolog backward-chaining rules to make query-writing simpler.&nbsp; The Prolog rules let us write the queries in terms of higher-level concepts.&nbsp; When a query refers to one of these concepts, Prolog rules become active in the background to determine if the concept is valid in the current context.&nbsp; </p>
-<p>For instance, in this example the query says that the matching resource must be a &quot;man&quot;.&nbsp; A Prolog rule examines the matching resources to see which of them are persons who are male.&nbsp; The query can proceed for those resources. The rules provide a level of abstraction that makes the queries simpler to express. </p>
-<p>The example17() example begins by borrowing a connection object from example example6(), which contains the Kennedy family tree.&nbsp; Note that example6() creates a <a href="#Transaction">transaction session</a> for the rules to operate in, using the Connection object's <strong>openDedicated()</strong> method. Java rules cannot be loaded into the AllegroGraph common back end. </p>
-<pre class="input">        conn.openSession(); # in example6()</pre>
-<p>This converts the connection to a &quot;dedicated&quot; session. After that step, all of the code is exactly the same as when using the common back end.</p>
-<pre class="input">    public static void example17() throws Exception {<br>        AGRepositoryConnection conn = example6(false);</pre>
-<p>We will need the same namespace as we used in the Kennedy example. </p>
-<pre class="input">        conn.setNamespace(&quot;kdy&quot;, &quot;http://www.franz.com/simple#&quot;);</pre>
-<p>These are the &quot;man&quot; and &quot;woman&quot; rules.&nbsp; A resource represents a &quot;woman&quot; if the resource contains a sex = female triple and an rdf:type = person triple.&nbsp; A similar deduction identifies a &quot;man&quot;.&nbsp; The &quot;q&quot; at the beginning of each pattern simply stands for &quot;query&quot; and introduces a triple pattern. </p>
-<pre class="input">        String rules1 =<br>            &quot;(&lt;-- (woman ?person) ;; IF\n&quot; +<br>            &quot;     (q ?person !kdy:sex !kdy:female)\n&quot; +<br>            &quot;     (q ?person !rdf:type !kdy:person))\n&quot; +<br>            &quot;(&lt;-- (man ?person) ;; IF\n&quot; +<br>            &quot;     (q ?person !kdy:sex !kdy:male)\n&quot; +<br>            &quot;     (q ?person !rdf:type !kdy:person))&quot;;</pre>
-<p>The rules must be explicitly added to the connection. </p>
-<pre class="input">        conn.addRules(rules1);
-</pre>
-<p>This is the query.&nbsp; This query locates all the &quot;man&quot; resources, and retrieves their first and last names. </p>
-<pre class="input">        String queryString =<br>            &quot;(select (?first ?last)\n&quot; +<br>            &quot;        (man ?person)\n&quot; +<br>            &quot;        (q ?person !kdy:first-name ?first)\n&quot; +<br>            &quot;        (q ?person !kdy:last-name ?last))&quot;;</pre>
-<p>Here we perform the query and retrieve the result object.&nbsp; </p>
-<pre class="input">        TupleQuery tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);<br>        TupleQueryResult result = tupleQuery.evaluate();</pre>
-<p>The result object contains multiple bindingSets.&nbsp; We can iterate over them to print out the values. </p>
-<pre class="input">        while (result.hasNext()) {<br>            BindingSet bindingSet = result.next();<br>            Value f = bindingSet.getValue(&quot;first&quot;);<br>            Value l = bindingSet.getValue(&quot;last&quot;);<br>            println(f + &quot; &quot; + l);<br>        }<br>        result.close();</pre>
-<p>The output contains many names; there are just a few of them. </p>
-<pre class="output">&quot;Robert&quot; &quot;Kennedy&quot;<br>&quot;Alfred&quot; &quot;Tucker&quot;<br>&quot;Arnold&quot; &quot;Schwarzenegger&quot;<br>&quot;Paul&quot; &quot;Hill&quot;<br>&quot;John&quot; &quot;Kennedy&quot;</pre>
-<p>&nbsp;</p>
-
-<h2 id="Loading Prolog Rules">Loading Prolog Rules (example18())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
-<p>Example <strong>example18()</strong> demonstrates how to load a file of Prolog rules into the Java API of AllegroGraph Server.&nbsp; It also demonstrates how robust a rule-augmented system can become.&nbsp; The domain is the Kennedy family tree again, borrowed from example6().&nbsp; After loading a file of rules (<strong>relative_rules.txt</strong>), we'll pose a simple query.&nbsp; The query asks AllegroGraph to list all the uncles in the family tree, along with each of their nieces or nephews.&nbsp; This is the query:</p>
-<pre class="input">(select (?person ?uncle) &quot; +<br>	&quot;(uncle ?y ?x)&quot; +<br>	&quot;(name ?x ?person)&quot; +<br>	&quot;(name ?y ?uncle))&quot;;</pre>
-<p>The problem is that the triple store contains no information about uncles.&nbsp; The rules will have to deduce this relationship by finding paths across the RDF graph.</p>
-<p>What's an &quot;uncle,&quot; then?&nbsp; Here's a rule that can recognize uncles:</p>
-<pre class="input">(&lt;-- (uncle ?uncle ?child) <br>    (man ?uncle)<br>    (parent ?grandparent ?uncle)<br>    (parent ?grandparent ?siblingOfUncle)<br>    (not (= ?uncle ?siblingOfUncle))<br>    (parent ?siblingOfUncle ?child))</pre>
-<p>The rule says that an &quot;uncle&quot; is a &quot;man&quot; who has a sibling who is the &quot;parent&quot; of a child.&nbsp; (Rules like this always check to be sure that the two nominated siblings are not the same resource.) Note that none of these relationships directly match triples in the repository. They all deal in higher-order concepts. We'll need additional rules to determine what a &quot;man&quot; is, and what a &quot;parent&quot; is.</p>
-<p>What is a &quot;parent?&quot; It turns out that there are two ways to be classified as a parent:</p>
-<pre class="input">(&lt;-- (parent ?father ?child)<br>    (father ?father ?child))
-
-(&lt;-- (parent ?mother ?child)<br>    (mother ?mother ?child))</pre>
-<p>A person is a &quot;parent&quot; if a person is a &quot;father.&quot;&nbsp; Similarly, a person is a &quot;parent&quot; if a person is a &quot;mother.&quot; </p>
-<p>What's a &quot;father?&quot;</p>
-<pre class="input">(&lt;-- (father ?parent ?child)<br>    (man ?parent)<br>    (q ?parent !rltv:has-child ?child))</pre>
-<p>A person is a &quot;father&quot; if the person is &quot;man&quot; and has a child. &nbsp; The final pattern (starting with &quot;q&quot;) is a triple match from the Kennedy family tree.</p>
-<p>What's a &quot;man?&quot;</p>
-<pre class="input">(&lt;-- (man ?person)<br>    (q ?person !rltv:sex !rltv:male)<br>    (q ?person !rdf:type !rltv:person))</pre>
-<p>A &quot;man&quot; is a person who is male.&nbsp; These patterns both match triples in the repository.&nbsp; </p>
-<p>The<strong> relative_rules.txt</strong> file contains many more Prolog rules describing relationships, including transitive relationships like &quot;ancestor&quot; and &quot;descendant.&quot; Please examine this file for more ideas about how to use rules with AllegroGraph. </p>
-<p>The <strong>example18()</strong> example begins by borrowing a connection object from example6(), which means the Kennedy family tree is already loaded into the repository, and we are dealing with a <a href="#Transaction">transaction session</a>. &nbsp; </p>
-<pre class="input">    public static void example18() throws Exception {<br>        AGRepositoryConnection conn = example6(false);</pre>
-<p>We need these two namespaces because they are used in the query and in the file of rules. </p>
-<pre class="input">        conn.setNamespace(&quot;kdy&quot;, &quot;http://www.franz.com/simple#&quot;);<br>        conn.setNamespace(&quot;rltv&quot;, &quot;http://www.franz.com/simple#&quot;);</pre>
-<p>The next step is to load the rule file. Note that you might have to edit the file path, depending on your platform and installation. </p>
-<pre class="input">        String path = &quot;src/relative_rules.txt&quot;;<br>        conn.addRules(new FileInputStream(path));</pre>
-<p>The query asks for the full name of each uncle and each niece/nephew.&nbsp; (The (name ?x ?fullname) relationship used in the query is provided by yet another Prolog rule, which concatenates a person's first and last names into a single string.) </p>
-<pre class="input">        String queryString = <br>        	&quot;(select (?person ?uncle) &quot; +<br>        		&quot;(uncle ?y ?x)&quot; +<br>        		&quot;(name ?x ?person)&quot; +<br>        		&quot;(name ?y ?uncle))&quot;;</pre>
-<p>Here we execute the query and display the results:</p>
-<pre class="input">        TupleQuery tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);<br>        TupleQueryResult result = tupleQuery.evaluate();     <br>        while (result.hasNext()) {<br>            BindingSet bindingSet = result.next();<br>            Value p = bindingSet.getValue(&quot;person&quot;);<br>            Value u = bindingSet.getValue(&quot;uncle&quot;);<br>            println(u + &quot; is the uncle of &quot; + p);<br>        }</pre>
-<p>The output of this loop (in part) looks like this:
-<pre class="output">&quot;{Edward} {Kennedy}&quot; is the uncle of &quot;{Robin} {Lawford}&quot;<br>&quot;{Edward} {Kennedy}&quot; is the uncle of &quot;{Stephen} {Smith}&quot;<br>&quot;{Edward} {Kennedy}&quot; is the uncle of &quot;{William} {Smith}&quot;<br>&quot;{Edward} {Kennedy}&quot; is the uncle of &quot;{Amanda} {Smith}&quot;<br>&quot;{Edward} {Kennedy}&quot; is the uncle of &quot;{Kym} {Smith}&quot;</pre>
-<p>As before, it is good form to free the connection and the result object when you are finished with them.</p>
-<pre class="input">        result.close();<br>        conn.close();</pre>
--->
+<pre class="output">ASK: Is there anyone named John? true
+ASK: Is there anyone named Alice? false</pre>
+<p>The CONSTRUCT query contructs new triples out of the matching values in the query. The point is that the query can bind variables from existing triples and then &quot;construct&quot; <em>new triples</em> by recombining the values. This query constructs new triples that use the <strong>kdy:has-grandchild</strong> predicate. </p>
+<pre class="input">        queryString = &quot;construct {?a kdy:has-grandchild ?c}&quot; + <br>        &quot;    where { ?a kdy:has-child ?b . &quot; +<br>        &quot;            ?b kdy:has-child ?c . }&quot;;<br>        query = AGQueryFactory.create(queryString);<br>        qe = AGQueryExecutionFactory.create(query, model);<br>		try {<br>			Model m = qe.execConstruct();</pre>
+<p>Note that the CONSTRUCT query <strong>qe.execConstruct()</strong>, which returns a new model object. This model contains new triples that have not yet been added to the triple store. Use model.add() to put them in the store. Note that we are adding one model to another: </p>
+<pre class="input">			<strong>model.add(m)</strong>;   // add new triples to the store<br>		} finally {<br>			qe.close();<br>		}</pre>
+<p>The DESCRIBE query returns another model, meaning all triples of the matching resources. It uses <strong>qe.execDescribe()</strong>. In this case we asked SPARQL to describe one grandparent and one grandchild. (This confirms that the kdy:has-grandchild triples successfully entered the triple store.) </p>
+<pre class="input">		queryString = &quot;describe ?s ?o where { ?s kdy:has-grandchild ?o . } limit 1&quot;;<br>        query = AGQueryFactory.create(queryString);<br>        qe = AGQueryExecutionFactory.create(query, model);<br>		try {<br>			Model m = qe.execDescribe();<br>			println(&quot;\nDescribe one grandparent and one grandchild:&quot;);<br>			m.write(System.out);<br>		} finally {<br>			qe.close();<br>		}</pre>
+<p>Printing the result model to standard output reveals that the &quot;model&quot; is expressed as RDF/XML. The actual output is too lengthy to show here, but one block confirms that the has-grandchild triples are present as expected: </p>
+<pre class="output">  &lt;rdf:Description rdf:about=&quot;http://www.franz.com/simple#person2&quot;&gt;<br>    &lt;j.0:has-grandchild rdf:resource=&quot;http://www.franz.com/simple#person44&quot;/&gt;<br>    &lt;j.0:has-grandchild rdf:resource=&quot;http://www.franz.com/simple#person76&quot;/&gt;<br>    &lt;j.0:has-grandchild rdf:resource=&quot;http://www.franz.com/simple#person42&quot;/&gt;<br>    &lt;j.0:has-grandchild rdf:resource=&quot;http://www.franz.com/simple#person51&quot;/&gt;
+...</pre>
 <h2 id="RDFS++ Inference">RDFS++ Inference (example19())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>The great promise of the semantic web is that we can use RDF metadata to combine information from multiple sources into a single, common model.&nbsp; The great problem of the semantic web is that it is so difficult to recognize when two resource descriptions from different sources actually represent the same thing.&nbsp; This problem arises because there is no uniform or universal way to generate URIs identifying resources.&nbsp; As a result, we may create two resources, Bob and Robert, that actually represent the same person. </p>
 <p>This problem has generated much creativity in the field. One way to approach the problem is through inference.&nbsp; There are certain relationships and circumstances where an inference engine can deduce that two resource descriptions actually represent one thing, and then automatically merge the descriptions.&nbsp; AllegroGraph's <a href="http://www.franz.com/agraph/support/documentation/3.0.1/reasoner-tutorial.html">inference engine</a> can be turned on or off each time you run a query against the triple store.&nbsp; </p>
@@ -1164,6 +1039,6 @@ Number of results: 1</pre>
 <p>The Les Miserables triples are visible in both sessions. So too are the Kennedy triples. </p>
 <p>&nbsp;</p>
 -->
-<p><font color="#CCCCCC">January 18, 2010 4.0 release</font></p>
+<p><font color="#CCCCCC">July 8, 2010 AG 4.1</font></p>
 </body>
 </html>
