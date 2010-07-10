@@ -20,7 +20,6 @@ import org.openrdf.query.BindingSet;
 import org.openrdf.query.TupleQueryResult;
 import org.openrdf.repository.RepositoryException;
 
-import com.franz.agraph.http.AGErrorType;
 import com.franz.agraph.http.AGHTTPClient;
 import com.franz.agraph.http.AGHttpException;
 import com.franz.agraph.http.AGProtocol;
@@ -166,6 +165,17 @@ public class AGCatalog {
         return result;
 	}
 
+	/**
+	 * Returns true if the repository id is contained in this catalog.
+	 * 
+	 * @return true if the repository id is contained in this catalog.
+	 * @throws OpenRDFException
+	 */
+	public boolean hasRepository(String repoId) throws OpenRDFException {
+		List<String> repos = listRepositories();
+		return repos.contains(repoId);
+	}
+	
 	public AGHTTPClient getHTTPClient() {
 		return getServer().getHTTPClient();
 	}
@@ -186,17 +196,16 @@ public class AGCatalog {
 		String repoURL = AGProtocol.getRepositoryLocation(getCatalogURL(),
 				repositoryID);
 		try {
-			getHTTPClient().putRepository(repoURL);
+			if (!hasRepository(repositoryID)) {
+				getHTTPClient().putRepository(repoURL);
+			}
 		} catch (IOException e) {
 			throw new RepositoryException(e);
+		} catch (OpenRDFException e) {
+			// TODO: consider having methods in this class all throw OpenRDFExceptions
+			throw new RepositoryException(e);
 		} catch (AGHttpException e) {
-			if (AGErrorType.PRECONDITION_FAILED == e.getErrorInfo()
-					.getErrorType()) {
-				// don't error if repo already exists
-				// TODO: check if repo exists first
-			} else {
-				throw new RepositoryException(e);
-			}
+			throw new RepositoryException(e);
 		}
 		return new AGRepository(this, repositoryID);
 	}
