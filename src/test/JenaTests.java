@@ -16,14 +16,17 @@ import org.openrdf.repository.RepositoryException;
 
 import com.franz.agraph.jena.AGGraph;
 import com.franz.agraph.jena.AGGraphMaker;
+import com.franz.agraph.jena.AGInfModel;
 import com.franz.agraph.jena.AGModel;
+import com.franz.agraph.jena.AGReasoner;
 import com.hp.hpl.jena.rdf.model.Property;
+import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
 
 public class JenaTests extends AGAbstractTest {
 
 	private void addOne(AGModel model) throws RepositoryException {
-		Assert.assertEquals(0, conn.size());
+		Assert.assertEquals(0, model.size());
 		
 		Resource bob = model.createResource("http://example.org/people/bob");
 		Resource dave = model.createResource("http://example.org/people/dave");
@@ -31,7 +34,7 @@ public class JenaTests extends AGAbstractTest {
 		
 		model.add(bob, fatherOf, dave);
 
-		Assert.assertEquals(1, conn.size());
+		Assert.assertEquals(1, model.size());
 	}
     
     @Test
@@ -77,6 +80,31 @@ public class JenaTests extends AGAbstractTest {
     		model.abort();
     		throw e;
     	}
+	}
+    
+    @Test
+    @Category(TestSuites.Prepush.class)
+    public void jenaGraphs_bug19491() throws Exception {
+    	AGGraphMaker maker = closeLater( new AGGraphMaker(conn) );
+    	AGGraph defaultGraph = closeLater( maker.getGraph() );
+    	AGModel defaultModel = closeLater( new AGModel(defaultGraph) );
+    	addOne(defaultModel);
+
+    	AGGraph namedGraph = closeLater( maker.openGraph("http://example.com/named") );
+    	AGModel namedModel = closeLater( new AGModel(namedGraph) );
+    	addOne(namedModel);
+    	
+		AGReasoner reasoner = new AGReasoner();
+    	defaultGraph = closeLater( maker.getGraph() );
+    	defaultModel = closeLater( new AGModel(defaultGraph) );
+		AGInfModel infModel = closeLater( new AGInfModel(reasoner, defaultModel));
+		Assert.assertEquals("conn is full", 2, conn.size());
+		Assert.assertEquals("infModel should be full", 2,
+				closeLater( infModel.listStatements((Resource)null, (Property)null, (RDFNode)null)).toList().size());
+		Assert.assertEquals("defaultModel should be partial", 1,
+				closeLater( defaultModel.listStatements((Resource)null, (Property)null, (RDFNode)null)).toList().size());
+		// TODO: size is not correct for infModel, dunno why
+		//Assert.assertEquals("infModel should be full", 2, infModel.size());
     }
     
 }

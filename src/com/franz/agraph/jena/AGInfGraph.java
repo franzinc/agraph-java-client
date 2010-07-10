@@ -10,6 +10,9 @@ package com.franz.agraph.jena;
 
 import java.util.Iterator;
 
+import org.openrdf.query.Dataset;
+import org.openrdf.query.impl.DatasetImpl;
+
 import com.hp.hpl.jena.graph.Graph;
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.graph.Triple;
@@ -33,6 +36,13 @@ public class AGInfGraph extends AGGraph implements InfGraph {
 		this.reasoner = reasoner;
 		this.rawGraph = rawGraph;
 		inferred = true;
+	}
+
+	@Override
+	public Dataset getDataset() {
+		// TODO: use the whole store until graph-scoped reasoning is available
+		DatasetImpl dataset = new DatasetImpl();
+		return dataset;
 	}
 
 	@Override
