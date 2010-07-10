@@ -193,10 +193,28 @@ public class AGCatalog {
 	 */
 	public AGRepository createRepository(String repositoryID)
 			throws RepositoryException {
+		return createRepository(repositoryID, false);
+	}
+
+	/**
+	 * Returns an uninitialized AGRepository instance for the given
+	 * repository id.
+	 * 
+	 * The repository is created if it does not exist.  If the
+	 * repository already exists, it is simply opened, or an exception
+	 * is thrown if strict=true.
+	 * 
+	 * @param repositoryID the id (the name) of the repository
+	 * @param strict if true and the repository already exists, throw an exception
+	 * @return an uninitialized AGRepository instance.
+	 * @throws RepositoryException
+	 */
+	public AGRepository createRepository(String repositoryID, boolean strict)
+			throws RepositoryException {
 		String repoURL = AGProtocol.getRepositoryLocation(getCatalogURL(),
 				repositoryID);
 		try {
-			if (!hasRepository(repositoryID)) {
+			if (strict || !hasRepository(repositoryID)) {
 				getHTTPClient().putRepository(repoURL);
 			}
 		} catch (IOException e) {
@@ -205,6 +223,29 @@ public class AGCatalog {
 			// TODO: consider having methods in this class all throw OpenRDFExceptions
 			throw new RepositoryException(e);
 		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		}
+		return new AGRepository(this, repositoryID);
+	}
+
+	/**
+	 * Returns an uninitialized AGRepository instance for the given 
+	 * repository id.
+	 * 
+	 * If the repository already exists, it is simply opened.
+	 * 
+	 * @param repositoryID the id (the name) of the repository. 
+	 * @return an uninitialized AGRepository instance.
+	 * @throws RepositoryException if the repositoryID does not exist
+	 */
+	public AGRepository openRepository(String repositoryID)
+			throws RepositoryException {
+		try {
+			if (!hasRepository(repositoryID)) {
+				throw new RepositoryException("Repository not found with ID: " + repositoryID);
+			}
+		} catch (OpenRDFException e) {
+			// TODO: consider having methods in this class all throw OpenRDFExceptions
 			throw new RepositoryException(e);
 		}
 		return new AGRepository(this, repositoryID);
