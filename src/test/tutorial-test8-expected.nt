@@ -1,16 +1,16 @@
 <http://somewhere/JohnSmith/> <http://www.w3.org/2001/vcard-rdf/3.0#FN> "John Smith" .
-<http://somewhere/JohnSmith/> <http://www.w3.org/2001/vcard-rdf/3.0#N> _:1 .
-_:1 <http://www.w3.org/2001/vcard-rdf/3.0#Family> "Smith" .
-_:1 <http://www.w3.org/2001/vcard-rdf/3.0#Given> "John" .
+<http://somewhere/JohnSmith/> <http://www.w3.org/2001/vcard-rdf/3.0#N> _:bEA4F4BCFx1 .
+_:bEA4F4BCFx1 <http://www.w3.org/2001/vcard-rdf/3.0#Family> "Smith" .
+_:bEA4F4BCFx1 <http://www.w3.org/2001/vcard-rdf/3.0#Given> "John" .
 <http://somewhere/RebeccaSmith/> <http://www.w3.org/2001/vcard-rdf/3.0#FN> "Becky Smith" .
-<http://somewhere/RebeccaSmith/> <http://www.w3.org/2001/vcard-rdf/3.0#N> _:2 .
-_:2 <http://www.w3.org/2001/vcard-rdf/3.0#Family> "Smith" .
-_:2 <http://www.w3.org/2001/vcard-rdf/3.0#Given> "Rebecca" .
+<http://somewhere/RebeccaSmith/> <http://www.w3.org/2001/vcard-rdf/3.0#N> _:bEA4F4BCFx2 .
+_:bEA4F4BCFx2 <http://www.w3.org/2001/vcard-rdf/3.0#Family> "Smith" .
+_:bEA4F4BCFx2 <http://www.w3.org/2001/vcard-rdf/3.0#Given> "Rebecca" .
 <http://somewhere/SarahJones/> <http://www.w3.org/2001/vcard-rdf/3.0#FN> "Sarah Jones" .
-<http://somewhere/SarahJones/> <http://www.w3.org/2001/vcard-rdf/3.0#N> _:3 .
-_:3 <http://www.w3.org/2001/vcard-rdf/3.0#Family> "Jones" .
-_:3 <http://www.w3.org/2001/vcard-rdf/3.0#Given> "Sarah" .
+<http://somewhere/SarahJones/> <http://www.w3.org/2001/vcard-rdf/3.0#N> _:bEA4F4BCFx3 .
+_:bEA4F4BCFx3 <http://www.w3.org/2001/vcard-rdf/3.0#Family> "Jones" .
+_:bEA4F4BCFx3 <http://www.w3.org/2001/vcard-rdf/3.0#Given> "Sarah" .
 <http://somewhere/MattJones/> <http://www.w3.org/2001/vcard-rdf/3.0#FN> "Matt Jones" .
-<http://somewhere/MattJones/> <http://www.w3.org/2001/vcard-rdf/3.0#N> _:4 .
-_:4 <http://www.w3.org/2001/vcard-rdf/3.0#Family> "Jones" .
-_:4 <http://www.w3.org/2001/vcard-rdf/3.0#Given> "Matthew" .
+<http://somewhere/MattJones/> <http://www.w3.org/2001/vcard-rdf/3.0#N> _:bEA4F4BCFx4 .
+_:bEA4F4BCFx4 <http://www.w3.org/2001/vcard-rdf/3.0#Family> "Jones" .
+_:bEA4F4BCFx4 <http://www.w3.org/2001/vcard-rdf/3.0#Given> "Matthew" .

@@ -8,6 +8,9 @@
 
 package test;
 
+import java.io.File;
+import java.io.FileOutputStream;
+
 import junit.framework.Assert;
 
 import org.junit.Test;
@@ -148,6 +151,29 @@ public class JenaTests extends AGAbstractTest {
         	ResultSet results = exe.execSelect();
         	Assert.assertFalse("without reasoning", results.hasNext());
         }
+    }
+    
+    @Test
+    @Category(TestSuites.Prepush.class)
+    public void savingModel_spr37167() throws Exception {
+        AGGraphMaker maker = closeLater( new AGGraphMaker(conn));
+        AGGraph graph = closeLater( maker.getGraph());
+        AGModel model = closeLater( new AGModel(graph));
+        
+        Resource bob = model.createResource("http://example.org/people/bob");
+        Resource dave = model.createResource("http://example.org/people/dave");
+        Property fatherOf = model.createProperty("http://example.org/ontology/fatherOf");
+        model.add(bob, fatherOf, dave);
+
+        Resource blankNode = model.createResource();
+        Property has = model.createProperty("http://example.org/ontology/has");
+        model.add(blankNode, has, dave);
+        
+        model.write(closeLater( new FileOutputStream( File.createTempFile("agraph-java-test", "txt"))));
+        
+        graph = closeLater( maker.getGraph());
+        model = closeLater( new AGModel(graph));
+        model.write(closeLater( new FileOutputStream( File.createTempFile("agraph-java-test", "txt"))));
     }
 
 }
