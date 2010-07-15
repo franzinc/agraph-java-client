@@ -1,0 +1,29 @@
+Manifest-Version: 1.0
+TopBraid:  SE, SEM, ME, MEM 
+Require-Bundle: org.eclipse.core.resources,
+ org.eclipse.core.runtime,
+ org.eclipse.ui,
+ org.eclipse.ui.ide,
+ org.topbraid.lib.jena,
+ com.franz.agraph.store,
+ org.topbraid.core,
+ org.topbraid.eclipsex,
+ org.topbraid.sparql,
+ org.topbraid.strings,
+ org.topbraidcomposer.core,
+ org.topbraidcomposer.editors,
+ org.topbraidcomposer.ui,
+ org.topbraidcomposer.wizards,
+ org.topbraid.jenax,
+ org.topbraid.javax,
+ org.topbraid.lib.sesame2;bundle-version="3.3.1"
+Bundle-Vendor: Franz, Inc.
+Bundle-ActivationPolicy: lazy
+Bundle-Version: 4.0.5.qualifier
+Bundle-Name: AllegroGraph 4 TBC Plug-in
+Bundle-ManifestVersion: 2
+Bundle-Activator: com.franz.agraph.tbc.Activator
+Bundle-SymbolicName: com.franz.agraph.tbc;singleton:=true
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+
+

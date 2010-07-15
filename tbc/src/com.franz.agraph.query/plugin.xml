@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?><!--
+   Copyright (c) 2008-2010 Franz Inc.
+   All rights reserved. This program and the accompanying materials
+   are made available under the terms of the Eclipse Public License v1.0
+   which accompanies this distribution, and is available at
+   http://www.eclipse.org/legal/epl-v10.html
+ -->
+
+<plugin>
+   <extension
+         point="org.eclipse.ui.views">
+      <view
+            allowMultiple="true"
+            category="org.topbraidcomposer.ui.viewsCategory"
+            class="com.franz.agraph.query.view.SPARQLView"
+            icon="icons/SPARQL.gif"
+            id="com.franz.agraph.query.view"
+            name="Agraph"/>
+      <view
+            allowMultiple="true"
+            category="org.topbraidcomposer.ui.viewsCategory"
+            class="com.franz.agraph.query.resultsview.SPARQLResultsView"
+            icon="icons/SPARQL.gif"
+            id="com.franz.agraph.query.resultsview"
+            name="Agraph Results"
+            restorable="true">
+      </view>
+   </extension>
+   <extension
+         point="org.eclipse.ui.viewActions">
+      <viewContribution
+            id="com.franz.agraph.query.viewContribution1"
+            targetID="com.franz.agraph.query.view">
+         <action
+               class="com.franz.agraph.query.view.actions.RebuildLARQIndexAction"
+               icon="icons/RebuildLARQIndex.gif"
+               id="com.franz.agraph.query.view.actions.RebuildLARQIndexAction"
+               label="Rebuild LARQ index"
+               menubarPath="additions">
+         </action>
+         <action
+               class="com.franz.agraph.query.view.actions.ToggleLayoutAction"
+               disabledIcon="icons/LayoutVertically.greyed.gif"
+               icon="icons/LayoutVertically.gif"
+               id="com.franz.agraph.query.actions.ToggleLayoutAction"
+               label="Toggle between horizontal or vertical layout"
+               menubarPath="additions"
+               style="toggle"
+               toolbarPath="additions"
+               tooltip="Toggle between horizontal or vertical layout"/>
+         <action
+               class="com.franz.agraph.query.view.actions.InferConstructAction"
+               icon="icons/InferConstructed.gif"
+               id="com.franz.agraph.query.actions.InferConstructAction"
+               label="Infer selected constructed triples"
+               menubarPath="additions"/>
+         <action
+               class="com.franz.agraph.query.view.actions.AssertConstructAction"
+               icon="icons/AssertConstructed.gif"
+               id="com.franz.agraph.query.actions.AssertConstructAction"
+               label="Assert selected constructed triples"
+               menubarPath="additions"/>
+         <action
+               class="com.franz.agraph.query.view.actions.ExportResultSetAction"
+               icon="icons/ExportResultSet.gif"
+               id="com.franz.agraph.query.actions.ExportResultSetAction"
+               label="Export results to file..."
+               menubarPath="additions"
+               style="push"
+               toolbarPath="additions"
+               tooltip="Export results to file..."/>
+         <action
+               class="com.franz.agraph.query.view.actions.OpenNewSPARQLViewAction"
+               icon="icons/SPARQL.gif"
+               id="com.franz.agraph.query.view.actions.OpenNewSPARQLViewAction"
+               label="Open new SPARQL View"
+               menubarPath="additions"
+               style="push"
+               toolbarPath="additions"
+               tooltip="Open new SPARQL View"/>
+         <action
+               class="com.franz.agraph.query.view.actions.SaveQueryAction"
+               icon="icons/SaveQuery.gif"
+               id="com.franz.agraph.query.view.actions.SaveQueryAction"
+               label="Attach current query to selected resource"
+               menubarPath="additions"
+               style="push"
+               toolbarPath="additions">
+         </action>
+      </viewContribution>
+   </extension>
+   <extension
+         point="org.topbraid.actions.statementActions">
+      <action class="com.franz.agraph.query.form.actions.ExecuteQueryAction"/>
+   </extension>
+   <extension
+         point="org.topbraidcomposer.ui.contextHelpers">
+      <contextHelper
+            class="com.franz.agraph.query.contexthelper.SPARQLFunctionContextHelper">
+      </contextHelper>
+   </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            category="org.topbraidcomposer.ui.preferences"
+            class="com.franz.agraph.query.preferences.SPARQLPreferencesPage"
+            id="com.franz.agraph.query.preferences.SPARQLPreferencesPage"
+            name="SPARQL Engine">
+      </page>
+   </extension>
+
+</plugin>

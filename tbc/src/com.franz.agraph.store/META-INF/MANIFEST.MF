@@ -1,0 +1,34 @@
+Manifest-Version: 1.0
+Export-Package: com.franz.agraph,
+ com.franz.agraph.graphstore;x-friends:="com.franz.agraph.tbc",
+ com.franz.agraph.http,
+ com.franz.agraph.jena,
+ com.franz.agraph.repository,
+ org.openrdf.query
+Bundle-ClassPath: .,
+ lib/openrdf-sesame-2.3.1-onejar.jar,
+ lib/json.jar,
+ lib/agraph-4.0.5.jar
+Bundle-Name: AllegroGraph 4 Database Plug-in
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+TopBraid:  SE, SEM, ME, MEM, L
+Require-Bundle: org.eclipse.core.resources,
+ org.eclipse.core.runtime,
+ org.junit4,
+ org.apache.commons.codec;bundle-version="1.3.0",
+ org.apache.commons.httpclient;bundle-version="3.1.0",
+ org.apache.commons.logging,
+ org.apache.log4j,
+ org.topbraid.lib.sesame2;bundle-version="3.3.1",
+ org.topbraid.lib.jena,
+ org.topbraid.core,
+ org.topbraid.eclipsex,
+ org.topbraid.sparql
+Bundle-Vendor: Franz, Inc.
+Bundle-Version: 4.0.5.qualifier
+Bundle-ManifestVersion: 2
+Bundle-Activator: com.franz.agraph.Activator
+Bundle-SymbolicName: com.franz.agraph.store;singleton:=true
+Import-Package: org.osgi.framework
+
+

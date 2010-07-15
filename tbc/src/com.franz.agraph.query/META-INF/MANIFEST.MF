@@ -1,0 +1,41 @@
+Manifest-Version: 1.0
+Export-Package: com.franz.agraph.query,
+ com.franz.agraph.query.library,
+ com.franz.agraph.query.resultsview,
+ com.franz.agraph.query.view,
+ com.franz.agraph.query.view.editor,
+ com.franz.agraph.query.view.resultstable
+Bundle-ActivationPolicy: lazy
+Bundle-Name: AllegroGraph Query Plug-in
+TopBraid-BE: true
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+TopBraid:  FE, SE, SEM, ME, MEM 
+Require-Bundle: com.franz.agraph.store;bundle-version="4.0.5",
+ org.eclipse.core.resources,
+ org.eclipse.core.runtime,
+ org.eclipse.ui,
+ org.eclipse.ui.ide,
+ org.topbraid.lib.jena,
+ org.topbraid.lib.spin,
+ org.topbraid.actions,
+ org.topbraid.core,
+ org.topbraid.eclipsex,
+ org.topbraid.inference,
+ org.topbraid.jenax,
+ org.topbraid.sparql,
+ org.topbraid.sparqlmotion,
+ org.topbraid.spin,
+ org.topbraid.strings,
+ org.topbraidcomposer.core,
+ org.topbraidcomposer.editors,
+ org.topbraidcomposer.editors.forms,
+ org.topbraidcomposer.operations,
+ org.topbraidcomposer.ui,
+ org.topbraidcomposer.widgets
+Bundle-Vendor: Franz, Inc.
+Bundle-Version: 4.0.5.qualifier
+Bundle-ManifestVersion: 2
+Bundle-Activator: com.franz.agraph.query.SPARQLPlugin
+Bundle-SymbolicName: com.franz.agraph.query;singleton:=true
+
+
