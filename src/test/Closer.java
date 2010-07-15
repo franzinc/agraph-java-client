@@ -26,33 +26,6 @@ public abstract class Closer implements Closeable {
     }
 
 	/**
-	 * Add a resource to be closed with {@link #close()}.
-	 */
-    public <CloseableType extends Closeable>
-    CloseableType closeLater(CloseableType o) {
-		toClose.add(o);
-		return o;
-	}
-
-	/**
-	 * Add a resource to be closed with {@link #close()}.
-	 */
-	public <CloseIter extends CloseableIteration>
-	CloseIter closeLater(CloseIter o) {
-		toClose.add(o);
-		return o;
-    }
-
-	/**
-	 * Add a resource to be closed with {@link #close()}.
-	 */
-    public <CloseableType extends java.io.Closeable>
-    CloseableType closeLater(CloseableType o) {
-		toClose.add(o);
-		return o;
-    }
-
-	/**
 	 * Must be called in a finally block, to close all resources
 	 * added with closeLater().
 	 */
