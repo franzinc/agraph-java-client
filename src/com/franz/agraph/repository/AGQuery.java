@@ -101,7 +101,7 @@ public abstract class AGQuery extends AbstractQuery {
 	/**
 	 * Sets the savedName for the prepared query.
 	 * 
-	 * @return the saved name.
+	 * @param name the saved name.
 	 */
 	private void setSaveName(String name) {
 		saveName = name;
@@ -128,7 +128,7 @@ public abstract class AGQuery extends AbstractQuery {
 	/**
 	 * Sets the prepared flag for the query.
 	 * 
-	 * @param the prepared flag.
+	 * @param prepared the prepared flag
 	 */
 	public void setPrepared(boolean prepared) {
 		this.prepared = prepared;
@@ -148,8 +148,8 @@ public abstract class AGQuery extends AbstractQuery {
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return queryString;
 	}
+
 }

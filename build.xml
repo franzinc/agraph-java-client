@@ -1,4 +1,4 @@
-<project name="agraph-java-client" default="clean-build">
+<project name="agraph-java-client" default="build">
 
     <property environment="env"/>
     <!-- if these AGRAPH env vars are blank, the java test code will look elsewhere -->
@@ -42,6 +42,7 @@
             description="Remove generated files and directories.">
         <delete dir="${build}"/>
         <delete file="${jarfile}"/>
+        <delete dir="javadoc"/>
         <ant dir="clojure" target="clean" inheritall="false"/>
     </target>
 
@@ -53,13 +54,12 @@
                classpathref="classpath"/>
     </target>
     
-    <manifestclasspath property="mf.path" jarfile="${jarfile}">
-        <classpath refid="classpath"/>
-    </manifestclasspath>
-    
-    <target name="build"
-            description="Create jar file."
-            depends="clean, compile">
+    <target name="jar"
+            description="Build agraph.jar file."
+            depends="compile">
+        <manifestclasspath property="mf.path" jarfile="${jarfile}">
+            <classpath refid="classpath"/>
+        </manifestclasspath>
 		<tstamp prefix="jar">
 			<format property="datestamp" pattern="yyyy-MM-dd H:mm"/>
 		</tstamp>
@@ -80,13 +80,40 @@
         </jar>
     </target>
     
-    <target name="clean-build" depends="clean, build"
+    <target name="build" depends="clean, jar"
             description="clean, and build jar">
     </target>
-    
+
+    <target name="javadoc"
+    	    description="Generate javadocs">
+        <delete dir="javadoc"/>
+        <javadoc destdir="javadoc"
+        	access="public"
+        	author="true"
+        	doctitle="Franz, Inc. AllegroGraph 4.1 Javadoc"
+        	header="Franz Inc, AllegroGraph"
+        	footer="Copyright &amp;copy; 2008-2010 Franz Inc."
+        	nodeprecated="false"
+        	nodeprecatedlist="false"
+        	noindex="false"
+        	nonavbar="false"
+        	notree="false"
+        	packagenames="com.franz.agraph.jena,com.franz.util,com.franz.agraph.repository"
+        	source="1.6"
+        	sourcepath="src"
+        	splitindex="true"
+        	use="true"
+        	version="true"
+        	classpathref="classpath">
+            <link href="http://java.sun.com/j2se/1.6.0/docs/api/" offline="true" packagelistLoc="lib/java"/>
+            <link href="http://openjena.org/javadoc/" offline="true" packagelistloc="lib/jena-2.6.2"/>
+            <link href="http://www.openrdf.org/doc/sesame2/2.3.1/apidocs/" offline="true" packagelistloc="lib/sesame-2.3.1"/>
+        </javadoc>
+    </target>
+	
     <target name="prepush"
             description="Tests required before git push: clean, build, and run Java and Clojure client tests"
-            depends="clean-build, test-prepush">
+            depends="build, test-prepush">
         <ant dir="clojure" target="prepush" inheritall="false"/>
     </target>
     
