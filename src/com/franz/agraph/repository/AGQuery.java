@@ -41,7 +41,7 @@ public abstract class AGQuery extends AbstractQuery {
 	protected String queryString;
 
 	protected String baseURI;
-
+	
 	protected String planner;
 	
 	protected String saveName = null;
@@ -53,8 +53,24 @@ public abstract class AGQuery extends AbstractQuery {
 		this.queryLanguage = ql;
 		this.queryString = queryString;
 		this.baseURI = baseURI;
+		// AG queries exclude inferences by default
+		super.includeInferred = false; 
 	}
 
+	/**
+	 * Determine whether evaluation results of this query should include inferred
+	 * statements (if any inferred statements are present in the repository). The
+	 * default setting is 'false'.
+	 * 
+	 * @param includeInferred
+	 *        indicates whether inferred statements should included in the
+	 *        result.
+	 */
+	@Override
+	public void setIncludeInferred(boolean includeInferred) {
+		super.setIncludeInferred(includeInferred);
+	}
+	
 	/**
 	 * Gets the query language for this query.
 	 * 
