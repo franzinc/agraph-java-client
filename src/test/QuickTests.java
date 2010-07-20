@@ -98,7 +98,7 @@ public class QuickTests extends AGAbstractTest {
     }
     
     @Test
-    @Category(TestSuites.Temp.class)
+    @Category(TestSuites.Prepush.class)
     public void bulkDelete() throws Exception {
         URI alice = vf.createURI("http://example.org/people/alice");
         URI firstname = vf.createURI("http://example.org/ontology/firstname");
