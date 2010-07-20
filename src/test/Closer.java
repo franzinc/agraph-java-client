@@ -15,6 +15,15 @@ import com.franz.util.Closeable;
 public abstract class Closer implements Closeable {
 
 	private final List toClose = new LinkedList();
+	
+	/**
+	 * Add a resource to be closed with {@link #close()}.
+	 */
+    public <Obj extends Object>
+    Obj closeLater(Obj o) {
+		toClose.add(o);
+		return o;
+    }
 
 	/**
 	 * Add a resource to be closed with {@link #close()}.
