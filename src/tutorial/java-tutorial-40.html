@@ -1198,14 +1198,14 @@ Federated Apples: <br>[s=http://www.demo.com/example#reddelicious]<br>[s=http://
 <p>Here we perform the query and retrieve the result object.&nbsp; </p>
 <pre class="input">        TupleQuery tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);<br>        TupleQueryResult result = tupleQuery.evaluate();</pre>
 <p>The result object contains multiple bindingSets.&nbsp; We can iterate over them to print out the values. </p>
-<pre class="input">        while (result.hasNext()) {<br>            BindingSet bindingSet = result.next();<br>            Value f = bindingSet.getValue(&quot;first&quot;);<br>            Value l = bindingSet.getValue(&quot;last&quot;);<br>            println(f + &quot; &quot; + l);<br>        }<br>        result.close();</pre>
+<pre class="input">        while (result.hasNext()) {<br>            BindingSet bindingSet = result.next();<br>            Value f = bindingSet.getValue(&quot;first&quot;);<br>            Value l = bindingSet.getValue(&quot;last&quot;);<br>            println(f.stringValue() + &quot; &quot; + l.stringValue());<br>        }<br>        result.close();</pre>
 <p>The output contains many names; there are just a few of them. </p>
-<pre class="output">&quot;Robert&quot; &quot;Kennedy&quot;<br>&quot;Alfred&quot; &quot;Tucker&quot;<br>&quot;Arnold&quot; &quot;Schwarzenegger&quot;<br>&quot;Paul&quot; &quot;Hill&quot;<br>&quot;John&quot; &quot;Kennedy&quot;</pre>
+<pre class="output">Robert Kennedy<br>Alfred Tucker<br>Arnold Schwarzenegger<br>Paul Hill<br>John Kennedy</pre>
 <p>&nbsp;</p>
 
 <h2 id="Loading Prolog Rules">Loading Prolog Rules (example18())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
-<p>Example <strong>example18()</strong> demonstrates how to load a file of Prolog rules into the Java API of AllegroGraph Server.&nbsp; It also demonstrates how robust a rule-augmented system can become.&nbsp; The domain is the Kennedy family tree again, borrowed from example6().&nbsp; After loading a file of rules (<strong>relative_rules.txt</strong>), we'll pose a simple query.&nbsp; The query asks AllegroGraph to list all the uncles in the family tree, along with each of their nieces or nephews.&nbsp; This is the query:</p>
-<pre class="input">(select (?person ?uncle) &quot; +<br>	&quot;(uncle ?y ?x)&quot; +<br>	&quot;(name ?x ?person)&quot; +<br>	&quot;(name ?y ?uncle))&quot;;</pre>
+<p>Example <strong>example18()</strong> demonstrates how to load a file of Prolog rules into the Java API of AllegroGraph Server.&nbsp; It also demonstrates how robust a rule-augmented system can become.&nbsp; The domain is the Kennedy family tree again, borrowed from example6().&nbsp; After loading a file of rules (<strong>java_rules.txt</strong>), we'll pose a simple query.&nbsp; The query asks AllegroGraph to list all the uncles in the family tree, along with each of their nieces or nephews.&nbsp; This is the query:</p>
+<pre class="input">(select (?ufirst ?ulast ?cfirst ?clast)<br>        (uncle ?uncle ?child)<br>        (name ?uncle ?ufirst ?ulast)<br>        (name ?child ?cfirst ?clast))</pre>
 <p>The problem is that the triple store contains no information about uncles.&nbsp; The rules will have to deduce this relationship by finding paths across the RDF graph.</p>
 <p>What's an &quot;uncle,&quot; then?&nbsp; Here's a rule that can recognize uncles:</p>
 <pre class="input">(&lt;-- (uncle ?uncle ?child) <br>    (man ?uncle)<br>    (parent ?grandparent ?uncle)<br>    (parent ?grandparent ?siblingOfUncle)<br>    (not (= ?uncle ?siblingOfUncle))<br>    (parent ?siblingOfUncle ?child))</pre>
@@ -1221,7 +1221,7 @@ Federated Apples: <br>[s=http://www.demo.com/example#reddelicious]<br>[s=http://
 <p>What's a &quot;man?&quot;</p>
 <pre class="input">(&lt;-- (man ?person)<br>    (q ?person !rltv:sex !rltv:male)<br>    (q ?person !rdf:type !rltv:person))</pre>
 <p>A &quot;man&quot; is a person who is male.&nbsp; These patterns both match triples in the repository.&nbsp; </p>
-<p>The<strong> relative_rules.txt</strong> file contains many more Prolog rules describing relationships, including transitive relationships like &quot;ancestor&quot; and &quot;descendant.&quot; Please examine this file for more ideas about how to use rules with AllegroGraph. </p>
+<p>The<strong> java_rules.txt</strong> file contains many more Prolog rules describing relationships, including transitive relationships like &quot;ancestor&quot; and &quot;descendant.&quot; Please examine this file for more ideas about how to use rules with AllegroGraph. </p>
 <p>The <strong>example18()</strong> example begins by borrowing a connection object from example6(), which means the Kennedy family tree is already loaded into the repository, and we are dealing with a <a href="#Transaction">transaction session</a>. &nbsp; </p>
 <pre class="input">    public static void example18() throws Exception {<br>        AGRepositoryConnection conn = example6(false);</pre>
 <p>We need these two namespaces because they are used in the query and in the file of rules. </p>
@@ -1231,13 +1231,14 @@ Federated Apples: <br>[s=http://www.demo.com/example#reddelicious]<br>[s=http://
     conn.setRuleLanguage(QueryLanguage.PROLOG)</pre> 
 	-->
 <p>The next step is to load the rule file. Note that you might have to edit the file path, depending on your platform and installation. </p>
-<pre class="input">        String path = &quot;src/relative_rules.txt&quot;;<br>        conn.addRules(new FileInputStream(path));</pre>
+<pre class="input">        String path = &quot;src/tutorial/java_rules.txt&quot;;<br>        conn.addRules(new FileInputStream(path));</pre>
 <p>The query asks for the full name of each uncle and each niece/nephew.&nbsp; (The (name ?x ?fullname) relationship used in the query is provided by yet another Prolog rule, which concatenates a person's first and last names into a single string.) </p>
-<pre class="input">        String queryString = <br>        	&quot;(select (?person ?uncle) &quot; +<br>        		&quot;(uncle ?y ?x)&quot; +<br>        		&quot;(name ?x ?person)&quot; +<br>        		&quot;(name ?y ?uncle))&quot;;</pre>
+<pre class="input">        String queryString = <br>        	&quot;(select (?ufirst ?ulast ?cfirst ?clast)&quot; +<br>                     &quot;(uncle ?uncle ?child)&quot; +<br>                     &quot;(name ?uncle ?ufirst ?ulast)&quot; +<br>                     &quot;(name ?child ?cfirst ?clast))&quot;;</pre>
 <p>Here we execute the query and display the results:</p>
-<pre class="input">        TupleQuery tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);<br>        TupleQueryResult result = tupleQuery.evaluate();     <br>        while (result.hasNext()) {<br>            BindingSet bindingSet = result.next();<br>            Value p = bindingSet.getValue(&quot;person&quot;);<br>            Value u = bindingSet.getValue(&quot;uncle&quot;);<br>            println(u + &quot; is the uncle of &quot; + p);<br>        }</pre>
+<pre class="input">        TupleQuery tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);<br>        TupleQueryResult result = tupleQuery.evaluate();     <br>        while (result.hasNext()) {<br>            BindingSet bindingSet = result.next();<br>            Value u1 = bindingSet.getValue(&quot;ufirst&quot;);<br>            Value u2 = bindingSet.getValue(&quot;ulast&quot;);<br>            String ufull = u1.stringValue() + &quot; &quot; + u2.stringValue() ;<br>            Value c1 = bindingSet.getValue(&quot;cfirst&quot;);<br>            Value c2 = bindingSet.getValue(&quot;clast&quot;);<br>            String cfull = c1.stringValue() + &quot; &quot; + c2.stringValue() ;<br>            println(ufull + &quot; is the uncle of &quot; + cfull);</pre>
+<p>The code is a little more complicated than normal because of the string concatenations that build the names. 
 <p>The output of this loop (in part) looks like this:
-<pre class="output">&quot;{Edward} {Kennedy}&quot; is the uncle of &quot;{Robin} {Lawford}&quot;<br>&quot;{Edward} {Kennedy}&quot; is the uncle of &quot;{Stephen} {Smith}&quot;<br>&quot;{Edward} {Kennedy}&quot; is the uncle of &quot;{William} {Smith}&quot;<br>&quot;{Edward} {Kennedy}&quot; is the uncle of &quot;{Amanda} {Smith}&quot;<br>&quot;{Edward} {Kennedy}&quot; is the uncle of &quot;{Kym} {Smith}&quot;</pre>
+<pre class="output">Robert Kennedy is the uncle of Amanda Smith.<br>Robert Kennedy is the uncle of Kym Smith.<br>Edward Kennedy is the uncle of Robert Shriver.<br>Edward Kennedy is the uncle of Maria Shriver.<br>Edward Kennedy is the uncle of Timothy Shriver.</pre>
 <p>As before, it is good form to free the connection and the result object when you are finished with them.</p>
 <pre class="input">        result.close();<br>        conn.close();</pre>
 
