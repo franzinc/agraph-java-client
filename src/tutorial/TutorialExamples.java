@@ -49,6 +49,8 @@ import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
 import com.franz.agraph.repository.AGValueFactory;
 
+// Updated July 23, 2010 AG 4.1 BDC
+
 public class TutorialExamples {
 
     static private final String SERVER_URL = "http://localhost:10035";
@@ -1567,7 +1569,7 @@ public class TutorialExamples {
             BindingSet bindingSet = result.next();
             Value f = bindingSet.getValue("first");
             Value l = bindingSet.getValue("last");
-            println(f + " " + l);
+            println(f.stringValue() + " " + l.stringValue());
         }
         result.close();
         conn.close();
@@ -1583,21 +1585,24 @@ public class TutorialExamples {
         String path = "src/tutorial/java-rules.txt";
         conn.addRules(new FileInputStream(path));
         String queryString = 
-        	"(select (?person ?uncle) " +
-        		"(uncle ?y ?x)" +
-        		"(name ?x ?person)" +
-        		"(name ?y ?uncle))";
+        	"(select (?ufirst ?ulast ?cfirst ?clast)" +
+                     "(uncle ?uncle ?child)" +
+                     "(name ?uncle ?ufirst ?ulast)" +
+                     "(name ?child ?cfirst ?clast))";
         TupleQuery tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         TupleQueryResult result = tupleQuery.evaluate();     
         while (result.hasNext()) {
             BindingSet bindingSet = result.next();
-            Value p = bindingSet.getValue("person");
-            Value u = bindingSet.getValue("uncle");
-            println(u + " is the uncle of " + p);
+            Value u1 = bindingSet.getValue("ufirst");
+            Value u2 = bindingSet.getValue("ulast");
+            String ufull = u1.stringValue() + " " + u2.stringValue() ;
+            Value c1 = bindingSet.getValue("cfirst");
+            Value c2 = bindingSet.getValue("clast");
+            String cfull = c1.stringValue() + " " + c2.stringValue() ;
+            println(ufull + " is the uncle of " + cfull);
         }
         result.close();
     }
-
     /**
      * RDFS++ Reasoning
      */
