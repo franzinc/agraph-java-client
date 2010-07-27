@@ -1260,20 +1260,20 @@ The four people all have literal names. <br>
 Robert and Bob have links to the child resources:
 <br>
 <pre class="input">        // robert has a child<br>        conn.add(robert, fatherOf, roberta);<br>        // bob has a child<br>        conn.add(bob, fatherOf, bobby);</pre> 
-<h3>SameAs</h3>
+<h3>SameAs, using a SPARQL Query </h3>
 <p>Now that the basic resources and relations are in place, we'll seed the triple store with a statement that &quot;Robert is the same as Bob,&quot; using the <strong>owl:sameAs</strong> predicate.&nbsp; The AllegroGraph inference engine recognizes the semantics of owl:sameAs, and automatically infers that Bob and Robert share the same attributes.&nbsp; Each of them originally had one child.&nbsp; When inference is turned on, however, they each have two children.&nbsp; </p>
 <p><img src="inferenceSaveAs.jpg" width="459" height="182"></p>
 <p>Note that SameAs does not combine the two resources.&nbsp; Instead it links each of the two resources to all of the combined children.&nbsp; The red links in the image are &quot;inferred&quot; triples.&nbsp; They have been deduced to be true, but are not actually present in the triple store. </p>
 <p>This is the critical link that tells the inference engine to regard Bob and Robert as the same resource. </p>
 <pre class="input">        conn.add(bob, OWL.SAMEAS, robert);</pre>
-This is a simple getStatements() search asking for the children of Robert, with inference turned OFF. &quot;Inference&quot; <br>
-is the fifth parameter to getStatements(), defaulting to &quot;False&quot;. <br>
-<pre class="input">        println(&quot;\nChildren of Robert, inference OFF&quot;);<br>        printRows( conn.getStatements(robert, fatherOf, null, false) );</pre> 
+This is a simple SPARQL query asking for the children of Robert, with inference turned OFF. Note the use of <strong>tupleQuery.setIncludeInferred()</strong>, which controls whether or not inferred triples may be included in the query results. Inference is turned off by default, but for teaching purposes we have turned it of explicitly. We also took the liberty of setting variable bindings for ?robert and ?fatherOf, simply to make the code easier to read. Otherwise we would have had to put full-length URIs in the query string. <br>
+<pre class="input">        String queryString = <strong>&quot;SELECT ?child WHERE {?robert ?fatherOf ?child .}&quot;;</strong><br>        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);<br>        <strong>tupleQuery.setIncludeInferred(false); </strong> // Turn off inference<br>        tupleQuery.setBinding(&quot;robert&quot;, robert);<br>        tupleQuery.setBinding(&quot;fatherOf&quot;, fatherOf);<br>        TupleQueryResult result = tupleQuery.evaluate();<br>        println(&quot;\nChildren of Robert, inference OFF&quot;);            <br>        while (result.hasNext()) {<br>            println(result.next());
+        }</pre> 
 <p>The search returns one triple, which is the link from Robert to his direct child, Roberta. </p>
-<pre class="output">Children of Robert, inference OFF<br>(http://example.org/people/robert, http://example.org/ontology/fatherOf, http://example.org/people/roberta) [null]</pre>
-<p>This is a getStatements() search with inference turned ON.&nbsp; This time we added the fifth parameter, True, to getStatements(). This turns on the inference engine. </p>
-<pre class="input">        println(&quot;\nChildren of Robert, inference ON&quot;);<br>        printRows( conn.getStatements(robert, fatherOf, null, true) );</pre>
-<pre class="output">Children of Robert, inference ON<br>(http://example.org/people/robert, http://example.org/ontology/fatherOf, http://example.org/people/roberta) [null]<br>(http://example.org/people/robert, http://example.org/ontology/fatherOf, http://example.org/people/bobby) [null]</pre>
+<pre class="output">Children of Robert, inference OFF<br>[child=http://example.org/people/roberta]</pre>
+<p>Now we'll perform the same query (the same tupleQuery, in fact), with inference turned ON.</p>
+<pre class="input">        <strong>tupleQuery.setIncludeInferred(true);</strong>  // Turn on inference<br>        TupleQueryResult result2 = tupleQuery.evaluate();<br>        println(&quot;\nChildren of Robert, inference ON&quot;);            <br>        while (result2.hasNext()) {<br>            println(result2.next());<br>        }</pre>
+<pre class="output">Children of Robert, inference ON<br>[child=http://example.org/people/roberta]<br>[child=http://example.org/people/bobby]</pre>
 <p>Note that with inference ON, Robert suddenly has two children because Bob's child has been included.&nbsp; Also note that the final triple (robert fatherOf bobby) has been inferred.&nbsp; The inference engine has determined that this triple logically must be true, even though it does not appear in the repository. </p>
 <h3>InverseOf</h3>
 <p>We can reuse the Robert family tree to see how the inference engine can deduce the presence of inverse relationships. </p>
