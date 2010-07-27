@@ -49,8 +49,6 @@ import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
 import com.franz.agraph.repository.AGValueFactory;
 
-// Updated July 23, 2010 AG 4.1 BDC
-
 public class TutorialExamples {
 
     static private final String SERVER_URL = "http://localhost:10035";
@@ -1641,12 +1639,25 @@ public class TutorialExamples {
         conn.add(bob, fatherOf, bobby);
         
         // List the children of Robert, with inference OFF.
-        println("\nChildren of Robert, inference OFF");
-        printRows( conn.getStatements(robert, fatherOf, null, false) );
-        // List the children of Robert with inference ON. The owl:sameAs
-        // link combines the children of Bob with those of Robert.
-        println("\nChildren of Robert, inference ON");
-        printRows( conn.getStatements(robert, fatherOf, null, true) );
+        String queryString = "SELECT ?child WHERE {?robert ?fatherOf ?child .}";
+        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        tupleQuery.setIncludeInferred(false);  // Turn off inference
+        tupleQuery.setBinding("robert", robert);
+        tupleQuery.setBinding("fatherOf", fatherOf);
+        TupleQueryResult result = tupleQuery.evaluate();
+        println("\nChildren of Robert, inference OFF");            
+        while (result.hasNext()) {
+            println(result.next());
+        }
+        result.close();
+        // List the children of Robert, with inference ON.
+        tupleQuery.setIncludeInferred(true);  // Turn on inference
+        TupleQueryResult result2 = tupleQuery.evaluate();
+        println("\nChildren of Robert, inference ON");            
+        while (result2.hasNext()) {
+            println(result2.next());
+        }
+        result2.close();
         // Remove the owl:sameAs link so we can try the next example.
         conn.remove(bob, OWL.SAMEAS, robert);
         
@@ -1727,6 +1738,7 @@ public class TutorialExamples {
         //printRows( conn.getStatementsInCircle(cartSystem, location, 35, 35, 10, 0, false) ); 
         URI polygon1 = vf.createURI("http://example.org/polygon1");
         List<Literal> polygon1_points = new ArrayList<Literal>(4);
+
         polygon1_points.add(vf.createLiteral("+10.0+40.0", cartSystem));
         polygon1_points.add(vf.createLiteral("+50.0+10.0", cartSystem));
         polygon1_points.add(vf.createLiteral("+35.0+40.0", cartSystem));
@@ -2290,6 +2302,7 @@ public class TutorialExamples {
                 1, conn1.getStatements(null, null, kennedy, false));
         printRows("\nUsing getStatements() on conn2; should find Kennedys:",
                 1, conn2.getStatements(null, null, kennedy, false));
+
         printRows("\nUsing getStatements() on conn2; should find Valjean:",
                 1, conn2.getStatements(null, null, valjean, false));
     }
@@ -2612,4 +2625,4 @@ public class TutorialExamples {
     }
     
 }
-// Update July 7, 2010 AG 4.1
+// Update July 26, 2010 AG 4.1
