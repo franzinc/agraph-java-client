@@ -221,25 +221,24 @@ this diagram:</p>
         AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
         println("Available catalogs: " + server.listCatalogs());</pre>
 <p>This is the output so far:</p>
-<pre class="output">Starting example example1().<br>Available catalogs: [/, scratch]</pre>
-<p>These examples use either the default root catalog (denoted as &quot;/&quot;) or a named catalog called &quot;scratch&quot;. </p>
+<pre class="output">Starting example1().<br>Available catalogs: [/, java-catalog, python-catalog]</pre>
+<p>These examples use either the default root catalog (denoted as &quot;/&quot;) or catalogs dedicated to specific tutorials. </p>
 <p>In the next line of example1(), we use the server's <strong>getRootCatalog()</strong> method to create a client-side catalog object connected to AllegroGraph's default rootCatalog, as defined in the AllegroGraph configuration file. The catalog object has methods such as <strong>getCatalogName()</strong> and <strong>getAllRepositories()</strong> that we can use to investigate the catalogs on the AllegroGraph server. When we look inside the root catalog, we can see which repositories are available:</p>
 <pre class="input">        AGCatalog catalog = server.getRootCatalog();<br>        println(&quot;Available repositories in catalog &quot; + <br>                (catalog.getCatalogName()) + &quot;: &quot; + <br>                catalog.listRepositories());</pre>
 <p>The corresponding output lists the available repositories.  (When you run the examples, you may see a different list of repositories.)</p>
-<pre class="output">Available repositories in catalog /: []</pre>
-<p>In the examples, we are careful to delete previous state before continuing. You probably would not do this in your actual application:</p>
-<pre class="input">         catalog.deleteRepository(REPOSITORY_ID); </pre>
+<pre class="output">Available repositories in catalog /: [pythontutorial, javatutorial]</pre>
+<p>In the examples, we are careful to close open repositories and to delete previous state before continuing. We are just erasing the blackboard before starting a new lesson. You probably would not do this in your actual application:</p>
+<pre class="input">         closeAll();
+         catalog.deleteRepository(REPOSITORY_ID); </pre>
 <p>The next step is to create a client-side repository object representing the repository we wish to open, by calling the
   <strong>createRepository()</strong> method of the catalog object. We have to provide the name of the desired repository (REPOSITORY_ID in this case, which is bound to the string &quot;javatutorial&quot;). </p>
 <pre class="input">        AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);<br>        println(&quot;Got a repository.&quot;);<br>        myRepository.initialize();<br>        println(&quot;Initialized repository.&quot;);<br>        println(&quot;Repository is writable? &quot; + myRepository.isWritable());</pre>
 <p>A new or renewed repository must be initialized, using the <strong>initialize()</strong> method of the repository object. If you try to initialize a repository twice you get a warning message in the Java window but no exception. Finally we check to see that the repository is writable.</p>
-<pre class="output"> Got a repository.
- Initialized repository.
- Repository is writable? true </pre>
+<pre class="output">Got a repository.<br>Initialized repository.<br>Repository is writable? true</pre>
 <p>The goal of all this object-building has been to create a client-side <strong>repositoryConnection</strong> object, which we casually refer to as the &quot;connection&quot; or &quot;connection object.&quot; The repository object's <strong>getConnection()</strong> method returns this connection object. The function <strong>closeBeforeExit()</strong> maintains a list of connection objects and automatically cleans them up when the client exits. </p>
-<pre class="input">        AGRepositoryConnection conn = myRepository.getConnection();<br>        closeBeforeExit(conn);<br>        println(&quot;Got a connection.&quot;);<br>        conn.clear();  // remove previous triples, if any.<br><br>        println(&quot;Cleared the connection.&quot;);<br>        println(&quot;Repository &quot; + (myRepository.getRepositoryID()) +<br>                &quot; is up! It contains &quot; + (conn.size()) +<br>                &quot; statements.&quot;              <br>                );</pre>
- <p>The <strong>size()</strong> method of the connection object returns how many triples are present. In the example1() function, this number should always be zero because we deleted, recreated, and cleared the repository. This is the output in the Java window: </p>
- <pre class="output"> Got a connection.<br> Cleared the connection.<br> Repository javatutorial is up! It contains 0 statements.</pre>
+<pre class="input">        AGRepositoryConnection conn = myRepository.getConnection();<br>        closeBeforeExit(conn);<br>        println(&quot;Got a connection.&quot;);<br>        println(&quot;Repository &quot; + (myRepository.getRepositoryID()) +<br>                &quot; is up! It contains &quot; + (conn.size()) +<br>                &quot; statements.&quot;              <br>                );</pre>
+ <p>The <strong>size()</strong> method of the connection object returns how many triples are present. In the example1() function, this number should always be zero because we deleted and recreated the repository. This is the output in the Java window: </p>
+ <pre class="output">Got a connection.<br>Repository javatutorial is up! It contains 0 statements.</pre>
  <p>In its default mode, example1() closes the connection. It can optionally return the connection when called by another method, as will occur in several examples below. If you are done with the connection, closing it and shutting it down will free resources.</p>
  <pre class="input">         if (close) {
              conn.close();
@@ -274,6 +273,8 @@ reside in the background graph.
  <pre class="input">        URI alice = vf.createURI(&quot;http://example.org/people/alice&quot;);<br>        URI bob = vf.createURI(&quot;http://example.org/people/bob&quot;);</pre>
  <p>Both Bob and Alice will have a &quot;name&quot; attribute. </p>
  <pre class="input">        URI name = vf.createURI(&quot;http://example.org/ontology/name&quot;);</pre>
+ <p>Bob and Alice will both be rdf:type &quot;Person&quot;. Note that this is the name of a class, and is therefore capitalized. </p>
+ <pre class="input">        URI person = vf.createURI(&quot;http://example.org/ontology/Person&quot;);</pre>
  <p>The name attributes will contain literal values. We have to generate the Literal objects from strings: </p>
  <pre class="input">        Literal bobsName = vf.createLiteral(&quot;Bob&quot;);<br>        Literal alicesName = vf.createLiteral(&quot;Alice&quot;);</pre>
  <p>The next line prints out the number of triples currently in the repository. </p>
