@@ -82,7 +82,6 @@ public class TutorialExamples {
         AGRepositoryConnection conn = myRepository.getConnection();
         closeBeforeExit(conn);
         println("Got a connection.");
-        println("Cleared the connection.");
         println("Repository " + (myRepository.getRepositoryID()) +
                 " is up! It contains " + (conn.size()) +
                 " statements."              
@@ -2625,4 +2624,4 @@ public class TutorialExamples {
     }
     
 }
-// Update July 26, 2010 AG 4.1
+// Update July 28, 2010 AG 4.1
