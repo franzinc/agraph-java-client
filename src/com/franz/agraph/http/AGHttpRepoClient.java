@@ -22,6 +22,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpException;
@@ -80,11 +81,14 @@ public class AGHttpRepoClient implements Closeable {
 	private AGHTTPClient client;
 	private Repository repo;
 
+	public ConcurrentLinkedQueue<String> savedQueryDeleteQueue;
+
     public AGHttpRepoClient(Repository repo, AGHTTPClient client, String repoRoot, String sessionRoot) {
 		this.repo = repo;
 		this.sessionRoot = sessionRoot;
 		this.repoRoot = repoRoot;
 		this.client = client;
+		savedQueryDeleteQueue = new ConcurrentLinkedQueue<String>();
 	}
 
 	public String getRoot() throws RepositoryException {
@@ -613,6 +617,7 @@ public class AGHttpRepoClient implements Closeable {
 
 		String url = getRoot();
 		if (q.isPrepared()) {
+			processSavedQueryDeleteQueue();
 			url = AGProtocol.getSavedQueryLocation(url,q.getName());
 		}
 		List<Header> headers = new ArrayList<Header>(5);
@@ -689,6 +694,32 @@ public class AGHttpRepoClient implements Closeable {
 		return queryParams;
 	}
 
+	/**
+	 * Free up any no-longer-needed saved queries as reported 
+	 * by AGQuery finalizer.
+	 *  
+	 * @throws RepositoryException
+	 */
+	private void processSavedQueryDeleteQueue() throws RepositoryException {
+		String queryName;
+		while((queryName=savedQueryDeleteQueue.poll())!=null) {
+			deleteSavedQuery(queryName);
+		}
+	}
+	
+	public void deleteSavedQuery(String queryName) throws RepositoryException {
+		String url = AGProtocol.getSavedQueryLocation(getRoot(), queryName);
+		Header[] headers = {};
+		NameValuePair[] params = {};
+		try {
+			getHTTPClient().delete(url, headers, params);
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+	}
+	
 	public void close() throws RepositoryException {
 		if (sessionRoot != null) {
 			try {
@@ -1197,6 +1228,5 @@ public class AGHttpRepoClient implements Closeable {
 			throw new RepositoryException(e);
 		}
 	}
-	
-	
+
 }

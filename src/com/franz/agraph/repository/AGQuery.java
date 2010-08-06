@@ -152,4 +152,11 @@ public abstract class AGQuery extends AbstractQuery {
 	{
 		return queryString;
 	}
+
+	
+	@Override
+	protected void finalize() {
+		httpCon.getHttpRepoClient().savedQueryDeleteQueue.add(saveName);
+	}
+
 }
