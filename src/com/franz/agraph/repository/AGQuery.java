@@ -44,7 +44,7 @@ public abstract class AGQuery extends AbstractQuery {
 	 */
 	public static final String RESTRICTION = "restriction";
 
-	private static long prepareId = 0L;
+	//private static long prepareId = 0L;
 	
 	protected AGRepositoryConnection httpCon;
 
@@ -148,17 +148,21 @@ public abstract class AGQuery extends AbstractQuery {
 	
 	/**
 	 * Schedules the query to be prepared.
+	 * 
+	 * Note: this is a no-op pending further cost-benefit analysis of
+	 * the server's saved query service.
 	 */
-	synchronized public void prepare() {
-		setSaveName(String.valueOf(prepareId++));
+	synchronized void prepare() {
+		//setSaveName(String.valueOf(prepareId++));
 	}
 	
 	/**
-	 * Sets the savedName for the prepared query.
+	 * Sets the name to use when saving this query with the
+	 * server's saved query service.
 	 * 
-	 * @return the saved name.
+	 * @param name the saved name.
 	 */
-	private void setSaveName(String name) {
+	public void setSaveName(String name) {
 		saveName = name;
 	}
 	
@@ -207,4 +211,13 @@ public abstract class AGQuery extends AbstractQuery {
 	{
 		return queryString;
 	}
+
+	
+	@Override
+	protected void finalize() {
+		if (saveName!=null) { 
+			httpCon.getHttpRepoClient().savedQueryDeleteQueue.add(saveName);
+		}
+	}
+
 }
