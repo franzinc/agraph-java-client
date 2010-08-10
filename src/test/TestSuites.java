@@ -51,6 +51,7 @@ public class TestSuites {
     @SuiteClasses( { TutorialTests.class,
         QuickTests.class,
         AGRepositoryConnectionTests.class,
+        RDFTransactionTest.class,
         JenaTests.class,
         IndexManagementTests.class
     })
