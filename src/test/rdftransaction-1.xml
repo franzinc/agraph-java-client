@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<transaction>  
+  <add>  
+    <bnode>person5</bnode>  
+    <uri>http://www.w3.org/1999/02/22-rdf-syntax-ns#type</uri>  
+    <uri>http://example.org/Person</uri>  
+    <uri>http://example.org/context1</uri>  
+  </add>  
+  <add>  
+    <bnode>person5</bnode>  
+    <uri>http://example.org/name</uri>  
+    <literal>Frank</literal>  
+    <uri>http://example.org/context1</uri>  
+  </add>  
+  <remove>  
+    <null/>  
+    <uri>http://example.org/birth</uri>  
+    <null/>  
+  </remove>  
+</transaction> 
