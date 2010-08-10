@@ -398,15 +398,17 @@ public class AGHttpRepoClient implements Closeable {
 		upload(entity, baseURI, overwrite, null, null, null, contexts);
 	}
 
+	public void sendRDFTransaction(InputStream rdftransaction) throws RepositoryException,
+			RDFParseException, IOException {
+		RequestEntity entity = new InputStreamRequestEntity(rdftransaction, -1,
+				"application/x-rdftransaction");
+		upload(entity, null, false, null, null, null);
+	}
+
 	public void uploadJSON(JSONArray rows, Resource... contexts)
 	throws RepositoryException {
 		String url = Protocol.getStatementsLocation(getRoot());
 		uploadJSON(url, rows, contexts);
-	}
-
-	public void deleteJSON(JSONArray rows, Resource... contexts)
-	throws RepositoryException {
-		uploadJSON(AGProtocol.getStatementsDeleteLocation(getRoot()), rows, contexts);
 	}
 
 	public void uploadJSON(String url, JSONArray rows, Resource... contexts)
@@ -428,6 +430,11 @@ public class AGHttpRepoClient implements Closeable {
 		}
 	}
 
+	public void deleteJSON(JSONArray rows, Resource... contexts)
+	throws RepositoryException {
+		uploadJSON(AGProtocol.getStatementsDeleteLocation(getRoot()), rows, contexts);
+	}
+	
 	public void load(URI source, String baseURI, RDFFormat dataFormat,
 			Resource... contexts) throws IOException, RDFParseException,
 			RepositoryException, UnauthorizedException {

@@ -815,4 +815,25 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
     	getHttpRepoClient().dropIndex(type);
     }
     
+	/** 
+	 * Executes an application/x-rdftransaction.
+	 * 
+	 * This method is useful for bundling add/remove operations into a 
+	 * single request and minimizing round trips to the server.
+	 * 
+	 * Changes are committed iff the connection is in autoCommit mode.
+	 * For increased throughput when sending multiple rdftransaction 
+	 * requests, consider using autoCommit=false and committing less 
+	 * frequently . 
+	 * 
+	 * @param rdftransaction a stream in application/x-rdftransaction format
+	 * @throws RepositoryException
+	 * @throws RDFParseException
+	 * @throws IOException
+	 */
+	public void sendRDFTransaction(InputStream rdftransaction) throws RepositoryException,
+			RDFParseException, IOException {
+		getHttpRepoClient().sendRDFTransaction(rdftransaction);
+	}
+
 }
