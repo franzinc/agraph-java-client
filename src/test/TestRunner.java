@@ -42,6 +42,7 @@ public class TestRunner {
         Class<? extends Annotation> include = includeCat == null ? null : (Class) includeCat.value();
         ExcludeCategory excludeCat = (ExcludeCategory) suiteClass.getAnnotation(ExcludeCategory.class);
         Class<? extends Annotation> exclude = excludeCat == null ? null : (Class) excludeCat.value();
+        int failures = 0;
         for (Class testClass : suite.value()) {
             List<Method> testMethods = testMethods(testClass, include, exclude);
             if (testMethods.isEmpty()) {
@@ -61,10 +62,12 @@ public class TestRunner {
                         m.invoke(test);
                         System.out.println("SUCCESS Testcase: " + m.getName() + " took " + (System.currentTimeMillis() - start) + " ms");
                     } catch (Error e) {
+                        failures++;
                         System.out.flush();
                         System.err.println("ERROR Testcase: " + m.getName() + " took " + (System.currentTimeMillis() - start) + " ms");
                         throw e;
                     } catch (Throwable e) {
+                        failures++;
                         System.out.flush();
                         if (e instanceof InvocationTargetException) {
                             e = e.getCause();
@@ -82,6 +85,10 @@ public class TestRunner {
                 invokeAll(methodsAnnotated(testClass, AfterClass.class), false, testClass);
             }
         }
+        if (failures > 0) {
+        	System.err.println("Failures: " + failures);
+        }
+        System.exit(failures);
     }
 
     static List<Method> testMethods(Class c,

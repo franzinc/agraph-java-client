@@ -285,9 +285,7 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	public void setAutoCommit(boolean autoCommit) throws RepositoryException {
-		if (!autoCommit) {
-			useDedicatedSession(false);
-		}
+		useDedicatedSession(autoCommit);
 		String url = AGProtocol.getAutoCommitLocation(getRoot());
 		Header[] headers = {};
 		NameValuePair[] params = { new NameValuePair(AGProtocol.ON_PARAM_NAME,
