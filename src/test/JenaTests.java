@@ -24,6 +24,7 @@ import com.franz.agraph.jena.AGQueryExecutionFactory;
 import com.franz.agraph.jena.AGQueryFactory;
 import com.franz.agraph.jena.AGReasoner;
 import com.hp.hpl.jena.query.ResultSet;
+import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
@@ -87,7 +88,44 @@ public class JenaTests extends AGAbstractTest {
     		model.abort();
     		throw e;
     	}
-	}
+    }
+
+    @Test
+    @Category(TestSuites.Prepush.class)
+    public void sparqlOrderByError_bug19157_rfe9971() throws Exception {
+    	AGGraphMaker maker = closeLater( new AGGraphMaker(conn) );
+    	AGGraph graph = closeLater( maker.getGraph() );
+    	AGModel model = closeLater( new AGModel(graph) );
+    	
+		Resource bob = model.createResource("http://example.org/people/bob");
+		Resource dave = model.createResource("http://example.org/people/dave");
+		Property fatherOf = model.createProperty("http://example.org/ontology/fatherOf");
+		Property age = model.createProperty("http://example.org/ontology/age");
+		Literal three = model.createTypedLiteral(3);
+		
+		model.add(bob, fatherOf, dave);
+		model.add(dave, age, three);
+		
+		AGQuery query = AGQueryFactory.create("select ?s ?p ?o where { ?s ?p ?o . } order by ?x ?s");
+		{
+			//query.setCheckVariables(false); // default is false
+			AGQueryExecution qe = closeLater( AGQueryExecutionFactory.create(query, model));
+			qe.execSelect();
+			// extra var is ignored
+		}
+		{
+			query.setCheckVariables(true);
+			AGQueryExecution qe = closeLater( AGQueryExecutionFactory.create(query, model));
+			try {
+				qe.execSelect();
+				Assert.fail("query should have failed because of ?x");
+			} catch (Exception e) {
+				if ( ! e.getMessage().contains("MALFORMED QUERY: Variables do not intersect with query: ?x")) {
+					throw e;
+				}
+			}
+		}
+    }
     
     @Test
     @Category(TestSuites.Prepush.class)
