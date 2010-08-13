@@ -21,6 +21,8 @@ public class AGQuery {
 	private final QueryLanguage language;
 	private final String queryString;
 	
+	private boolean checkVariables = false;
+	
 	AGQuery(String queryString) {
 		this.language = AGQueryLanguage.SPARQL;
 		this.queryString = queryString;
@@ -37,6 +39,26 @@ public class AGQuery {
 
 	public String getQueryString() {
 		return queryString;
+	}
+	
+	/**
+	 * Gets the flag for checkVariables.
+	 * 
+	 * @return the checkVariables flag.
+	 */
+	public boolean isCheckVariables() {
+		return checkVariables;
+	}
+	
+	/**
+	 * A boolean that defaults to false, indicating whether an error
+	 * should be raised when a SPARQL query selects variables that
+	 * are not mentioned in the query body.
+	 * 
+	 * @param checkVariables the checkVariables flag.
+	 */
+	public void setCheckVariables(boolean checkVariables) {
+		this.checkVariables = checkVariables;
 	}
 	
 }
