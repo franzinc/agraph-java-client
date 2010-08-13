@@ -658,6 +658,10 @@ public class AGHttpRepoClient implements Closeable {
 			queryParams.add(new NameValuePair(Protocol.QUERY_PARAM_NAME, q.getQueryString()));
 			queryParams.add(new NameValuePair(Protocol.INCLUDE_INFERRED_PARAM_NAME,
 				Boolean.toString(includeInferred)));
+			if (q.isCheckVariables()) {
+				queryParams.add(new NameValuePair(AGProtocol.CHECK_VARIABLES,
+						Boolean.toString(q.isCheckVariables())));
+			}
 			if (planner != null) {
 				queryParams.add(new NameValuePair(AGProtocol.PLANNER_PARAM_NAME,
 					planner));
