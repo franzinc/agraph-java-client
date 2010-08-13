@@ -407,6 +407,13 @@ public class AGProtocol extends Protocol {
 	public static final String INDICES = "indices";
 	
 	/**
+	 * A boolean that defaults to false, indicating whether an error
+	 * should be raised when a SPARQL query selects variables that
+	 * are not mentioned in the query body.
+	 */
+	public static final String CHECK_VARIABLES = "checkVariables";
+	
+	/**
 	 * Location of the root catalog service
 	 */
 	public static final String getRootCatalogURL(String serverURL) {

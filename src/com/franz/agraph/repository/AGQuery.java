@@ -62,6 +62,8 @@ public abstract class AGQuery extends AbstractQuery {
 	
 	protected boolean prepared = false;
 	
+	protected boolean checkVariables = false;
+	
 	public AGQuery(AGRepositoryConnection con, QueryLanguage ql, String queryString, String baseURI) {
 		super.setIncludeInferred(false); // set default
 		this.httpCon = con;
@@ -191,6 +193,26 @@ public abstract class AGQuery extends AbstractQuery {
 	 */
 	public void setPrepared(boolean prepared) {
 		this.prepared = prepared;
+	}
+	
+	/**
+	 * Gets the flag for checkVariables.
+	 * 
+	 * @return the checkVariables flag.
+	 */
+	public boolean isCheckVariables() {
+		return checkVariables;
+	}
+	
+	/**
+	 * A boolean that defaults to false, indicating whether an error
+	 * should be raised when a SPARQL query selects variables that
+	 * are not mentioned in the query body.
+	 * 
+	 * @param checkVariables the checkVariables flag.
+	 */
+	public void setCheckVariables(boolean checkVariables) {
+		this.checkVariables = checkVariables;
 	}
 	
 	public Binding[] getBindingsArray() {
