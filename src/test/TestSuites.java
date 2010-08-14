@@ -51,7 +51,8 @@ public class TestSuites {
     @SuiteClasses( { TutorialTests.class,
         QuickTests.class,
         AGRepositoryConnectionTests.class,
-        JenaTests.class
+        JenaTests.class,
+        IndexManagementTests.class
     })
     public static class Prepush {}
     
