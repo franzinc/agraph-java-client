@@ -402,6 +402,11 @@ public class AGProtocol extends Protocol {
 	public static final String DEPTH_PARAM_NAME = "depth";
 	
 	/**
+	 * Relative location of the INDICES service.
+	 */
+	public static final String INDICES = "indices";
+	
+	/**
 	 * Location of the root catalog service
 	 */
 	public static final String getRootCatalogURL(String serverURL) {
@@ -558,4 +563,9 @@ public class AGProtocol extends Protocol {
 			throw new RuntimeException("This JVM does not support UTF-8?");
 		}
 	}
+
+	public static String getIndicesURL(String root) {
+		return root + "/" + INDICES;
+	}
+	
 }
