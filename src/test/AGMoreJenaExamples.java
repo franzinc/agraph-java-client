@@ -20,16 +20,29 @@ import com.franz.agraph.jena.AGQueryExecutionFactory;
 import com.franz.agraph.jena.AGQueryFactory;
 import com.franz.agraph.repository.AGQueryLanguage;
 import com.franz.agraph.repository.AGRepositoryConnection;
+import com.hp.hpl.jena.ontology.OntModel;
+import com.hp.hpl.jena.ontology.OntModelSpec;
 import com.hp.hpl.jena.query.QueryExecution;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.Literal;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.StmtIterator;
 import com.hp.hpl.jena.vocabulary.RDF;
 
 public class AGMoreJenaExamples extends JenaTutorialExamples {
 
+	public static void addModelToAGModel() throws Exception {
+    	AGGraphMaker maker = example1(false);
+		AGModel agmodel = new AGModel(maker.createGraph());
+		OntModel model = ModelFactory.createOntologyModel(new OntModelSpec(OntModelSpec.OWL_DL_MEM));
+        model.read(new FileInputStream("src/tutorial/java-lesmis.rdf"), null);
+        println("Read " + model.size() + " lesmis.rdf triples.");
+		agmodel.add(model);
+		println("Add yields " + agmodel.size() + " triples in agmodel.");
+	}
+	
 	public static void exampleBulkUpdate() throws Exception {
 		AGGraphMaker maker = example6();
 		AGModel model = new AGModel(maker.getGraph());
@@ -193,6 +206,7 @@ public class AGMoreJenaExamples extends JenaTutorialExamples {
 		example18();
 		example22();
 		exampleBulkUpdate();
+		addModelToAGModel();
 		closeAll();
 	}
 }

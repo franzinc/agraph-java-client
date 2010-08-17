@@ -16,6 +16,7 @@ import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.util.Closeable;
 import com.hp.hpl.jena.graph.GraphMaker;
 import com.hp.hpl.jena.graph.Node;
+import com.hp.hpl.jena.rdf.model.AnonId;
 import com.hp.hpl.jena.shared.AlreadyExistsException;
 import com.hp.hpl.jena.shared.DoesNotExistException;
 import com.hp.hpl.jena.shared.ReificationStyle;
@@ -57,7 +58,10 @@ public class AGGraphMaker implements GraphMaker, Closeable {
 
 	@Override
 	public AGGraph createGraph() {
-		Node anon = Node.createAnon();
+		// Get an unused blank node id from the server.  Note that using
+		// createAnon() would generate an illegal id based on a uuid. 
+		String id = conn.getValueFactory().createBNode().getID();
+		Node anon = Node.createAnon(AnonId.create(id));
 		return new AGGraph(this,anon);
 	}
 

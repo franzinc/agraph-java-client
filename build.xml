@@ -200,4 +200,14 @@
         <run-java tasknamex="jena-tutorial" classname="tutorial.JenaTutorialExamples" arg="${example}"/>
     </target>
     
+    <target name="jena-compliance-tests"
+            depends="compile"
+            description="Run jena compliance tests.">
+        <run-java tasknamex="AGGraphMakerTest   " classname="org.junit.runner.JUnitCore" arg="test.AGGraphMakerTest"/>
+        <run-java tasknamex="AGGraphTest        " classname="org.junit.runner.JUnitCore" arg="test.AGGraphTest"/>
+        <run-java tasknamex="AGModelTest        " classname="org.junit.runner.JUnitCore" arg="test.AGModelTest"/>
+        <run-java tasknamex="AGPrefixMappingTest" classname="org.junit.runner.JUnitCore" arg="test.AGPrefixMappingTest"/>
+        <run-java tasknamex="AGResultSetTest    " classname="org.junit.runner.JUnitCore" arg="test.AGResultSetTest"/>
+    </target>
+    
 </project>
