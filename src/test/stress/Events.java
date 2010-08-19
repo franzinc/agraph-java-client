@@ -81,6 +81,8 @@ public class Events {
 	
 	    // OPEN OR RENEW
 	    static private final boolean OPEN = false;
+	    
+	    static Long seed = null;
 	}
 
 	public static void trace(String format, Object... values) {
@@ -763,6 +765,10 @@ public class Events {
 	public static void main(String[] args) throws RepositoryException {
 		Thread.currentThread().setName("./events");
 		
+		if (args.length >= 2 && args[0].equals("--seed")) {
+			Defaults.seed = Long.parseLong(args[1]);
+		}
+		
         if (Defaults.OPEN) {
     	    trace("OPENing %s:%s.", Defaults.CATALOG, Defaults.REPOSITORY);
         }
@@ -794,6 +800,9 @@ public class Events {
 
 	    trace("Testing with %d loading, %d querying processes. Repository contains %d triples.", 
             Defaults.LOAD_WORKERS, Defaults.QUERY_WORKERS, triplesStart);
+	    if (Defaults.seed != null) {
+			RANDOM.setSeed(Defaults.seed + 977 * Defaults.LOAD_WORKERS);
+	    }
 
 	    executor = Executors.newFixedThreadPool(Defaults.LOAD_WORKERS);
 	    tasks = new ArrayList<Callable<Integer>>(Defaults.LOAD_WORKERS);
@@ -885,6 +894,9 @@ public class Events {
 	    executor = Executors.newFixedThreadPool(Defaults.QUERY_WORKERS);
 	    
 	    RandomCalendar.dateMaker = FullDateRange;
+	    if (Defaults.seed != null) {
+			RANDOM.setSeed(Defaults.seed + 983 * Defaults.QUERY_WORKERS);
+	    }
 	    List<Callable<QueryResult>> queriers = new ArrayList<Callable<QueryResult>>(Defaults.QUERY_WORKERS);
 	    for (int task = 0; task < Defaults.QUERY_WORKERS; task++) {
 	    	queriers.add(new Querier(task, Defaults.QUERY_TIME*60));
