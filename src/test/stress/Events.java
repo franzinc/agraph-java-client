@@ -81,6 +81,7 @@ public class Events {
 	
 	    // OPEN OR RENEW
 	    static private final boolean OPEN = false;
+	    
 	}
 
 	public static void trace(String format, Object... values) {
@@ -762,6 +763,10 @@ public class Events {
 	 */
 	public static void main(String[] args) throws RepositoryException {
 		Thread.currentThread().setName("./events");
+		
+		if (args.length >= 2 && args[0].equals("--seed")) {
+			RANDOM.setSeed(Long.parseLong(args[1]));
+		}
 		
         if (Defaults.OPEN) {
     	    trace("OPENing %s:%s.", Defaults.CATALOG, Defaults.REPOSITORY);
