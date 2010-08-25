@@ -1045,9 +1045,8 @@ WHERE { ?s rdf:type ex:person }
 some form of "keyword search" with their queries. For example, a user might want to retrieve all triples for which the string "Alice" appears as a word within the third (object) argument to the triple. AllegroGraph provides a capability for including free text matching within a SPARQL query. It requires, however, that you create and configure indexes appropriate to the searches you want to pursue. </p>
 <p> The example example12() begins by borrowing the connection object from example1(). Then it creates a namespace string and registers the namespace with the connection object, as in the previous example. </p>
 <pre class="input">	public static void example12 () throws Exception {    <br>        AGRepositoryConnection conn = example1(false);<br>	    ValueFactory f = conn.getValueFactory();<br>	    String exns = &quot;http://example.org/people/&quot;;<br>	    conn.setNamespace(&quot;ex&quot;, exns);</pre>
-<p>We have to register the predicates that will participate in text indexing. In the example12() example below, we have
-called the connection method <strong>registerFreeTextPredicate()</strong> to register the predicate "http://example.org/people/fullname" for text indexing. Generating the predicate's URI is a separate step. </p>
-<pre class="input">	    conn.registerFreetextPredicate(f.createURI(exns,&quot;fullname&quot;));</pre>
+<p> We have to create an index. AllegroGraph lets you create any number of text indexes, each for a specific purpose. In this case we are indexing the literal values we find in the "fullname" predicate, which we will use in resources that describe people. The <strong>createFreeTextIndex()</strong> method has many configurable parameters. Their default settings are appropriate to this situation. All we have to provide is a name for the index and the URI of the predicate (or predicates) that contain the text to be indexed. </p>
+<pre class="input">	    conn.createFreetextIndex(&quot;index1&quot;, new URI[]{f.createURI(exns,&quot;fullname&quot;)});</pre>
 <p>The next step is to create two new resources, &quot;Alice1&quot; named &quot;Alice B. Toklas,&quot; and &quot;book1&quot; with the title &quot;Alice in Wonderland.&quot; Notice that we did not register the book title predicate for text indexing. </p>
 <pre class="input">	    URI alice = f.createURI(exns, &quot;alice1&quot;);<br>	    URI persontype = f.createURI(exns, &quot;Person&quot;);<br>	    URI fullname = f.createURI(exns, &quot;fullname&quot;);    <br>	    Literal alicename = f.createLiteral(&quot;Alice B. Toklas&quot;);<br>	    URI book =  f.createURI(exns, &quot;book1&quot;);<br>	    URI booktype = f.createURI(exns, &quot;Book&quot;);<br>	    URI booktitle = f.createURI(exns, &quot;title&quot;);    <br>	    Literal wonderland = f.createLiteral(&quot;Alice in Wonderland&quot;);</pre>
 <p>Clear the repository, so our new triples are the only ones available. </p>
@@ -1521,7 +1520,7 @@ spherical/degrees/-180.0/180.0/-90.0/90.0/5.0&gt;)
 <p>This produces the same set of result nodes, but under the right circumstances the matrix would run a lot faster than the generator. </p>
 <p>This variation returns Valjean's ego group as a single list. We use the member functor to pluck the individual nodes from the list: </p>
 <pre class="input">    (select (?member)<br>          (ego-group !lm:character11 1 associates ?group)<br>          (member ?member ?group))</pre>
-   This is the output: 
+      This is the output: 
 <pre class="output">Valjean's ego group in one list depth 1 (using associates).<br>Group: http://www.franz.com/lesmis#character27<br>Group: http://www.franz.com/lesmis#character25<br>Group: http://www.franz.com/lesmis#character28<br>Group: http://www.franz.com/lesmis#character23<br>Group: http://www.franz.com/lesmis#character26<br>Group: http://www.franz.com/lesmis#character55<br>Group: http://www.franz.com/lesmis#character11<br>Group: http://www.franz.com/lesmis#character24<br>Number of results: 8</pre>
  
 <h3 id="SNA Search - Path from A to B">SNA Search - Path from A to B</h3>
@@ -1802,6 +1801,6 @@ Did not add new triple.</pre>
 <p>Federation changes the semantics of &quot;duplicate triples.&quot; Be sure to take this into account in your project design. </p>
 
 
-<p><font color="#CCCCCC">July 28, 2010 AG 4.1</font></p>
+<p><font color="#CCCCCC">August 25, 2010 AG 4.1</font></p>
 </body>
 </html>
