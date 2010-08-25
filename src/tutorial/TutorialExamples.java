@@ -1243,6 +1243,16 @@ public class TutorialExamples {
 	    conn.setNamespace("ex", exns);
 	    // Create index1
 	    conn.createFreetextIndex("index1", new URI[]{f.createURI(exns,"fullname")});
+	    println("getFreetextIndices() ");
+	    String[] ind = conn.getFreetextIndices();
+	    for (int i=0; i<ind.length; i++){
+	        println(ind[i]);
+	    }
+	    println("getFreetextPredicates");
+        String[] pred = conn.getFreetextPredicates("index1");
+	    for (int i=0; i<pred.length; i++){
+	        println(pred[i]);
+	    }
 	    // Create parts of person resources.	    
 	    URI alice = f.createURI(exns, "alice1");
 	    URI carroll = f.createURI(exns, "carroll");
@@ -2624,4 +2634,4 @@ public class TutorialExamples {
     }
     
 }
-// Update July 28, 2010 AG 4.1
+// Update August 25, 2010 AG 4.1
