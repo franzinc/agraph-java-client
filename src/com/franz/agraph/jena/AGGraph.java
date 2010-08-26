@@ -8,6 +8,7 @@
 
 package com.franz.agraph.jena;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import org.openrdf.http.protocol.UnauthorizedException;
@@ -18,6 +19,8 @@ import org.openrdf.query.Dataset;
 import org.openrdf.query.impl.DatasetImpl;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
+import org.openrdf.rio.RDFHandlerException;
+import org.openrdf.rio.helpers.StatementCollector;
 
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGValueFactory;
@@ -50,7 +53,7 @@ public class AGGraph extends GraphBase implements Graph, Closeable {
 	private final AGValueFactory vf;
 	private final Resource context;
 
-	protected boolean inferred = false;
+	protected String entailmentRegime = "false";
 	
 	AGGraph(AGGraphMaker maker, Node graphNode) {
 		this.maker = maker;
@@ -82,6 +85,10 @@ public class AGGraph extends GraphBase implements Graph, Closeable {
 		return conn;
 	}
 
+	String getEntailmentRegime() {
+		return entailmentRegime;
+	}
+	
 	//@Override
 	//public void close() {
 	//}
@@ -172,10 +179,16 @@ public static String toString( String prefix, Graph that )
 					(p!=null && (p.isLiteral() || p.isBlank()))) {
 				result = conn.createRepositoryResult(new ArrayList<Statement>());
 			} else {
-				result = conn.getStatements(vf.asResource(s), vf.asURI(p), vf.asValue(m
-					.getMatchObject()), inferred, context);
+				StatementCollector collector = new StatementCollector();
+				conn.getHttpRepoClient().getStatements(vf.asResource(s), vf.asURI(p), vf.asValue(m
+						.getMatchObject()), entailmentRegime, collector, context);
+				result = conn.createRepositoryResult(collector.getStatements());
 			}
 		} catch (RepositoryException e) {
+			throw new RuntimeException(e);
+		} catch (RDFHandlerException e) {
+			throw new RuntimeException(e);
+		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 		return new AGTripleIterator(this, result);

@@ -22,6 +22,52 @@ import com.hp.hpl.jena.reasoner.ReasonerException;
  */
 public class AGReasoner implements Reasoner {
 
+	/**
+	 * The default reasoner for AllegroGraph
+	 */
+	public static final AGReasoner RDFS_PLUS_PLUS = new AGReasoner("rdfs++");
+	
+	/**
+	 * A reasoner that includes hasValue, someValuesFrom, and allValuesFrom
+	 * reasoning in addition to RDFS++ reasoning.  
+	 */
+	public static final AGReasoner RESTRICTION = new AGReasoner("restriction");
+	
+	/**
+	 * The name of the entailment regime in use by this reasoner.
+	 */
+	protected final String entailmentRegime;
+	
+	/**
+	 * Creates a new reasoner, using RDFS++ entailment.
+	 * Consider using the static RDFS_PLUS_PLUS reasoner instead.
+	 * 
+	 * @see #RDFS_PLUS_PLUS
+	 */
+	public AGReasoner() {
+		this(RDFS_PLUS_PLUS.entailmentRegime);
+	}
+	
+	/**
+	 * Creates a new reasoner, using the specified entailmentRegime.
+	 * Consider using one of the static reasoners instead.
+	 * 
+	 * @see #RDFS_PLUS_PLUS
+	 * @see #RESTRICTION
+	 */
+	public AGReasoner(String entailmentRegime) {
+		this.entailmentRegime = entailmentRegime;
+	}
+	
+	/**
+	 * Gets the name of the entailmentRegime for this reasoner.
+	 * 
+	 * @return the name of the entailmentRegime for this reasoner
+	 */
+	public String getEntailmentRegime() {
+		return entailmentRegime;
+	}
+
 	@Override
 	public void addDescription(Model configSpec, Resource base) {
 		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
