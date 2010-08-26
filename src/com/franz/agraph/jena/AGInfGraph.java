@@ -35,7 +35,7 @@ public class AGInfGraph extends AGGraph implements InfGraph {
 		super(rawGraph.getGraphMaker(), rawGraph.getGraphNode());
 		this.reasoner = reasoner;
 		this.rawGraph = rawGraph;
-		inferred = true;
+		entailmentRegime = reasoner.getEntailmentRegime();
 	}
 
 	@Override

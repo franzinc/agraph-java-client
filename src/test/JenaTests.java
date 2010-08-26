@@ -32,6 +32,7 @@ import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.StmtIterator;
 import com.hp.hpl.jena.vocabulary.OWL;
+import com.hp.hpl.jena.vocabulary.RDF;
 
 public class JenaTests extends AGAbstractTest {
 
@@ -176,4 +177,68 @@ public class JenaTests extends AGAbstractTest {
         model.write(closeLater( new FileOutputStream( File.createTempFile("agraph-java-test", "txt"))));
     }
 
+    @Test
+    @Category(TestSuites.Prepush.class)
+    public void jenaRestrictionReasoning() throws Exception {
+    	AGGraphMaker maker = closeLater( new AGGraphMaker(conn));
+    	AGGraph graph = closeLater( maker.getGraph());
+    	AGModel model = closeLater( new AGModel(graph));
+		AGReasoner reasoner = AGReasoner.RESTRICTION;
+		AGInfModel infmodel = closeLater( new AGInfModel(reasoner, model));
+		Resource a = model.createResource("http://a");
+		Resource c = model.createResource("http://C");
+		Resource d = model.createResource("http://D");
+		Property p = model.createProperty("http://p");
+		Resource r = model.createResource("http://R");
+		Resource v = model.createResource("http://v");
+		Resource w = model.createResource("http://w");
+
+		model.add(c,OWL.equivalentClass,r);
+		model.add(r,RDF.type,OWL.Restriction);
+		model.add(r,OWL.onProperty,p);
+		model.add(r,OWL.hasValue,v);
+		model.add(a,RDF.type,c);
+		Assert.assertTrue("missing hasValue inference 1", infmodel.contains(a,p,v));
+
+		model.removeAll();
+		model.add(c,OWL.equivalentClass,r);
+    	model.add(r,RDF.type,OWL.Restriction);
+    	model.add(r,OWL.onProperty,p);
+    	model.add(r,OWL.hasValue,v);
+    	model.add(a,p,v);
+    	Assert.assertTrue("missing hasValue inference 2", infmodel.contains(a,RDF.type,c));
+    	
+    	model.removeAll();
+    	model.add(c,OWL.equivalentClass,r);
+    	model.add(r,RDF.type,OWL.Restriction);
+    	model.add(r,OWL.onProperty,p);
+    	model.add(r,OWL.someValuesFrom,d);
+    	model.add(a,p,v);
+    	model.add(a,p,w);
+    	model.add(v,RDF.type,d);
+    	Assert.assertTrue("missing someValuesFrom inference", infmodel.contains(a,RDF.type,c));
+    	Assert.assertFalse("unexpected someValuesFrom inference", infmodel.contains(w,RDF.type,d));
+    	
+    	model.removeAll();
+    	model.add(c,OWL.equivalentClass,r);
+    	model.add(r,RDF.type,OWL.Restriction);
+    	model.add(r,OWL.onProperty,p);
+    	model.add(r,OWL.allValuesFrom,d);
+    	model.add(a,p,v);
+    	model.add(a,RDF.type,c);
+    	Assert.assertTrue("missing allValuesFrom inference", infmodel.contains(v,RDF.type,d));
+
+    	// check for unsoundness
+    	model.removeAll();
+    	model.add(c,OWL.equivalentClass,r);
+    	model.add(r,RDF.type,OWL.Restriction);
+    	model.add(r,OWL.onProperty,p);
+    	model.add(r,OWL.allValuesFrom,d);
+    	model.add(a,p,v);
+    	model.add(a,p,w);
+    	model.add(v,RDF.type,d);
+    	model.add(w,RDF.type,d);
+    	Assert.assertFalse("unexpected allValuesFrom inference", infmodel.contains(a,RDF.type,c));
+    }
+    
 }

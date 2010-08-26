@@ -14,21 +14,30 @@ import tutorial.JenaTutorialExamples;
 
 import com.franz.agraph.jena.AGGraph;
 import com.franz.agraph.jena.AGGraphMaker;
+import com.franz.agraph.jena.AGInfModel;
 import com.franz.agraph.jena.AGModel;
 import com.franz.agraph.jena.AGQuery;
 import com.franz.agraph.jena.AGQueryExecutionFactory;
 import com.franz.agraph.jena.AGQueryFactory;
+import com.franz.agraph.jena.AGReasoner;
+import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGQueryLanguage;
 import com.franz.agraph.repository.AGRepositoryConnection;
+import com.franz.agraph.repository.AGServer;
+import com.franz.agraph.repository.AGVirtualRepository;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntModelSpec;
 import com.hp.hpl.jena.query.QueryExecution;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
+import com.hp.hpl.jena.rdf.model.InfModel;
 import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.RDFNode;
+import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.StmtIterator;
+import com.hp.hpl.jena.vocabulary.OWL;
 import com.hp.hpl.jena.vocabulary.RDF;
 
 public class AGMoreJenaExamples extends JenaTutorialExamples {
@@ -41,6 +50,41 @@ public class AGMoreJenaExamples extends JenaTutorialExamples {
         println("Read " + model.size() + " lesmis.rdf triples.");
 		agmodel.add(model);
 		println("Add yields " + agmodel.size() + " triples in agmodel.");
+	}
+
+	public static AGGraphMaker exampleMakerForRestrictionReasoningRepository() throws Exception {
+		AGServer server = new AGServer(SERVER_URL,USERNAME,PASSWORD);
+		AGCatalog catalog = server.getCatalog(CATALOG_ID);
+		catalog.deleteRepository(REPOSITORY_ID);
+		catalog.createRepository(REPOSITORY_ID);
+		String spec = AGVirtualRepository.reasoningSpec("<"+CATALOG_ID+":"+REPOSITORY_ID+">", "restriction"); 
+		AGVirtualRepository repo = server.virtualRepository(spec);
+		AGRepositoryConnection conn = repo.getConnection();
+		return new AGGraphMaker(conn);
+	}
+	
+	public static void exampleRestrictionReasoning() throws Exception {
+		//AGGraphMaker maker = exampleMakerForRestrictionReasoningRepository();
+		AGGraphMaker maker = example1(false);
+		AGModel model = new AGModel(maker.getGraph());
+		AGReasoner reasoner = AGReasoner.RESTRICTION;
+		InfModel infmodel = new AGInfModel(reasoner, model);
+		Resource a = model.createResource("http://a");
+		Resource c = model.createResource("http://C");
+		Property p = model.createProperty("http://p");
+		Resource v = model.createResource("http://v");
+		model.add(c,OWL.equivalentClass,c);
+		model.add(c,RDF.type,OWL.Restriction);
+		model.add(c,OWL.onProperty,p);
+		model.add(c,OWL.hasValue,v);
+		model.add(a,RDF.type,c);
+		StmtIterator results = infmodel.listStatements();
+		while (results.hasNext()) {
+			System.out.println(results.next());
+		}
+		
+		System.out.println(infmodel.contains(a,RDF.type,c));
+		System.out.println(infmodel.contains(a,p,v));
 	}
 	
 	public static void exampleBulkUpdate() throws Exception {
@@ -207,6 +251,8 @@ public class AGMoreJenaExamples extends JenaTutorialExamples {
 		example22();
 		exampleBulkUpdate();
 		addModelToAGModel();
+		exampleBulkUpdate();
+		exampleRestrictionReasoning();
 		closeAll();
 	}
 }

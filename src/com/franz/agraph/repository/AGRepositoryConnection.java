@@ -242,7 +242,7 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 			boolean includeInferred, RDFHandler handler, Resource... contexts)
 			throws RDFHandlerException, RepositoryException {
 		try {
-			getHttpRepoClient().getStatements(subj, pred, obj, includeInferred,
+			getHttpRepoClient().getStatements(subj, pred, obj, Boolean.toString(includeInferred),
 					handler, contexts);
 		} catch (IOException e) {
 			throw new RepositoryException(e);

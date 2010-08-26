@@ -181,7 +181,7 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	public void getStatements(Resource subj, URI pred, Value obj,
-			boolean includeInferred, RDFHandler handler, Resource... contexts)
+			String includeInferred, RDFHandler handler, Resource... contexts)
 			throws IOException, RDFHandlerException, RepositoryException,
 			UnauthorizedException {
 		String uri = Protocol.getStatementsLocation(getRoot());
@@ -206,7 +206,7 @@ public class AGHttpRepoClient implements Closeable {
 					encodedContext));
 		}
 		params.add(new NameValuePair(Protocol.INCLUDE_INFERRED_PARAM_NAME,
-				Boolean.toString(includeInferred)));
+				includeInferred));
 
 		try {
 			getHTTPClient()
