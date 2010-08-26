@@ -45,12 +45,12 @@ import com.hp.hpl.jena.vocabulary.RDFS;
 
 public class JenaTutorialExamples {
 
-	static private final String SERVER_URL = "http://localhost:10035";
-	static private final String CATALOG_ID = "java-catalog";
-	static private final String REPOSITORY_ID = "jenatutorial";
-	static private final String USERNAME = "test";
-	static private final String PASSWORD = "xyzzy";
-	static private final String TEMPORARY_DIRECTORY = "";
+	protected static final String SERVER_URL = "http://localhost:10035";
+	protected static final String CATALOG_ID = "java-catalog";
+	protected static final String REPOSITORY_ID = "jenatutorial";
+	protected static final String USERNAME = "test";
+	protected static final String PASSWORD = "xyzzy";
+	protected static final String TEMPORARY_DIRECTORY = "";
 
 	static final String FOAF_NS = "http://xmlns.com/foaf/0.1/";
 

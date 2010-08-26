@@ -26,13 +26,25 @@ public abstract class AGQuery extends AbstractQuery {
 	 */
 	public static final String SPARQL_COVERAGE_PLANNER = "coverage";  // TODO add to protocol
 	
-	private static long prepareId = 0L;
 	/**
 	 * A query planner for SPARQL that processes queries without doing
 	 * and reordering of clauses or optimization, useful if the user
 	 * knows the best order for processing the query.
 	 */
 	public static final String SPARQL_IDENTITY_PLANNER = "identity";
+
+	/**
+	 * The default entailment regime to use when inferences are included.
+	 */
+	public static final String RDFS_PLUS_PLUS = "rdfs++";
+
+	/**
+	 * An entailment regime that includes hasValue, someValuesFrom and
+	 * allValuesFrom reasoning in addition to RDFS++ entailment.
+	 */
+	public static final String RESTRICTION = "restriction";
+
+	private static long prepareId = 0L;
 	
 	protected AGRepositoryConnection httpCon;
 
@@ -41,6 +53,8 @@ public abstract class AGQuery extends AbstractQuery {
 	protected String queryString;
 
 	protected String baseURI;
+	
+	protected String entailmentRegime = RDFS_PLUS_PLUS; 
 	
 	protected String planner;
 	
@@ -66,10 +80,34 @@ public abstract class AGQuery extends AbstractQuery {
 	 * @param includeInferred
 	 *        indicates whether inferred statements should included in the
 	 *        result.
+	 * @see #setEntailmentRegime(String)
 	 */
 	@Override
 	public void setIncludeInferred(boolean includeInferred) {
 		super.setIncludeInferred(includeInferred);
+	}
+	
+	/**
+	 * Sets the entailment regime to use when including inferences with this
+	 * query.  Default is 'rdfs++'.  
+	 * 
+	 * @param entailmentRegime
+	 *        indicates the entailment regime to use when reasoning.
+	 * @see #RDFS_PLUS_PLUS       
+	 * @see #RESTRICTION       
+	 * @see #setIncludeInferred(boolean)
+	 */
+	public void setEntailmentRegime(String entailmentRegime) {
+		this.entailmentRegime = entailmentRegime; 
+	}
+	
+	/**
+	 * Gets the entailment regime being used when including inferences
+	 * with this query.
+	 * 
+	 */
+	public String getEntailmentRegime() {
+		return entailmentRegime; 
 	}
 	
 	/**
@@ -145,7 +183,7 @@ public abstract class AGQuery extends AbstractQuery {
 	/**
 	 * Sets the prepared flag for the query.
 	 * 
-	 * @param the prepared flag.
+	 * @param prepared the prepared flag.
 	 */
 	public void setPrepared(boolean prepared) {
 		this.prepared = prepared;

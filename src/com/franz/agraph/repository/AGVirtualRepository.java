@@ -72,20 +72,20 @@ public class AGVirtualRepository implements AGAbstractRepository, Closeable {
 	}
 
 	// string-mangling utilities for creating sessions
-	public static String federatedSpec(String[] repos) {
+	public static String federatedSpec(String[] repoSpecs) {
 		String spec = "";
-		for (int i = 0; i < repos.length; i++) {
+		for (int i = 0; i < repoSpecs.length; i++) {
 			if (spec.length() > 0) spec += " + ";
-			spec += repos[i];
+			spec += repoSpecs[i];
 		}
 		return spec;
 	}
-	public static String reasoningSpec(String repo, String reasoner) {
-		return repo + "[" + reasoner + "]";
+	public static String reasoningSpec(String repoSpec, String reasoner) {
+		return repoSpec + "[" + reasoner + "]";
 	}
-	public static String filteredSpec(String repo, String[] graphs) {
-		repo += "{";
-		for (String graph : graphs) repo += " " + graph;
-		return repo + "}";
+	public static String filteredSpec(String repoSpec, String[] graphs) {
+		repoSpec += "{";
+		for (String graph : graphs) repoSpec += " " + graph;
+		return repoSpec + "}";
 	}
 }
