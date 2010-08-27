@@ -1152,37 +1152,45 @@ public class TutorialExamples {
         ValueFactory f = myRepository.getValueFactory();
         String exns = "http://example.org/people/";
         URI alice = f.createURI(exns, "alice");
+        // Create URIs for resources, predicates and classes.
         URI bob = f.createURI(exns, "bob");
         URI ted = f.createURI(exns, "ted");        
         URI person = f.createURI("http://example.org/ontology/Person");
         URI name = f.createURI("http://example.org/ontology/name");
+        // Create literal name values.
         Literal alicesName = f.createLiteral("Alice");
         Literal bobsName = f.createLiteral("Bob");
-        Literal tedsName = f.createLiteral("Ted");        
+        Literal tedsName = f.createLiteral("Ted");   
+        // Create URIs to identify the named contexts.
         URI context1 = f.createURI(exns, "cxt1");      
-        URI context2 = f.createURI(exns, "cxt2");         
+        URI context2 = f.createURI(exns, "cxt2");  
+        // Assemble new statements and add them to the contexts. 
         conn.add(alice, RDF.TYPE, person, context1);
         conn.add(alice, name, alicesName, context1);
         conn.add(bob, RDF.TYPE, person, context2);
         conn.add(bob, name, bobsName, context2);
         conn.add(ted, RDF.TYPE, person);
         conn.add(ted, name, tedsName);
+        println("--------------------------------------------------------------------");
         RepositoryResult<Statement> statements = conn.getStatements(null, null, null, false);
-        println("\nAll triples in all contexts:");        
+        println("\nAll triples in all contexts: " + (conn.size()));       
         while (statements.hasNext()) {
             println(statements.next());            
         }
+        println("--------------------------------------------------------------------");
         statements = conn.getStatements(null, null, null, false, context1, context2);
-        println("\nTriples in contexts 1 or 2:");        
+        println("\nTriples in contexts 1 or 2: " + (conn.size(context1) + conn.size(context2)));        
         while (statements.hasNext()) {
             println(statements.next());
         }
+        println("--------------------------------------------------------------------");
         statements = conn.getStatements(null, null, null, false, null, context2);
-        println("\nTriples in contexts null or 2:");        
+        println("\nTriples in contexts null or 2: " + (conn.size((Resource)null) + conn.size(context2)));        
         while (statements.hasNext()) {
             println(statements.next());
         }
 
+        println("--------------------------------------------------------------------");
         // testing named graph query
         String queryString = "SELECT ?s ?p ?o ?c WHERE { GRAPH ?c {?s ?p ?o . } }";        
         DatasetImpl ds = new DatasetImpl();
@@ -1200,6 +1208,7 @@ public class TutorialExamples {
             		bindingSet.getBinding("c"));
         }    
         
+        println("--------------------------------------------------------------------");
         queryString = "SELECT ?s ?p ?o WHERE {?s ?p ?o . }";
         ds = new DatasetImpl();
         ds.addDefaultGraph(null);
@@ -2634,4 +2643,4 @@ public class TutorialExamples {
     }
     
 }
-// Update August 25, 2010 AG 4.1
+// Update August 26, 2010 AG 4.1
