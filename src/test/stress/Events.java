@@ -82,6 +82,8 @@ public class Events {
 	    // OPEN OR RENEW
 	    static private final boolean OPEN = false;
 	    
+	    static private boolean MONITOR = true;
+	    
 	}
 
 	public static void trace(String format, Object... values) {
@@ -740,20 +742,24 @@ public class Events {
 
 	public static class Monitor {
 		static public void start(String phase) {
-			try {
-			    String[] commands = new String[]{"monitor.sh", "start", phase};
-			    Runtime.getRuntime().exec(commands);
-			} catch (IOException e) {
-				trace("./monitor.sh was not started.");
+			if (Defaults.MONITOR) {
+				try {
+					String[] commands = new String[]{"monitor.sh", "start", phase};
+					Runtime.getRuntime().exec(commands);
+				} catch (IOException e) {
+					trace("./monitor.sh was not started.");
+				}
 			}
 		}
 		
 		static public void stop() {
-			try {
-			    String[] commands = new String[]{"monitor.sh", "end"};
-			    Runtime.getRuntime().exec(commands);
-			} catch (IOException e) {
-				trace("./monitor.sh was not stopped.");
+			if (Defaults.MONITOR) {
+				try {
+					String[] commands = new String[]{"monitor.sh", "end"};
+					Runtime.getRuntime().exec(commands);
+				} catch (IOException e) {
+					trace("./monitor.sh was not stopped.");
+				}
 			}
 		}
 	}
@@ -764,8 +770,19 @@ public class Events {
 	public static void main(String[] args) throws RepositoryException {
 		Thread.currentThread().setName("./events");
 		
-		if (args.length >= 2 && args[0].equals("--seed")) {
-			RANDOM.setSeed(Long.parseLong(args[1]));
+		if (args.length > 0) {
+			if (args.length >= 2 && args[0].equals("--seed")) {
+				RANDOM.setSeed(Long.parseLong(args[1]));
+			}
+			if (args.length >= 4 && args[2].equals("--seed")) {
+				RANDOM.setSeed(Long.parseLong(args[3]));
+			}
+			if (args.length >= 2 && args[0].equals("--monitor")) {
+				Defaults.MONITOR = Boolean.parseBoolean(args[1]);
+			}
+			if (args.length >= 4 && args[2].equals("--monitor")) {
+				Defaults.MONITOR = Boolean.parseBoolean(args[3]);
+			}
 		}
 		
         if (Defaults.OPEN) {
