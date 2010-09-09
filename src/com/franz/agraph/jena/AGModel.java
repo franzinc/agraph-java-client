@@ -19,9 +19,13 @@ import org.openrdf.rio.RDFParseException;
 import com.franz.agraph.repository.AGRDFFormat;
 import com.franz.agraph.repository.AGValueFactory;
 import com.franz.util.Closeable;
+import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.rdf.model.AnonId;
 import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.Property;
+import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.rdf.model.impl.ModelCom;
 
 /**
@@ -77,4 +81,84 @@ public class AGModel extends ModelCom implements Model, Closeable {
 		BNode blank = vf.createBNode();
 		return createResource(new AnonId(blank.stringValue()));
 	}
+	
+
+	/* 
+	 * Override methods involving StatementImpls, 
+	 * instead using AGStatements. 
+	 */
+	
+	@Override 
+	public AGModel add( Statement [] statements ) {
+		getBulkUpdateHandler().add( AGStatement.asTriples( statements ) );
+		return this;
+    }
+    
+	@Override 
+	public AGModel remove( Statement [] statements ) {
+		getBulkUpdateHandler().delete( AGStatement.asTriples( statements ) );        
+		return this;
+    }
+ 
+	@Override 
+	public AGStatement createStatement(Resource r, Property p, RDFNode o) { 
+		return new AGStatement(r, p, o, this ); 
+	}
+
+	@Override 
+	public Statement asStatement( Triple t ) {
+		return AGStatement.toStatement( t, this );
+	}
+	
+	/*
+	 * Override Reification methods
+	 */
+	
+    /**
+    A mapper that maps modes to their corresponding ReifiedStatement objects. This
+    cannot be static: getRS cannot be static, because the mapping is model-specific.
+	protected final Map1<QuerySolution, ReifiedStatement> mapToRS = new Map1<QuerySolution, ReifiedStatement>()
+    {
+    public ReifiedStatement map1( QuerySolution result ) { 
+    	return getRS( result.get("s").asNode() ); 
+    }
+    };
+     */
+
+    /**
+    Answer a ReifiedStatement that is based on the given node. 
+    @param n the node which represents the reification (and is bound to some triple t)
+    @return a ReifiedStatement associating the resource of n with the statement of t.    
+    private ReifiedStatement getRS( Node n ) { 
+    	return ReifiedStatementImpl.createExistingReifiedStatement( this, n );
+    }     
+     */
+	
+
+    /**
+    	@return an iterator which delivers all the ReifiedStatements in this model
+	public RSIterator listReifiedStatements() {
+		String queryString = "SELECT ?s  WHERE {?s a rdf:Statement .}";
+		AGQuery sparql = AGQueryFactory.create(queryString);
+		QueryExecution qe = AGQueryExecutionFactory.create(sparql, this);
+		ResultSet results;
+		try {
+			results = qe.execSelect();
+		} finally {
+			qe.close();
+		}
+		return new RSIteratorImpl(new NiceIterator<QuerySolution>().andThen(results).mapWith(mapToRS));
+	}
+     */
+
+	/**
+    	@return an iterator each of whose elements is a ReifiedStatement in this
+        model such that it's getStatement().equals( st )
+	public RSIterator listReifiedStatements( final Statement st ) {
+		Filter<ReifiedStatement> f = new Filter<ReifiedStatement>() {public boolean accept(ReifiedStatement rs) {return rs.getStatement().equals(st);};};
+		return new RSIteratorImpl(listReifiedStatements().filterKeep(f));
+	}
+	 */
+            
+	
 }

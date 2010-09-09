@@ -4,11 +4,11 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/junit-4.8.1.jar" sourcepath="lib/junit-4.8.1-src.jar"/>
 	<classpathentry kind="lib" path="lib/commons-cli-1.2.jar"/>
-	<classpathentry kind="lib" path="lib/jena-2.6.2/arq-2.8.1.jar" sourcepath="lib/jena-2.6.2/src/arq-2.8.1-sources.jar"/>
+	<classpathentry kind="lib" path="lib/jena-2.6.2/arq-2.8.1.jar" sourcepath="lib/jena-2.6.2/arq-2.8.1-sources.jar"/>
 	<classpathentry kind="lib" path="lib/jena-2.6.2/icu4j-3.4.4.jar"/>
 	<classpathentry kind="lib" path="lib/jena-2.6.2/iri-0.7.jar"/>
-	<classpathentry kind="lib" path="lib/jena-2.6.2/jena-2.6.2-tests.jar" sourcepath="lib/jena-2.6.2/src/jena-2.6.2-test-sources.jar"/>
-	<classpathentry kind="lib" path="lib/jena-2.6.2/jena-2.6.2.jar" sourcepath="lib/jena-2.6.2/src/jena-2.6.2-sources.jar"/>
+	<classpathentry kind="lib" path="lib/jena-2.6.2/jena-2.6.2-tests.jar" sourcepath="lib/jena-2.6.2/jena-2.6.2-test-sources.jar"/>
+	<classpathentry kind="lib" path="lib/jena-2.6.2/jena-2.6.2.jar" sourcepath="lib/jena-2.6.2/jena-2.6.2-sources.jar"/>
 	<classpathentry kind="lib" path="lib/jena-2.6.2/lucene-core-2.3.1.jar"/>
 	<classpathentry kind="lib" path="lib/jena-2.6.2/stax-api-1.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/jena-2.6.2/wstx-asl-3.2.9.jar"/>

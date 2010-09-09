@@ -35,6 +35,7 @@ import com.hp.hpl.jena.util.iterator.NiceIterator;
 public class AGGraphMaker implements GraphMaker, Closeable {
 
 	private AGRepositoryConnection conn;
+	private ReificationStyle style;
 	private AGGraph defaultGraph;
 	
 	// TODO make this persistent?
@@ -42,8 +43,14 @@ public class AGGraphMaker implements GraphMaker, Closeable {
 
     public AGGraphMaker(AGRepositoryConnection conn) {
 		this.conn = conn;
+		this.style = ReificationStyle.Minimal;
 	}
 
+    public AGGraphMaker(AGRepositoryConnection conn, ReificationStyle style) {
+    	this.conn = conn;
+    	this.style = style;
+    }
+    
 	public AGRepositoryConnection getRepositoryConnection() {
 		return conn;
 	}
@@ -99,7 +106,7 @@ public class AGGraphMaker implements GraphMaker, Closeable {
 
 	@Override
 	public ReificationStyle getReificationStyle() {
-		return ReificationStyle.Minimal;
+		return style;
 	}
 
 	@Override
