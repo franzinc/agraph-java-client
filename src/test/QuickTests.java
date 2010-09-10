@@ -17,6 +17,8 @@ import static test.Stmt.stmts;
 import java.util.ArrayList;
 import java.util.List;
 
+import junit.framework.Assert;
+
 import org.junit.Test;
 import org.junit.experimental.categories.Categories;
 import org.junit.experimental.categories.Category;
@@ -48,7 +50,7 @@ public class QuickTests extends AGAbstractTest {
     public static final String NS = "http://franz.com/test/";
 
     @Test
-    @Category(TestSuites.Broken.class)
+    @Category(TestSuites.Prepush.class)
     public void bnode() throws Exception {
         assertEquals("size", 0, conn.size());
         BNode s = vf.createBNode();
@@ -67,6 +69,36 @@ public class QuickTests extends AGAbstractTest {
         AGAbstractTest.assertSetsEqual("",
                 Stmt.stmts(new Stmt(st)),
                 Stmt.statementSet(conn.getStatements(st.getSubject(), st.getPredicate(), st.getObject(), false)));
+    }
+    
+    @Test
+    @Category(TestSuites.Prepush.class)
+    public void bnode_rfe9776() throws Exception {
+    	URI orderedCollection = vf.createURI("http://lumas#orderedCollection");
+    	URI property = vf.createURI("http://lumas#hasId");
+    	BNode node = vf.createBNode("newId");
+    	
+    	conn.add(orderedCollection, property, node);
+    	
+    	RepositoryResult<Statement> result = closeLater( conn.getStatements(null, null, null, false));
+    	BNode bnode = null;
+    	if (result.hasNext()) {
+    		Statement st = result.next();
+    		bnode = (BNode) st.getObject();
+    		Assert.assertNotNull(st);
+    	} else {
+    		fail("expected 1 result");
+    	}
+    	Assert.assertNotNull(bnode);
+    	
+    	// load triple from blank-node
+    	result = closeLater( conn.getStatements(null, null, bnode, false));
+    	if (result.hasNext()){
+    		Statement st = result.next();
+    		Assert.assertNotNull(st);
+    	} else {
+    		fail("no triple found!");
+    	}
     }
 
     /**

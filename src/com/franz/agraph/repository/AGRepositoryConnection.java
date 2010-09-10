@@ -19,6 +19,7 @@ import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.openrdf.OpenRDFException;
 import org.openrdf.OpenRDFUtil;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Namespace;
@@ -242,7 +243,7 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 			boolean includeInferred, RDFHandler handler, Resource... contexts)
 			throws RDFHandlerException, RepositoryException {
 		try {
-			getHttpRepoClient().getStatements(subj, pred, obj, includeInferred,
+			getHttpRepoClient().getStatements(subj, pred, obj, Boolean.toString(includeInferred),
 					handler, contexts);
 		} catch (IOException e) {
 			throw new RepositoryException(e);
@@ -769,4 +770,49 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		}
 		getHttpRepoClient().registerSNANeighborMatrix(matrix, generator, grp, depth);
 	}
+	
+	/**
+	 * Returns a list of actively managed indices for this repository.
+	 * 
+	 * @return a list of actively managed indices for this repository.
+	 * @throws OpenRDFException
+	 */
+    public List<String> listIndices() throws OpenRDFException {
+    	return getHttpRepoClient().listIndices(false);
+    }
+    
+    /**
+     * Returns a list of all possible index types for this repository.
+     * 
+     * @return
+     * @throws OpenRDFException
+     */
+    public List<String> listValidIndices() throws OpenRDFException {
+    	return getHttpRepoClient().listIndices(true);
+    }
+
+    /**
+     * Adds the given index to the list of actively managed indices.
+     * This will take affect on the next commit.
+     * 
+     * @param type a valid index type
+     * @throws RepositoryException
+   	 * @see #listValidIndices()
+   	 */
+    public void addIndex(String type) throws RepositoryException {
+    	getHttpRepoClient().addIndex(type);
+    }
+
+    /**
+     * Drops the given index from the list of actively managed indices.
+     * This will take affect on the next commit.
+     * 
+     * @param type an actively managed index type.
+     * @throws RepositoryException
+     * @see #listValidIndices()
+     */
+    public void dropIndex(String type) throws RepositoryException {
+    	getHttpRepoClient().dropIndex(type);
+    }
+    
 }

@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -205,11 +206,24 @@ public class AGAbstractTest extends Closer {
     
     public static void assertFiles(File expected, File actual) throws Exception {
         assertEquals("diff " + expected.getCanonicalPath() + " " + actual.getCanonicalPath(),
-                readLines(expected),
-                readLines(actual));
+        		stripBlankNodes(readLines(expected)),
+        		stripBlankNodes(readLines(actual)));
     }
     
-    public static Map mapKeep(Object[] keys, Map map) {
+    private static List<String> stripBlankNodes(List<String> strings) {
+    	List<String> ret = new ArrayList<String>(strings.size());
+    	for (String str : strings) {
+    		String[] split = str.split("b........x.");
+    		StringBuilder b = new StringBuilder();
+    		for (int i = 0; i < split.length; i++) {
+    			b.append(split[i]);
+    		}
+    		ret.add(b.toString());
+		}
+    	return ret;
+	}
+
+	public static Map mapKeep(Object[] keys, Map map) {
         Map ret = new HashMap();
         for (int i = 0; i < keys.length; i++) {
             ret.put(keys[i], map.get(keys[i]));

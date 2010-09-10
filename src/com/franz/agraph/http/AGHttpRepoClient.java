@@ -21,7 +21,9 @@ import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpException;
@@ -30,6 +32,7 @@ import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.json.JSONArray;
+import org.openrdf.OpenRDFException;
 import org.openrdf.OpenRDFUtil;
 import org.openrdf.http.protocol.Protocol;
 import org.openrdf.http.protocol.UnauthorizedException;
@@ -80,11 +83,14 @@ public class AGHttpRepoClient implements Closeable {
 	private AGHTTPClient client;
 	private Repository repo;
 
+	public ConcurrentLinkedQueue<String> savedQueryDeleteQueue;
+
     public AGHttpRepoClient(Repository repo, AGHTTPClient client, String repoRoot, String sessionRoot) {
 		this.repo = repo;
 		this.sessionRoot = sessionRoot;
 		this.repoRoot = repoRoot;
 		this.client = client;
+		savedQueryDeleteQueue = new ConcurrentLinkedQueue<String>();
 	}
 
 	public String getRoot() throws RepositoryException {
@@ -181,7 +187,7 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	public void getStatements(Resource subj, URI pred, Value obj,
-			boolean includeInferred, RDFHandler handler, Resource... contexts)
+			String includeInferred, RDFHandler handler, Resource... contexts)
 			throws IOException, RDFHandlerException, RepositoryException,
 			UnauthorizedException {
 		String uri = Protocol.getStatementsLocation(getRoot());
@@ -206,7 +212,7 @@ public class AGHttpRepoClient implements Closeable {
 					encodedContext));
 		}
 		params.add(new NameValuePair(Protocol.INCLUDE_INFERRED_PARAM_NAME,
-				Boolean.toString(includeInferred)));
+				includeInferred));
 
 		try {
 			getHTTPClient()
@@ -611,6 +617,7 @@ public class AGHttpRepoClient implements Closeable {
 
 		String url = getRoot();
 		if (q.isPrepared()) {
+			processSavedQueryDeleteQueue();
 			url = AGProtocol.getSavedQueryLocation(url,q.getName());
 		}
 		List<Header> headers = new ArrayList<Header>(5);
@@ -687,6 +694,32 @@ public class AGHttpRepoClient implements Closeable {
 		return queryParams;
 	}
 
+	/**
+	 * Free up any no-longer-needed saved queries as reported 
+	 * by AGQuery finalizer.
+	 *  
+	 * @throws RepositoryException
+	 */
+	private void processSavedQueryDeleteQueue() throws RepositoryException {
+		String queryName;
+		while((queryName=savedQueryDeleteQueue.poll())!=null) {
+			deleteSavedQuery(queryName);
+		}
+	}
+	
+	public void deleteSavedQuery(String queryName) throws RepositoryException {
+		String url = AGProtocol.getSavedQueryLocation(getRoot(), queryName);
+		Header[] headers = {};
+		NameValuePair[] params = {};
+		try {
+			getHTTPClient().delete(url, headers, params);
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+	}
+	
 	public void close() throws RepositoryException {
 		if (sessionRoot != null) {
 			try {
@@ -1195,6 +1228,74 @@ public class AGHttpRepoClient implements Closeable {
 			throw new RepositoryException(e);
 		}
 	}
+
+	/**
+	 * Returns a list of indices for this repository.  When listValid is true,
+	 * return all possible valid index types for this store; when listValid is 
+	 * false, return only the current actively managed index types.
+	 *   
+	 * @param listValid true yields all valid types, false yields active types. 
+	 * @return
+	 * @throws OpenRDFException
+	 */
+	public List<String> listIndices(boolean listValid) throws RepositoryException {
+		String url = AGProtocol.getIndicesURL(getRoot());
+		Header[] headers = new Header[0];
+		NameValuePair[] data = { new NameValuePair("listValid", Boolean
+				.toString(listValid)) };
+
+		AGResponseHandler handler = new AGResponseHandler("");
+		try {
+			getHTTPClient().get(url, headers, data, handler);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		}
+		return Arrays.asList(handler.getString().split("\n"));
+	}
+
+    /**
+     * Adds the given index to the list of actively managed indices.
+     * This will take affect on the next commit.
+     * 
+     * @param type a valid index type
+     * @throws RepositoryException
+     * @see #listIndices(boolean)
+     */
+	public void addIndex(String index) throws RepositoryException {
+		String url = AGProtocol.getIndicesURL(getRoot())+"/"+index;
+		Header[] headers = {};
+		NameValuePair[] params = {};
+		try {
+			getHTTPClient().put(url, headers, params, null);
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		}
+	}
 	
-	
+	/**
+	 * Drops the given index from the list of actively managed indices.
+	 * This will take affect on the next commit.
+	 * 
+	 * @param type a valid index type
+	 * @throws RepositoryException
+	 * @see #listIndices(boolean)
+	 */
+	public void dropIndex(String index) throws RepositoryException {
+		String url = AGProtocol.getIndicesURL(getRoot())+"/"+index;
+		Header[] headers = {};
+		NameValuePair[] params = {};
+		try {
+			getHTTPClient().delete(url, headers, params);
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+	}
 }

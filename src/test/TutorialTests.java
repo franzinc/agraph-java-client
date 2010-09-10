@@ -8,7 +8,6 @@
 
 package test;
 
-import static com.franz.util.Util.close;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -53,9 +52,9 @@ import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.ntriples.NTriplesWriter;
 import org.openrdf.rio.rdfxml.RDFXMLWriter;
 
+import com.franz.agraph.repository.AGAbstractRepository;
 import com.franz.agraph.repository.AGQueryLanguage;
 import com.franz.agraph.repository.AGRepository;
-import com.franz.agraph.repository.AGAbstractRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
 import com.franz.agraph.repository.AGValueFactory;
@@ -228,6 +227,7 @@ public class TutorialTests extends AGAbstractTest {
     }
     
     @Test
+    @Category(TestSuites.Temp.class)
     public void example8() throws Exception {
         cat.deleteRepository("example8");
         repo = cat.createRepository("example8");
