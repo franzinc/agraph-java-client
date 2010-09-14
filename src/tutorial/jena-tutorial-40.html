@@ -74,7 +74,7 @@ creating, querying and maintaining RDF data, and for managing the stored triples
 <p>The tutorial examples can be run on a 32-bit Windows XP computer, running AllegroGraph and Java on the same computer (&quot;localhost&quot;). The tutorial assumes that AllegroGraph and Java 2.5 have  been installed and configured using this procedure:</p>
 <p>&nbsp;</p>
 <ol>
-  <li>Download an AllegroGraph 4.0 installation file (agraph-4.0-windows.exe). The free edition is available <a href="http://www.franz.com/downloads/clp/ag_survey">here.</a> For the licensed edition please contact <a href="mailto:support@franz.com">Franz customer support</a> for a download link and authorizing key. </li>
+  <li>Download an AllegroGraph 4.0 installation file (agraph-4.0-windows.exe). The free edition is available <a href="/downloads/clp/ag_survey">here.</a> For the licensed edition please contact <a href="mailto:support@franz.com">Franz customer support</a> for a download link and authorizing key. </li>
   <li>Run the agraph-4.0-windows.exe to install AllegroGraph. The default installation directory is C:\Program Files\AllegroGraphFJE32 for the free edition, or c:\Program Files\AllegroGraphJEE32 for the licensed edition.</li>
   <li>Create a scratch directory for AllegroGraph to use for disk-based data storage. In this tutorial the directory is c:\tmp\scratch. If you elect to use a different location, the configuration and example files will have to be modified in the same way.</li>
   <li>
@@ -121,7 +121,7 @@ In Windows XP, you can set an environment variable by
 </ol>
 -->
 <h2 id="PrerequisitesLinux">Prerequisites (Linux) &nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
-<p>The tutorial examples can be run on a Linux system, running AllegroGraph and the examples on the same computer (&quot;localhost&quot;). The tutorial assumes that AllegroGraph has been installed and configured using the procedure posted on <a href="http://www.franz.com/agraph/support/documentation/4.0m1/server-installation.html">this webpage</a>. The Jena API and the Jena tutorial are bundled with the AllegroGraph Java Client. </p>
+<p>The tutorial examples can be run on a Linux system, running AllegroGraph and the examples on the same computer (&quot;localhost&quot;). The tutorial assumes that AllegroGraph has been installed and configured using the procedure posted on <a href="/agraph/support/documentation/v4/server-installation.html">this webpage</a>. The Jena API and the Jena tutorial are bundled with the AllegroGraph Java Client. </p>
 <h2 id="Terminology">Terminology&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>We need to clarify some terminology before proceeding. </p>
 <ul>
@@ -704,7 +704,7 @@ Federated Apples: <br>[s=http://www.demo.com/example#reddelicious]<br>[s=http://
 -->
 <h2 id="RDFS++ Inference">RDFS++ Inference (example19())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>The great promise of the semantic web is that we can use RDF metadata to combine information from multiple sources into a single, common model.&nbsp; The great problem of the semantic web is that it is so difficult to recognize when two resource descriptions from different sources actually represent the same thing.&nbsp; This problem arises because there is no uniform or universal way to generate URIs identifying resources.&nbsp; As a result, we may create two resources, Bob and Robert, that actually represent the same person. </p>
-<p>This problem has generated much creativity in the field. One way to approach the problem is through inference.&nbsp; There are certain relationships and circumstances where an inference engine can deduce that two resource descriptions actually represent one thing, and then automatically merge the descriptions.&nbsp; AllegroGraph's <a href="http://www.franz.com/agraph/support/documentation/3.0.1/reasoner-tutorial.html">inference engine</a> can be turned on or off each time you run a query against the triple store.&nbsp;  (Note that inference is turned off by default, which is the opposite of standard Jena behavior.) </p>
+<p>This problem has generated much creativity in the field. One way to approach the problem is through inference.&nbsp; There are certain relationships and circumstances where an inference engine can deduce that two resource descriptions actually represent one thing, and then automatically merge the descriptions.&nbsp; AllegroGraph's <a href="/agraph/support/documentation/v3/reasoner-tutorial.html">inference engine</a> can be turned on or off each time you run a query against the triple store.&nbsp;  (Note that inference is turned off by default, which is the opposite of standard Jena behavior.) </p>
 <p>In example example19(), we will create four resources: Bob, with son Bobby, and Robert with daughter Roberta.&nbsp; </p>
 <p><img src="inferenceSetup.jpg" width="448" height="101"></p>
 <p>First we have to set up the data. We begin by generating four new resources. </p>
@@ -904,7 +904,7 @@ spherical/degrees/-180.0/180.0/-90.0/90.0/5.0&gt;)
 </ul>
 <h3 id="Example Network">Example Network</h3>
 <p>The example file for this exercise is <strong>java-lesmis.rdf</strong>. It contains resources representing 80 characters from Victor Hugo's <em>Les Miserables</em>, a novel about Jean Valjean's search for redemption in 17th-century Paris. </p>
-<p>The raw data behind the model measured the strength of relationships by counting the number of book chapters where two characters were both present. The five-volume novel has 365 chapters, so it was possible to create a relationship network that had some interesting features. This is a partial display of the graph in <a href="http://www.franz.com/agraph/gruff/index.lhtml">Franz's Gruff graphical browser</a>. </p>
+<p>The raw data behind the model measured the strength of relationships by counting the number of book chapters where two characters were both present. The five-volume novel has 365 chapters, so it was possible to create a relationship network that had some interesting features. This is a partial display of the graph in <a href="/agraph/gruff/index.lhtml">Franz's Gruff graphical browser</a>. </p>
 <p><img src="lesmismap.jpg" width="768" height="426"> </p>
 <p>There are four possible relationships between any two characters. </p>
 <ul>
@@ -967,7 +967,7 @@ spherical/degrees/-180.0/180.0/-90.0/90.0/5.0&gt;)
       (ego-group-member !lm:character11 1 associates ?member)
       (q ?member !dc:title ?name))
 </pre>
-<p>In this example, <strong>ego-group-member</strong> is an AllegroGraph SNA function that has been adapted for use in Prolog queries. There is a list of such functions on the <a href="http://www.franz.com/agraph/support/documentation/current/reference-guide.html#sna">AllegroGraph documentation reference page</a>. </p>
+<p>In this example, <strong>ego-group-member</strong> is an AllegroGraph SNA function that has been adapted for use in Prolog queries. There is a list of such functions on the <a href="/agraph/support/documentation/current/reference-guide.html#sna">AllegroGraph documentation reference page</a>. </p>
 <p>The query will execute <strong>ego-group-member</strong>, using Valjean (character11) as the starting point, following the predicates described in &quot;associates,&quot; to a depth of 1 link. It binds each matching node to <strong>?member</strong>. Then, for each binding of ?member, the query looks for the member's <strong>dc:title</strong> triple, and binds the member's <strong>?name</strong>.  The query returns multiple results, where each result is a (?member ?name) pair. The result object is passed back to Java, where we can iterate over the results and print out their values. </p>
 <p>This is the output of the example:</p>
 <pre class="output">Valjean's ego group members (using associates).<br>Member: http://www.franz.com/lesmis#character27, name: &quot;Javert&quot;<br>Member: http://www.franz.com/lesmis#character25, name: &quot;Thenardier&quot;<br>Member: http://www.franz.com/lesmis#character28, name: &quot;Fauchelevent&quot;<br>Member: http://www.franz.com/lesmis#character23, name: &quot;Fantine&quot;<br>Member: http://www.franz.com/lesmis#character26, name: &quot;Cosette&quot;<br>Member: http://www.franz.com/lesmis#character55, name: &quot;Marius&quot;<br>Member: http://www.franz.com/lesmis#character11, name: &quot;Valjean&quot;<br>Member: http://www.franz.com/lesmis#character24, name: &quot;MmeThenardier&quot;<br>Number of results: 8</pre>
