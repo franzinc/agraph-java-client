@@ -31,7 +31,11 @@ import org.openrdf.model.Literal;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.query.QueryLanguage;
+import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
+
+import com.franz.agraph.repository.AGRepository;
+import com.franz.agraph.repository.AGRepositoryConnection;
 
 import test.TestSuites.NonPrepushTest;
 
@@ -136,7 +140,7 @@ public class QuickTests extends AGAbstractTest {
         URI firstname = vf.createURI("http://example.org/ontology/firstname");
         URI lastname = vf.createURI("http://example.org/ontology/lastname");
         Literal alicesName = vf.createLiteral("Alice");
-        List input = new ArrayList<Statement>();
+        List<Statement> input = new ArrayList<Statement>();
         input.add(vf.createStatement(alice, firstname, alicesName));
         input.add(vf.createStatement(alice, lastname, alicesName));
         conn.add(input);
@@ -145,4 +149,32 @@ public class QuickTests extends AGAbstractTest {
         assertEquals("size", 0, conn.size());
     }
 
+    @Test
+    @Category(TestSuites.Prepush.class)
+    public void openRepo_rfe9837() throws Exception {
+    	AGRepository repo2 = closeLater( cat.openRepository(repo.getRepositoryID()));
+    	AGRepositoryConnection conn2 = closeLater( repo2.getConnection());
+    	assertEquals("size", conn.size(), conn2.size());
+    	assertEquals("id", repo.getRepositoryID(), repo2.getRepositoryID());
+    	try {
+    		AGRepository repo3 = closeLater( cat.createRepository(repo.getRepositoryID(), true));
+    		fail("strict should cause an exception: " + repo3.getRepositoryURL());
+    	} catch (RepositoryException e) {
+    		if (e.getMessage().contains("There is already a repository")) {
+    			// good
+    		} else {
+    			throw e;
+    		}
+    	}
+    	try {
+    		AGRepository repo3 = closeLater( cat.openRepository("no-such-repo"));
+    		fail("should not exist: " + repo3.getRepositoryURL());
+    	} catch (RepositoryException e) {
+    		if (e.getMessage().contains("Repository not found with ID:")) {
+    			// good
+    		} else {
+    			throw e;
+    		}
+    	}
+    }
 }
