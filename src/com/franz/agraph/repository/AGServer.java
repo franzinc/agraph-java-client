@@ -59,9 +59,11 @@ public class AGServer implements Closeable {
 	}
 	
 	/**
-	 * Returns the root catalog for this AllegroGraph server.
+	 * Returns the unnamed root catalog for this AllegroGraph server.
+	 * Note: this method may be deprecated in an upcoming release.
 	 * 
-	 * @return the root catalog. 
+	 * @return the root catalog.
+	 * @see #getCatalog() 
 	 */
 	public AGCatalog getRootCatalog() {
 		return rootCatalog;
@@ -92,11 +94,28 @@ public class AGServer implements Closeable {
 	/**
 	 * Gets the catalog instance for a given catalog id.
 	 * 
+	 * Returns the root catalog if the id is a root id.
+	 *    
 	 * @param catalogID a catalog id.
 	 * @return the corresponding catalog instance.
 	 */
 	public AGCatalog getCatalog(String catalogID) {
-		return new AGCatalog(this, catalogID);
+		AGCatalog catalog;
+		if (AGCatalog.isRootID(catalogID)) {
+			catalog = getRootCatalog();
+		} else {
+			catalog = new AGCatalog(this, catalogID);
+		}
+		return catalog;
+	}
+
+	/**
+	 * Returns the unnamed root catalog for this AllegroGraph server.
+	 * 
+	 * @return the root catalog. 
+	 */
+	public AGCatalog getCatalog() {
+		return rootCatalog;
 	}
 
 	public AGVirtualRepository virtualRepository(String spec) {
