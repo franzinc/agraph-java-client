@@ -535,7 +535,7 @@ public class TutorialTests extends AGAbstractTest {
     public void example16() throws Exception {
         example6();
         // create two ordinary stores, and one federated store:
-        AGRepository redRepo = cat.createRepository("redthingsjv");
+        AGRepository redRepo = server.getCatalog().createRepository("redthingsjv");
         closeLater(redRepo);
         redRepo.initialize();
         AGRepositoryConnection redConn = getConnection(redRepo);
