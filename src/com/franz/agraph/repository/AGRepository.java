@@ -141,7 +141,7 @@ public class AGRepository implements AGAbstractRepository, Closeable {
 
 	public String getSpec() {
 		String cname = getCatalog().getCatalogName(), name = getRepositoryID();
-		if (cname == null) return "<" + name + ">";
+		if (AGCatalog.isRootID(cname)) return "<" + name + ">";
 		else return "<" + cname + ":" + name + ">";
 	}
 

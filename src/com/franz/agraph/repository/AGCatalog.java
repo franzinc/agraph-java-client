@@ -20,7 +20,6 @@ import org.openrdf.query.BindingSet;
 import org.openrdf.query.TupleQueryResult;
 import org.openrdf.repository.RepositoryException;
 
-import com.franz.agraph.http.AGErrorType;
 import com.franz.agraph.http.AGHTTPClient;
 import com.franz.agraph.http.AGHttpException;
 import com.franz.agraph.http.AGProtocol;
@@ -124,6 +123,15 @@ public class AGCatalog {
 		return repositoriesURL;
 	}
 	
+	// TODO this should be part of AGProtocol.
+	public String getRepositoryURL(String repositoryID) {
+		return repositoriesURL + "/" + encode(repositoryID);
+	}
+	
+	public AGHTTPClient getHTTPClient() {
+		return getServer().getHTTPClient();
+	}	
+
 	protected String getCatalogPrefixedRepositoryID(String repositoryID) {
 		String catalogPrefixedRepositoryID;
 		switch (getCatalogType()) {
@@ -139,11 +147,6 @@ public class AGCatalog {
 		return catalogPrefixedRepositoryID;
 	}
 
-	// TODO this should be part of AGProtocol.
-	public String getRepositoryURL(String repositoryID) {
-		return repositoriesURL + "/" + encode(repositoryID);
-	}
-	
 	/**
 	 * Returns a List of repository ids contained in this catalog.
 	 * 
@@ -166,10 +169,17 @@ public class AGCatalog {
         return result;
 	}
 
-	public AGHTTPClient getHTTPClient() {
-		return getServer().getHTTPClient();
+	/**
+	 * Returns true if the repository id is contained in this catalog.
+	 * 
+	 * @return true if the repository id is contained in this catalog.
+	 * @throws OpenRDFException
+	 */
+	public boolean hasRepository(String repoId) throws OpenRDFException {
+		List<String> repos = listRepositories();
+		return repos.contains(repoId);
 	}
-
+	       
 	/**
 	 * Returns an uninitialized AGRepository instance for the given 
 	 * repository id.
@@ -183,24 +193,63 @@ public class AGCatalog {
 	 */
 	public AGRepository createRepository(String repositoryID)
 			throws RepositoryException {
+		return createRepository(repositoryID, false);
+	}
+
+	/**
+	 * Returns an uninitialized AGRepository instance for the given
+	 * repository id.
+	 * 
+	 * The repository is created if it does not exist.  If the
+	 * repository already exists, it is simply opened, or an exception
+	 * is thrown if strict=true.
+	 * 
+	 * @param repositoryID the id (the name) of the repository
+	 * @param strict if true and the repository already exists, throw an exception
+	 * @return an uninitialized AGRepository instance.
+	 * @throws RepositoryException
+	 */
+	public AGRepository createRepository(String repositoryID, boolean strict)
+			throws RepositoryException {
 		String repoURL = AGProtocol.getRepositoryLocation(getCatalogURL(),
 				repositoryID);
 		try {
-			getHTTPClient().putRepository(repoURL);
+			if (strict || !hasRepository(repositoryID)) {
+				getHTTPClient().putRepository(repoURL);
+			}
 		} catch (IOException e) {
 			throw new RepositoryException(e);
+		} catch (OpenRDFException e) {
+			// TODO: consider having methods in this class all throw OpenRDFExceptions
+			throw new RepositoryException(e);
 		} catch (AGHttpException e) {
-			if (AGErrorType.PRECONDITION_FAILED == e.getErrorInfo()
-					.getErrorType()) {
-				// don't error if repo already exists
-				// TODO: check if repo exists first
-			} else {
-				throw new RepositoryException(e);
-			}
+			throw new RepositoryException(e);
 		}
 		return new AGRepository(this, repositoryID);
 	}
 
+	/**
+	 * Returns an uninitialized AGRepository instance for the given 
+	 * repository id.
+	 * 
+	 * If the repository already exists, it is simply opened.
+	 * 
+	 * @param repositoryID the id (the name) of the repository. 
+	 * @return an uninitialized AGRepository instance.
+	 * @throws RepositoryException if the repositoryID does not exist
+	 */
+	public AGRepository openRepository(String repositoryID)
+			throws RepositoryException {
+		try {
+			if (!hasRepository(repositoryID)) {
+				throw new RepositoryException("Repository not found with ID: " + repositoryID);
+			}
+		} catch (OpenRDFException e) {
+			// TODO: consider having methods in this class all throw OpenRDFExceptions
+			throw new RepositoryException(e);
+		}
+		return new AGRepository(this, repositoryID);
+	}
 	/**
 	 * Deletes the repository with the given repository id.
 	 * 
@@ -216,6 +265,23 @@ public class AGCatalog {
 		} catch (IOException e) {
 			throw new RepositoryException(e);
 		}
+	}
+
+	/**
+	 * Returns true iff the id identifies the root catalog.
+	 * 
+	 * Currently null, the empty string, and "/" are all considered to identify
+	 * the root catalog.
+	 * 
+	 * @param catalogID
+	 * @return true iff the id identifies the root catalog.
+	 */
+	public static boolean isRootID(String catalogID) {
+		boolean result = false;
+		if (catalogID == null || catalogID.equals("") || catalogID.equals("/")) {
+			result = true;
+		}
+		return result;
 	}
 
 }
