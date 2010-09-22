@@ -1,13 +1,15 @@
-;; This software is Copyright (c) Franz, 2009.
-;; Franz grants you the rights to distribute
-;; and use this software as governed by the terms
-;; of the Lisp Lesser GNU Public License
-;; (http://opensource.franz.com/preamble.html),
-;; known as the LLGPL.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Copyright (c) 2008-2010 Franz Inc.
+;; All rights reserved. This program and the accompanying materials
+;; are made available under the terms of the Eclipse Public License v1.0
+;; which accompanies this distribution, and is available at
+;; http://www.eclipse.org/legal/epl-v10.html
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (ns com.franz.util
   "Utility functions."
-  (:use [clojure.contrib stacktrace]))
+  (:refer-clojure :exclude [name with-open])
+  (:require [clojure.stacktrace :as st]))
 
 (alter-meta! *ns* assoc :author "Franz Inc <www.franz.com>, Mike Hinchey <mhinchey@franz.com>")
 
@@ -38,7 +40,7 @@ May be extended for differently named close methods."
       (catch Throwable e
         (binding [*out* *err*]
           (print "Ignoring exception from close: " e)
-          (print-cause-trace e))))
+          (st/print-cause-trace e))))
     (recur (next open-stack))))
 
 (defn open
@@ -77,3 +79,22 @@ May be extended for differently named close methods."
          ~@body
          (finally
            (close-all *with-open-stack*))))))
+
+(defn printlns
+  "println each item in a collection"
+  [col]
+  (doseq [x col]
+    (println x)))
+
+(defn read-lines
+  "Calls clojure.core/line-seq, but f is a File and (open) is called on the
+  reader that is created, so read-lines must be called with a (scope)."
+  [#^java.io.File f]
+  (line-seq (open (java.io.BufferedReader. (open (java.io.FileReader. f))))))
+
+(defn write-lines
+  [#^java.io.File f
+   lines]
+  (with-open2 [out (java.io.PrintWriter. (java.io.FileWriter. f))]
+    (doseq [ln lines]
+      (.println #^java.io.PrintWriter out ln))))

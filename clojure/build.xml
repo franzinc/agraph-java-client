@@ -1,23 +1,30 @@
-<project name="clj-agraph" default="clean-build">
+<!-- ********************************************************************** -->
+<!-- Copyright (c) 2008-2010 Franz Inc.                                     -->
+<!-- All rights reserved. This program and the accompanying materials       -->
+<!-- are made available under the terms of the Eclipse Public License v1.0  -->
+<!-- which accompanies this distribution, and is available at               -->
+<!-- http://www.eclipse.org/legal/epl-v10.html                              -->
+<!-- ********************************************************************** -->
+<project name="agraph-clj" default="clean-build">
     
     <!-- Override these with -Dclojure.jar=... in your Ant invocation. -->
-    <property name="clojure.jar" location="lib/clojure-1.0.jar"/>
-    <property name="clojure.contrib.jar" location="lib/clojure-contrib-1.0.jar"/>
-    
-    <available property="hasclojure" file="${clojure.jar}"/>
+    <property name="clojure.jar" location="libs/clojure-1.2.0.jar"/>
     
     <!-- Library. -->
     <property name="lib" location="../lib"/>  <!-- AG Java client. -->
-    <property name="jarfile" location="agraph-clj.jar"/>
+    <property name="jarfile" location="dist/agraph-clj.jar"/>
     
     <target name="init">
         <tstamp/>
         <mkdir dir="classes"/>
+        <mkdir dir="dist"/>
     </target>
     
     <target name="clean" description="Remove generated files and directories.">
         <delete dir="classes"/>
-        <delete file="${jarfile}"/>
+        <delete dir="dist"/>
+        <!-- lib is a temp dir used by lein (project.clj) -->
+        <delete dir="lib"/>
     </target>
     
     <target name="clean-build" depends="clean, build"
@@ -25,14 +32,13 @@
     </target>
     
     <path id="agclj-libs">
+        <path location="${lib}/../classes"/>
         <path location="${lib}/../agraph.jar"/>
         <path location="${clojure.jar}"/>
-        <path location="${clojure.contrib.jar}"/>
     </path>
     
     <target name="compile-clojure" depends="init"
-            description="Compile Clojure sources."
-            if="hasclojure">
+            description="Compile Clojure sources.">
         <java classname="clojure.lang.Compile"
               failonerror="true" fork="true" taskname="clj-c">
             <!-- fork because otherwise this fails when called by ../build.xml, classpath problem -->
@@ -64,7 +70,7 @@
         <attribute name="expr"/>
         <sequential>
             <java classname="clojure.main" failonerror="true" taskname="@{taskname}"
-                  fork="true" dir="..">
+                  fork="true">
                 <sysproperty key="org.apache.commons.logging.Log"
                              value="org.apache.commons.logging.impl.NoOpLog"/>
                 <classpath>
@@ -81,23 +87,17 @@
     
     <target name="test"
             description="Run tests">
-        <run-clj expr="(use 'com.franz.test) (run-ant 'com.franz.agraph.agtest)"/>
+        <run-clj expr="(use 'com.franz.test) (run-tests-exit 'com.franz.agraph.agtest)"/>
     </target>
     
     <target name="prepush"
             description="Tests required before git push: clean, jar (test not included at this time)"
-            depends="clean, build">
-        <!-- TODO: add test to depends -->
+            depends="clean, build, test">
     </target>
-    
-    <target name="test-tutorials"
-            description="Run Tutorial examples for Java and Clojure, compare to previous known output.">
-        <run-clj expr="(use 'com.franz.test) (run-ant 'com.franz.agraph.test-tutorial)"/>
-    </target> 
     
     <target name="test-stress-conn"
             description="Stress test connections.">
-        <run-clj expr="(use 'com.franz.test) (run-ant 'com.franz.agraph.stress-conn)"/>
+        <run-clj expr="(use 'com.franz.test) (run-tests-and-exit 'com.franz.agraph.stress-conn)"/>
     </target>
     
 </project>

@@ -2,11 +2,9 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="test"/>
-	<classpathentry kind="src" path="tutorial"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="classes"/>
-	<classpathentry kind="lib" path="lib/clojure-1.0.jar"/>
-	<classpathentry kind="lib" path="lib/clojure-contrib-1.0.jar"/>
+	<classpathentry kind="lib" path="libs/clojure-1.2.0.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/agraph-java"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>

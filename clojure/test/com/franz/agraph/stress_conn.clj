@@ -1,14 +1,15 @@
-;; This software is Copyright (c) Franz, 2009.
-;; Franz grants you the rights to distribute
-;; and use this software as governed by the terms
-;; of the Lisp Lesser GNU Public License
-;; (http://opensource.franz.com/preamble.html),
-;; known as the LLGPL.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Copyright (c) 2008-2010 Franz Inc.
+;; All rights reserved. This program and the accompanying materials
+;; are made available under the terms of the Eclipse Public License v1.0
+;; which accompanies this distribution, and is available at
+;; http://www.eclipse.org/legal/epl-v10.html
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (ns com.franz.agraph.stress-conn
   "Stress test connections"
-  (:refer-clojure :exclude (name))
-  (:use [clojure.contrib test-is]
+  (:refer-clojure :exclude (name with-open))
+  (:use [clojure test]
         [com.franz util openrdf agraph test]
         [com.franz.agraph agtest]))
 

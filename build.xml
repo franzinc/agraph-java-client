@@ -1,11 +1,28 @@
-<project name="agraph-java-client" default="clean-build">
+<project name="agraph-java-client" default="clean-build"
+         xmlns:artifact="antlib:org.apache.maven.artifact.ant">
 
     <property environment="env"/>
     <!-- if these AGRAPH env vars are blank, the java test code will look elsewhere -->
     <property name="env.AGRAPH_HOST" value=""/>
     <property name="env.AGRAPH_PORT" value=""/>
     <property name="env.root" value=""/>
-    <property name="env.version" value=""/>
+
+    <!-- Version is parameterized instead of hard-coded in multiple places. -->
+    <!-- This same algorithm is in clojure/project.clj -->
+    <!-- VERSION and env.version are set in makefile. -->
+    <!-- git-branch-name is used as default for dev only. -->
+    <loadfile property="git-branch-name" srcFile=".git-branch-name"
+              failonerror="false">
+        <filterchain> <striplinebreaks/> </filterchain>
+    </loadfile> 
+    <condition property="env.version"
+               value="${env.VERSION}"
+               else="${git-branch-name}-snapshot">
+        <and>
+            <isset property="env.VERSION"/>
+            <length string="${env.VERSION}" when="greater" length="0"/>
+        </and>
+    </condition>
     
     <!-- Library. -->
     <property name="src" location="src"/>
@@ -42,6 +59,7 @@
             description="Remove generated files and directories.">
         <delete dir="${build}"/>
         <delete file="${jarfile}"/>
+        <delete file="agraph-java-client-test.jar"/>
         <ant dir="clojure" target="clean" inheritall="false"/>
     </target>
 
@@ -70,12 +88,34 @@
                 <exclude name="*.class"/>
             </fileset>
             <manifest>
-				<attribute name="Implementation-Title" value="AllegroGraph Java Client"/>
-				<attribute name="Implementation-Version" value="${env.version}"/>
-				<attribute name="Implementation-Vendor" value="Franz, Inc."/>
+                <attribute name="Implementation-Title" value="AllegroGraph Java Client"/>
+                <attribute name="Implementation-Version" value="${env.version}"/>
+                <attribute name="Implementation-Vendor" value="Franz, Inc."/>
             	<attribute name="Implementation-URL" value="http://www.franz.com/agraph/"/>
             	<attribute name="Built-At" value="${jar.datestamp}"/>
             	<attribute name="Class-Path" value="${mf.path}"/>
+            </manifest>
+        </jar>
+    </target>
+    
+    <target name="test-jar"
+            description="Create jar file of test classes."
+            depends="compile">
+		<tstamp prefix="jar">
+			<format property="datestamp" pattern="yyyy-MM-dd H:mm"/>
+		</tstamp>
+        <jar jarfile="agraph-java-client-test.jar">
+            <fileset dir="${build}">
+                <include name="tutorial/**"/>
+                <include name="test/**"/>
+            </fileset>
+            <manifest>
+                <attribute name="Implementation-Title" value="AllegroGraph Java Client Test Code"/>
+                <attribute name="Implementation-Version" value="${env.version}"/>
+                <attribute name="Implementation-Vendor" value="Franz, Inc."/>
+                <attribute name="Implementation-URL" value="http://www.franz.com/agraph/"/>
+                <attribute name="Built-At" value="${jar.datestamp}"/>
+                <attribute name="Class-Path" value="${mf.path}"/>
             </manifest>
         </jar>
     </target>
@@ -212,4 +252,27 @@
         <run-java tasknamex="AGResultSetTest    " classname="org.junit.runner.JUnitCore" arg="test.AGResultSetTest"/>
     </target>
     
+    <target name="mvn-install"
+            depends="build"
+            description="install jars into local maven repo">
+        <path id="maven-ant-tasks.classpath" path="${user.home}/.m2/repository/org/apache/maven/maven-ant-tasks/2.0.10/maven-ant-tasks-2.0.10.jar" />
+        <typedef resource="org/apache/maven/artifact/ant/antlib.xml"
+                 uri="antlib:org.apache.maven.artifact.ant"
+                 classpathref="maven-ant-tasks.classpath" />
+        <copy file="pom.xml"
+              tofile="classes/pom.xml">
+            <filterset>
+                <filter token="AGRAPH_VERSION" value="${env.version}"/>
+            </filterset>
+        </copy>
+        <artifact:pom id="agraph" file="classes/pom.xml" />
+        <artifact:install file="${jarfile}">
+            <pom refid="agraph"/>
+        </artifact:install>
+        <artifact:pom id="sesame" file="pom-sesame.xml" />
+        <artifact:install file="lib/sesame-2.3.1/openrdf-sesame-2.3.1-onejar.jar">
+            <pom refid="sesame"/>
+        </artifact:install>
+    </target>
+
 </project>

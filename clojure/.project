@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>agraph-clojure</name>
+	<name>agraph-clj</name>
 	<comment></comment>
 	<projects>
 		<project>agraph-java</project>

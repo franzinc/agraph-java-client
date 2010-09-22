@@ -1,9 +1,10 @@
-;; This software is Copyright (c) Franz, 2009.
-;; Franz grants you the rights to distribute
-;; and use this software as governed by the terms
-;; of the Lisp Lesser GNU Public License
-;; (http://opensource.franz.com/preamble.html),
-;; known as the LLGPL.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Copyright (c) 2008-2010 Franz Inc.
+;; All rights reserved. This program and the accompanying materials
+;; are made available under the terms of the Eclipse Public License v1.0
+;; which accompanies this distribution, and is available at
+;; http://www.eclipse.org/legal/epl-v10.html
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (ns com.franz.agraph
   "Clojure client API to Franz AllegroGraph 4.0.
@@ -15,13 +16,11 @@
            [com.franz.agraph.repository
             AGCatalog AGQueryLanguage AGRepository
             AGRepositoryConnection AGServer AGValueFactory]
-           [java.net URI]
-           [org.openrdf.model ValueFactory Resource Literal Statement]
+           [org.openrdf.model ValueFactory Resource Literal Statement URI]
            [org.openrdf.repository Repository RepositoryConnection]
            [org.openrdf.model.vocabulary RDF XMLSchema]
            [org.openrdf.query QueryLanguage BindingSet Binding])
-  (:use [clojure.contrib def]
-        [com.franz util openrdf]))
+  (:use [com.franz util openrdf]))
 
 (alter-meta! *ns* assoc :author "Franz Inc <www.franz.com>, Mike Hinchey <mhinchey@franz.com>")
 
@@ -61,7 +60,7 @@
 (defn repositories
   "Returns a seq of AGRepository objects."
   [#^AGCatalog catalog]
-  (seq (.getAllRepositories catalog)))
+  (seq (.listRepositories catalog)))
 
 ;; (def #^{:private true} -access-verbs
 ;;      {:renew AGRepository/RENEW
@@ -139,7 +138,7 @@ Example: (with-agraph [conn {:host \"localhost\" :port 8080
                        repo {:name \"agraph_test\" :access :renew}
                        rcon {:auto-commit true :namespaces {\"ns-prefix\" \"ns\"}}]
             (println conn))"
-  [[conn-sym {host :host port :port username :username password :password :as conn-args}
+  [[conn-sym conn-args
     cat-sym cat-name
     repo-sym {repos-name :name repos-access :access :as repo-args}
     rcon-sym rcon-args]
@@ -163,4 +162,4 @@ Example: (with-agraph [conn {:host \"localhost\" :port 8080
    #^String baseURI
    #^RDFFormat dataFormat
    & contexts]
-  (.add repos-conn data baseURI dataFormat true (resource-array contexts)))
+  (.add repos-conn data baseURI dataFormat (resource-array contexts)))

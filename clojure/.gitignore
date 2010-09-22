@@ -1,0 +1,4 @@
+agraph-clj.jar
+dist
+lib/*.jar
+lib/dev/*.jar
