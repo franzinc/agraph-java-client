@@ -1,21 +1,32 @@
-;; This software is Copyright (c) Franz, 2009.
-;; Franz grants you the rights to distribute
-;; and use this software as governed by the terms
-;; of the Lisp Lesser GNU Public License
-;; (http://opensource.franz.com/preamble.html),
-;; known as the LLGPL.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Copyright (c) 2008-2010 Franz Inc.
+;; All rights reserved. This program and the accompanying materials
+;; are made available under the terms of the Eclipse Public License v1.0
+;; which accompanies this distribution, and is available at
+;; http://www.eclipse.org/legal/epl-v10.html
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (comment
   ;; Tutorial code for using Franz AllegroGraph with Clojure.
   
   ;; Usage:
-  
-  ;; Start the clojure repl with the jars in the classpath.
-  ;; agclj.sh: On command line, starts a REPL.
-  ;;     Also, can be used with Emacs/Slime to start a REPL.
-  ;;     On command line, to run clojure scripts.
-  ;; .project and .classpath: Eclipse/CounterClockWise project.
-  ;;     See http://code.google.com/p/counterclockwise/
+
+  ;; In the source distribution of agraph-java-client,
+  ;; in the clojure directory...
+  ;;
+  ;; Next, download all dependencies:
+  ;; > lein deps
+  ;;
+  ;; Start the repl:
+  ;; > lein repl
+  ;;
+  ;; Or, start the repl for Emacs/Slime:
+  ;; > lein swank
+  ;;
+
+  ;; 
+  ;; Or use .project and .classpath with Eclipse/CounterClockWise
+  ;; See http://code.google.com/p/counterclockwise/
   
   ;; Load this file:
   (require 'com.franz.agraph.tutorial)
@@ -24,11 +35,15 @@
   (in-ns 'com.franz.agraph.tutorial)
   
   ;; You may want to set your own connection params:
-  (def *connection-params* {:host "localhost" :port 8081 :username "test" :password "xyzzy"})
+  (def *connection-params* {:host "localhost" :port 8080
+                            :username "test" :password "xyzzy"
+                            :catalog "java-catalog"
+                            :repository "cljtutorial"})
 
   ;; Optional, for convenience in the REPL:
-  (use '[clojure.contrib stacktrace repl-utils trace])
-
+  (use '[clojure stacktrace])
+  (use '[clojure.contrib repl-utils trace])
+  
   ;; Execute the examples: test1-test16
   (test1)
   (test-all)
@@ -54,8 +69,6 @@
 (alter-meta! *ns* assoc :author "Franz Inc <www.franz.com>, Mike Hinchey <mhinchey@franz.com>")
 
 ;; Clojure equivalents of the Python and Java tests are below.
-;; You may use agclj.sh to start the Clojure REPL in a console,
-;; or in Emacs/slime/swank-clojure.
 
 ;; Note, you can also try the Java tutorial in the Clojure REPL.
 ;; However, in Slime/swank-clojure, the System.out prints to the
@@ -64,30 +77,23 @@
 ;; (import 'tutorial.TutorialExamples)
 ;; (TutorialExamples/test1)
 
-(defonce *connection-params* {:host "localhost" :port 10035 :username "test" :password "xyzzy"})
-
-(defonce *catalog-id* "java-catalog")
-
-(defonce *repository-id* "javatutorial")
+(defonce *connection-params* {:host "localhost" :port 10035
+                              :username "test" :password "xyzzy"
+                              :catalog "java-catalog"
+                              :repository "javatutorial"})
 
 (def *agraph-java-tutorial-dir* (or (System/getProperty "com.franz.agraph.tutorial.dir")
-                                    (.getCanonicalPath (java.io.File. "./src/tutorial/"))))
-
-(defn printlns
-  "println each item in a collection"
-  [col]
-  (doseq [x col]
-    (println x)))
+                                    (.getCanonicalPath (java.io.File. "../src/tutorial/"))))
 
 (defn test1
   "lists catalogs and more info about the scratch catalog."
   []
   (with-agraph [server *connection-params*]
     (println "Available catalogs:" (catalogs server))
-    (let [catalog (open-catalog server *catalog-id*)]
+    (let [catalog (open-catalog server (:catalog *connection-params*))]
       (println "Available repositories in catalog" (name catalog) ":"
                (repositories catalog))
-      (let [myRepository (repo-init (repository catalog *repository-id* :renew))]
+      (let [myRepository (repo-init (repository catalog (:repository *connection-params*) :renew))]
         (let [rcon (repo-connection myRepository)]
           (println "Repository" (name myRepository) "is up! It contains"
                    (repo-size rcon) "statements."))))))
@@ -96,8 +102,8 @@
   "demonstrates adding and removing triples."
   []
   (with-agraph [con *connection-params*
-                cat *catalog-id*
-                repo {:name *repository-id* :access :renew}
+                cat (:catalog *connection-params*)
+                repo {:name (:repository *connection-params*) :access :renew}
                 rcon]
     (let [f (.getValueFactory repo)
           ;; create some resources and literals to make statements out of
@@ -142,8 +148,8 @@
   "Typed Literals"
   []
   (with-agraph [con *connection-params*
-                cat *catalog-id*
-                repo {:name *repository-id* :access :renew}
+                cat (:catalog *connection-params*)
+                repo {:name (:repository *connection-params*) :access :renew}
                 rcon]
     (clear! rcon)
     (let [f (.getValueFactory rcon)
@@ -189,12 +195,12 @@
 (defn test6
   []
   (with-agraph [con *connection-params*
-                cat *catalog-id*
-                repo {:name *repository-id* :access :renew}
+                cat (:catalog *connection-params*)
+                repo {:name (:repository *connection-params*) :access :renew}
                 rcon {:namespaces {"vcd" "http://www.w3.org/2001/vcard-rdf/3.0#"}}]
     (clear! rcon)
-    (let [vcards (new File *agraph-java-tutorial-dir* "/vc-db-1.rdf")
-          kennedy (new File *agraph-java-tutorial-dir* "/kennedy.ntriples")
+    (let [vcards (new File *agraph-java-tutorial-dir* "/java-vcards.rdf")
+          kennedy (new File *agraph-java-tutorial-dir* "/java-kennedy.ntriples")
           baseURI "http://example.org/example/local"
           context (-> repo .getValueFactory (uri "http://example.org#vcards"))]
       (add-from! rcon vcards baseURI RDFFormat/RDFXML context)
@@ -239,8 +245,8 @@
   "Datasets and multiple contexts"
   []
   (with-agraph [con *connection-params*
-                cat *catalog-id*
-                repo {:name *repository-id* :access :renew}
+                cat (:catalog *connection-params*)
+                repo {:name (:repository *connection-params*) :access :renew}
                 rcon]
     (let [f (.getValueFactory repo)
           exns "http://example.org/people/"
@@ -284,26 +290,25 @@
   "Namespaces"
   []
   (with-agraph [con *connection-params*
-                cat *catalog-id*
-                repo {:name *repository-id* :access :renew}
+                cat (:catalog *connection-params*)
+                repo {:name (:repository *connection-params*) :access :renew}
                 rcon]
     (let [f (.getValueFactory repo)
           exns "http://example.org/people/"
           alice (uri f exns "alice")
           person (uri f exns "Person")]
       (add! rcon alice RDF/TYPE person)
-      (.indexTriples repo true)
       (.setNamespace rcon "ex" exns)
       ;; conn.removeNamespace("ex")
       (printlns (tuple-query rcon QueryLanguage/SPARQL
-                             "SELECT ?s ?p ?o WHERE { ?s ?p ?o . FILTER ((?p = rdf:type) && (?o = ex:Person) ) }")))))
+                             "SELECT ?s ?p ?o WHERE { ?s ?p ?o . FILTER ((?p = rdf:type) && (?o = ex:Person) ) }" nil)))))
 
 (defn test12
   "Text search"
   []
   (with-agraph [con *connection-params*
-                cat *catalog-id*
-                repo {:name *repository-id* :access :renew}
+                cat (:catalog *connection-params*)
+                repo {:name (:repository *connection-params*) :access :renew}
                 rcon]
     (let [f (.getValueFactory repo)
           exns "http://example.org/people/"]
@@ -373,7 +378,7 @@
   "Federated triple stores."
   []
   (with-agraph [server *connection-params*
-                cat *catalog-id*]
+                cat (:catalog *connection-params*)]
     (let [ex "http://www.demo.com/example#"
           rcon-args {:namespaces {"ex" ex}}]
       ;; create two ordinary stores, and one federated store: 
@@ -464,7 +469,7 @@
         (let [queryString (str "select ?x ?y ?z where {?x ?y ?z} limit " size)]
           (let [begin (System/currentTimeMillis)
                 count (last (map (fn [_] (with-open2 []
-                                           (count (tuple-query rcon QueryLanguage/SPARQL queryString))))
+                                           (count (tuple-query rcon QueryLanguage/SPARQL queryString nil))))
                                  (repeat reps nil)))
                 end (System/currentTimeMillis)]
             (printf "Did %s %s-row matches in %s.%s seconds."

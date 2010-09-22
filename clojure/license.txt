@@ -1,7 +1,7 @@
-agraph-clojure: Clojure Client API for Franz AllegroGraph
+Copyright (c) 2008-2010 Franz Inc.
+All rights reserved. This program and the accompanying materials
+are made available under the terms of the Eclipse Public License v1.0
+which accompanies this distribution, and is available at
+http://www.eclipse.org/legal/epl-v10.html
 
-agraph-clojure is licensed under the terms of the Lisp Lesser GNU
-Public License (http://opensource.franz.com/preamble.html), known as
-the LLGPL.  The LLGPL consists of a preamble (see above URL) and the
-LGPL.  Where these conflict, the preamble takes precedence. 
-agraph-clojure is referenced in the preamble as the "LIBRARY."
+agraph-java-client Clojure Client API for Franz AllegroGraph

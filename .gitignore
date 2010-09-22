@@ -3,9 +3,10 @@ bin
 *.class
 classes
 agraph.jar
+agraph-java-client-test.jar
 agraph*.tar.gz
 DIST
-agraph-clj.jar
 /build.out
 /doc
 temp.*
+tmp
