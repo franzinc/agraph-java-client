@@ -746,6 +746,7 @@ public class Events {
 				try {
 					String[] commands = new String[]{"monitor.sh", "start", phase};
 					Runtime.getRuntime().exec(commands);
+					trace("./monitor.sh was started.");
 				} catch (IOException e) {
 					trace("./monitor.sh was not started.");
 				}
@@ -757,6 +758,7 @@ public class Events {
 				try {
 					String[] commands = new String[]{"monitor.sh", "end"};
 					Runtime.getRuntime().exec(commands);
+					trace("./monitor.sh was stopped.");
 				} catch (IOException e) {
 					trace("./monitor.sh was not stopped.");
 				}
@@ -773,9 +775,11 @@ public class Events {
 		if (args.length > 0) {
 			if (args.length >= 2 && args[0].equals("--seed")) {
 				RANDOM.setSeed(Long.parseLong(args[1]));
+				trace("Set random seed to %s.", args[1]);
 			}
 			if (args.length >= 4 && args[2].equals("--seed")) {
 				RANDOM.setSeed(Long.parseLong(args[3]));
+				trace("Set random seed to %s.", args[3]);
 			}
 			if (args.length >= 2 && args[0].equals("--monitor")) {
 				Defaults.MONITOR = Boolean.parseBoolean(args[1]);
