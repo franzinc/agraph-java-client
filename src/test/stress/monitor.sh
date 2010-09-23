@@ -1,12 +1,10 @@
 #!/bin/sh
 
-if [ "$1" = start ]
-then
+if test "$1" = start; then
     echo "monitor.sh: Starting monitoring for $2..."
     nmon -t -C agraph -F "$2.nmon" -s 10
-elif [ "$1" = end ]
-then
-    echo "monitor.sh: Ending monitoring."
+elif test "$1" = end; then
+    echo "monitor.sh: Ending monitoring..."
     killall -USR2 nmon
 
     dbname=events_test
@@ -21,4 +19,6 @@ then
 	-e "(db.agraph.storage::synchronize \
                \"${dbname}\" \"${catalog}\" $AGRAPH_PORT)" \
 	-kill
+else
+    echo $0: unknown first argument: $1
 fi
