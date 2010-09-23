@@ -1151,8 +1151,8 @@ public class TutorialExamples {
         Repository myRepository = conn.getRepository();
         ValueFactory f = myRepository.getValueFactory();
         String exns = "http://example.org/people/";
-        URI alice = f.createURI(exns, "alice");
         // Create URIs for resources, predicates and classes.
+        URI alice = f.createURI(exns, "alice");
         URI bob = f.createURI(exns, "bob");
         URI ted = f.createURI(exns, "ted");        
         URI person = f.createURI("http://example.org/ontology/Person");
@@ -1162,8 +1162,8 @@ public class TutorialExamples {
         Literal bobsName = f.createLiteral("Bob");
         Literal tedsName = f.createLiteral("Ted");   
         // Create URIs to identify the named contexts.
-        URI context1 = f.createURI(exns, "cxt1");      
-        URI context2 = f.createURI(exns, "cxt2");  
+        URI context1 = f.createURI(exns, "context1");      
+        URI context2 = f.createURI(exns, "context2");  
         // Assemble new statements and add them to the contexts. 
         conn.add(alice, RDF.TYPE, person, context1);
         conn.add(alice, name, alicesName, context1);
@@ -1171,35 +1171,128 @@ public class TutorialExamples {
         conn.add(bob, name, bobsName, context2);
         conn.add(ted, RDF.TYPE, person);
         conn.add(ted, name, tedsName);
+// GetStatements() examples. 
         println("--------------------------------------------------------------------");
         RepositoryResult<Statement> statements = conn.getStatements(null, null, null, false);
-        println("\nAll triples in all contexts: " + (conn.size()));       
+        println("\ngetStatements: All triples in all contexts: " + (conn.size()));       
         while (statements.hasNext()) {
             println(statements.next());            
         }
         println("--------------------------------------------------------------------");
         statements = conn.getStatements(null, null, null, false, context1, context2);
-        println("\nTriples in contexts 1 or 2: " + (conn.size(context1) + conn.size(context2)));        
+        println("\ngetStatements:Triples in contexts 1 or 2: " + (conn.size(context1) + conn.size(context2)));        
         while (statements.hasNext()) {
             println(statements.next());
         }
         println("--------------------------------------------------------------------");
         statements = conn.getStatements(null, null, null, false, null, context2);
-        println("\nTriples in contexts null or 2: " + (conn.size((Resource)null) + conn.size(context2)));        
+        println("\ngetStatements:Triples in contexts null or 2: " + (conn.size((Resource)null) + conn.size(context2)));        
         while (statements.hasNext()) {
             println(statements.next());
+        }
+// SPARQL examples, some using FROM and FROM NAMED.
+        println("--------------------------------------------------------------------");
+        String queryString = "SELECT ?s ?p ?o WHERE {?s ?p ?o . }";
+        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        TupleQueryResult result = tupleQuery.evaluate();    
+        println("\n" + queryString + " No dataset restrictions.");
+        while (result.hasNext()) {
+            println(result.next());
+        }
+        println("--------------------------------------------------------------------");
+        queryString = "SELECT ?s ?p ?o ?c WHERE {GRAPH ?c {?s ?p ?o . }}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();    
+        println("\n" + queryString + " No dataset. SPARQL GRAPH query only.");
+        while (result.hasNext()) {
+            println(result.next());
+        }
+        println("--------------------------------------------------------------------");
+        queryString = "SELECT ?s ?p ?o FROM DEFAULT WHERE {?s ?p ?o . }";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();    
+        println("\n" + queryString);
+        while (result.hasNext()) {
+            println(result.next());
+        }
+
+        println("--------------------------------------------------------------------");
+        queryString = "SELECT ?s ?p ?o FROM <http://example.org/people/context1> WHERE {?s ?p ?o . }";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();    
+        println("\n" + queryString);
+        while (result.hasNext()) {
+            println(result.next());
+        }
+        println("--------------------------------------------------------------------");
+        queryString = "SELECT ?s ?p ?o FROM NAMED <http://example.org/people/context1> WHERE {?s ?p ?o . }";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();    
+        println("\n" + queryString);
+        while (result.hasNext()) {
+            println(result.next());
+        }
+        println("--------------------------------------------------------------------");
+        queryString = "SELECT ?s ?p ?o ?g FROM NAMED <http://example.org/people/context1> WHERE {GRAPH ?g {?s ?p ?o . }}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();    
+        println("\n" + queryString);
+        while (result.hasNext()) {
+            println(result.next());
+        }
+        println("--------------------------------------------------------------------");
+        // Test case for bug19681
+        queryString = 
+        "SELECT ?s ?p ?o ?g \n" +
+	      "FROM <http://example.org/people/context1> \n" +
+          "FROM DEFAULT \n" +
+	      "FROM NAMED <http://example.org/people/context2> \n" +
+//	      "FROM NAMED <http://foo> \n" +
+          "WHERE {{GRAPH ?g {?s ?p ?o . }} UNION {?s ?p ?o .}} \n";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        result = tupleQuery.evaluate();    
+        println("\n" + queryString);
+        while (result.hasNext()) {
+            println(result.next());
+        }
+        
+        // SPARQL examples using Dataset objects. 
+        println("--------------------------------------------------------------------");
+        queryString = "SELECT ?s ?p ?o WHERE {?s ?p ?o . }";
+        DatasetImpl ds = new DatasetImpl();
+        ds.addDefaultGraph(null);    // AG default graph as SPARQL default graph.
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        tupleQuery.setDataset(ds);
+        result = tupleQuery.evaluate();    
+        println("\n" + queryString + " Datasest for null graph.");
+        while (result.hasNext()) {
+            println(result.next());
         }
 
         println("--------------------------------------------------------------------");
         // testing named graph query
-        String queryString = "SELECT ?s ?p ?o ?c WHERE { GRAPH ?c {?s ?p ?o . } }";        
-        DatasetImpl ds = new DatasetImpl();
+        queryString = "SELECT ?s ?p ?o WHERE {?s ?p ?o . }";
+        ds = new DatasetImpl();
         ds.addNamedGraph(context1);
-        ds.addNamedGraph(context2);
-        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         tupleQuery.setDataset(ds);
-        TupleQueryResult result = tupleQuery.evaluate();    
-        println("\nQuery over contexts 1 and 2.");
+        result = tupleQuery.evaluate();    
+        println("\n" + queryString + " Datasest for context1.");
+        while (result.hasNext()) {
+            BindingSet bindingSet = result.next();
+            println(bindingSet.getBinding("s") + " " + 
+            		bindingSet.getBinding("p") + " " +
+            		bindingSet.getBinding("o"));
+        }    
+        
+        println("--------------------------------------------------------------------");
+        queryString = "SELECT ?s ?p ?o ?c WHERE { GRAPH ?c {?s ?p ?o . } }";        
+        ds = new DatasetImpl();
+        ds.addNamedGraph(context1);
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        tupleQuery.setDataset(ds);
+        result = tupleQuery.evaluate();    
+        println("\n" + queryString + " Datasest for context1, using GRAPH.");
         while (result.hasNext()) {
             BindingSet bindingSet = result.next();
             println(bindingSet.getBinding("s") + " " + 
@@ -1208,19 +1301,7 @@ public class TutorialExamples {
             		bindingSet.getBinding("c"));
         }    
         
-        println("--------------------------------------------------------------------");
-        queryString = "SELECT ?s ?p ?o WHERE {?s ?p ?o . }";
-        ds = new DatasetImpl();
-        ds.addDefaultGraph(null);
-        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
-        tupleQuery.setDataset(ds);
-        result = tupleQuery.evaluate();    
-        println("\nQuery over the null context.");
-        while (result.hasNext()) {
-            println(result.next());
-        }
     }
-    
     /**
      * Namespaces
      */
@@ -2643,4 +2724,4 @@ public class TutorialExamples {
     }
     
 }
-// Update August 26, 2010 AG 4.1
+// Update September 22, 2010 AG 4.1
