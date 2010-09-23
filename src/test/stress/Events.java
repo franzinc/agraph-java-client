@@ -806,10 +806,6 @@ public class Events {
 
 	Thread.currentThread().setName("./events");
 
-/* until I figure out how to pass --seed to this script, hardwire it:
- */
-	RANDOM.setSeed(777);
-		
 	if (args.length > 0) {
 	    if (args.length >= 2 && args[0].equals("--seed")) {
 		RANDOM.setSeed(Long.parseLong(args[1]));
