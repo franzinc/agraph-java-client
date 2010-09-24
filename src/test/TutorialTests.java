@@ -53,6 +53,8 @@ import org.openrdf.rio.ntriples.NTriplesWriter;
 import org.openrdf.rio.rdfxml.RDFXMLWriter;
 
 import com.franz.agraph.repository.AGAbstractRepository;
+import com.franz.agraph.repository.AGFreetextIndexConfig;
+import com.franz.agraph.repository.AGFreetextQuery;
 import com.franz.agraph.repository.AGQueryLanguage;
 import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
@@ -375,30 +377,54 @@ public class TutorialTests extends AGAbstractTest {
 	    ValueFactory f = conn.getValueFactory();
 	    String exns = "http://example.org/people/";
         conn.setNamespace("ex", exns);
-		conn.createFreetextIndex("fti", new URI[]{f.createURI(exns,"fullname")});
+	    AGFreetextIndexConfig config = AGFreetextIndexConfig.newInstance();
+	    URI fullname = f.createURI(exns,"fullname");
+	    config.getPredicates().add(fullname);
+	    conn.createFreetextIndex("index1", config);
+	    List<String> indices = new ArrayList<String>();
+	    indices.add("index1");
+	    assertSetsEqual("listFreetextIndices() expects index1",indices,conn.listFreetextIndices());
+	    List<URI> preds = new ArrayList<URI>();
+	    preds.add(fullname);
+	    AGFreetextIndexConfig config1 = conn.getFreetextIndexConfig("index1");
+	    assertSetsEqual("getPredicates() expects fullname",preds,config1.getPredicates());
 	    URI alice = f.createURI(exns, "alice1");
+	    URI carroll = f.createURI(exns, "carroll");
 	    URI person = f.createURI(exns, "Person");
-	    URI fullname = f.createURI(exns, "fullname");    
 	    Literal alicename = f.createLiteral("Alice B. Toklas");
+	    Literal lewisCarroll = f.createLiteral("Lewis Carroll");
 	    URI book =  f.createURI(exns, "book1");
 	    URI booktype = f.createURI(exns, "Book");
 	    URI booktitle = f.createURI(exns, "title");    
+	    URI author = f.createURI(exns, "author");
 	    Literal wonderland = f.createLiteral("Alice in Wonderland");
 	    conn.clear();    
 	    conn.add(alice, RDF.TYPE, person);
 	    conn.add(alice, fullname, alicename);
 	    conn.add(book, RDF.TYPE, booktype);    
 	    conn.add(book, booktitle, wonderland); 
+	    conn.add(book, author, carroll);
+	    conn.add(carroll, RDF.TYPE, person);
+	    conn.add(carroll, fullname, lewisCarroll);
 
         String queryString = 
         	"SELECT ?s ?p ?o " +
         	"WHERE { ?s ?p ?o . ?s fti:match 'Alice' . }";
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
-        assertSetsEqual("Whole-word match for 'Alice'.", stmts(new Stmt[] {
+        Set<Stmt> stmts = stmts(new Stmt[] {
                 new Stmt(alice, fullname, alicename),
-                new Stmt(alice, RDF.TYPE, person)}),
+                new Stmt(alice, RDF.TYPE, person)});
+        assertSetsEqual("Whole-word match for 'Alice'.", stmts,
                 statementSet( tupleQuery.evaluate() ));
             
+        AGFreetextQuery query = new AGFreetextQuery(conn);
+        query.setPattern("Alice");
+        query.setIndex("index1");
+        stmts = stmts(new Stmt[] {
+        		new Stmt(alice, fullname, alicename)});
+        assertSetsEqual("Whole-word match for 'Alice' another way.", stmts,
+        		statementSet( query.evaluate() ));
+        
         queryString = 
         	"SELECT ?s ?p ?o " +
         	"WHERE { ?s ?p ?o . ?s fti:match 'Ali*' . }";
@@ -426,6 +452,31 @@ public class TutorialTests extends AGAbstractTest {
                         new Stmt(alice, fullname, alicename),
                         new Stmt(book, booktitle, wonderland)}),
                         statementSet( tupleQuery.evaluate() ));
+        
+        // Create index2, for searching short names in URI's
+        // that are objects of the author predicate
+        config = AGFreetextIndexConfig.newInstance();
+        config.getPredicates().add(author);
+        config.setIndexResources("short");
+        conn.createFreetextIndex("index2", config);
+        indices.add("index2");
+	    assertSetsEqual("listFreetextIndices() expects index1 and index2",indices,conn.listFreetextIndices());
+	    preds = new ArrayList<URI>();
+	    preds.add(author);
+	    assertSetsEqual("getPredicates() expects author",preds,config.getPredicates());
+	    assertEquals("getIndexResources() expects short","short",config.getIndexResources());
+        
+        //Search for Carroll in index2.
+        query = new AGFreetextQuery(conn);
+        query.setPattern("Carroll");
+        query.setIndex("index2");
+        stmts = stmts(new Stmt[] {
+                new Stmt(book, author, carroll)});
+        assertSetsEqual("Search for Carroll on index2",stmts,statementSet(query.evaluate()));
+        
+        conn.deleteFreetextIndex("index1");
+        indices.remove("index1");
+        assertSetsEqual("listFreetextIndices() expects index2",indices,conn.listFreetextIndices());
 	}
 	
 	/**
