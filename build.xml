@@ -31,6 +31,7 @@
         <path location="${lib}/jena-2.6.2/stax-api-1.0.1.jar"/>
         <path location="${lib}/jena-2.6.2/wstx-asl-3.2.9.jar"/>
         <path location="${lib}/jena-2.6.2/xercesImpl-2.7.1.jar"/>
+        <path location="${lib}/commons-cli-1.2.jar"/>
     </path>
     
     <target name="init">
