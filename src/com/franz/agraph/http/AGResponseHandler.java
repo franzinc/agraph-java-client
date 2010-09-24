@@ -15,6 +15,9 @@ import java.util.zip.GZIPInputStream;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HeaderElement;
 import org.apache.commons.httpclient.HttpMethod;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.openrdf.query.TupleQueryResultHandler;
 import org.openrdf.query.TupleQueryResultHandlerException;
 import org.openrdf.query.resultio.BooleanQueryResultFormat;
@@ -42,10 +45,12 @@ public class AGResponseHandler {
 	private final boolean bqrHandler;
 	private final boolean longHandler;
 	private final boolean stringHandler;
+	private final boolean jsonHandler;
 
 	private boolean bqrresult;
 	private long longresult;
 	private String stringresult = null;
+	private JSONObject jsonresult = null;
 
 	private String requestMIMEType;
 	
@@ -57,6 +62,7 @@ public class AGResponseHandler {
 		this.bqrHandler = false;
 		this.longHandler = false;
 		this.stringHandler = false;
+		this.jsonHandler = false;
 		requestMIMEType = rdfformat.getDefaultMIMEType();
 	}
 
@@ -69,6 +75,7 @@ public class AGResponseHandler {
 		this.bqrHandler = false;
 		this.longHandler = false;
 		this.stringHandler = false;
+		this.jsonHandler = false;
 		requestMIMEType = TupleQueryResultFormat.SPARQL.getDefaultMIMEType();
 	}
 
@@ -79,6 +86,7 @@ public class AGResponseHandler {
 		this.bqrHandler = true;
 		this.longHandler = false;
 		this.stringHandler = false;
+		this.jsonHandler = false;
 		requestMIMEType = BooleanQueryResultFormat.TEXT.getDefaultMIMEType();
 	}
 
@@ -89,6 +97,7 @@ public class AGResponseHandler {
 		this.bqrHandler = false;
 		this.longHandler = true;
 		this.stringHandler = false;
+		this.jsonHandler = false;
 		requestMIMEType = "text/integer"; // TODO: add to AGProtocol
 	}
 
@@ -99,7 +108,19 @@ public class AGResponseHandler {
 		this.bqrHandler = false;
 		this.longHandler = false;
 		this.stringHandler = true;
+		this.jsonHandler = false;
 		requestMIMEType = null;
+	}
+	
+	public AGResponseHandler(JSONArray j) {
+		this.repository = null;
+		this.rdfhandler = null;
+		this.tqrhandler = null;
+		this.bqrHandler = false;
+		this.longHandler = false;
+		this.stringHandler = false;
+		this.jsonHandler = true;
+		requestMIMEType = "application/json";
 	}
 	
 	public String getRequestMIMEType() {
@@ -116,6 +137,10 @@ public class AGResponseHandler {
 
 	public String getString() {
 		return stringresult;
+	}
+	
+	public JSONObject getJSONObject() {
+		return jsonresult;
 	}
 	
 	public void handleResponse(HttpMethod method) throws IOException, RepositoryException {
@@ -159,6 +184,8 @@ public class AGResponseHandler {
 				}
 			} else if (true == stringHandler) {
 				stringresult = streamToString(response);
+			} else if (true == jsonHandler) {
+				jsonresult = new JSONObject(streamToString(response));
 			} else {
 				throw new RuntimeException(
 						"Cannot handle response, unexpected type.");
@@ -175,6 +202,8 @@ public class AGResponseHandler {
 		} catch (QueryResultParseException e) {
 			throw new RepositoryException(e);
 		} catch (TupleQueryResultHandlerException e) {
+			throw new RepositoryException(e);
+		} catch (JSONException e) {
 			throw new RepositoryException(e);
 		}
 	}

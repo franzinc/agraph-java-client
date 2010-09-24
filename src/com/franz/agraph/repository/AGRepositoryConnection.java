@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -418,27 +419,75 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	 */
 
 	/**
+	 * Creates a freetext index with the given name and configuration.
+	 */
+	public void createFreetextIndex(String name, AGFreetextIndexConfig config)
+	throws RepositoryException {
+		List<String> predicates = new ArrayList<String>();
+		for (URI uri: config.getPredicates()) {
+			predicates.add(NTriplesUtil.toNTriplesString(uri));
+		}
+		getHttpRepoClient().createFreetextIndex(name, predicates, config.getIndexLiterals(), config.getIndexLiteralTypes(), config.getIndexResources(), config.getIndexFields(), config.getMinimumWordSize(), config.getStopWords(), config.getWordFilters());
+	}
+	
+	/**
+	 * Deletes the freetext index of the specified name.
+	 */
+	public void deleteFreetextIndex(String name) throws RepositoryException {
+		getHttpRepoClient().deleteFreetextIndex(name);
+	}
+	
+	/**
 	 * Registers a predicate for free text indexing. Once registered, the
 	 * objects of data added to the repository having this predicate will be
 	 * text indexed and searchable.
+	 * 
+	 * @deprecated
+	 * @see #createFreetextIndex(String, AGFreetextIndexConfig)
 	 */
 	public void createFreetextIndex(String name, URI[] predicates)
 			throws RepositoryException {
-		getHttpRepoClient().createFreetextIndex(name, predicates);
+		AGFreetextIndexConfig config = AGFreetextIndexConfig.newInstance();
+		config.getPredicates().addAll(Arrays.asList(predicates));
+		createFreetextIndex(name,config);
 	}
 
-	// TODO: return RepositoryResult<URI>?
 	/**
 	 * Gets the predicates that have been registered for text indexing.
+	 * 
+	 * @deprecated
+	 * @see #getFreetextIndexConfig(String).getPredicates()
 	 */
 	public String[] getFreetextPredicates(String index) throws RepositoryException {
 		return getHttpRepoClient().getFreetextPredicates(index);
 	}
 
+	/**
+	 * Gets the configuration of the specified free text index.
+	 */
+	public AGFreetextIndexConfig getFreetextIndexConfig(String index) throws RepositoryException {
+		return new AGFreetextIndexConfig(getHttpRepoClient().getFreetextIndexConfiguration(index));
+	}
+	
+	/**
+	 * Gets freetext indexes that have been created
+	 * @deprecated
+	 * @see #listFreetextIndices()
+	 */
 	public String[] getFreetextIndices() throws RepositoryException {
 		return getHttpRepoClient().getFreetextIndices();
 	}
 
+	/**
+	 * Lists the freetext indices that have been defined for this repository.
+	 * 
+	 * @return
+	 * @throws RepositoryException
+	 */
+	public List<String> listFreetextIndices() throws RepositoryException {
+		return getHttpRepoClient().listFreetextIndices();
+	}
+	
 	/**
 	 * Registers a predicate mapping from the predicate to a primitive datatype.
 	 * This can be useful in speeding up query performance and enabling range
