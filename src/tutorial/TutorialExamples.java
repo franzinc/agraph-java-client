@@ -42,6 +42,8 @@ import org.openrdf.rio.ntriples.NTriplesWriter;
 import org.openrdf.rio.rdfxml.RDFXMLWriter;
 
 import com.franz.agraph.repository.AGCatalog;
+import com.franz.agraph.repository.AGFreetextIndexConfig;
+import com.franz.agraph.repository.AGFreetextQuery;
 import com.franz.agraph.repository.AGQueryLanguage;
 import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGAbstractRepository;
@@ -1338,7 +1340,7 @@ public class TutorialExamples {
 	}                                                   
 
 	/**
-	 * Text search
+	 * Text indexing and search
 	 */
 	public static void example12 () throws Exception {    
         AGRepositoryConnection conn = example1(false);
@@ -1346,17 +1348,13 @@ public class TutorialExamples {
 	    String exns = "http://example.org/people/";
 	    conn.setNamespace("ex", exns);
 	    // Create index1
-	    conn.createFreetextIndex("index1", new URI[]{f.createURI(exns,"fullname")});
-	    println("getFreetextIndices() ");
-	    String[] ind = conn.getFreetextIndices();
-	    for (int i=0; i<ind.length; i++){
-	        println(ind[i]);
-	    }
-	    println("getFreetextPredicates");
-        String[] pred = conn.getFreetextPredicates("index1");
-	    for (int i=0; i<pred.length; i++){
-	        println(pred[i]);
-	    }
+	    AGFreetextIndexConfig config = AGFreetextIndexConfig.newInstance();
+	    config.getPredicates().add(f.createURI(exns,"fullname"));
+	    conn.createFreetextIndex("index1", config);
+	    println("listFreetextIndices(): " + conn.listFreetextIndices());
+	    println("index1 configuration: ");
+	    println(conn.getFreetextIndexConfig("index1"));
+	    
 	    // Create parts of person resources.	    
 	    URI alice = f.createURI(exns, "alice1");
 	    URI carroll = f.createURI(exns, "carroll");
@@ -1382,80 +1380,78 @@ public class TutorialExamples {
 	    conn.add(carroll, RDF.TYPE, persontype);
 	    conn.add(carroll, fullname, lewisCarroll);
 	    // Check triples
+	    println("\nListing all triples.");
 	    RepositoryResult<Statement> statements = conn.getStatements(null, null, null, false);
-        try {
-            while (statements.hasNext()) {
-                println(statements.next());
-            }
-        } finally {
-            statements.close();
-        }
+	    printRows(statements);
 
-	    println("\nWhole-word match for 'Alice'.");
+        println("\nFreetext Pattern search for Alice.");
+        AGFreetextQuery query = new AGFreetextQuery(conn);
+        query.setPattern("Alice");
+        query.setIndex("index1");
+        statements = query.evaluate();
+        printRows(statements);
+        
+        println("\nFreetext Expression search for Alice or Lewis, limit 1.");
+        query = new AGFreetextQuery(conn);
+        query.setExpression("(or \"Alice\" \"Lewis\")");
+        query.setIndex("index1");
+        query.setLimit(1);
+        statements = query.evaluate();
+        printRows(statements);
+        
+        println("\nFreetext Expression search for Alice or Lewis, limit 1, offset 1.");
+        query.setOffset(1); 
+        statements = query.evaluate();
+        printRows(statements);
+        
         String queryString = 
         	"SELECT ?s ?p ?o " +
         	"WHERE { ?s ?p ?o . " +
         	"        ?s fti:match 'Alice' . }";
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         TupleQueryResult result = (TupleQueryResult)tupleQuery.evaluate();
-        int count = 0;
-        while (result.hasNext()) {
-            BindingSet bindingSet = result.next();
-            if (count < 5) {
-                println(bindingSet);
-            }
-            count += 1;
-        }
-        result.close();
+        printRows("\nWhole-word match for 'Alice'.",result);
         
-           
-        println("\nWildcard match for 'Ali*'.");
         queryString = 
         	"SELECT ?s ?p ?o " +
         	"WHERE { ?s ?p ?o . ?s fti:match 'Ali*' . }";
         tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         result = (TupleQueryResult)tupleQuery.evaluate();
-        count = 0;
-        while (result.hasNext()) {
-            BindingSet bindingSet = result.next();
-            if (count < 5) {
-                println(bindingSet);
-            }
-            count += 1;
-        }
-        result.close();
+        printRows("\nWildcard match for 'Ali*'.",result);
             
-        println("\nWildcard match for '?l?ce?.");
         queryString = 
         	"SELECT ?s ?p ?o " +
         	"WHERE { ?s ?p ?o . ?s fti:match '?l?c?' . }";
         tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         result = (TupleQueryResult)tupleQuery.evaluate();
-        count = 0;
-        while (result.hasNext()) {
-            BindingSet bindingSet = result.next();
-            if (count < 5) {
-                println(bindingSet);
-            }
-            count += 1;
-        }
-        result.close();
+        printRows("\nWildcard match for '?l?ce?.",result);
             
-        println("\nSubstring match for 'lic'.");
         queryString = 
         	"SELECT ?s ?p ?o " +
         	"WHERE { ?s ?p ?o . FILTER regex(?o, \"lic\") }";
         tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         result = (TupleQueryResult)tupleQuery.evaluate();
-        count = 0;
-        while (result.hasNext()) {
-            BindingSet bindingSet = result.next();
-            if (count < 5) {
-                println(bindingSet);
-            }
-            count += 1;
-        }
-        result.close();
+        printRows("\nSubstring match for 'lic'.",result);
+
+        // Create index2, for searching short names in URI's
+        // that are objects of the author predicate
+        println("\nCreate index2.");
+        config = AGFreetextIndexConfig.newInstance();
+        config.getPredicates().add(author);
+        config.setIndexResources("short");
+        conn.createFreetextIndex("index2", config);
+        println(conn.listFreetextIndices());
+        
+        println("\nSearch for Carroll in index2.");
+        query = new AGFreetextQuery(conn);
+        query.setPattern("Carroll");
+        query.setIndex("index2");
+        statements = query.evaluate();
+        printRows(statements);
+        
+        println("\nFreetext indices after deleting index1:");
+        conn.deleteFreetextIndex("index1");
+        println(conn.listFreetextIndices());
 	}
 	
 	
@@ -1604,14 +1600,6 @@ public class TutorialExamples {
         }
     }
     
-    private static void pt(String kind, TupleQueryResult rows) throws Exception {
-        println("\n" + kind + " Apples:\t");
-        while (rows.hasNext()) {
-            println(rows.next());
-        }
-        rows.close();
-    }
-
     /**
      * Federated triple stores.
      */
@@ -1649,9 +1637,9 @@ public class TutorialExamples {
         rainbowConn.setNamespace("ex", ex);
         String queryString = "select ?s where { ?s rdf:type ex:Apple }";
         // query each of the stores; observe that the federated one is the union of the other two:
-        pt("Red", redConn.prepareTupleQuery(QueryLanguage.SPARQL, queryString).evaluate());
-        pt("Green", greenConn.prepareTupleQuery(QueryLanguage.SPARQL, queryString).evaluate());
-        pt("Federated", rainbowConn.prepareTupleQuery(QueryLanguage.SPARQL, queryString).evaluate());
+        printRows("Red Apples:", redConn.prepareTupleQuery(QueryLanguage.SPARQL, queryString).evaluate());
+        printRows("Green Apples:", greenConn.prepareTupleQuery(QueryLanguage.SPARQL, queryString).evaluate());
+        printRows("Federated Apples:", rainbowConn.prepareTupleQuery(QueryLanguage.SPARQL, queryString).evaluate());
     }
 
     /**
@@ -2709,6 +2697,17 @@ public class TutorialExamples {
         }
         println("Number of results: " + count);
         rows.close();
+    }
+
+    static void printRows(String headerMsg, TupleQueryResult rows) throws Exception {
+    	println(headerMsg);
+    	try {
+    		while (rows.hasNext()) {
+    			println(rows.next());
+    		}
+    	} finally {
+    		rows.close();
+    	}
     }
 
     static void close(RepositoryConnection conn) {
