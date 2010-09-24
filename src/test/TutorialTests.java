@@ -617,12 +617,12 @@ public class TutorialTests extends AGAbstractTest {
         conn.setNamespace("rltv", "http://www.franz.com/simple#");
         conn.addRules(new FileInputStream("src/tutorial/java-rules.txt"));
         String queryString = 
-        	"(select (?person ?uncle) " +
-        		"(uncle ?y ?x)" +
-        		"(name ?x ?person)" +
-        		"(name ?y ?uncle))";
+        	"(select (?ufirst ?ulast ?cfirst ?clast)" +
+            "(uncle ?uncle ?child)" +
+            "(name ?uncle ?ufirst ?ulast)" +
+            "(name ?child ?cfirst ?clast))";
         TupleQuery tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
-        assertEquals(120, statementSet(tupleQuery.evaluate()).size());
+        assertEquals(52, statementSet(tupleQuery.evaluate()).size());
     }
 
     /**
