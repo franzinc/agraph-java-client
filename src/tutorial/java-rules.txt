@@ -1,6 +1,6 @@
 ;; Prolog rules that define relative relations
 ;; Assumes that the prefix 'rltv' is bound to a namespace
-;; of your choice
+;; of your choice.
 
 (<-- (string-concat ?result ?string1 ?string2 ?string3)
      (lisp ?result (string+ ?string1 ?string2 ?string3)))
