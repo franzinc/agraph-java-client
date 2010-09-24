@@ -32,6 +32,7 @@ import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.json.JSONArray;
+import org.json.JSONObject;
 import org.openrdf.OpenRDFException;
 import org.openrdf.OpenRDFUtil;
 import org.openrdf.http.protocol.Protocol;
@@ -731,14 +732,56 @@ public class AGHttpRepoClient implements Closeable {
 		}
 	}
 
-	public void createFreetextIndex(String name, URI[] predicates)
-			throws RepositoryException {
+	/**
+	 * Creates a new freetext index with the given parameters.  
+	 * 
+	 * See documentation here:
+	 * 
+	 * {@link http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#put-freetext-index}
+	 * 
+	 * @throws RepositoryException
+	 */
+	public void createFreetextIndex(String name, List<String> predicates, boolean indexLiterals, List<String> indexLiteralTypes, String indexResources, List<String> indexFields, int minimumWordSize, List<String> stopWords, List<String> wordFilters)
+	throws RepositoryException {
 		String url = AGProtocol.getFreetextIndexLocation(getRoot(), name);
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
 		if (predicates != null) {
-			for (URI predicate : predicates) {
-				String pred = NTriplesUtil.toNTriplesString(predicate);
+			for (String pred : predicates) {
 				params.add(new NameValuePair("predicate", pred));
+			}
+		}
+		if (indexLiterals) {
+			if (indexLiteralTypes != null) {
+				for (String type : indexLiteralTypes) {
+					params.add(new NameValuePair("indexLiteralType", type));
+				}
+			}
+		} else {
+			// only need to send this if it's false
+			params.add(new NameValuePair("indexLiterals", Boolean
+					.toString(indexLiterals)));
+		}
+		if (!indexResources.equals("true")) {
+			// only need to send this if it's not "true"
+			params.add(new NameValuePair("indexResources", indexResources));
+			
+		}
+		if (indexFields != null) {
+			for (String field : indexFields) {
+				params.add(new NameValuePair("indexField", field));
+			}
+		}
+		if (minimumWordSize!=3) {
+			params.add(new NameValuePair("minimumWordSize", Integer.toString(minimumWordSize)));
+		}
+		if (stopWords != null) {
+			for (String word : stopWords) {
+				params.add(new NameValuePair("stopWord", word));
+			}
+		}
+		if (wordFilters != null) {
+			for (String filter : wordFilters) {
+				params.add(new NameValuePair("wordFilter", filter));
 			}
 		}
 		try {
@@ -751,23 +794,43 @@ public class AGHttpRepoClient implements Closeable {
 			throw new RepositoryException(e);
 		}
 	}
-
-	public String[] getFreetextPredicates(String index)
-			throws RepositoryException {
-		String url = AGProtocol.getFreetextIndexLocation(getRoot(), index) + "/predicates";
-		AGResponseHandler handler = new AGResponseHandler("");
+	
+	/**
+	 * Delete the freetext index of the given name.
+	 * 
+	 * @param index the name of the index
+	 * @throws RepositoryException
+	 */
+	public void deleteFreetextIndex(String index) throws RepositoryException {
+		String url = AGProtocol.getFreetextIndexLocation(getRoot(), index);
+		Header[] headers = {};
+		NameValuePair[] params = {};
 		try {
-			getHTTPClient().get(url, new Header[0], new NameValuePair[0], handler);
+			getHTTPClient().delete(url, headers, params);
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
 		} catch (IOException e) {
 			throw new RepositoryException(e);
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
 		}
-		return handler.getString().split("\n");
+	}
+	
+	/**
+	 * Lists the free text indices defined on the repository.
+	 *  
+	 * @return a list of index names
+	 * @throws RepositoryException
+	 */
+	public List<String> listFreetextIndices()
+			throws RepositoryException {
+		return Arrays.asList(getFreetextIndices());
 	}
 
+	/**
+	 * @deprecated
+	 * @see #listFreetextIndices()
+	 */
 	public String[] getFreetextIndices()
-			throws RepositoryException {
+	throws RepositoryException {
 		String url = AGProtocol.getFreetextIndexLocation(getRoot());
 		AGResponseHandler handler = new AGResponseHandler("");
 		try {
@@ -779,7 +842,85 @@ public class AGHttpRepoClient implements Closeable {
 		}
 		return handler.getString().split("\n");
 	}
+	
+	/**
+	 * Gets the configuration of the given index.
+	 * 
+	 * @param index
+	 * @return
+	 * @throws RepositoryException
+	 */
+	public JSONObject getFreetextIndexConfiguration(String index)
+			throws RepositoryException {
+		String url = AGProtocol.getFreetextIndexLocation(getRoot(), index);
+		AGResponseHandler handler = new AGResponseHandler((JSONArray)null);
+		try {
+			getHTTPClient().get(url, new Header[0], new NameValuePair[0],
+					handler);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		}
+		return handler.getJSONObject();
+	}
 
+	public String[] getFreetextPredicates(String index)
+	throws RepositoryException {
+		String url = AGProtocol.getFreetextIndexLocation(getRoot(), index) + "/predicates";
+		AGResponseHandler handler = new AGResponseHandler("");
+		try {
+			getHTTPClient().get(url, new Header[0], new NameValuePair[0], handler);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		}
+		return handler.getString().split("\n");
+	}
+	
+	public void evalFreetextQuery(String pattern, String expression, String index, boolean sorted, int limit, int offset, AGResponseHandler handler) throws RepositoryException {
+		String url = AGProtocol.getFreetextLocation(getRoot());
+		List<Header> headers = new ArrayList<Header>(5);
+		headers.add(new Header("Content-Type", Protocol.FORM_MIME_TYPE
+				+ "; charset=utf-8"));
+		if (handler.getRequestMIMEType() != null) {
+			headers.add(new Header(ACCEPT_PARAM_NAME, handler
+					.getRequestMIMEType()));
+		}
+		List<NameValuePair> queryParams = new ArrayList<NameValuePair>(6);
+		if (pattern!=null) {
+			queryParams.add(new NameValuePair("pattern",pattern));
+		}
+		if (expression!=null) {
+			queryParams.add(new NameValuePair("expression",expression));
+		}
+		if (index!=null) {
+			queryParams.add(new NameValuePair("index",index));
+		}
+		if (sorted!=false) {
+			queryParams.add(new NameValuePair("sorted",Boolean.toString(sorted)));
+		}
+		if (limit>0) {
+			queryParams.add(new NameValuePair("limit",Integer.toString(limit)));
+		}
+		if (offset>0) {
+			queryParams.add(new NameValuePair("offset",Integer.toString(offset)));
+		}
+		try {
+			getHTTPClient().post(url, headers.toArray(new Header[headers.size()]),
+					queryParams.toArray(new NameValuePair[queryParams.size()]),
+					null, handler);
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (RDFParseException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+		
+	}
+	
 	public void registerPredicateMapping(URI predicate, URI primitiveType)
 			throws RepositoryException {
 		String url = AGProtocol.getPredicateMappingLocation(getRoot());
