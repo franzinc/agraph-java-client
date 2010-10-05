@@ -53,12 +53,15 @@ import org.openrdf.rio.ntriples.NTriplesWriter;
 import org.openrdf.rio.rdfxml.RDFXMLWriter;
 
 import com.franz.agraph.repository.AGAbstractRepository;
+import com.franz.agraph.repository.AGBooleanQuery;
 import com.franz.agraph.repository.AGFreetextIndexConfig;
 import com.franz.agraph.repository.AGFreetextQuery;
+import com.franz.agraph.repository.AGGraphQuery;
 import com.franz.agraph.repository.AGQueryLanguage;
 import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
+import com.franz.agraph.repository.AGTupleQuery;
 import com.franz.agraph.repository.AGValueFactory;
 
 public class TutorialTests extends AGAbstractTest {
@@ -331,9 +334,11 @@ public class TutorialTests extends AGAbstractTest {
         DatasetImpl ds = new DatasetImpl();
         ds.addNamedGraph(context1);
         ds.addNamedGraph(context2);
-        TupleQuery tupleQuery = conn.prepareTupleQuery(
+        AGTupleQuery tupleQuery = conn.prepareTupleQuery(
                 QueryLanguage.SPARQL, "SELECT ?s ?p ?o ?g WHERE { GRAPH ?g {?s ?p ?o . } }");
         tupleQuery.setDataset(ds);
+        String analysis = tupleQuery.analyze();
+        assertTrue(analysis.contains("desired") && analysis.contains("actual"));
         assertSetsEqual(
                 stmts(new Stmt[] {
                         new Stmt(alice, RDF.TYPE, person, context1),
@@ -489,27 +494,36 @@ public class TutorialTests extends AGAbstractTest {
         String prefix = "PREFIX ont: " + "<http://example.org/ontology/>\n";
         
         String queryString = "select ?s ?p ?o where { ?s ?p ?o} ";
-        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        AGTupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        String analysis = tupleQuery.analyze();
+        assertTrue(analysis.contains("desired") && analysis.contains("actual"));
         assertSetsEqual("SELECT result:", inputs.values(),
                 statementSet(tupleQuery.evaluate()));
         
-        assertTrue("Boolean result",
-                conn.prepareBooleanQuery(QueryLanguage.SPARQL,
-                        prefix + 
-                "ask { ?s ont:name \"Alice\" } ").evaluate());
+        AGBooleanQuery booleanQuery = conn.prepareBooleanQuery(QueryLanguage.SPARQL,
+                        prefix + "ask { ?s ont:name \"Alice\" } ");
+        //TODO: add when this is supported
+        //analysis = booleanQuery.analyze();
+        //assertTrue(analysis.contains("desired") && analysis.contains("actual"));
+        assertTrue("Boolean result", booleanQuery.evaluate());
         assertFalse("Boolean result",
                 conn.prepareBooleanQuery(QueryLanguage.SPARQL,
-                        prefix + 
-                "ask { ?s ont:name \"NOT Alice\" } ").evaluate());
+                        prefix + "ask { ?s ont:name \"NOT Alice\" } ").evaluate());
         
         queryString = "construct {?s ?p ?o} where { ?s ?p ?o . filter (?o = \"Alice\") } ";
-        GraphQuery constructQuery = conn.prepareGraphQuery(QueryLanguage.SPARQL, queryString);
+        AGGraphQuery constructQuery = conn.prepareGraphQuery(QueryLanguage.SPARQL, queryString);
+        //TODO: add when this is supported
+        //analysis = constructQuery.analyze();
+        //assertTrue(analysis.contains("desired") && analysis.contains("actual"));
         assertSetsEqual("Construct result",
                 mapKeep(new String[] {"an"}, inputs).values(),
                 statementSet(constructQuery.evaluate()));
         
         queryString = "describe ?s where { ?s ?p ?o . filter (?o = \"Alice\") } ";
-        GraphQuery describeQuery = conn.prepareGraphQuery(QueryLanguage.SPARQL, queryString);
+        AGGraphQuery describeQuery = conn.prepareGraphQuery(QueryLanguage.SPARQL, queryString);
+        //TODO: add when this is supported
+        //analysis = describeQuery.analyze();
+        //assertTrue(analysis.contains("desired") && analysis.contains("actual"));
         assertSetsEqual("Describe result",
                 mapKeep(new String[] {"an", "at"}, inputs).values(),
                 statementSet(describeQuery.evaluate()));
@@ -653,7 +667,10 @@ public class TutorialTests extends AGAbstractTest {
             "        (man ?person)\n" +
             "        (q ?person !kdy:first-name ?first)\n" +
             "        (q ?person !kdy:last-name ?last))";
-        TupleQuery tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
+        AGTupleQuery tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
+        //TODO: add when this is supported
+        //String analysis = tupleQuery.analyze();
+        //assertTrue(analysis.contains("desired") && analysis.contains("actual"));
         assertEquals(38, statementSet(tupleQuery.evaluate()).size());
     }
 
