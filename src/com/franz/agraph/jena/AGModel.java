@@ -66,6 +66,7 @@ public class AGModel extends ModelCom implements Model, Closeable {
 		return this;
 	}
 	
+	@Override
 	public Resource createResource() {
 		AGValueFactory vf = getGraph().getConnection().getValueFactory();
 		BNode blank = vf.createBNode();

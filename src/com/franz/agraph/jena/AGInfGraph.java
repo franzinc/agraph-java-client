@@ -8,11 +8,18 @@
 
 package com.franz.agraph.jena;
 
+import static com.franz.agraph.repository.AGVirtualRepository.filteredSpec;
+import static com.franz.agraph.repository.AGVirtualRepository.reasoningSpec;
+
 import java.util.Iterator;
 
+import org.openrdf.model.Resource;
 import org.openrdf.query.Dataset;
 import org.openrdf.query.impl.DatasetImpl;
+import org.openrdf.repository.RepositoryException;
 
+import com.franz.agraph.repository.AGAbstractRepository;
+import com.franz.agraph.repository.AGVirtualRepository;
 import com.hp.hpl.jena.graph.Graph;
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.graph.Triple;
@@ -31,16 +38,34 @@ public class AGInfGraph extends AGGraph implements InfGraph {
 	private final AGReasoner reasoner;
 	private final AGGraph rawGraph;
 	
+	AGVirtualRepository infRepo;
+	
 	AGInfGraph(AGReasoner reasoner, AGGraph rawGraph) {
-		super(rawGraph.getGraphMaker(), rawGraph.getGraphNode());
+		super(rawGraph.getGraphMaker(), rawGraph.getGraphContext(), new Resource[0]);
 		this.reasoner = reasoner;
 		this.rawGraph = rawGraph;
 		entailmentRegime = reasoner.getEntailmentRegime();
+		if (rawGraph.getGraphContexts().length>0) {
+			// create a reasoning, graph-filtered store over rawGraph's contexts
+			AGAbstractRepository repo = rawGraph.getConnection().getRepository();
+			String infSpec = reasoningSpec(filteredSpec(repo,rawGraph.getGraphContexts()),entailmentRegime);
+			infRepo = repo.getCatalog().getServer().virtualRepository(infSpec);
+			try {
+				conn = infRepo.getConnection();
+			} catch (RepositoryException e) {
+				throw new RuntimeException(e);
+			}
+			vf = conn.getValueFactory();
+		} else {
+			// for this common case of reasoning over the whole store,
+			// no need to create a reasoning, graph-filtered store
+		}
 	}
 
 	@Override
-	public Dataset getDataset() {
-		// TODO: use the whole store until graph-scoped reasoning is available
+	Dataset getDataset() {
+		// use the whole underlying repository, it is designed to
+		// contain just the right set of graphs.
 		DatasetImpl dataset = new DatasetImpl();
 		return dataset;
 	}

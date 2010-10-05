@@ -46,12 +46,13 @@ import com.hp.hpl.jena.util.iterator.ExtendedIterator;
  */
 public class AGGraph extends GraphBase implements Graph, Closeable {
 
-	private final AGGraphMaker maker;
-	private final Node graphNode;
+	protected final AGGraphMaker maker;
+	protected final Node graphNode;
 
-	private final AGRepositoryConnection conn;
-	private final AGValueFactory vf;
-	private final Resource context;
+	protected AGRepositoryConnection conn;
+	protected AGValueFactory vf;
+	protected final Resource context;
+	protected final Resource[] contexts;
 
 	protected String entailmentRegime = "false";
 	
@@ -61,8 +62,18 @@ public class AGGraph extends GraphBase implements Graph, Closeable {
 		conn = maker.getRepositoryConnection();
 		vf = conn.getValueFactory();
 		context = vf.asResource(graphNode);
+		contexts = new Resource[]{context};
 	}
 
+	AGGraph(AGGraphMaker maker, Resource context, Resource... contexts) {
+		this.maker = maker;
+		this.graphNode = null;
+		this.conn = maker.getRepositoryConnection();
+		this.vf = conn.getValueFactory();
+		this.context = context;
+		this.contexts = contexts;
+	}
+	
 	AGGraphMaker getGraphMaker() {
 		return maker;
 	}
@@ -81,6 +92,10 @@ public class AGGraph extends GraphBase implements Graph, Closeable {
 		return context;
 	}
 
+	Resource[] getGraphContexts() {
+		return contexts;
+	}
+	
 	AGRepositoryConnection getConnection() {
 		return conn;
 	}
@@ -125,37 +140,37 @@ public class AGGraph extends GraphBase implements Graph, Closeable {
     public String toString() 
         { return toString(getName()+(closed ? " (closed) " : " (size: " + graphBaseSize() + ")."),this); }
 
-    /**
-    Answer a human-consumable representation of <code>that</code>. The 
-    string <code>prefix</code> will appear near the beginning of the string. Nodes
-    may be prefix-compressed using <code>that</code>'s prefix-mapping. This
-    default implementation will display all the triples exposed by the graph (ie
-    including reification triples if it is Standard).
-*/
-public static String toString( String prefix, Graph that )
-   {
-   //PrefixMapping pm = that.getPrefixMapping();
-	StringBuffer b = new StringBuffer( prefix + " {" );
-	String gap = "";
-	ClosableIterator<Triple> it = GraphUtil.findAll( that );
-	int count = 0;
-	while (it.hasNext() && count < 20) 
-       {
-		b.append( gap );
-		gap = "; ";
-		b.append( it.next().toString() );
-	    } 
-	b.append( "}" );
-	return b.toString();
-  }
+	/**
+	 * Answer a human-consumable representation of <code>that</code>. The string
+	 * <code>prefix</code> will appear near the beginning of the string. Nodes
+	 * may be prefix-compressed using <code>that</code>'s prefix-mapping. This
+	 * default implementation will display all the triples exposed by the graph
+	 * (ie including reification triples if it is Standard).
+	 */
+	public static String toString(String prefix, Graph that) {
+		// PrefixMapping pm = that.getPrefixMapping();
+		StringBuffer b = new StringBuffer(prefix + " {");
+		String gap = "";
+		ClosableIterator<Triple> it = GraphUtil.findAll(that);
+		int count = 0;
+		while (it.hasNext() && count < 20) {
+			b.append(gap);
+			gap = "; ";
+			b.append(it.next().toString());
+		}
+		b.append("}");
+		return b.toString();
+	}
 
-	public Dataset getDataset() {
+	Dataset getDataset() {
 		DatasetImpl dataset = new DatasetImpl();
-		if (context == null) {
-			dataset.addDefaultGraph(null);
-		} else if (context instanceof URI) {
-			dataset.addDefaultGraph((URI) context);
-			dataset.addNamedGraph((URI) context);
+		for (Resource c : contexts) {
+			if (c == null) {
+				dataset.addDefaultGraph(null);
+			} else if (c instanceof URI) {
+				dataset.addDefaultGraph((URI) c);
+				dataset.addNamedGraph((URI) c);
+			}
 		}
 		return dataset;
 	}
@@ -181,7 +196,7 @@ public static String toString( String prefix, Graph that )
 			} else {
 				StatementCollector collector = new StatementCollector();
 				conn.getHttpRepoClient().getStatements(vf.asResource(s), vf.asURI(p), vf.asValue(m
-						.getMatchObject()), entailmentRegime, collector, context);
+						.getMatchObject()), entailmentRegime, collector, contexts);
 				result = conn.createRepositoryResult(collector.getStatements());
 			}
 		} catch (RepositoryException e) {
@@ -197,6 +212,8 @@ public static String toString( String prefix, Graph that )
 	@Override
 	public void performAdd(Triple t) {
 		try {
+			AGRepositoryConnection conn = maker.getRepositoryConnection();
+			AGValueFactory vf = conn.getValueFactory();
 			conn.add(vf.asResource(t.getSubject()), vf.asURI(t.getPredicate()),
 					vf.asValue(t.getObject()), context);
 		} catch (UnauthorizedException e) {
@@ -210,7 +227,7 @@ public static String toString( String prefix, Graph that )
 	public void performDelete(Triple t) {
 		try {
 			conn.remove(vf.asResource(t.getSubject()), vf.asURI(t
-					.getPredicate()), vf.asValue(t.getObject()), context);
+					.getPredicate()), vf.asValue(t.getObject()), contexts);
 		} catch (UnauthorizedException e) {
 			throw new DeleteDeniedException(e.getMessage());
 		} catch (RepositoryException e) {
@@ -218,16 +235,17 @@ public static String toString( String prefix, Graph that )
 		}
 	}
 
+	@Override
 	protected int graphBaseSize() {
 		// TODO deal with graphs bigger than int's.
 		int size;
 		try {
-			size = (int) conn.size(context);
+			size = (int) conn.size(contexts);
 		} catch (RepositoryException e) {
 			// TODO: proper exception to throw?
 			throw new RuntimeException(e);
 		}
 		return size;
 	}
-
+	
 }

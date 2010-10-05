@@ -3,6 +3,7 @@ package com.franz.agraph.repository;
 import java.io.File;
 
 import org.openrdf.model.BNode;
+import org.openrdf.model.Resource;
 import org.openrdf.repository.RepositoryException;
 
 import com.franz.agraph.http.AGHTTPClient;
@@ -80,9 +81,31 @@ public class AGVirtualRepository implements AGAbstractRepository, Closeable {
 		}
 		return spec;
 	}
+	
 	public static String reasoningSpec(String repoSpec, String reasoner) {
-		return repoSpec + "[" + reasoner + "]";
+		return reasoningSpec(repoSpec,reasoner,null);
 	}
+	
+	public static String reasoningSpec(String repoSpec, String reasoner, Resource inferredGraph) {
+		String reasoningSpec = repoSpec + "[" + reasoner;
+		if (null!=inferredGraph && !inferredGraph.equals("")) {
+			reasoningSpec += ("#<" + inferredGraph.stringValue() + ">");
+		}
+		return reasoningSpec + "]";
+	}
+
+	public static String filteredSpec(AGAbstractRepository repo, Resource[] contexts) {
+		String[] graphs = new String[contexts.length];
+		for (int i=0;i<contexts.length;i++) {
+			if (null==contexts[i]) {
+				graphs[i] = null;
+			} else {
+				graphs[i] = "<"+contexts[i].stringValue()+">";
+			}
+		}
+		return filteredSpec(repo.getSpec(),graphs);
+	}
+	
 	public static String filteredSpec(String repoSpec, String[] graphs) {
 		repoSpec += "{";
 		for (String graph : graphs) repoSpec += " " + graph;
