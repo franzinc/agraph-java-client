@@ -8,8 +8,12 @@
 
 package com.franz.agraph.jena;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
+import org.openrdf.model.Resource;
 import org.openrdf.repository.RepositoryException;
 
 import com.franz.agraph.repository.AGRepositoryConnection;
@@ -51,7 +55,7 @@ public class AGGraphMaker implements GraphMaker, Closeable {
 	@Override
 	public AGGraph getGraph() {
 		if (defaultGraph==null) {
-			defaultGraph = new AGGraph(this, null);
+			defaultGraph = new AGGraph(this, (Node)null);
 		}
 		return defaultGraph;
 	}
@@ -146,6 +150,41 @@ public class AGGraphMaker implements GraphMaker, Closeable {
 				throw new RuntimeException(e);
 			}
     	}
+	}
+
+	/**
+	 * Returns the union of all graphs (includes default graph).
+	 * 
+	 * Add operations on this graph are housed in the
+	 * default graph.
+	 *  
+	 * @return the union of all graphs.
+	 */
+	public AGGraph getUnionOfAllGraphs() {
+		return createUnion();
+	}
+
+	/**
+	 * Returns a graph that is the union of specified graphs.
+	 * By convention, the first graph mentioned will be used
+	 * for add operations on the union.  All other operations
+	 * will apply to all graphs in the union.  If no graphs
+	 * are supplied, the union of all graphs is assumed, and
+	 * add operations apply to the default graph.
+	 * 
+	 * @param graphs the graphs in the union
+	 * @return the union of the specified graphs
+	 */
+	public AGGraphUnion createUnion(AGGraph... graphs) {
+		Set<Resource> contexts = new HashSet<Resource>();
+		for (AGGraph g: graphs) {
+			contexts.addAll(Arrays.asList(g.getGraphContexts()));
+		}
+		Resource context = null;
+		if (graphs.length>0) {
+			context = graphs[0].getGraphContext();
+		}
+		return new AGGraphUnion(this,context,contexts.toArray(new Resource[contexts.size()]));
 	}
 
 }
