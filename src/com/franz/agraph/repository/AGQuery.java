@@ -8,12 +8,19 @@
 
 package com.franz.agraph.repository;
 
+import java.io.IOException;
 import java.util.Iterator;
 
+import org.apache.commons.httpclient.HttpException;
 import org.openrdf.query.Binding;
 import org.openrdf.query.BindingSet;
+import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.impl.AbstractQuery;
+import org.openrdf.repository.RepositoryException;
+import org.openrdf.rio.RDFParseException;
+
+import com.franz.agraph.http.AGResponseHandler;
 
 /**
  * An abstract query class common to Boolean, Graph and Tuple Queries.
@@ -191,6 +198,56 @@ public abstract class AGQuery extends AbstractQuery {
 	 */
 	public void setPrepared(boolean prepared) {
 		this.prepared = prepared;
+	}
+	
+	/**
+	 * Evaluates the query and processes the result in handler.
+	 * 
+	 * @param handler processes or stores the result
+	 * @throws QueryEvaluationException
+	 */
+	protected void evaluate(AGResponseHandler handler)
+			throws QueryEvaluationException {
+		evaluate(false, handler);
+	}
+	
+	/**
+	 * Evaluates the query and processes the result in handler.
+	 * 
+	 * When the analyzeOnly flag is true, only a query analysis is
+	 * performed; when false, the query is executed.
+	 * 
+	 * @param analyzeOnly flags for analyzing or executing
+	 * @param handler processes or stores the result
+	 * @throws QueryEvaluationException
+	 */
+	protected void evaluate(boolean analyzeOnly, AGResponseHandler handler)
+			throws QueryEvaluationException {
+		try {
+			httpCon.getHttpRepoClient().query(this, analyzeOnly, handler);
+		} catch (HttpException e) {
+			throw new QueryEvaluationException(e);
+		} catch (RepositoryException e) {
+			throw new QueryEvaluationException(e);
+		} catch (RDFParseException e) {
+			throw new QueryEvaluationException(e);
+		} catch (IOException e) {
+			throw new QueryEvaluationException(e);
+		}
+	}
+
+	/**
+	 * Returns the query analysis for the query.
+	 * 
+	 * The query is not evaluated.
+	 * 
+	 * @return the query analysis as a string.
+	 * @throws QueryEvaluationException
+	 */
+	public String analyze() throws QueryEvaluationException {
+		AGResponseHandler handler = new AGResponseHandler("");
+		evaluate(true, handler);
+		return handler.getString();
 	}
 	
 	public Binding[] getBindingsArray() {

@@ -8,9 +8,6 @@
 
 package com.franz.agraph.repository;
 
-import java.io.IOException;
-
-import org.apache.commons.httpclient.HttpException;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.TupleQuery;
@@ -18,8 +15,6 @@ import org.openrdf.query.TupleQueryResult;
 import org.openrdf.query.TupleQueryResultHandler;
 import org.openrdf.query.TupleQueryResultHandlerException;
 import org.openrdf.query.impl.TupleQueryResultBuilder;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.rio.RDFParseException;
 
 import com.franz.agraph.http.AGResponseHandler;
 
@@ -48,33 +43,12 @@ public class AGTupleQuery extends AGQuery implements TupleQuery {
 
 	public void evaluate(TupleQueryResultHandler handler)
 			throws QueryEvaluationException, TupleQueryResultHandlerException {
-		try {
-			httpCon.getHttpRepoClient().query(this,
-					new AGResponseHandler(httpCon.getRepository(), handler));
-		} catch (HttpException e) {
-			throw new QueryEvaluationException(e);
-		} catch (RepositoryException e) {
-		    throw new QueryEvaluationException(e);
-		} catch (RDFParseException e) {
-		    throw new QueryEvaluationException(e);
-		} catch (IOException e) {
-		    throw new QueryEvaluationException(e);
-		}
+		evaluate(new AGResponseHandler(httpCon.getRepository(), handler));
 	}
 
 	public long count() throws QueryEvaluationException {
 		AGResponseHandler handler = new AGResponseHandler(0L);
-		try {
-			httpCon.getHttpRepoClient().query(this, handler);
-		} catch (HttpException e) {
-			throw new QueryEvaluationException(e);
-		} catch (RepositoryException e) {
-			throw new QueryEvaluationException(e);
-		} catch (RDFParseException e) {
-			throw new QueryEvaluationException(e);
-		} catch (IOException e) {
-			throw new QueryEvaluationException(e);
-		}
+		evaluate(handler);
 		return handler.getLong();
 	}
 }
