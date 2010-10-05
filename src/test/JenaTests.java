@@ -31,9 +31,11 @@ import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.rdf.model.StmtIterator;
 import com.hp.hpl.jena.vocabulary.OWL;
 import com.hp.hpl.jena.vocabulary.RDF;
+import com.hp.hpl.jena.vocabulary.RDFS;
 
 public class JenaTests extends AGAbstractTest {
 
@@ -52,7 +54,7 @@ public class JenaTests extends AGAbstractTest {
     @Test
     @Category(TestSuites.Prepush.class)
     public void jenaAutoCommitTrue() throws Exception {
-    	// this is the default, but try setting it explicitely
+    	// this is the default, but try setting it explicitly
     	conn.setAutoCommit(true);
     	
     	AGGraphMaker maker = closeLater( new AGGraphMaker(conn) );
@@ -134,6 +136,7 @@ public class JenaTests extends AGAbstractTest {
     @Test
     @Category(TestSuites.Prepush.class)
     public void jenaGraphs_bug19491() throws Exception {
+    	// This test is largely obsolete/superseded by jenaGraphScopedReasoning
     	AGGraphMaker maker = closeLater( new AGGraphMaker(conn) );
     	AGGraph defaultGraph = closeLater( maker.getGraph() );
     	AGModel defaultModel = closeLater( new AGModel(defaultGraph) );
@@ -148,7 +151,7 @@ public class JenaTests extends AGAbstractTest {
     	defaultModel = closeLater( new AGModel(defaultGraph) );
 		AGInfModel infModel = closeLater( new AGInfModel(reasoner, defaultModel));
 		Assert.assertEquals("conn is full", 2, conn.size());
-		Assert.assertEquals("infModel should be full", 2,
+		Assert.assertEquals("infModel should be partial", 1,
 				closeLater( infModel.listStatements((Resource)null, (Property)null, (RDFNode)null)).toList().size());
 		Assert.assertEquals("defaultModel should be partial", 1,
 				closeLater( defaultModel.listStatements((Resource)null, (Property)null, (RDFNode)null)).toList().size());
@@ -279,4 +282,82 @@ public class JenaTests extends AGAbstractTest {
     	Assert.assertFalse("unexpected allValuesFrom inference", infmodel.contains(a,RDF.type,c));
     }
     
+    @Test
+    @Category(TestSuites.Prepush.class)
+    public void jenaGraphScopedReasoning() throws Exception {
+    	AGGraphMaker maker = closeLater( new AGGraphMaker(conn));
+    	AGGraph gd = closeLater( maker.getGraph());
+    	AGGraph g1 = closeLater( maker.createGraph("http://example.org/g1"));
+    	AGGraph g2 = closeLater( maker.createGraph("http://example.org/g2"));
+    	AGGraph g3 = closeLater( maker.createGraph("http://example.org/g3"));
+    	AGGraph gAll = closeLater( maker.getUnionOfAllGraphs());
+    	AGGraph gAllb = closeLater( maker.createUnion());
+    	AGGraph gd12 = closeLater( maker.createUnion(gd, g1, g2));
+    	AGGraph gd23 = closeLater( maker.createUnion(gd, g2, g3));
+    	AGGraph g123 = closeLater( maker.createUnion(g1, g2, g3));
+    	
+    	AGModel md = closeLater( new AGModel(gd));
+    	AGModel m1 = closeLater( new AGModel(g1));
+    	AGModel m2 = closeLater( new AGModel(g2));
+    	AGModel m3 = closeLater( new AGModel(g3));
+    	AGModel mAll = closeLater( new AGModel(gAll));
+    	AGModel mAllb = closeLater( new AGModel(gAllb));
+    	AGModel md12 = closeLater( new AGModel(gd12));
+    	AGModel md23 = closeLater( new AGModel(gd23));
+    	AGModel m123 = closeLater( new AGModel(g123));
+    	
+    	Resource a = md.createResource("http://a");
+    	Resource b = md.createResource("http://b");
+    	Resource c = md.createResource("http://c");
+    	Resource d = md.createResource("http://d");
+    	Property p = md.createProperty("http://p");
+    	Property q = md.createProperty("http://q");
+    	
+    	md.add(p,RDF.type, OWL.TransitiveProperty);
+    	m1.add(a,p,b);
+    	m1.add(p,RDFS.subPropertyOf,q);
+    	m2.add(b,p,c);
+    	m3.add(c,p,d);
+    	Assert.assertTrue("size of md", md.size()==1);
+    	Assert.assertTrue("size of m1", m1.size()==2);
+    	Assert.assertTrue("size of m2", m2.size()==1);
+    	Assert.assertTrue("size of m3", m3.size()==1);
+    	Assert.assertTrue("size of mAll", mAll.size()==5);
+    	Assert.assertTrue("size of mAllb", mAllb.size()==5);
+    	Assert.assertTrue("size of md12", md12.size()==4);
+    	Assert.assertTrue("size of md23", md23.size()==3);
+    	Assert.assertTrue("size of m123", m123.size()==4);
+    	
+    	AGReasoner reasoner = AGReasoner.RDFS_PLUS_PLUS;
+    	AGInfModel infAll = closeLater( new AGInfModel(reasoner, mAll));
+    	AGInfModel infd = closeLater( new AGInfModel(reasoner, md)); 
+    	AGInfModel inf1 = closeLater( new AGInfModel(reasoner, m1)); 
+    	AGInfModel infd12 = closeLater( new AGInfModel(reasoner, md12));
+    	reasoner = AGReasoner.RESTRICTION;
+    	AGInfModel infd23 = closeLater( new AGInfModel(reasoner, md23));
+    	AGInfModel inf123 = closeLater( new AGInfModel(reasoner, m123));
+
+    	Assert.assertTrue("missing inference All", infAll.contains(a,p,d));
+    	Assert.assertFalse("unsound inference d", infd.contains(a,p,b));
+    	Assert.assertTrue("missing inference 1", inf1.contains(a,q,b));
+    	Assert.assertFalse("unsound inference 1", inf1.contains(a,p,c));
+    	Assert.assertTrue("missing inference d12", infd12.contains(a,p,c));
+    	Assert.assertFalse("unsound inference d12", infd12.contains(a,p,d));
+    	Assert.assertTrue("missing inference d23", infd23.contains(b,p,d));
+    	Assert.assertFalse("unsound inference d23", infd23.contains(a,p,d));
+    	Assert.assertTrue("missing inference 123", inf123.contains(b,p,c));
+    	Assert.assertFalse("unsound inference 123", inf123.contains(a,p,d));
+    	Statement s = inf123.createStatement(p,RDF.type, OWL.TransitiveProperty);
+    	inf123.add(s);
+    	Assert.assertTrue("missing added statement in m123", m123.contains(s));
+    	Assert.assertTrue("missing added statement in m1", m1.contains(s));
+    	Assert.assertTrue("missing added statement in md12", md12.contains(s));
+    	Assert.assertTrue("missing inference 123", inf123.contains(a,p,d));
+    	inf1.remove(a,p,b);
+    	Assert.assertFalse("unexpected statement in inf1", inf1.contains(a,p,b));
+    	Assert.assertFalse("unexpected statement in m1", m1.contains(a,p,b));
+    	Assert.assertTrue("missing statement in m1", m1.contains(s));
+    	Assert.assertFalse("unexpected statement in infAll", m1.contains(a,p,d));
+    	Assert.assertTrue("missing inference in infAll", infAll.contains(b,p,d));
+    }
 }
