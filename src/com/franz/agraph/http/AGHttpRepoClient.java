@@ -620,7 +620,7 @@ public class AGHttpRepoClient implements Closeable {
 		}
 	}
 
-	public void query(AGQuery q, AGResponseHandler handler) throws HttpException,
+	public void query(AGQuery q, boolean analyzeOnly, AGResponseHandler handler) throws HttpException,
 			RepositoryException, RDFParseException, IOException {
 
 		String url = getRoot();
@@ -636,6 +636,10 @@ public class AGHttpRepoClient implements Closeable {
 					.getRequestMIMEType()));
 		}
 		List<NameValuePair> queryParams = getQueryMethodParameters(q);
+		if (analyzeOnly) {
+			queryParams.add(new NameValuePair("analyzeIndicesUsed",
+				Boolean.toString(analyzeOnly)));
+		}
 		getHTTPClient().post(url, headers.toArray(new Header[headers.size()]),
 				queryParams.toArray(new NameValuePair[queryParams.size()]),
 				null, handler);
