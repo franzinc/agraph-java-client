@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project default="javadoc">
-    <target name="javadoc">
-        <javadoc access="public" author="true" classpath="lib/jena-2.6.2/stax-api-1.0.1.jar;lib/json.jar;lib/jena-2.6.2/jena-2.6.2.jar;lib/sesame-2.3.1/commons-logging-1.1.1.jar;lib/jena-2.6.2/arq-2.8.1.jar;lib/jena-2.6.2/jena-2.6.2-tests.jar;lib/sesame-2.3.1/slf4j-nop-1.5.8.jar;lib/jena-2.6.2/wstx-asl-3.2.9.jar;lib/jena-2.6.2/xercesImpl-2.7.1.jar;lib/sesame-2.3.1/openrdf-sesame-2.3.1-onejar.jar;lib/jena-2.6.2/icu4j-3.4.4.jar;lib/sesame-2.3.1/slf4j-api-1.5.8.jar;lib/junit-4.8.1.jar;lib/jena-2.6.2/lucene-core-2.3.1.jar;lib/sesame-2.3.1/commons-httpclient-3.1.jar;lib/jena-2.6.2/iri-0.7.jar;lib/sesame-2.3.1/commons-codec-1.3.jar" destdir="doc" doctitle="AllegroGraph 4.0 Javadoc" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" packagenames="com.franz.agraph.jena,com.franz.util,com.franz.agraph.repository" source="1.6" sourcepath="src" splitindex="true" use="true" version="true"/>
-    </target>
-</project>

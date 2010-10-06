@@ -9,10 +9,10 @@
 package com.franz.util;
 
 /**
- * Similar to java.io.Closeable, but close throws Exception so
+ * Similar to {@link java.io.Closeable}, but close throws Exception so
  * it can be used with extentions of third-party classes
  * (for example, Sesame and Jena) that define a close method
- * without implementing java.io.Closeable and with a different
+ * without implementing {@link java.io.Closeable} and with a different
  * checked exception.
  */
 public interface Closeable {

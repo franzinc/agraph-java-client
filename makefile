@@ -17,7 +17,11 @@ else
 endif
 
 javadoc: FORCE
-	ant -f javadoc.xml
+ifndef VERSION
+	ant javadoc
+else
+	ant -Denv.version=$(VERSION) javadoc
+endif
 
 tags: FORCE
 	rm -f TAGS
@@ -42,7 +46,7 @@ TARNAME = agraph-$(VERSION)-client-java.tar.gz
 TAROPTS = 
 endif
 
-dist: clean build
+dist: clean build javadoc
 ifndef VERSION
 	@echo VERSION is not defined.
 	@exit 1
@@ -68,6 +72,7 @@ endif
 	cp src/tutorial/java-tutorial-40.html $(DIST)/doc
 	cp src/tutorial/jena-tutorial-40.html $(DIST)/doc
 	cp src/tutorial/*.jpg $(DIST)/doc
+	cp -r doc $(DIST)/javadoc
 	tar -c -h -z $(TAROPTS) -f $(TARNAME) -C DIST $(DISTDIR)
 ifdef DESTDIR
 	cp -p $(TARNAME) $(DESTDIR)
