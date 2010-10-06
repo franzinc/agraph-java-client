@@ -207,8 +207,7 @@ public abstract class AGQuery extends AbstractQuery {
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return queryString;
 	}
 

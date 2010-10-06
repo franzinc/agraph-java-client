@@ -784,7 +784,7 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
     /**
      * Returns a list of all possible index types for this repository.
      * 
-     * @return
+     * @return list of all possible index types for this repository.
      * @throws OpenRDFException
      */
     public List<String> listValidIndices() throws OpenRDFException {
