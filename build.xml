@@ -1,4 +1,4 @@
-<project name="agraph-java-client" default="clean-build"
+<project name="agraph-java-client" default="build"
          xmlns:artifact="antlib:org.apache.maven.artifact.ant">
 
     <property environment="env"/>
@@ -59,6 +59,7 @@
             description="Remove generated files and directories.">
         <delete dir="${build}"/>
         <delete file="${jarfile}"/>
+        <delete dir="doc"/>
         <delete file="agraph-java-client-test.jar"/>
         <ant dir="clojure" target="clean" inheritall="false"/>
     </target>
@@ -71,16 +72,15 @@
                classpathref="classpath"/>
     </target>
     
-    <manifestclasspath property="mf.path" jarfile="${jarfile}">
-        <classpath refid="classpath"/>
-    </manifestclasspath>
-    
-    <target name="build"
-            description="Create jar file."
-            depends="clean, compile">
-		<tstamp prefix="jar">
-			<format property="datestamp" pattern="yyyy-MM-dd H:mm"/>
-		</tstamp>
+    <target name="jar"
+            description="Build agraph.jar file."
+            depends="compile">
+        <manifestclasspath property="mf.path" jarfile="${jarfile}">
+            <classpath refid="classpath"/>
+        </manifestclasspath>
+        <tstamp prefix="jar">
+            <format property="datestamp" pattern="yyyy-MM-dd H:mm"/>
+        </tstamp>
         <jar jarfile="${jarfile}">
             <fileset dir="${build}" includes="**/*.class">
                 <exclude name="tutorial/**"/>
@@ -98,12 +98,16 @@
         </jar>
     </target>
     
+    <target name="build" depends="clean, jar"
+            description="clean, and build jar">
+    </target>
+    
     <target name="test-jar"
             description="Create jar file of test classes."
             depends="compile">
-		<tstamp prefix="jar">
-			<format property="datestamp" pattern="yyyy-MM-dd H:mm"/>
-		</tstamp>
+        <tstamp prefix="jar">
+            <format property="datestamp" pattern="yyyy-MM-dd H:mm"/>
+        </tstamp>
         <jar jarfile="agraph-java-client-test.jar">
             <fileset dir="${build}">
                 <include name="tutorial/**"/>
@@ -119,14 +123,37 @@
             </manifest>
         </jar>
     </target>
-    
-    <target name="clean-build" depends="clean, build"
-            description="clean, and build jar">
+
+    <target name="javadoc"
+    	    description="Generate javadocs to the doc directory">
+        <delete dir="doc"/>
+        <javadoc destdir="doc"
+                 access="public"
+                 author="true"
+                 doctitle="Franz, Inc. AllegroGraph ${env.version} Javadoc"
+                 header="Franz Inc, AllegroGraph"
+                 footer="Copyright &amp;copy; 2008-2010 Franz Inc."
+                 nodeprecated="false"
+                 nodeprecatedlist="false"
+                 noindex="false"
+                 nonavbar="false"
+                 notree="false"
+                 packagenames="com.franz.agraph.jena,com.franz.util,com.franz.agraph.repository"
+                 source="1.6"
+                 sourcepath="src"
+                 splitindex="true"
+                 use="true"
+                 version="true"
+                 classpathref="classpath">
+            <link href="http://download.oracle.com/javase/6/docs/api/" offline="true" packagelistLoc="lib/java"/>
+            <link href="http://openjena.org/javadoc/" offline="true" packagelistloc="lib/jena-2.6.2"/>
+            <link href="http://www.openrdf.org/doc/sesame2/2.3.1/apidocs/" offline="true" packagelistloc="lib/sesame-2.3.1"/>
+        </javadoc>
     </target>
     
     <target name="prepush"
             description="Tests required before git push: clean, build, and run Java and Clojure client tests"
-            depends="clean-build, test-prepush">
+            depends="build, test-prepush">
         <ant dir="clojure" target="prepush" inheritall="false"/>
     </target>
     
