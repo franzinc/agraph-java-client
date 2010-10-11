@@ -33,7 +33,7 @@ import org.openrdf.repository.RepositoryResult;
  * A simple implementation of Statement used for testing.
  */
 @SuppressWarnings("serial")
-class Stmt implements Statement {
+public class Stmt implements Statement {
     private static final String XSD_FLOAT = "http://www.w3.org/2001/XMLSchema#float";
     private static final String XSD_LONG = "http://www.w3.org/2001/XMLSchema#long";
     private static final String XSD_DATETIME = "http://www.w3.org/2001/XMLSchema#dateTime";
