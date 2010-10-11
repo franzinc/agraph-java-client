@@ -234,7 +234,6 @@ public class TutorialTests extends AGAbstractTest {
     }
     
     @Test
-    @Category(TestSuites.Temp.class)
     public void example8() throws Exception {
         cat.deleteRepository("example8");
         repo = cat.createRepository("example8");
