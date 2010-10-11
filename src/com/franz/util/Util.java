@@ -8,6 +8,8 @@
 
 package com.franz.util;
 
+import info.aduna.iteration.CloseableIteration;
+
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 
 public class Util {
@@ -42,6 +44,18 @@ public class Util {
         if (o != null) {
             try {
                 o.shutdown();
+            } catch (Exception e) {
+                System.err.println("ignoring error with close:" + e);
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+    
+    public static CloseableIteration close(CloseableIteration o) {
+        if (o != null) {
+            try {
+                o.close();
             } catch (Exception e) {
                 System.err.println("ignoring error with close:" + e);
                 e.printStackTrace();
