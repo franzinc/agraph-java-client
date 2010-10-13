@@ -11,13 +11,13 @@
 </style>
 </head>
 <body>
-<h1>Jena API Tutorial for AllegroGraph 4.0</h1>
-<p>This is an introduction to the Jena client API to AllegroGraph RDFStore&#8482; version 4.0 from <a href="http://agraph.franz.com/allegrograph/">Franz Inc.</a> </p>
+<h1>Java Jena API Tutorial for AllegroGraph 4.1</h1>
+<p>This is an introduction to the Jena client API to AllegroGraph RDFStore&#8482; version 4.1 from <a href="http://agraph.franz.com/allegrograph/">Franz Inc.</a> </p>
 <p>
-The Jena API offers convenient and efficient
+The Java Jena API offers convenient and efficient
 access to an AllegroGraph server from a Java-based application.  This API provides methods for
 creating, querying and maintaining RDF data, and for managing the stored triples. </p>
-<p>The Jena API emulates the <a href="http://jena.sourceforge.net/">Jena Semantic Web Framework</a> to make it easier to migrate from Jena to AllegroGraph.&nbsp; &nbsp; </p>
+<p>The Java Jena API emulates the <a href="http://jena.sourceforge.net/">Jena Semantic Web Framework</a> to make it easier to migrate from Jena to AllegroGraph.&nbsp; &nbsp; </p>
 <h2 id="Contents">Contents</h2>
 <table width="554" border="0" style="vertical-align:top" >
   <tr>
@@ -121,7 +121,7 @@ In Windows XP, you can set an environment variable by
 </ol>
 -->
 <h2 id="PrerequisitesLinux">Prerequisites (Linux) &nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
-<p>The tutorial examples can be run on a Linux system, running AllegroGraph and the examples on the same computer (&quot;localhost&quot;). The tutorial assumes that AllegroGraph has been installed and configured using the procedure posted on <a href="/agraph/support/documentation/v4/server-installation.html">this webpage</a>. The Jena API and the Jena tutorial are bundled with the AllegroGraph Java Client. </p>
+<p>The tutorial examples can be run on a Linux system, running AllegroGraph and the examples on the same computer (&quot;localhost&quot;). The tutorial assumes that AllegroGraph has been installed and configured using the procedure posted on <a href="/agraph/support/documentation/v4/server-installation.html">this webpage</a>. The Java Jena API and the Jena tutorial are bundled with the AllegroGraph Java Client. </p>
 <h2 id="Terminology">Terminology&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>We need to clarify some terminology before proceeding. </p>
 <ul>
@@ -205,7 +205,7 @@ this diagram:</p>
 <pre class="input">		AGRepositoryConnection conn = myRepository.getConnection();<br>		closeBeforeExit(conn);<br>		println(&quot;Got a connection.&quot;);<br>		println(&quot;Repository &quot; + (myRepository.getRepositoryID())<br>				+ &quot; is up! It contains &quot; + (conn.size()) + &quot; statements.&quot;);</pre>
  <p>The <strong>size()</strong> method of the connection object returns how many triples are present. In the example1() function, this number should always be zero because we deleted, recreated, and cleared the repository. This is the output in the Java window: </p>
 <pre class="output"> Got a connection.<br> Repository javatutorial is up! It contains 0 statements.</pre>
- <p>When using the Jena API, it is necessary to create a GraphMaker object on the connection. This object will let us create graphs in the connection's repository.</p>
+ <p>When using the Java Jena API, it is necessary to create a GraphMaker object on the connection. This object will let us create graphs in the connection's repository.</p>
  <pre class="input">AGGraphMaker maker = new AGGraphMaker(conn);
 println(&quot;Got a graph maker for the connection.&quot;); </pre>
  <pre class="output">Got a graph maker for the connection.</pre>
@@ -223,7 +223,7 @@ In example2(), we show how
 to create resources describing two
 people, Bob and Alice, by asserting individual triples into the repository. The example also retracts and replaces a triple.  Assertions and retractions to the triple store
 are executed by 'add' and 'remove' methods belonging to the Model object. The Model object is created by the GraphMaker object, which we will obtain from example1(), above. </p>
-<p>Before asserting a triple, we have to generate the URI values for the subject, predicate and object fields. The Jena API to AllegroGraph Server predefines a number of classes and predicates for the RDF, RDFS, XSD, and OWL ontologies.  RDF.type is one of the predefined predicates we will use. </p>
+<p>Before asserting a triple, we have to generate the URI values for the subject, predicate and object fields. The Java Jena API to AllegroGraph Server predefines a number of classes and predicates for the RDF, RDFS, XSD, and OWL ontologies.  RDF.type is one of the predefined predicates we will use. </p>
 <p>
 The example2() function begins by calling example1() to create the appropriate GraphMaker object, which is bound to the variable <strong>maker</strong>. We will use the GraphMaker to create a <strong>graph</strong>, and then a <strong>model</strong> object that is connected to the graph. We will need both objects in order to proceed. </p>
 <pre class="input">	public static AGModel example2(boolean close) throws Exception {<br>		println(&quot;\nStarting example2().&quot;);<br>		AGGraphMaker maker = example1(false);<br>		AGGraph graph = maker.getGraph();<br>		AGModel model = new AGModel(graph);</pre>
@@ -304,7 +304,7 @@ This is the <strong>example4()</strong> function of JenaTutorialExamples.java. I
 <pre class="input">        Literal weightUntyped = model.createLiteral(&quot;120.5&quot;);<br>        Literal weightFloat = model.createTypedLiteral(&quot;120.5&quot;, XSDDatatype.XSDfloat);</pre>
  <p>The model object's createStatement() method assembles the elements of a triple, but does not yet add them to the repository. Here are Alice's and Ted's ages assembled into statements. (We gave Ted two age triples because Bob was on vacation. The triples have the same value cast into different types.) </p>
  <pre class="input">        Statement stmt1 = model.createStatement(alice, age, fortyTwoInt);<br>        Statement stmt2 = model.createStatement(ted, age, fortyTwoLong);<br>        Statement stmt3 = model.createStatement(ted, age, fortyTwoUntyped);</pre>
-<p>The Jena API to AllegroGraph Server uses the <strong>model.add()</strong> method for asserting triples into the repository. It can create triples from statements, or from URIs and literal values, as shown here. </p>
+<p>The Java Jena API to AllegroGraph Server uses the <strong>model.add()</strong> method for asserting triples into the repository. It can create triples from statements, or from URIs and literal values, as shown here. </p>
 <pre class="input">        model.add(stmt1);<br>        model.add(stmt2);<br>        model.add(stmt3);<br>        model.add(alice, weight, weightFloat);<br>        model.add(ted, weight, weightUntyped);<br>        model.add(alice, favoriteColor, red);<br>        model.add(ted, favoriteColor, rouge);<br>        model.add(alice, birthdate, date);<br>        model.add(ted, birthdate, time);</pre>
 <p>The RDF/SPARQL spec is very conservative when matching various combinations of literal values. The match and query statements below illustrate how some of these combinations perform. Note that this loop uses the listStatements() method to retrieve triples. We'll do SPARQL queries in a minute. </p>
 <pre class="input">        for (Literal obj : new Literal[] {null, fortyTwoInt, fortyTwoLong, fortyTwoUntyped,  weightFloat, weightUntyped,<br>                    red, rouge}) {<br>            println( &quot;\nRetrieve triples matching &quot; + obj + &quot;.&quot;);<br>            StmtIterator statements = model.listStatements(null, null, obj);<br>            try {<br>                while (statements.hasNext()) {<br>                    println(statements.next());<br>                }<br>            } finally {<br>                statements.close();<br>            }<br>        }</pre>
@@ -360,7 +360,7 @@ This is the <strong>example4()</strong> function of JenaTutorialExamples.java. I
 <pre class="output">Match triples having a specific DATETIME value.<br>[http://example.org/people/ted, http://example.org/people/birthdate, &quot;1984-12-06T09:00:00Z&quot;^^http://www.w3.org/2001/XMLSchema#dateTime]</pre>
 <h2 id="Importing Triples">Importing Triples (example6() and example7()) &nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>
-The Jena API client can load triples in either RDF/XML format or  NTriples format.  </p>
+The Java Jena API client can load triples in either RDF/XML format or  NTriples format.  </p>
 <table width="769" border="2px" cellpadding="4px" style="border-collapse:collapse; border-color:#0000FF;">
   <tr>
     <td width="928"><p><strong>Note:</strong> If you get a &quot;file not found&quot; error while running this example, it means that Java is looking in the wrong directory for the data files to load. Check the file paths in example6() and correct them if necessary.</p>    </td>
@@ -408,7 +408,7 @@ The Jena API client can load triples in either RDF/XML format or  NTriples forma
 <pre class="input">		println(&quot;\nMatch all and print subjects and graph (model_vcards)&quot;);<br>		statements = model_vcards.listStatements();<br>		for (int i = 0; i &lt; 25 &amp;&amp; statements.hasNext(); i++) {<br>			Statement stmt = statements.next();<br>			println(stmt.getSubject() + &quot;  &quot; + stmt.getModel().getGraph());<br>		}<br>		statements.close();</pre>
 <pre class="output">Match all and print subjects and graph (model_vcards)<br>http://somewhere/JohnSmith/  http://example.org#vcards<br>http://somewhere/JohnSmith/  http://example.org#vcards<br>1  http://example.org#vcards<br>1  http://example.org#vcards<br>http://somewhere/RebeccaSmith/  http://example.org#vcards... [and 11 more]</pre>
 <p>In this case, the loop prints out only v-card triples from model_vcards. The two odd-looking triples are from &quot;blank&quot; nodes in the v-cards model. </p>
-<p>In the Java Sesame API it is possible to query multiple graphs and combine the results, but the Jena API (for release 4.0 m2) is tightly focused on one graph at a time. Multi-graph queries are expected in a later release. </p>
+<p>In the Java Sesame API it is possible to query multiple graphs and combine the results, but the Java Jena API (for release 4.0 m2) is tightly focused on one graph at a time. Multi-graph queries are expected in a later release. </p>
 <h2 id="Exporting Triples">Exporting Triples (example8() and example9()) &nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>The next examples show how to write triples out to a file in either NTriples format or RDF/XML format. The output of either format may be optionally redirected to standard output (the Java command window) for inspection.</p>
 <p>Example example8() begins by obtaining a GraphMaker object from example6(). This means the repository contains Kennedy family tree triples in the<strong> </strong>the default graph. We'll create a new model object to give us access to the default graph: </p>
@@ -547,7 +547,7 @@ called the connection method <strong>registerFreeTextPredicate()</strong> to reg
 <p>As you can see, the regex match found &quot;lic&quot; in &quot;Alice in Wonderland,&quot; which was not a registered free-text predicate. It made this match by doing a string comparison against every object value in the triple store. Even though you can streamline the SPARQL query considerably by writing more restrictive patterns, this is still inherently less efficient than using the indexed approach. </p>
 -->
 <h2 id="Ask, Describe, and Construct Queries">Select, Ask, Describe, and Construct Queries (example13())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
-<p>SPARQL provides alternatives to the standard SELECT query. Example example13() exercises these alternatives to show how AllegroGraph Server handles them using the Jena API. </p>
+<p>SPARQL provides alternatives to the standard SELECT query. Example example13() exercises these alternatives to show how AllegroGraph Server handles them using the Java Jena API. </p>
 <ul>
   <li> SELECT: Returns variables bound in a query pattern match. </li>
   <li>ASK: Returns a boolean indicating whether a query matches or not. </li>
@@ -579,7 +579,7 @@ ASK: Is there anyone named Alice? false</pre>
 ...</pre>
 <h2 id="RDFS++ Inference">RDFS++ Inference (example19())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>The great promise of the semantic web is that we can use RDF metadata to combine information from multiple sources into a single, common model.&nbsp; The great problem of the semantic web is that it is so difficult to recognize when two resource descriptions from different sources actually represent the same thing.&nbsp; This problem arises because there is no uniform or universal way to generate URIs identifying resources.&nbsp; As a result, we may create two resources, Bob and Robert, that actually represent the same person. </p>
-<p>This problem has generated much creativity in the field. One way to approach the problem is through inference.&nbsp; There are certain relationships and circumstances where an inference engine can deduce that two resource descriptions actually represent one thing, and then automatically merge the descriptions.&nbsp; AllegroGraph's <a href="/agraph/support/documentation/v3/reasoner-tutorial.html">inference engine</a> can be turned on or off each time you run a query against the triple store.&nbsp;  (Note that inference is turned off by default, which is the opposite of standard Jena behavior.) </p>
+<p>This problem has generated much creativity in the field. One way to approach the problem is through inference.&nbsp; There are certain relationships and circumstances where an inference engine can deduce that two resource descriptions actually represent one thing, and then automatically merge the descriptions.&nbsp; AllegroGraph's <a href="../reasoner-tutorial.html">inference engine</a> can be turned on or off each time you run a query against the triple store.&nbsp;  (Note that inference is turned off by default, which is the opposite of standard Jena behavior.) </p>
 <p>In example example19(), we will create four resources: Bob, with son Bobby, and Robert with daughter Roberta.&nbsp; </p>
 <p><img src="inferenceSetup.jpg" width="448" height="101"></p>
 <p>First we have to set up the data. We begin by generating four new resources. </p>
@@ -605,7 +605,7 @@ Robert and Bob have links to the child resources:
 <pre class="input">		println(&quot;\nChildren of Robert, inference OFF&quot;);<br>		printRows(model.listStatements(robert, fatherOf, (RDFNode) null));</pre> 
 <p>The search returns one triple, which is the link from Robert to his direct child, Roberta. </p>
 <pre class="output">Children of Robert, inference OFF<br>[http://example.org/people/robert, http://example.org/ontology/fatherOf, http://example.org/people/roberta]</pre>
-<p>In the AllegroGraph Java API, we can take one graph and turn inference on and off at will. In the Jena API, however, a model either permits inferencing or it doesn't. Therefore, to compare queries with and without inferencing, we'll need a second model. Fortunately, both &quot;models&quot; can address the same graph. The second model is not a duplicate graph, but a second interface to the same graph. </p>
+<p>In the AllegroGraph Java API, we can take one graph and turn inference on and off at will. In the Java Jena API, however, a model either permits inferencing or it doesn't. Therefore, to compare queries with and without inferencing, we'll need a second model. Fortunately, both &quot;models&quot; can address the same graph. The second model is not a duplicate graph, but a second interface to the same graph. </p>
 <p>First we need a reasoning engine, which is an instance of AGReasoner. Then we combine the reasoner with the old model to create a new, inferencing model (called<strong> InfModel</strong>).</p>
 <pre class="input">		println(&quot;\nChildren of Robert, inference ON&quot;);<br>		AGReasoner reasoner = new AGReasoner();<br>		InfModel infmodel = new AGInfModel(reasoner, model);</pre>
 <p>The query is the same as before, but the results are different: </p>
