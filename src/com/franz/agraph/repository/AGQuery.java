@@ -35,7 +35,7 @@ public abstract class AGQuery extends AbstractQuery {
 	
 	/**
 	 * A query planner for SPARQL that processes queries without doing
-	 * and reordering of clauses or optimization, useful if the user
+	 * any reordering of clauses or optimization, useful if the user
 	 * knows the best order for processing the query.
 	 */
 	public static final String SPARQL_IDENTITY_PLANNER = "identity";
