@@ -456,7 +456,7 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	 * Gets the predicates that have been registered for text indexing.
 	 * 
 	 * @deprecated
-	 * @see #getFreetextIndexConfig(String).getPredicates()
+	 * @see #getFreetextIndexConfig(String)
 	 */
 	public String[] getFreetextPredicates(String index) throws RepositoryException {
 		return getHttpRepoClient().getFreetextPredicates(index);
@@ -481,7 +481,7 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	/**
 	 * Lists the freetext indices that have been defined for this repository.
 	 * 
-	 * @return
+	 * @return a list of freetext index names
 	 * @throws RepositoryException
 	 */
 	public List<String> listFreetextIndices() throws RepositoryException {
@@ -833,7 +833,7 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
     /**
      * Returns a list of all possible index types for this repository.
      * 
-     * @return
+     * @return a list of valid index types
      * @throws OpenRDFException
      */
     public List<String> listValidIndices() throws OpenRDFException {

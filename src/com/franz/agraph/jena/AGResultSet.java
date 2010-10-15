@@ -14,7 +14,6 @@ import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.TupleQueryResult;
 
-import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.sparql.engine.binding.Binding;
@@ -60,7 +59,7 @@ public class AGResultSet implements ResultSet {
 	}
 
 	@Override
-	public QuerySolution next() {
+	public AGQuerySolution next() {
 		BindingSet bs;
 		try {
 			bs = result.next();
@@ -71,13 +70,20 @@ public class AGResultSet implements ResultSet {
 	}
 
 	@Override
+	/**
+	 * This method is not supported.  Use next() instead and iterate
+	 * over the returned QuerySolution.
+	 * 
+	 * @see #next()
+	 * 
+	 */
 	public Binding nextBinding() {
 		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
 	}
 
 	@Override
-	public QuerySolution nextSolution() {
-		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+	public AGQuerySolution nextSolution() {
+		return next();
 	}
 
 	@Override
