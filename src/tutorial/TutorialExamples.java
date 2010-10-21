@@ -86,6 +86,20 @@ public class TutorialExamples {
                 " is up! It contains " + (conn.size()) +
                 " statements."              
                 );
+        List<String> indices = conn.listValidIndices();
+        println("All valid triple indices: " + indices);
+        indices = conn.listIndices();
+        println("Current triple indices: " + indices);
+        println("Removing graph indices...");
+        conn.dropIndex("gospi");
+        conn.dropIndex("gposi");
+        conn.dropIndex("gspoi");
+        indices = conn.listIndices();
+        println("Current triple indices: " + indices);
+        println("Adding one graph index back in...");
+        conn.addIndex("gspoi");
+        indices = conn.listIndices();
+        println("Current triple indices: " + indices);
         if (close) {
             // tidy up
         	conn.close();
