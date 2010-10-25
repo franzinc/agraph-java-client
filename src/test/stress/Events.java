@@ -860,7 +860,7 @@ public class Events {
 	for (int task = 0; task < Defaults.LOAD_WORKERS; task++) {
 	    tasks.add(new Loader(task, Defaults.SIZE/10, 1));
 	}
-	trace("Phase 1: Baseline %d triple commits.", Defaults.EVENT_SIZE);
+	trace("Phase 1 Begin: Baseline %d triple commits.", Defaults.EVENT_SIZE);
 	Monitor.start("phase-1");
 	startTime = start = GregorianCalendar.getInstance();
 	try {
@@ -875,20 +875,20 @@ public class Events {
 	    e.printStackTrace();
 	}
 	end = GregorianCalendar.getInstance();
-	Monitor.stop();
 	triplesEnd = conn.size();
 	triples = triplesEnd - triplesStart;
 	seconds = (end.getTimeInMillis() - start.getTimeInMillis()) / 1000.0;
-	trace("%d total triples processed in %f seconds (%f triples/second, %f commits/second). " +
+	trace("Phase 1 End: %d total triples processed in %f seconds (%f triples/second, %f commits/second). " +
 	      "Store contains %d triples.", triples, seconds, triples/seconds,
 	      triples/Defaults.EVENT_SIZE/seconds, triplesEnd);
 	triplesStart = triplesEnd;
+	Monitor.stop();
 
 	RandomCalendar.dateMaker = BulkRange;
 	for (int task = 0; task < Defaults.LOAD_WORKERS; task++) {
 	    tasks.set(task, new Loader(task, Defaults.SIZE*9/10, Defaults.BULK_EVENTS));
 	}
-	trace("Phase 2: Grow store to about %d triples.", Defaults.SIZE);
+	trace("Phase 2 Begin: Grow store to about %d triples.", Defaults.SIZE);
 	Monitor.start("phase-2");
 	start = GregorianCalendar.getInstance();
 	try {
@@ -903,20 +903,20 @@ public class Events {
 	    e.printStackTrace();
 	}
 	end = GregorianCalendar.getInstance();
-	Monitor.stop();
 	triplesEnd = conn.size();
 	triples = triplesEnd - triplesStart;
 	seconds = (end.getTimeInMillis() - start.getTimeInMillis()) / 1000.0;
-	trace("%d total triples processed in %f seconds (%f triples/second, %f commits/second). " +
+	trace("Phase 2 End: %d total triples processed in %f seconds (%f triples/second, %f commits/second). " +
 	      "Store contains %d triples.", triples, seconds, triples/seconds,
 	      triples/Defaults.BULK_EVENTS/Defaults.EVENT_SIZE/seconds, triplesEnd);
 	triplesStart = triplesEnd;
+	Monitor.stop();
 
 	RandomCalendar.dateMaker = SmallCommitsRange;
 	for (int task = 0; task < Defaults.LOAD_WORKERS; task++) {
 	    tasks.set(task, new Loader(task, Defaults.SIZE/10, 1));
 	}
-	trace("Phase 3: Perform %d triple commits.", Defaults.EVENT_SIZE);
+	trace("Phase 3 Begin: Perform %d triple commits.", Defaults.EVENT_SIZE);
 	Monitor.start("phase-3");
 	start = GregorianCalendar.getInstance();
 	try {
@@ -931,14 +931,14 @@ public class Events {
 	    e.printStackTrace();
 	}
 	end = GregorianCalendar.getInstance();
-	Monitor.stop();
 	triplesEnd = conn.size();
 	triples = triplesEnd - triplesStart;
 	seconds = (end.getTimeInMillis() - start.getTimeInMillis()) / 1000.0;
-	trace("%d total triples processed in %f seconds (%f triples/second, %f commits/second). " +
+	trace("Phase 3 End: %d total triples processed in %f seconds (%f triples/second, %f commits/second). " +
 	      "Store contains %d triples.", triples, seconds, triples/seconds,
 	      triples/Defaults.EVENT_SIZE/seconds, triplesEnd);
 	triplesStart = triplesEnd;
+	Monitor.stop();
 
 	executor.shutdown();
 
@@ -950,7 +950,7 @@ public class Events {
 	for (int task = 0; task < Defaults.QUERY_WORKERS; task++) {
 	    queriers.add(new Querier(task, Defaults.QUERY_TIME*60));
 	}
-	trace("Phase 4: Perform customer/date range queries with %d processes for %d minutes.",
+	trace("Phase 4 Begin: Perform customer/date range queries with %d processes for %d minutes.",
 	      Defaults.QUERY_WORKERS, Defaults.QUERY_TIME);
 	Monitor.start("phase-4");
 	int queries = 0;
@@ -970,19 +970,20 @@ public class Events {
 	    e.printStackTrace();
 	}
 	end = GregorianCalendar.getInstance();
-	Monitor.stop();
 	seconds = (end.getTimeInMillis() - start.getTimeInMillis()) / 1000.0;
-	trace("%d total triples returned over %d queries in " +
+	trace("Phase 4 End: %d total triples returned over %d queries in " +
 	      "%f seconds (%f triples/second, %f queries/second, " +
 	      "%d triples/query).", triples, queries, seconds, triples/seconds,
 	      queries/seconds, triples/queries);
+	Monitor.stop();
+
 	executor.shutdown();
         
 	executor = Executors.newFixedThreadPool(2);
 	tasks = new ArrayList<Callable<Integer>>(2);
 	tasks.add(new Deleter(0));
 	tasks.add(new Deleter(1));
-	trace("Phase 5: Shrink store by 1 month.");
+	trace("Phase 5 Begin: Shrink store by 1 month.");
 	Monitor.start("phase-5");
 	start = GregorianCalendar.getInstance();
 	try {
@@ -997,17 +998,18 @@ public class Events {
 	    e.printStackTrace();
 	}
 	end = GregorianCalendar.getInstance();
-	Monitor.stop();
 	executor.shutdown();
 	triplesEnd = conn.size();
 	triples = triplesEnd - triplesStart;
 	seconds = (end.getTimeInMillis() - start.getTimeInMillis()) / 1000.0;
-	trace("%d total triples processed in %f seconds (%f triples/second). " +
+	trace("Phase 5 End: %d total triples processed in %f seconds (%f triples/second). " +
 	      "Store contains %d triples.", triples, seconds, triples/seconds, triplesEnd);
 
 	double totalSeconds = (GregorianCalendar.getInstance().getTimeInMillis()
 			       - startTime.getTimeInMillis()) / 1000.0;
 	triples = triplesEnd - triplesAtStart;
+
+	Monitor.stop();
 
 	trace("Test completed in %f total seconds - store contains %d triples (%d triples added/removed).",
 	      totalSeconds, triplesEnd, triples);
