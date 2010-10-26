@@ -366,6 +366,18 @@
         </exec>
     </target>
     
+    <target name="lubm-prolog"
+            depends="compile"
+            description="Run test.stress.Events">
+        <run-java tasknamex="lubm-prolog" classname="test.lubm.AGLubmProlog" arg=""/>
+    </target>
+    
+    <target name="lubm-sparql"
+            depends="compile"
+            description="Run test.stress.Events">
+        <run-java tasknamex="lubm-sparql" classname="test.lubm.AGLubmSparql" arg=""/>
+    </target>
+    
     <target name="tutorial"
             depends="compile"
             description="Run tutorial example. Use -Dexample=5 for a specific example, default is all">
