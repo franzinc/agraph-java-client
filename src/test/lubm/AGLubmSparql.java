@@ -6,7 +6,9 @@
 ** http://www.eclipse.org/legal/epl-v10.html
 ******************************************************************************/
 
-package test;
+package test.lubm;
+
+import java.util.Calendar;
 
 import org.openrdf.OpenRDFException;
 
@@ -19,46 +21,82 @@ import com.franz.agraph.repository.AGServer;
 import com.franz.agraph.repository.AGTupleQuery;
 
 /**
- * Demonstrates the LUBM benchmark SPARQL queries on an AGRepository
- * previously loaded with LUBM data.
+ * Demonstrates the LUBM benchmark SPARQL queries.
  * 
- * Note that RDFS++ reasoning must be enabled to obtain the correct
- * answers.
+ * The program looks for the following properties (default values shown):
+ * 
+ * -Dcom.franz.agraph.serverURL=http://localhost:10035
+ * -Dcom.franz.agraph.catalogID=/
+ * -Dcom.franz.agraph.repositoryID=LUBM-50
+ * -Dcom.franz.agraph.username=test
+ * -Dcom.franz.agraph.password=xyzzy
+ * -Dcom.franz.agraph.lubm.ubnamespace="http://www.lehigh.edu/%7Ezhp2/2004/0401/univ-bench.owl#"
+ * -Dcom.franz.agraph.lubm.iterations=3
+ * 
+ * This would run 3 iterations of all 14 LUBM queries against a
+ * repository 'LUBM-50' in the server's root catalog.
+ *  
  */
 public class AGLubmSparql {
 
-	public static String SERVER_URL = System.getProperty("com.franz.agraph.test.serverURL","http://localhost:8080");
-	public static String CATALOG_ID = System.getProperty("com.franz.agraph.test.catalogID","/");
-	public static String REPOSITORY_ID = System.getProperty("com.franz.agraph.test.repositoryID","LUBM-50");
-	public static String USERNAME = System.getProperty("com.franz.agraph.test.username","test");
-	public static String PASSWORD = System.getProperty("com.franz.agraph.test.password","xyzzy");
-	
-	public static String ubnamespace = "http://www.lehigh.edu/%7Ezhp2/2004/0401/univ-bench.owl#";
+	// Edit the following defaults for your local configuration
+	public static String SERVER_URL = System.getProperty(
+			"com.franz.agraph.serverURL", "http://localhost:10035");
+	public static String CATALOG_ID = System.getProperty(
+			"com.franz.agraph.catalogID", "/"); // this is the root catalog
+	public static String REPOSITORY_ID = System.getProperty(
+			"com.franz.agraph.repositoryID", "LUBM-50");
+	public static String USERNAME = System.getProperty(
+			"com.franz.agraph.username", "test");
+	public static String PASSWORD = System.getProperty(
+			"com.franz.agraph.password", "xyzzy");
+	public static String UBNAMESPACE = System.getProperty(
+			"com.franz.agraph.lubm.ubnamespace",
+			"http://www.lehigh.edu/%7Ezhp2/2004/0401/univ-bench.owl#");
+	public static int ITERATIONS = Integer.parseInt(System.getProperty(
+			"com.franz.agraph.lubm.iterations", "3"));
 
 	public static void main(String[] args) throws OpenRDFException {
 
 		AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
-		AGCatalog catalog = server.getRootCatalog();
+		if (!server.listCatalogs().contains(CATALOG_ID)) {
+			System.out.println("No catalog '" + CATALOG_ID + "' found.");
+			System.exit(1);
+		}
+		AGCatalog catalog = server.getCatalog(CATALOG_ID);
+		if (!catalog.listRepositories().contains(REPOSITORY_ID)) {
+			System.out.println("No repository '" + REPOSITORY_ID
+					+ "' found in catalog " + CATALOG_ID );
+			System.exit(1);
+		}
 		AGRepository repo = catalog.createRepository(REPOSITORY_ID);
 		repo.initialize();
 		AGRepositoryConnection conn = repo.getConnection();
-		System.out.println(repo.getRepositoryURL() + ": " + conn.size() + " triples.");
-		
+		System.out.println("Connected to " + repo.getRepositoryURL() + ": "
+				+ conn.size() + " triples.");
+
+		// Register namespaces used in queries
+		conn.setNamespace("ub", UBNAMESPACE);
+		conn.setNamespace("u0d0", "http://www.Department0.University0.edu/");
+
 		// Run the LUBM queries with RDFS++ reasoning enabled
-		doQuery1(conn);
-		doQuery2(conn);
-		doQuery3(conn);
-		doQuery4(conn);
-		doQuery5(conn);
-		doQuery6(conn); 
-		doQuery7(conn); 
-		doQuery8(conn);
-		doQuery9(conn);
-		doQuery10(conn);
-		doQuery11(conn);
-		doQuery12(conn);
-		doQuery13(conn);
-		doQuery14(conn);
+		for (int iter = 1; iter <= ITERATIONS; iter++) {
+			System.out.println("\nIteration " + iter + ":");
+			doQuery1(conn);
+			doQuery2(conn);
+			doQuery3(conn);
+			doQuery4(conn);
+			doQuery5(conn);
+			doQuery6(conn);
+			doQuery7(conn);
+			doQuery8(conn);
+			doQuery9(conn);
+			doQuery10(conn);
+			doQuery11(conn);
+			doQuery12(conn);
+			doQuery13(conn);
+			doQuery14(conn);
+		}
 
 	    conn.close();
 	    repo.shutDown();
@@ -66,7 +104,7 @@ public class AGLubmSparql {
 	
 	static final String LUBMprefix = 
 		"PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
-		"PREFIX ub: <" + ubnamespace + "> " +
+		"PREFIX ub: <" + UBNAMESPACE + "> " +
 		"PREFIX u0d0: <http://www.Department0.University0.edu/> ";
 	
 	public static void doQuery1(AGRepositoryConnection conn) throws OpenRDFException {
@@ -226,7 +264,7 @@ public class AGLubmSparql {
 	}
 	
 	public static void doQuery(AGRepositoryConnection conn, int qi, String query) throws OpenRDFException {
-		System.out.format("Query %2d:", qi);
+		System.out.format("[%tT]Query %2d:", Calendar.getInstance(), qi);
 		AGTupleQuery tupleQuery = conn.prepareTupleQuery(
 				AGQueryLanguage.SPARQL, query);
 		tupleQuery.setIncludeInferred(true);
@@ -234,6 +272,6 @@ public class AGLubmSparql {
 		long begin = System.nanoTime();
 		long n = tupleQuery.count();
 		long delta = (System.nanoTime() - begin);
-		System.out.format("%7d answers in %6d milliseconds.%n", n, (delta / 1000000));
+		System.out.format("%9d answers in %6d milliseconds.%n", n, (delta / 1000000));
 	}
 }
