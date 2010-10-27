@@ -19,7 +19,7 @@ import com.franz.agraph.repository.AGServer;
 
 public class AGUpload {
 
-	public static final String SERVER_URL = System.getProperty("com.franz.agraph.test.serverURL","http://localhost:8080");
+	public static final String SERVER_URL = System.getProperty("com.franz.agraph.test.serverURL","http://localhost:10035");
 	public static final String USERNAME = System.getProperty("com.franz.agraph.test.username","test");
 	public static final String PASSWORD = System.getProperty("com.franz.agraph.test.password","xyzzy");
 
@@ -39,7 +39,9 @@ public class AGUpload {
 			repo.initialize();
 			AGRepositoryConnection conn = repo.getConnection();
 			try {
+				System.out.println("Loading: " + SOURCE_FILE);
 				long start = System.nanoTime();
+				conn.setBulkMode(true);
 				conn.add(new FileInputStream(SOURCE_FILE), null, RDFFormat.NTRIPLES);
 				System.out.println("Loaded: " + conn.size() + " triples in " + (System.nanoTime()-start)/1.0e9 + " seconds.");
 			} finally {

@@ -885,4 +885,28 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		getHttpRepoClient().sendRDFTransaction(rdftransaction);
 	}
 
+    /**
+     * Sets the connection's bulkMode (defaults to false).
+     * 
+     * When in bulkMode, data can be added/loaded more quickly, but 
+     * there is no guarantee of durability in the event of a crash.
+     * 
+     * @param bulkMode a boolean indicating the bulkMode. 
+     * @throws RepositoryException
+     * @see #isBulkMode()
+     */
+	public void setBulkMode(boolean bulkMode) throws RepositoryException {
+		getHttpRepoClient().setBulkMode(bulkMode);
+	}
+
+	/**
+	 * Returns the connection's bulkMode setting.
+	 *  
+	 * @return a boolean indicating the bulkMode setting.
+	 * @throws RepositoryException
+	 * @see #setBulkMode(boolean)
+	 */
+	public boolean isBulkMode() throws RepositoryException {
+		return getHttpRepoClient().isBulkMode();
+	}
 }
