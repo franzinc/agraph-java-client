@@ -69,6 +69,9 @@ public class TutorialExamples {
         // Tests getting the repository up. 
         println("\nStarting example1().");
         AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
+        println("Server version: " + server.getVersion());
+        println("Server build date: " + server.getBuildDate());
+        println("Server revision: " + server.getRevision());
         println("Available catalogs: " + server.listCatalogs());
         AGCatalog catalog = server.getRootCatalog();          // open rootCatalog
         println("Available repositories in catalog " + 

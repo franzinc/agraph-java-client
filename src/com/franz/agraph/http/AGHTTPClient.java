@@ -123,7 +123,7 @@ implements Closeable {
 					throw new UnsupportedRDFormatException(errInfo
 							.getErrorMessage());
 				} else {
-					throw new RepositoryException("POST failed " + url + ":"
+					throw new RepositoryException("POST failed " + url + ": "
 							+ errInfo + " (" + httpCode + ")");
 				}
 			}
@@ -171,7 +171,7 @@ implements Closeable {
 				throw new UnauthorizedException();
 			} else if (!HttpClientUtil.is2xx(httpCode)) {
 				AGErrorInfo errInfo = getErrorInfo(delete);
-				throw new RepositoryException("DELETE failed " + url + ":"
+				throw new RepositoryException("DELETE failed " + url + ": "
 						+ errInfo + " (" + httpCode + ")");
 			}
 		} finally {
@@ -335,6 +335,20 @@ implements Closeable {
 		return handler.getString().split("\n");
 	}
 
+	public String getString(String url) throws AGHttpException {
+		Header[] headers = new Header[0];
+		NameValuePair[] data = {};
+		AGResponseHandler handler = new AGResponseHandler("");
+		try {
+			get(url, headers, data, handler);
+		} catch (RepositoryException e) {
+			throw new AGHttpException(e.getMessage());
+		} catch (IOException e) {
+			throw new AGHttpException(e.getMessage());
+		}
+		return handler.getString();
+	}
+	
 	public String openSession(String spec, boolean autocommit) throws RepositoryException {
 		String url = AGProtocol.getSessionURL(serverURL);
 		Header[] headers = new Header[0];

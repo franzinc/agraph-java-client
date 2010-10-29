@@ -22,6 +22,11 @@ public class AGHttpException extends Exception {
 		this.errorInfo = errorInfo;
 	}
 	
+	public AGHttpException(String message) {
+		super(message);
+		errorInfo = new AGErrorInfo(message);
+	}
+
 	public AGErrorInfo getErrorInfo() {
 		return errorInfo;
 	}

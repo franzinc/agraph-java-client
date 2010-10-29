@@ -42,7 +42,6 @@ import org.openrdf.model.vocabulary.OWL;
 import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.model.vocabulary.RDFS;
 import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.GraphQuery;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.TupleQuery;
 import org.openrdf.query.impl.DatasetImpl;
@@ -70,6 +69,9 @@ public class TutorialTests extends AGAbstractTest {
     
     @Test
     public void example1() throws Exception {
+        assertTrue(server.getVersion().length() > 0);
+        assertTrue(server.getBuildDate().length() > 0);
+        assertTrue(server.getRevision().length() > 0);
         assertTrue(server.listCatalogs().size() > 0);
         assertEquals(CATALOG_ID, cat.getCatalogName());
         assertEquals(repoId, repo.getRepositoryID());
