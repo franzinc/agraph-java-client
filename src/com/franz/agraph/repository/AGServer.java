@@ -17,6 +17,7 @@ import org.openrdf.query.BindingSet;
 import org.openrdf.query.TupleQueryResult;
 
 import com.franz.agraph.http.AGHTTPClient;
+import com.franz.agraph.http.AGHttpException;
 import com.franz.agraph.http.AGProtocol;
 import com.franz.util.Closeable;
 import com.franz.util.Util;
@@ -56,6 +57,27 @@ public class AGServer implements Closeable {
 	
 	AGHTTPClient getHTTPClient() {
 		return httpClient;
+	}
+	
+	/**
+	 * Returns the server version.
+	 */
+	public String getVersion() throws AGHttpException {
+		return getHTTPClient().getString(serverURL + "/version");
+	}
+	
+	/**
+	 * Returns the server's build date.
+	 */
+	public String getBuildDate() throws AGHttpException {
+		return getHTTPClient().getString(serverURL + "/version/date");
+	}
+	
+	/**
+	 * Returns the server's revision info.
+	 */
+	public String getRevision() throws AGHttpException {
+		return getHTTPClient().getString(serverURL + "/version/revision");
 	}
 	
 	/**
