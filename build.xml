@@ -29,6 +29,7 @@
     <property name="lib" location="lib"/>
     <property name="build" location="classes"/>
     <property name="jarfile" location="agraph.jar"/>
+    <property name="srcjarfile" location="agraph-src.jar"/>
     
     <path id="classpath">
         <path location="${lib}/json.jar"/>
@@ -59,6 +60,7 @@
             description="Remove generated files and directories.">
         <delete dir="${build}"/>
         <delete file="${jarfile}"/>
+        <delete file="${srcjarfile}"/>
         <delete dir="doc"/>
         <delete file="agraph-java-client-test.jar"/>
         <ant dir="clojure" target="clean" inheritall="false"/>
@@ -93,6 +95,31 @@
                 <attribute name="Implementation-Vendor" value="Franz, Inc."/>
             	<attribute name="Implementation-URL" value="http://www.franz.com/agraph/"/>
             	<attribute name="Built-At" value="${jar.datestamp}"/>
+            	<attribute name="Class-Path" value="${mf.path}"/>
+            </manifest>
+        </jar>
+    </target>
+    
+    <target name="srcjar"
+            description="Build agraph-src.jar file."
+            depends="compile">
+        <manifestclasspath property="mf.path" jarfile="${srcjarfile}">
+            <classpath refid="classpath"/>
+        </manifestclasspath>
+        <tstamp prefix="srcjar">
+            <format property="datestamp" pattern="yyyy-MM-dd H:mm"/>
+        </tstamp>
+        <jar jarfile="${srcjarfile}">
+            <fileset dir="${src}" includes="**/*.java">
+                <exclude name="tutorial/**"/>
+                <exclude name="test/**"/>
+            </fileset>
+            <manifest>
+                <attribute name="Implementation-Title" value="AllegroGraph Java Client Sources"/>
+                <attribute name="Implementation-Version" value="${env.version}"/>
+                <attribute name="Implementation-Vendor" value="Franz, Inc."/>
+            	<attribute name="Implementation-URL" value="http://www.franz.com/agraph/"/>
+            	<attribute name="Built-At" value="${srcjar.datestamp}"/>
             	<attribute name="Class-Path" value="${mf.path}"/>
             </manifest>
         </jar>
