@@ -3,6 +3,7 @@ bin
 *.class
 classes
 agraph.jar
+agraph-src.jar
 agraph-java-client-test.jar
 agraph*.tar.gz
 DIST
