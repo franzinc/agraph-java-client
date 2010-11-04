@@ -23,6 +23,13 @@ else
 	ant -Denv.version=$(VERSION) javadoc
 endif
 
+srcjar: FORCE
+ifndef VERSION
+	ant srcjar
+else
+	ant -Denv.version=$(VERSION) srcjar
+endif
+
 tags: FORCE
 	rm -f TAGS
 	find . -name '*.java' -print0 | xargs -0 etags -a
@@ -46,7 +53,7 @@ TARNAME = agraph-$(VERSION)-client-java.tar.gz
 TAROPTS = 
 endif
 
-dist: clean build javadoc
+dist: clean build javadoc srcjar
 ifndef VERSION
 	@echo VERSION is not defined.
 	@exit 1
@@ -55,7 +62,7 @@ endif
 	mkdir -p $(DIST)
 	cp LICENSE $(DIST)
 	sed 's|SERVER_VERSION|$(VERSION)|g' templates/.project > $(DIST)/.project
-	sed 's|agraph.jar|agraph-$(VERSION).jar|g' templates/.classpath > $(DIST)/.classpath
+	sed 's|agraph-VERSION|agraph-$(VERSION)|g' templates/.classpath > $(DIST)/.classpath
 	mkdir -p $(DIST)/src/tutorial
 	for f in $(TUTORIAL_FILES); do \
 	    echo copying src/tutorial/$$f...; \
@@ -63,6 +70,7 @@ endif
 	done
 	mkdir -p $(DIST)/lib
 	cp agraph.jar $(DIST)/lib/agraph-$(VERSION).jar
+	cp agraph-src.jar $(DIST)/lib/agraph-$(VERSION)-src.jar
 	cp lib/json.jar $(DIST)/lib/json.jar
 	mkdir -p $(DIST)/lib/sesame-2.3.1
 	cp lib/sesame-2.3.1/*.jar $(DIST)/lib/sesame-2.3.1
