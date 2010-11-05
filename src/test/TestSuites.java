@@ -56,7 +56,8 @@ public class TestSuites {
         BulkModeTests.class,
         IndexManagementTests.class,
         EncodableNamespaceTests.class,
-        FederationTests.class
+        FederationTests.class,
+        SessionLifetimeTests.class
     })
     public static class Prepush {}
     
