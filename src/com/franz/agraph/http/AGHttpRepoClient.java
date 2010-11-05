@@ -70,6 +70,31 @@ public class AGHttpRepoClient implements Closeable {
 
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
 
+	private static int defaultSessionLifetimeInSeconds = 3600;
+	
+	/**
+	 * Gets the default lifetime of sessions spawned by any instance 
+	 * unless otherwise specified by {@link #setSessionLifetime(int)}
+	 */
+	public static long getDefaultSessionLifetime() {
+		return defaultSessionLifetimeInSeconds;
+	}
+	
+	/**
+	 * Sets the default lifetime of sessions spawned by any instance
+	 * when none is specified by {@link #setSessionLifetime(int)}
+	 * 
+	 * Defaults to 3600 seconds (1 hour).
+	 * 
+	 * @param lifetimeInSeconds
+	 */
+	public static void setDefaultSessionLifetime(int lifetimeInSeconds)
+	{
+		defaultSessionLifetimeInSeconds = lifetimeInSeconds;
+	}
+	
+	private int lifetimeInSeconds = defaultSessionLifetimeInSeconds;
+
 	// delay using a dedicated session until necessary
 	private boolean usingDedicatedSession = false;
 	private boolean autoCommit = true;
@@ -77,7 +102,6 @@ public class AGHttpRepoClient implements Closeable {
 	private String sessionRoot, repoRoot;
 
 	// TODO: choose proper defaults
-	private long lifetimeInSeconds = 3600;
 	private TupleQueryResultFormat preferredTQRFormat = TupleQueryResultFormat.SPARQL;
 	private BooleanQueryResultFormat preferredBQRFormat = BooleanQueryResultFormat.TEXT;
 	private RDFFormat preferredRDFFormat = RDFFormat.TRIX;
@@ -101,11 +125,21 @@ public class AGHttpRepoClient implements Closeable {
 		else throw new RepositoryException("This session-only connection has been closed. Re-open a new one to start using it again.");
 	}
 
+	/**
+	 * Sets the 'lifetime' for a dedicated session spawned by this instance.
+	 * 
+	 * @param lifetimeInSeconds an integer number of seconds 
+	 */
 	public void setSessionLifetime(int lifetimeInSeconds) {
 		this.lifetimeInSeconds = lifetimeInSeconds;
 	}
 	
-	public long getSessionLifetime() {
+	/**
+	 * Returns the 'lifetime' for a dedicated session spawned by this instance.
+	 * 
+	 * @return lifetime in seconds
+	 */
+	public int getSessionLifetime() {
 		return lifetimeInSeconds;
 	}
 	
@@ -148,7 +182,7 @@ public class AGHttpRepoClient implements Closeable {
 			String url = getSessionURL(getRoot());
 			Header[] headers = new Header[0];
 			NameValuePair[] data = {
-					new NameValuePair(AGProtocol.LIFETIME_PARAM_NAME, Long
+					new NameValuePair(AGProtocol.LIFETIME_PARAM_NAME, Integer
 							.toString(lifetimeInSeconds)),
 					new NameValuePair(AGProtocol.AUTOCOMMIT_PARAM_NAME, Boolean
 							.toString(autoCommit)) };

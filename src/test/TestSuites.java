@@ -54,7 +54,8 @@ public class TestSuites {
         RDFTransactionTest.class,
         JenaTests.class,
         BulkModeTests.class,
-        IndexManagementTests.class
+        IndexManagementTests.class,
+        SessionLifetimeTests.class
     })
     public static class Prepush {}
     
