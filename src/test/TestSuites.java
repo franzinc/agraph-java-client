@@ -53,7 +53,8 @@ public class TestSuites {
         AGRepositoryConnectionTests.class,
         RDFTransactionTest.class,
         JenaTests.class,
-        IndexManagementTests.class
+        IndexManagementTests.class,
+        SessionLifetimeTests.class
     })
     public static class Prepush {}
     

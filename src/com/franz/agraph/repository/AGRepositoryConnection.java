@@ -885,4 +885,30 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		getHttpRepoClient().sendRDFTransaction(rdftransaction);
 	}
 
+	/**
+	 * Sets the 'lifetime' for a dedicated session spawned by this connection.
+	 * 
+	 * Lifetime is the maximum allowable idle time, in seconds.  A session 
+	 * expires when its lifetime is exceeded, freeing up server resources.
+	 * Operations such as {@link #setAutoCommit(false)}, {@link #addRules(String)}, 
+	 * and {@link #registerSNAGenerator(String, List, List, List, String)}
+	 * automatically spawn a dedicated session in order to perform their 
+	 * duties.
+	 * 
+	 * @param lifetimeInSeconds the session lifetime, in seconds.
+	 */
+	public void setSessionLifetime(int lifetimeInSeconds) {
+		getHttpRepoClient().setSessionLifetime(lifetimeInSeconds);
+	}
+	
+	/**
+	 * Returns the lifetime for a dedicated session spawned by this connection.
+	 * 
+	 * @see #setSessionLifetime(int)
+	 * @return the session lifetime, in seconds.
+	 */
+	public int getSessionLifetime() {
+		return getHttpRepoClient().getSessionLifetime();
+	}
+	
 }

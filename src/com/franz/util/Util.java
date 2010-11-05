@@ -9,17 +9,21 @@
 package com.franz.util;
 
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Util {
 
-    public static <CloseableType extends Closeable>
+	final static Logger logger = LoggerFactory.getLogger(Util.class);
+
+	public static <CloseableType extends Closeable>
     CloseableType close(CloseableType o) {
         if (o != null) {
             try {
                 o.close();
             } catch (Exception e) {
-                System.err.println("ignoring error with close:" + e);
-                e.printStackTrace();
+				if (logger.isWarnEnabled())
+					logger.warn("ignoring error with close:" + e);
             }
         }
         return null;
@@ -31,8 +35,8 @@ public class Util {
             try {
                 o.close();
             } catch (Exception e) {
-                System.err.println("ignoring error with close:" + e);
-                e.printStackTrace();
+				if (logger.isWarnEnabled())
+					logger.warn("ignoring error with close:" + e);
             }
         }
         return null;
@@ -43,8 +47,8 @@ public class Util {
             try {
                 o.shutdown();
             } catch (Exception e) {
-                System.err.println("ignoring error with close:" + e);
-                e.printStackTrace();
+				if (logger.isWarnEnabled())
+					logger.warn("ignoring error with close:" + e);
             }
         }
         return null;
