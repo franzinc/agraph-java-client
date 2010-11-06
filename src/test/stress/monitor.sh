@@ -13,12 +13,14 @@ elif test "$1" = end; then
     [ -n "${AGRAPH_LISP_CLIENT-}" ] &&
     [ -n "${AGRAPH_BENCH_DIR-}" ] &&
     [ -n "${AGRAPH_PORT-}" ] &&
+    echo "[" `date --rfc-3339=ns` "] Phase 0 Begin: (sync)" &&
     /fi/cl/8.2/agraph/bin/mlisp-64 \
 	-L $AGRAPH_LISP_CLIENT/agraph4.fasl \
 	-L $AGRAPH_BENCH_DIR/ensure-db-idle.cl \
 	-e "(db.agraph.storage::synchronize \
                \"${dbname}\" \"${catalog}\" $AGRAPH_PORT)" \
 	-kill
+    echo "[" `date --rfc-3339=ns` "] Phase 0 End: (sync)."
 else
     echo $0: unknown first argument: $1
 fi

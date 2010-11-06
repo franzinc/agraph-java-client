@@ -1112,7 +1112,7 @@ public class Events {
         static public void stop() {
             if (Defaults.MONITOR) {
                 try {
-                    String[] commands = new String[]{"monitor.sh", "end"};
+                    String[] commands = new String[]{"src/test/stress/monitor.sh", "end"};
                     Process p = Runtime.getRuntime().exec(commands);
                     printOutput(p);
                     trace("./monitor.sh was stopped.");
@@ -1171,18 +1171,20 @@ public class Events {
             
             /////////////////////////////////////////////////////////////////////// PHASE 1
             if (Defaults.PHASE <= 1) {
-                trace("Phase 1: Baseline %d triple commits.", Defaults.EVENT_SIZE);
+                trace("Phase 1 Begin: Baseline %d triple commits.", Defaults.EVENT_SIZE);
                 Monitor.start("phase-1");
                 start = startTime;
                 invokeAndGetAll(executor, tasks);
                 end = System.currentTimeMillis();
-                Monitor.stop();
                 triplesEnd = conn.size();
                 triples = triplesEnd - triplesStart;
                 seconds = (end - start) / 1000.0;
-                trace("%d total triples added in %.1f seconds (%.2f triples/second, %.2f commits/second). " +
-                        "Store contains %d triples.", triples, logtime(seconds), logtime(triples/seconds),
-                        logtime(triples/Defaults.EVENT_SIZE/seconds), triplesEnd);
+                trace("Phase 1 End: %d total triples added in %.1f seconds " +
+		      "(%.2f triples/second, %.2f commits/second). " +
+		      "Store contains %d triples.", triples, logtime(seconds),
+		      logtime(triples/seconds),
+		      logtime(triples/Defaults.EVENT_SIZE/seconds), triplesEnd);
+                Monitor.stop(); // sync phase after phase-1 complete.
             }
             
             /////////////////////////////////////////////////////////////////////// PHASE 2
@@ -1191,18 +1193,19 @@ public class Events {
                 for (int task = 0; task < (Defaults.LOAD_WORKERS); task++) {
                     tasks.set(task, new Loader(task, Defaults.SIZE*9/10, Defaults.BULK_EVENTS, BulkRange));
                 }
-                trace("Phase 2: Grow store by about %d triples.", (Defaults.SIZE*9/10));
+                trace("Phase 2 Begin: Grow store by about %d triples.", (Defaults.SIZE*9/10));
                 Monitor.start("phase-2");
                 start = System.currentTimeMillis();
                 invokeAndGetAll(executor, tasks);
                 end = System.currentTimeMillis();
-                Monitor.stop();
                 triplesEnd = conn.size();
                 triples = triplesEnd - triplesStart;
                 seconds = (end - start) / 1000.0;
-                trace("%d total triples bulk-loaded in %.1f seconds (%.2f triples/second, %.2f commits/second). " +
-                        "Store contains %d triples.", triples, seconds, triples/seconds,
-                        triples/Defaults.BULK_EVENTS/Defaults.EVENT_SIZE/seconds, triplesEnd);
+                trace("Phase 2 End: %d total triples bulk-loaded in %.1f seconds " +
+		      "(%.2f triples/second, %.2f commits/second). " +
+		      "Store contains %d triples.", triples, seconds, triples/seconds,
+		      triples/Defaults.BULK_EVENTS/Defaults.EVENT_SIZE/seconds, triplesEnd);
+                Monitor.stop();
             }
             
             /////////////////////////////////////////////////////////////////////// PHASE 3
@@ -1211,18 +1214,19 @@ public class Events {
                 for (int task = 0; task < Defaults.LOAD_WORKERS; task++) {
                     tasks.set(task, new Loader(task, Defaults.SIZE/10, 1, SmallCommitsRange));
                 }
-                trace("Phase 3: Perform %d triple commits.", Defaults.EVENT_SIZE);
+                trace("Phase 3 Begin: Perform %d triple commits.", Defaults.EVENT_SIZE);
                 Monitor.start("phase-3");
                 start = System.currentTimeMillis();
                 invokeAndGetAll(executor, tasks);
                 end = System.currentTimeMillis();
-                Monitor.stop();
                 triplesEnd = conn.size();
                 triples = triplesEnd - triplesStart;
                 seconds = (end - start) / 1000.0;
-                trace("%d total triples added in %.1f seconds (%.2f triples/second, %.2f commits/second). " +
-                        "Store contains %d triples.", triples, seconds, triples/seconds,
-                        triples/Defaults.EVENT_SIZE/seconds, triplesEnd);
+                trace("Phase 3 End: %d total triples added in %.1f seconds " +
+		      "(%.2f triples/second, %.2f commits/second). " +
+		      "Store contains %d triples.", triples, seconds, triples/seconds,
+		      triples/Defaults.EVENT_SIZE/seconds, triplesEnd);
+		Monitor.stop();
                 executor.shutdown();
             }
         }
@@ -1236,7 +1240,7 @@ public class Events {
                 for (int task = 0; task < Defaults.QUERY_WORKERS; task++) {
                     queriers.add(new Querier(task, Defaults.QUERY_TIME*60, FullDateRange));
                 }
-                trace("Phase 4: Perform customer/date range queries with %d processes for %d minutes.",
+                trace("Phase 4 Begin: Perform customer/date range queries with %d processes for %d minutes.",
                         Defaults.QUERY_WORKERS, Defaults.QUERY_TIME);
                 Monitor.start("phase-4");
                 int queries = 0;
@@ -1255,12 +1259,12 @@ public class Events {
                     e.printStackTrace();
                 }
                 Calendar end = GregorianCalendar.getInstance();
-                Monitor.stop();
                 double seconds = (end.getTimeInMillis() - start.getTimeInMillis()) / 1000.0;
-                trace("%d total triples returned over %d queries in " +
-                        "%.1f seconds (%.2f triples/second, %.2f queries/second, " +
-                        "%d triples/query).", triples, queries, logtime(seconds), logtime(triples/seconds),
-                        logtime(queries/seconds), triples/queries);
+                trace("Phase 4 End: %d total triples returned over %d queries in " +
+		      "%.1f seconds (%.2f triples/second, %.2f queries/second, " +
+		      "%d triples/query).", triples, queries, logtime(seconds),
+		      logtime(triples/seconds), logtime(queries/seconds), triples/queries);
+                Monitor.stop();
                 executor.shutdown();
             }
         }
@@ -1274,18 +1278,19 @@ public class Events {
             if (Defaults.DELETE_WORKERS > 1) {
                 tasks.add(new Deleter(DeleteRangeTwo));
             }
-            trace("Phase 5: Shrink store by 1 month.");
+            trace("Phase 5 Begin: Shrink store by 1 month.");
             Monitor.start("phase-5");
             long start = System.currentTimeMillis();
             invokeAndGetAll(executor, tasks);
             long end = System.currentTimeMillis();
-            Monitor.stop();
             executor.shutdown();
             long triplesEnd = conn.size();
             long triples = triplesEnd - triplesStart;
             double seconds = (end - start) / 1000.0;
-            trace("%d total triples deleted in %.1f seconds (%.2f triples/second). " +
-                    "Store contains %d triples.", triples, logtime(seconds), logtime(triples/seconds), triplesEnd);
+            trace("Phase 5 End: %d total triples deleted in %.1f seconds " +
+		  "(%.2f triples/second). Store contains %d triples.", triples,
+		  logtime(seconds), logtime(triples/seconds), triplesEnd);
+            Monitor.stop();
         }
         
         if (Defaults.PHASE <= 6 && Defaults.MIXED_RUNS != 0) {
@@ -1307,7 +1312,7 @@ public class Events {
                 deleteRangeOne = deleteRangeTwo.next(Calendar.DAY_OF_YEAR, 15);
                 deleteRangeTwo = deleteRangeOne.next(Calendar.DAY_OF_YEAR, 15);
                 
-                trace("Phase 6: Mixed workload - adds, queries, deletes. %s", run);
+                trace("Phase 6 Begin: Mixed workload - adds, queries, deletes. %s", run);
                 List<Callable<Object>> tasks = new ArrayList<Callable<Object>>(Defaults.LOAD_WORKERS + Defaults.QUERY_WORKERS + 2);
                 
                 for (int task = 0; task < Defaults.LOAD_WORKERS; task++) {
@@ -1347,10 +1352,11 @@ public class Events {
                 }
                 Calendar end = GregorianCalendar.getInstance();
                 double seconds = (end.getTimeInMillis() - start.getTimeInMillis()) / 1000.0;
-                trace("%d total triples returned over %d queries in " +
-                        "%.1f seconds (%.2f triples/second, %.2f queries/second, " +
-                        "%d triples/query, %d triples added, %d deletes).", triples, queries, logtime(seconds), logtime(triples/seconds),
-                        logtime(queries/seconds), (queries==0 ? 0 : triples/queries), added, deleted);
+                trace("Phase 6 End: %d total triples returned over %d queries in " +
+		      "%.1f seconds (%.2f triples/second, %.2f queries/second, " +
+		      "%d triples/query, %d triples added, %d deletes).", triples, queries,
+		      logtime(seconds), logtime(triples/seconds), logtime(queries/seconds),
+		      (queries==0 ? 0 : triples/queries), added, deleted);
             }
             executor.shutdown();
             Monitor.stop();
