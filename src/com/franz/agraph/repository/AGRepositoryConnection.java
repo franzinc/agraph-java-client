@@ -909,4 +909,31 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	public boolean isBulkMode() throws RepositoryException {
 		return getHttpRepoClient().isBulkMode();
 	}
+
+	/**
+	 * Invoke a stored procedure on the AllegroGraph server.
+	 * 
+	 * <p>The input arguments and the return value can be:
+	 * {@link String}, {@link Integer}, null, byte[],
+	 * or Object[] or {@link List} of these (can be nested).</p>
+	 * 
+	 * <p>See also
+	 * {@link #getHttpRepoClient()}.{@link AGHttpRepoClient#callStoredProc(String, String, Object...)
+	 * callStoredProc}<code>(functionName, moduleName, args)</code>
+	 * </p>
+	 * 
+	 * @param functionName stored proc lisp function, for example "addTwo"
+	 * @param moduleName lisp FASL file name, for example "example.fasl"
+	 * @param args arguments to the stored proc
+	 * @return return value of stored proc
+	 * @throws AGCustomStoredProcException for errors from stored proc
+	 * 
+	 * @since v4.2
+	 * @deprecated The stored proc feature and API are experimental, and subject to change in a future release.
+	 */
+	public Object callStoredProc(String functionName, String moduleName, Object...args)
+	throws RepositoryException {
+		return getHttpRepoClient().callStoredProc(functionName, moduleName, args);
+	}
+
 }

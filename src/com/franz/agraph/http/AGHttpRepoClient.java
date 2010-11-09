@@ -60,6 +60,7 @@ import org.openrdf.rio.ntriples.NTriplesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.franz.agraph.repository.AGCustomStoredProcException;
 import com.franz.agraph.repository.AGQuery;
 import com.franz.util.Closeable;
 
@@ -755,10 +756,7 @@ public class AGHttpRepoClient implements Closeable {
 	 * Creates a new freetext index with the given parameters.  
 	 * 
 	 * See documentation here:
-	 * 
-	 * {@link http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#put-freetext-index}
-	 * 
-	 * @throws RepositoryException
+	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#put-freetext-index">put-freetext-index</a>
 	 */
 	public void createFreetextIndex(String name, List<String> predicates, boolean indexLiterals, List<String> indexLiteralTypes, String indexResources, List<String> indexFields, int minimumWordSize, List<String> stopWords, List<String> wordFilters)
 	throws RepositoryException {
@@ -864,10 +862,6 @@ public class AGHttpRepoClient implements Closeable {
 	
 	/**
 	 * Gets the configuration of the given index.
-	 * 
-	 * @param index
-	 * @return
-	 * @throws RepositoryException
 	 */
 	public JSONObject getFreetextIndexConfiguration(String index)
 			throws RepositoryException {
@@ -1395,7 +1389,7 @@ public class AGHttpRepoClient implements Closeable {
 	 * false, return only the current actively managed index types.
 	 *   
 	 * @param listValid true yields all valid types, false yields active types. 
-	 * @return
+	 * @return list of indices, never null
 	 * @throws OpenRDFException
 	 */
 	public List<String> listIndices(boolean listValid) throws RepositoryException {
@@ -1419,7 +1413,7 @@ public class AGHttpRepoClient implements Closeable {
      * Adds the given index to the list of actively managed indices.
      * This will take affect on the next commit.
      * 
-     * @param type a valid index type
+     * @param index a valid index type
      * @throws RepositoryException
      * @see #listIndices(boolean)
      */
@@ -1442,7 +1436,7 @@ public class AGHttpRepoClient implements Closeable {
 	 * Drops the given index from the list of actively managed indices.
 	 * This will take affect on the next commit.
 	 * 
-	 * @param type a valid index type
+	 * @param index a valid index type
 	 * @throws RepositoryException
 	 * @see #listIndices(boolean)
 	 */
@@ -1466,4 +1460,82 @@ public class AGHttpRepoClient implements Closeable {
 	public boolean isBulkMode() throws RepositoryException {
 		return bulkMode;
 	}
+
+	/**
+	 * Invoke a stored procedure on the AllegroGraph server.
+	 * The args must already be encoded, and the response is encoded.
+	 * 
+	 * <p>Low-level access to the data sent to the server can be done with:
+	 * <code><pre>
+	 * {@link AGDeserializer#decodeAndDeserialize(String) AGDeserializer.decodeAndDeserialize}(
+	 *     {@link #callStoredProcEncoded(String, String, String) callStoredProcEncoded}(functionName, moduleName,
+	 *         {@link AGSerializer#serializeAndEncode(Object[]) AGSerializer.serializeAndEncode}(args)));
+	 * </code></pre></p>
+	 * 
+	 * <p>If an error occurs in the stored procedure then result will
+	 * be a two element vector  with the first element being the string "_fail_"
+	 * and the second element being the error message (also a string).</p>
+	 * 
+	 * <p>{@link #callStoredProc(String, String, Object...)}
+	 * does this encoding, decoding, and throws exceptions for error result.
+	 * </p>
+	 * 
+	 * @param functionName stored proc lisp function, for example "addTwo"
+	 * @param moduleName lisp FASL file name, for example "example.fasl"
+	 * @param argsEncoded byte-encoded arguments to the stored proc
+	 * @return byte-encoded response from stored proc
+	 * @see #callStoredProc(String, String, Object...)
+	 * @since v4.2
+	 * @deprecated The stored proc feature and API are experimental, and subject to change in a future release.
+	 */
+	public String callStoredProcEncoded(String functionName, String moduleName, String argsEncoded)
+	throws RepositoryException {
+		String url = AGProtocol.getStoredProcLocation(repoRoot)+"/"+functionName;
+		Header[] headers = { new Header("x-scripts", moduleName) };
+		NameValuePair[] params = { new NameValuePair("spargstr", argsEncoded) };
+		AGResponseHandler handler = new AGResponseHandler("");
+		try {
+			getHTTPClient().post(url, headers, params, null, handler);
+			return handler.getString();
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		} catch (RDFParseException e) {
+			throw new RepositoryException(e);
+		}
+	}
+	
+	/**
+	 * Invoke a stored procedure on the AllegroGraph server.
+	 * 
+	 * <p>The input arguments and the return value can be:
+	 * {@link String}, {@link Integer}, null, byte[],
+	 * or Object[] or {@link List} of these (can be nested).</p>
+	 * 
+	 * @param functionName stored proc lisp function, for example "addTwo"
+	 * @param moduleName lisp FASL file name, for example "example.fasl"
+	 * @param args arguments to the stored proc
+	 * @return return value of stored proc
+	 * @throws AGCustomStoredProcException for errors from stored proc.
+	 * 
+	 * @see AGSerializer#serializeAndEncode(Object[])
+	 * @see AGDeserializer#decodeAndDeserialize(String)
+	 * @since v4.2
+	 * @deprecated The stored proc feature and API are experimental, and subject to change in a future release.
+	 */
+	public Object callStoredProc(String functionName, String moduleName, Object...args)
+	throws RepositoryException {
+		Object o = AGDeserializer.decodeAndDeserialize(
+				callStoredProcEncoded(functionName, moduleName,
+						AGSerializer.serializeAndEncode(args)));
+    	if (o instanceof Object[]) {
+    		Object[] a = (Object[]) o;
+    		if (a.length == 2 && "_fail_".equals(a[0])) {
+    			throw new AGCustomStoredProcException(a[1] == null ? null : a[1].toString());
+    		}
+    	}
+    	return o;
+	}
+	
 }
