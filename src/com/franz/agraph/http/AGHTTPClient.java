@@ -38,6 +38,7 @@ import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 import org.openrdf.http.protocol.UnauthorizedException;
+import org.openrdf.model.URI;
 import org.openrdf.query.TupleQueryResult;
 import org.openrdf.query.impl.TupleQueryResultBuilder;
 import org.openrdf.query.resultio.TupleQueryResultFormat;
@@ -372,5 +373,23 @@ implements Closeable {
     public void close() {
         Util.close(this.mManager);
     }
+
+	public String[] generateURIs(String repositoryURL, String namespace,
+			int amount) throws IOException, RepositoryException,
+			UnauthorizedException {
+		String url = repositoryURL + "/namedNodes/prefixes";
+		Header[] headers = new Header[0];
+		NameValuePair[] data = { new NameValuePair("prefix", namespace),
+				new NameValuePair(AMOUNT_PARAM_NAME, Integer.toString(amount)) };
+		AGResponseHandler handler = new AGResponseHandler("");
+		try {
+			post(url, headers, data, null, handler);
+		} catch (RDFParseException e) {
+			// bug.
+			throw new RuntimeException(e);
+		}
+		return handler.getString().split("\n");
+	}
+
 
 }

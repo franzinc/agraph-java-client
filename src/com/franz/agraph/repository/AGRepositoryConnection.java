@@ -885,4 +885,46 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		getHttpRepoClient().sendRDFTransaction(rdftransaction);
 	}
 
+	/**
+	 * Registers an encodable namespace having the specified format.
+	 * 
+	 * Registering an encodable namespace enables a more efficient 
+	 * encoding of URIs, and generation of unique URIs, within the 
+	 * namespace because its URIs are declared to conform to the 
+	 * specified format; thus it is bounded, and encodable.
+	 * 
+	 * The format is a string using a simplified regular expression
+	 * syntax supporting character ranges and counts specifying the
+	 * suffix portion of the URI's in the namespace. 
+	 * 
+	 * E.g.,  [a-z][0-9]-[a-f]{1,3}
+	 * 
+	 * The format can be ambiguous (e.g., "[A-Z]{1,2}[B-C}{0,1}").
+	 * We will not check for ambiguity in this first version but can
+	 * add this checking at a later time. 
+	 * 
+	 * If the format is null, the default format is used: [0-9]{1,21}
+	 * 
+	 * If the format corresponds to a namespace that is not encodable
+	 * (it may be malformed, or perhaps it's too large to encode), an 
+	 * exception is thrown.
+	 *  
+	 * @param namespace a valid namespace prefix for a URI
+	 * @param format a valid format for an encodable namespace
+	 * @throws RepositoryException
+	 */
+	public void registerEncodableNamespace(String namespace, String format) throws RepositoryException {
+		getHttpRepoClient().registerEncodableNamespace(namespace, format);
+	}
+	
+	/**
+	 * Returns the registered encodable namespaces.
+	 *  
+	 * @return a list of the registered encodable namespaces 
+	 * @throws RepositoryException
+	 */
+	public List<String> getEncodableNamespaces() throws RepositoryException {
+		return null; // TODO implement
+	}
+	
 }
