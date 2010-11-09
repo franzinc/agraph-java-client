@@ -15,6 +15,7 @@ import static test.Stmt.statementSet;
 import static test.Stmt.stmts;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import junit.framework.Assert;
@@ -34,6 +35,8 @@ import org.openrdf.query.QueryLanguage;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
 
+import com.franz.agraph.http.AGDecoder;
+import com.franz.agraph.http.AGEncoder;
 import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 
@@ -177,4 +180,51 @@ public class QuickTests extends AGAbstractTest {
     		}
     	}
     }
+    
+    @Test
+    @Category(TestSuites.Temp.class)
+    public void storedProcs_encoding_rfe10189() throws Exception {
+		byte[][] cases = {{ 1, 3, 32, 11, 13, 123},
+				{},
+				{33},
+				{33, 44},
+				{33, 44, 55},
+				{33, 44, 55, 66},
+				{33, 44, 55, 66, 77},
+				{33, 44, 55, 66, 77, 88},
+				{-1, -2, -3, -4, -5},
+				{-1, -2, -3, -4}
+		};
+		
+		for (int casenum = 0 ; casenum < cases.length; casenum++){
+			byte[] input = cases[casenum];
+			String encoded = AGEncoder.encode(input);
+			byte[] result = AGDecoder.decode(encoded);
+			assertSetsEqual("encoding", input, result);
+		}
+	}
+	
+    /**
+     * Example class of how a user might wrap a stored-proc for convenience.
+     */
+    class SProcExample {
+    	private final AGRepositoryConnection conn;
+    	SProcExample(AGRepositoryConnection conn) {
+			this.conn = conn;
+    	}
+		
+		int addTwo(int a, int b) throws RepositoryException {
+	    	String response = (String) conn.callStoredProc("addTwo", "example.fasl",
+	    			new String[] {String.valueOf(a), String.valueOf(b)});
+	    	return Integer.parseInt(response);
+		}
+    }
+    
+    @Test
+    @Category(TestSuites.Temp.class)
+    public void storedProcs_rfe10189() throws Exception {
+    	int r = new SProcExample(conn).addTwo(123, 456);
+    	assertEquals(579, r);
+    }
+
 }

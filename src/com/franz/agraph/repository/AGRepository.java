@@ -21,6 +21,8 @@ import org.openrdf.repository.RepositoryException;
 
 import com.franz.agraph.http.AGHTTPClient;
 import com.franz.agraph.http.AGHttpRepoClient;
+import com.franz.agraph.http.Deserial;
+import com.franz.agraph.http.Serial;
 import com.franz.util.Closeable;
 
 /**

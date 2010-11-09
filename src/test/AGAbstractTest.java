@@ -16,6 +16,7 @@ import static test.Util.readLines;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -167,6 +168,18 @@ public class AGAbstractTest extends Closer {
    
     public static void assertSetsEqual(Collection expected, Set actual) {
         assertSetsEqual("", expected, actual);
+    }
+    
+    public static List<Byte> asList(byte[] bs) {
+    	List<Byte> list = new ArrayList<Byte>(bs.length);
+    	for (int i = 0; i < bs.length; i++) {
+			list.add(bs[i]);
+		}
+    	return list;
+    }
+
+    public static void assertSetsEqual(String msg, byte[] expected, byte[] actual) {
+        assertSetsEqual(msg, asList(expected), asList(actual));
     }
 
     public static void assertSetsEqual(String msg, Collection expected, Collection actual) {
