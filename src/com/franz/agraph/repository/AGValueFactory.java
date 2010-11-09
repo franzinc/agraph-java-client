@@ -17,6 +17,7 @@ import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.repository.RepositoryException;
+import org.openrdf.rio.ntriples.NTriplesUtil;
 
 import com.franz.agraph.http.AGHTTPClient;
 import com.hp.hpl.jena.graph.Node;
@@ -142,5 +143,64 @@ public class AGValueFactory extends ValueFactoryImpl {
 			throw new IllegalArgumentException("Cannot convert Node to URI: " + node);
 		}
 		return uri;
+	}
+	
+	
+	/***********************
+	 * 
+	 * Encodable Namespaces
+	 * 
+	 ***********************/
+	
+	/**
+	 * Returns unique URIs within the specified encodable namespace.
+	 * 
+	 * The generated URIs will conform to the format that was specified
+	 * when the encodable namespace was registered, and are guaranteed
+	 * to be unique for this namespace generator.  Note that this does
+	 * not prevent other parties from independently using URIs that
+	 * involve this namespace, however.
+	 * 
+	 * If amount cannot be generated, up to amount URIs will be returned,
+	 * or an exception will be thrown if none are available.
+	 *   
+	 * @see AGRepositoryConnection#registerEncodableNamespace(String, String)
+	 * 
+	 * @return a unique URI within the specified namespace.
+	 * @throws RepositoryException
+	 */
+	public URI[] generateURIs(String namespace, int amount) throws RepositoryException {
+		String[] uri_strs;
+		URI[] uris;
+		try {
+			uri_strs = getHTTPClient().generateURIs(getRepository().getRepositoryURL(),namespace,amount);
+			uris = new URI[uri_strs.length];
+			for (int i=0;i<uri_strs.length;i++) {
+				uris[i] = NTriplesUtil.parseURI(uri_strs[i],this);
+			}
+		} catch (UnauthorizedException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+		return uris;
+	}
+	
+	/**
+	 * Returns a unique URI within the specified encodable namespace.
+	 * 
+	 * The generated URI will conform to the format that was specified
+	 * when the encodable namespace was registered, and is guaranteed
+	 * to be unique for this namespace generator.  Note that this does
+	 * not prevent other parties from independently using URIs that
+	 * involve this namespace, however.
+	 * 
+	 * @see AGRepositoryConnection#registerEncodableNamespace(String, String)
+	 * 
+	 * @return a unique URI within the specified namespace.
+	 * @throws RepositoryException
+	 */
+	public URI generateURI(String registeredEncodableNamespace) throws RepositoryException {
+		return generateURIs(registeredEncodableNamespace,1)[0];
 	}
 }

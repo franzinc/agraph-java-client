@@ -1466,4 +1466,51 @@ public class AGHttpRepoClient implements Closeable {
 	public boolean isBulkMode() throws RepositoryException {
 		return bulkMode;
 	}
+	
+	public void registerEncodableNamespace(String namespace, String format)
+			throws RepositoryException {
+		String url = getRoot() + "/encodedIds/prefixes";
+		Header[] headers = {};
+		List<NameValuePair> params = new ArrayList<NameValuePair>(2);
+		params.add(new NameValuePair("prefix", namespace));
+		params.add(new NameValuePair("format", format));
+		try {
+			getHTTPClient().post(url, headers,
+					params.toArray(new NameValuePair[params.size()]), null,
+					null);
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (RDFParseException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+	}
+
+	public void unregisterEncodableNamespace(String namespace)
+			throws RepositoryException {
+		String url = getRoot() + "/encodedIds/prefixes";
+		Header[] headers = {};
+		List<NameValuePair> params = new ArrayList<NameValuePair>(2);
+		params.add(new NameValuePair("prefix", namespace));
+		try {
+			getHTTPClient().delete(url, headers,
+					params.toArray(new NameValuePair[params.size()]));
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+	}
+	
+	public void registerEncodableNamespaces(JSONArray formattedNamespaces) throws RepositoryException {
+		String url = getRoot() + "/encodedIds/prefixes";
+		uploadJSON(url, formattedNamespaces);
+	}
+	
+	public TupleQueryResult getEncodableNamespaces() throws RepositoryException {
+		String url = getRoot()+"/encodedIds/prefixes";
+		return getHTTPClient().getTupleQueryResult(url);
+	}
+
 }
