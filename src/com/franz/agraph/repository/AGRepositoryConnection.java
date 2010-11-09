@@ -20,6 +20,7 @@ import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.openrdf.OpenRDFException;
 import org.openrdf.OpenRDFUtil;
 import org.openrdf.model.Literal;
@@ -909,4 +910,94 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	public boolean isBulkMode() throws RepositoryException {
 		return getHttpRepoClient().isBulkMode();
 	}
+
+	/**
+	 * Registers an encodable namespace having the specified format.
+	 * 
+	 * Registering an encodable namespace enables a more efficient 
+	 * encoding of URIs in a namespace, and generation of unique 
+	 * URIs for that namespace, because its URIs are declared to 
+	 * conform to a specified format; the namespace is thereby 
+	 * bounded in size, and encodable.
+	 * 
+	 * The format is a string using a simplified regular expression
+	 * syntax supporting character ranges and counts specifying the
+	 * suffix portion of the URI's in the namespace. 
+	 * 
+	 * E.g.,  [a-z][0-9]-[a-f]{3}
+	 * 
+	 * The format can be ambiguous (e.g., "[A-Z]{1,2}[B-C}{0,1}").
+	 * We will not check for ambiguity in this first version but can
+	 * add this checking at a later time. 
+	 * 
+	 * If the format corresponds to a namespace that is not encodable
+	 * (it may be malformed, or perhaps it's too large to encode), an 
+	 * exception is thrown.
+	 *  
+	 * @param namespace a valid namespace, a URI ref
+	 * @param format a valid format for an encodable namespace
+	 * @throws RepositoryException
+	 */
+	public void registerEncodableNamespace(String namespace, String format) throws RepositoryException {
+		getHttpRepoClient().registerEncodableNamespace(namespace, format);
+	}
+	
+	
+	/**
+	 * Registers multiple formatted namespaces in a single request.
+	 * 
+	 * @param formattedNamespaces
+	 * @throws RepositoryException
+	 */
+	public void registerEncodableNamespaces(Iterable <? extends AGFormattedNamespace> formattedNamespaces) throws RepositoryException {
+		JSONArray rows = new JSONArray();
+		for (AGFormattedNamespace ns: formattedNamespaces) {
+			JSONObject row  = new JSONObject();
+			try {
+				row.put("prefix",ns.getNamespace());
+				row.put("format", ns.getFormat());
+			} catch (JSONException e) {
+				throw new RepositoryException(e);
+			}
+			rows.put(row);
+		}
+		getHttpRepoClient().registerEncodableNamespaces(rows);
+	}
+	
+	/**
+	 * Returns a list of the registered encodable namespaces.
+	 *  
+	 * @return a list of the registered encodable namespaces. 
+	 * @throws RepositoryException
+	 */
+	public List<AGFormattedNamespace> listEncodableNamespaces()
+			throws OpenRDFException {
+		TupleQueryResult tqresult = getHttpRepoClient()
+				.getEncodableNamespaces();
+		List<AGFormattedNamespace> result = new ArrayList<AGFormattedNamespace>();
+		try {
+			while (tqresult.hasNext()) {
+				BindingSet bindingSet = tqresult.next();
+				Value prefix = bindingSet.getValue("prefix");
+				Value format = bindingSet.getValue("format");
+				result.add(new AGFormattedNamespace(prefix.stringValue(),
+						format.stringValue()));
+			}
+		} finally {
+			tqresult.close();
+		}
+		return result;
+	}
+	
+	
+	/**
+	 * Unregisters the specified encodable namespace.
+	 * 
+	 * @param namespace the namespace to unregister.
+	 * @throws RepositoryException
+	 */
+	public void unregisterEncodableNamespace(String namespace) throws RepositoryException {
+		getHttpRepoClient().unregisterEncodableNamespace(namespace);
+	}
+	
 }
