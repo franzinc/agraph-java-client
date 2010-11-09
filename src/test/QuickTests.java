@@ -34,11 +34,17 @@ import org.openrdf.query.QueryLanguage;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
 
+import test.TestSuites.NonPrepushTest;
+
+import com.franz.agraph.http.AGDecoder;
+import com.franz.agraph.http.AGDeserializer;
+import com.franz.agraph.http.AGEncoder;
+import com.franz.agraph.http.AGSerializer;
+import com.franz.agraph.repository.AGCustomStoredProcException;
 import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 
-import test.TestSuites.NonPrepushTest;
-
+@SuppressWarnings("deprecation")
 public class QuickTests extends AGAbstractTest {
 
     @RunWith(Categories.class)
@@ -177,4 +183,170 @@ public class QuickTests extends AGAbstractTest {
     		}
     	}
     }
+    
+    @Test
+    @Category(TestSuites.Prepush.class)
+    public void storedProcs_encoding_rfe10189() throws Exception {
+		byte[][] cases = {{ 1, 3, 32, 11, 13, 123},
+				{},
+				{33},
+				{33, 44},
+				{33, 44, 55},
+				{33, 44, 55, 66},
+				{33, 44, 55, 66, 77},
+				{33, 44, 55, 66, 77, 88},
+				{-1, -2, -3, -4, -5},
+				{-1, -2, -3, -4}
+		};
+		
+		for (int casenum = 0 ; casenum < cases.length; casenum++){
+			byte[] input = cases[casenum];
+			String encoded = AGEncoder.encode(input);
+			byte[] result = AGDecoder.decode(encoded);
+			assertSetsEqual("encoding", input, result);
+		}
+	}
+	
+    /**
+     * Example class of how a user might wrap a stored-proc for convenience.
+     */
+    class SProcTest {
+    	static final String FASL = "ag-test-stored-proc.fasl";
+    	
+		private final AGRepositoryConnection conn;
+    	SProcTest(AGRepositoryConnection conn) {
+			this.conn = conn;
+    	}
+		
+		String addTwoStrings(String a, String b) throws Exception {
+			return (String) conn.callStoredProc("add-two-strings", FASL, a, b);
+		}
+		
+		int addTwoInts(int a, int b) throws Exception {
+	    	return (Integer) conn.callStoredProc("add-two-ints", FASL, a, b);
+		}
+		
+		String addTwoVecStrings(String a, String b) throws Exception {
+			return (String) conn.callStoredProc("add-two-vec-strings", FASL, a, b);
+		}
+		
+		String addTwoVecStringsError() throws Exception {
+			return (String) conn.callStoredProc("add-two-vec-strings", FASL);
+		}
+		
+		int addTwoVecInts(int a, int b) throws Exception {
+	    	return (Integer) conn.callStoredProc("add-two-vec-ints", FASL, a, b);
+		}
+		
+		Object bestBeNull(String a) throws Exception {
+	    	return conn.callStoredProc("best-be-nil", FASL, a);
+		}
+		
+		Object returnAllTypes() throws Exception {
+	    	return conn.callStoredProc("return-all-types", FASL);
+		}
+		
+		Object identity(Object input) throws Exception {
+	    	return conn.callStoredProc("identity", FASL, input);
+		}
+		
+		Object checkAllTypes(Object input) throws Exception {
+	    	return conn.callStoredProc("check-all-types", FASL, input);
+		}
+		
+		Object addATripleInt(int i) throws Exception {
+	    	return conn.callStoredProc("add-a-triple-int", FASL, i);
+		}
+		
+		Object getATriple() throws Exception {
+	    	return conn.callStoredProc("get-a-triple", FASL);
+		}
+		
+		Object addATriple(Object s, Object p, Object o) throws Exception {
+	    	return conn.callStoredProc("add-a-triple", FASL, s, p, o);
+		}
+		
+    }
+    
+	static final Object ALL_TYPES = new Object[] {
+		123,
+		0,
+		-123,
+		"abc",
+		null,
+		new Integer[] {9, 9, 9, 9},
+		Util.arrayList(123,0, -123, "abc"),
+		new byte[] {0, 1, 2, 3, 4, 5, 6, 7}
+	};
+
+    @Test
+    @Category(TestSuites.Prepush.class)
+    public void encoding_all_types_rfe10189() throws Exception {
+    	Object[] o = new Object[] {ALL_TYPES};
+    	assertEqualsDeep("all types", o,
+    			AGDeserializer.decodeAndDeserialize(AGSerializer.serializeAndEncode(o)));
+    }
+    
+    @Test
+    @Category(TestSuites.Prepush.class)
+    public void storedProcsEncoded_rfe10189() throws Exception {
+    	String response = (String) AGDeserializer.decodeAndDeserialize(
+    			conn.getHttpRepoClient().callStoredProcEncoded("add-two-strings", SProcTest.FASL,
+    					AGSerializer.serializeAndEncode(
+    							new String[] {"123", "456"})));
+    	assertEquals(579, Integer.parseInt(response));
+    }
+    
+    @Test
+    @Category(TestSuites.Prepush.class)
+    public void storedProcs_rfe10189() throws Exception {
+    	SProcTest sp = new SProcTest(conn);
+    	assertEquals("supports strings", "579", sp.addTwoStrings("123", "456"));
+    	assertEquals("supports pos int", 579, sp.addTwoInts(123, 456));
+    	assertEquals("supports neg int and zero", 0, sp.addTwoInts(123, -123));
+    	assertEquals("supports neg int", -100, sp.addTwoInts(23, -123));
+    	assertEquals("supports whole arg-vec strings", "579", sp.addTwoVecStrings("123", "456"));
+    	assertEquals("supports whole arg-vec ints", 579, sp.addTwoVecInts(123, 456));
+    	assertEquals("supports null", null, sp.bestBeNull(null));
+    	try {
+        	assertEquals(null, sp.bestBeNull("abc"));
+        	fail("should be AGCustomStoredProcException");
+    	} catch (AGCustomStoredProcException e) {
+    		assertEquals("test null and error", "I expected a nil, but got: abc", e.getMessage());
+    	}
+    	try {
+    		assertEquals("579", sp.addTwoVecStringsError());
+    		fail("should be AGCustomStoredProcException");
+    	} catch (AGCustomStoredProcException e) {
+    		assertEquals("test error", "wrong number of args", e.getMessage());
+    	}
+    	try {
+    		assertEquals("579", sp.addTwoVecStrings(null, null));
+    		fail("should be AGCustomStoredProcException");
+    	} catch (AGCustomStoredProcException e) {
+    		assertEquals("test null and error", "There is no integer in the string nil (:start 0 :end 0)", e.getMessage());
+    	}
+    	try {
+    		assertEquals("579", sp.addTwoVecStrings("abc", "def"));
+    		fail("should be AGCustomStoredProcException");
+    	} catch (AGCustomStoredProcException e) {
+    		assertEquals("test error", "There's junk in this string: \"abc\".", e.getMessage());
+    	}
+    	System.out.println(ALL_TYPES);
+    	assertEqualsDeep("supports all types, originating from java", ALL_TYPES, sp.checkAllTypes(ALL_TYPES));
+    	assertEqualsDeep("supports all types, round-trip", ALL_TYPES, sp.identity(ALL_TYPES));
+    	assertEqualsDeep("supports all types, originating from lisp", ALL_TYPES, sp.returnAllTypes());
+    }
+    
+    @Test
+    @Category(TestSuites.Broken.class)
+    public void storedProcs_triples_rfe10189() throws Exception {
+    	SProcTest sp = new SProcTest(conn);
+    	// TODO: transferring triples does not work yet
+    	// TODO: change the expected return value when that is known
+    	assertEqualsDeep("add-a-triple-int", null, sp.addATripleInt(1));
+    	assertEqualsDeep("add-a-triple", null, sp.addATriple(vf.createURI("http://test.com/s"), vf.createURI("http://test.com/p"), vf.createURI("http://test.com/p")));
+    	assertEqualsDeep("get-a-triple", null, Util.toListDeep(sp.getATriple()));
+    }
+
 }

@@ -25,6 +25,7 @@ import java.util.Set;
 
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.openrdf.model.Statement;
@@ -168,6 +169,10 @@ public class AGAbstractTest extends Closer {
     public static void assertSetsEqual(Collection expected, Set actual) {
         assertSetsEqual("", expected, actual);
     }
+    
+    public static void assertSetsEqual(String msg, byte[] expected, byte[] actual) {
+        assertSetsEqual(msg, Util.toList(expected), Util.toList(actual));
+    }
 
     public static void assertSetsEqual(String msg, Collection expected, Collection actual) {
         expected = new ArrayList(expected);
@@ -187,6 +192,43 @@ public class AGAbstractTest extends Closer {
             assertTrue(msg + ". Not found: " + exp + " in " + actual, found);
         }
         assertEquals(msg + ". Remaining: " + actual, 0, actual.size());
+    }
+    
+    public static void assertEqualsDeep(String msg, Object expected, Object actual) {
+    	if (expected == null) {
+    		Assert.assertEquals(msg, expected, actual);
+    	} else if (actual == null) {
+    		Assert.assertEquals(msg, expected, actual);
+    	} else if (expected instanceof List) {
+    		List expList = (List) expected;
+    		Assert.assertTrue(msg + "; expected Collection type, actual: " + actual.getClass(), actual instanceof List);
+    		List actList = (List) actual;
+    		Assert.assertTrue(msg + "; expected same size=" + expList.size() + ", actual=" + actList.size(),
+    				expList.size() == actList.size());
+    		for (int i = 0; i < expList.size(); i++) {
+				assertEqualsDeep("[" + i +"]" + msg, expList.get(i), actList.get(i));
+			}
+    	} else if (expected instanceof Object[]) {
+    		Object[] expList = (Object[]) expected;
+    		Assert.assertTrue(msg + "; expected Object[] type, actual: " + actual.getClass(), actual instanceof Object[]);
+    		Object[] actList = (Object[]) actual;
+    		Assert.assertTrue(msg + "; expected same size=" + expList.length + ", actual=" + actList.length,
+    				expList.length == actList.length);
+    		for (int i = 0; i < expList.length; i++) {
+				assertEqualsDeep("[" + i +"]" + msg, expList[i], actList[i]);
+			}
+    	} else if (expected instanceof byte[]) {
+    		byte[] expList = (byte[]) expected;
+    		Assert.assertTrue(msg + "; expected byte[] type, actual: " + actual.getClass(), actual instanceof byte[]);
+    		byte[] actList = (byte[]) actual;
+    		Assert.assertTrue(msg + "; expected same size=" + expList.length + ", actual=" + actList.length,
+    				expList.length == actList.length);
+    		for (int i = 0; i < expList.length; i++) {
+				assertEqualsDeep("[" + i +"]" + msg, expList[i], actList[i]);
+			}
+    	} else {
+    		assertEquals(msg, expected, actual);
+    	}
     }
     
     public static void assertSetsSome(String msg, Collection expected, Collection actual) {

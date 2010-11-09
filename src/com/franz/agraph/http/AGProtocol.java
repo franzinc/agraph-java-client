@@ -112,6 +112,11 @@ public class AGProtocol extends Protocol {
 	public static final String AUTOCOMMIT = "autoCommit";
 
 	/**
+	 * Relative location of the custom stored proc service.
+	 */
+	public static final String CUSTOM = "custom";
+
+	/**
 	 * Parameter name for the 'on' parameter of autoCommit.
 	 */
 	public static final String ON_PARAM_NAME = "on";
@@ -467,6 +472,10 @@ public class AGProtocol extends Protocol {
 	
 	public static final String getAutoCommitLocation(String sessionRoot) {
 		return getSessionURL(sessionRoot) + "/" + AUTOCOMMIT;
+	}
+
+	public static final String getStoredProcLocation(String sessionRoot) {
+		return sessionRoot + "/" + CUSTOM;
 	}
 
 	public static String getStatementsDeleteLocation(String sessionRoot) {
