@@ -373,4 +373,21 @@ implements Closeable {
         Util.close(this.mManager);
     }
 
+	public String[] generateURIs(String repositoryURL, String namespace,
+			int amount) throws IOException, RepositoryException,
+			UnauthorizedException {
+		String url = repositoryURL + "/encodedIds";
+		Header[] headers = new Header[0];
+		NameValuePair[] data = { new NameValuePair("prefix", namespace),
+				new NameValuePair(AMOUNT_PARAM_NAME, Integer.toString(amount)) };
+		AGResponseHandler handler = new AGResponseHandler("");
+		try {
+			post(url, headers, data, null, handler);
+		} catch (RDFParseException e) {
+			throw new RepositoryException(e);
+		}
+		return handler.getString().split("\n");
+	}
+
+
 }
