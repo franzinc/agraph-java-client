@@ -47,6 +47,8 @@ import org.openrdf.rio.ntriples.NTriplesUtil;
 
 import com.franz.agraph.http.AGHttpRepoClient;
 import com.franz.agraph.http.AGResponseHandler;
+import com.franz.agraph.http.Deserial;
+import com.franz.agraph.http.Serial;
 import com.franz.util.Closeable;
 
 /**
@@ -909,4 +911,19 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	public boolean isBulkMode() throws RepositoryException {
 		return getHttpRepoClient().isBulkMode();
 	}
+
+    /**
+     * TODO
+     * 
+     * @param functionName
+     * @param moduleName
+     * @param args
+     * @return
+     */
+	public Object callStoredProc(String functionName, String moduleName, Object args) throws RepositoryException {
+		return Deserial.deserialize(
+				getHttpRepoClient().callStoredProcEncoded(functionName, moduleName,
+						Serial.serialize(args)));
+	}
+
 }

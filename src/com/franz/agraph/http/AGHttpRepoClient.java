@@ -1466,4 +1466,21 @@ public class AGHttpRepoClient implements Closeable {
 	public boolean isBulkMode() throws RepositoryException {
 		return bulkMode;
 	}
+
+	public String callStoredProcEncoded(String functionName, String moduleName, String args) throws RepositoryException {
+		String url = AGProtocol.getStoredProcLocation(repoRoot)+"/"+functionName;
+		Header[] headers = { new Header("x-scripts", moduleName) };
+		NameValuePair[] params = { new NameValuePair("spargstr", args) };
+		AGResponseHandler handler = new AGResponseHandler("");
+		try {
+			getHTTPClient().post(url, headers, params, null, handler);
+			return handler.getString();
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		} catch (RDFParseException e) {
+			throw new RepositoryException(e);
+		}
+	}
 }

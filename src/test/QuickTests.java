@@ -177,4 +177,28 @@ public class QuickTests extends AGAbstractTest {
     		}
     	}
     }
+
+    /**
+     * Example class of how a user might wrap a stored-proc for convenience.
+     */
+    class SProcExample {
+    	private final AGRepositoryConnection conn;
+    	SProcExample(AGRepositoryConnection conn) {
+			this.conn = conn;
+    	}
+		
+		int addTwo(int a, int b) throws RepositoryException {
+	    	String response = (String) conn.callStoredProc("addTwo", "example.fasl",
+	    			new String[] {String.valueOf(a), String.valueOf(b)});
+	    	return Integer.parseInt(response);
+		}
+    }
+    
+    @Test
+    @Category(TestSuites.Temp.class)
+    public void storedProcs_rfe10189() throws Exception {
+    	int r = new SProcExample(conn).addTwo(123, 456);
+    	assertEquals(579, r);
+    }
+
 }
