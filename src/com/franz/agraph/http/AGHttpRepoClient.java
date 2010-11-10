@@ -1496,6 +1496,27 @@ public class AGHttpRepoClient implements Closeable {
 		}
 	}
 
+	/**
+	 * Enables the spogi cache in this repository.
+	 * 
+	 * @param size the size of the cache, in triples.
+	 * @throws RepositoryException
+	 */
+	public void enableTripleCache(long size) throws RepositoryException {
+		String url = getRoot()+"/tripleCache";
+		Header[] headers = {};
+		NameValuePair[] params = {new NameValuePair("size", Long.toString(size))};
+		try {
+			getHTTPClient().put(url, headers, params, null);
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		}
+	}
+
 	public void registerEncodableNamespaces(JSONArray formattedNamespaces) throws RepositoryException {
 		String url = getRoot() + "/encodedIds/prefixes";
 		uploadJSON(url, formattedNamespaces);
@@ -1583,4 +1604,42 @@ public class AGHttpRepoClient implements Closeable {
 		return o;
 	}
 
+	/**
+	 * Returns the size of the spogi cache.
+	 * 
+	 * @return the size of the spogi cache, in triples.
+	 * @throws RepositoryException
+	 */
+	public long getTripleCacheSize() throws RepositoryException {
+		String url = getRoot()+"/tripleCache";
+		Header[] headers = new Header[0];
+		NameValuePair[] data = {};
+		AGResponseHandler handler = new AGResponseHandler(0);
+		try {
+			getHTTPClient().get(url, headers, data, handler);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		}
+		return handler.getLong();
+	}
+
+	/**
+	 * Disables the spogi triple cache.
+	 * 
+	 * @throws RepositoryException
+	 */
+ 	public void disableTripleCache() throws RepositoryException {
+		String url = getRoot()+"/tripleCache";
+		Header[] headers = {};
+		NameValuePair[] params = {};
+		try {
+			getHTTPClient().delete(url, headers, params);
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+	}
 }
