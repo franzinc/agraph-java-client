@@ -912,6 +912,7 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	}
 
 	/**
+<<<<<<< HEAD:src/com/franz/agraph/repository/AGRepositoryConnection.java
 	 * Registers an encodable namespace having the specified format.
 	 * 
 	 * Registering an encodable namespace enables a more efficient 
@@ -1024,4 +1025,34 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		return getHttpRepoClient().callStoredProc(functionName, moduleName, args);
 	}
 
+	/**
+	 * Enables the spogi cache in this repository.
+	 * 
+	 * Takes a size argument to set the size of the cache.
+	 * 
+	 * @param size the size of the cache, in triples.
+	 * @throws RepositoryException
+	 */
+	public void enableTripleCache(long size) throws RepositoryException {
+		getHttpRepoClient().enableTripleCache(size);
+	}
+	
+	/**
+	 * Returns the size of the spogi cache.
+	 * 
+	 * @return the size of the spogi cache, in triples.
+	 * @throws RepositoryException
+	 */
+	public long getTripleCacheSize() throws RepositoryException {
+		return getHttpRepoClient().getTripleCacheSize();
+	}
+	
+	/**
+	 * Disables the spogi triple cache.
+	 * 
+	 * @throws RepositoryException
+	 */
+ 	public void disableTripleCache() throws RepositoryException {
+ 		getHttpRepoClient().disableTripleCache();
+ 	}
 }
