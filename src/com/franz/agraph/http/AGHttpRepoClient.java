@@ -1454,13 +1454,11 @@ public class AGHttpRepoClient implements Closeable {
 	
 	public void registerEncodableNamespace(String namespace, String format)
 			throws RepositoryException {
-		String url = getRoot() + "/namedNodes/prefixes";
+		String url = getRoot() + "/encodedIds/prefixes";
 		Header[] headers = {};
 		List<NameValuePair> params = new ArrayList<NameValuePair>(2);
 		params.add(new NameValuePair("prefix", namespace));
-		if (format != null) {
-			params.add(new NameValuePair("format", format));
-		}
+		params.add(new NameValuePair("format", format));
 		try {
 			getHTTPClient().post(url, headers,
 					params.toArray(new NameValuePair[params.size()]), null,
@@ -1473,20 +1471,31 @@ public class AGHttpRepoClient implements Closeable {
 			throw new RepositoryException(e);
 		}
 	}
-	
-	public String[] getEncodedNamespaces() throws RepositoryException {
-		String url = getRoot()+"/namedNodes/prefixes";
-		Header[] headers = new Header[0];
-		NameValuePair[] params = new NameValuePair[0];
-		AGResponseHandler handler = new AGResponseHandler("");
+
+	public void unregisterEncodableNamespace(String namespace)
+			throws RepositoryException {
+		String url = getRoot() + "/encodedIds/prefixes";
+		Header[] headers = {};
+		List<NameValuePair> params = new ArrayList<NameValuePair>(2);
+		params.add(new NameValuePair("prefix", namespace));
 		try {
-			getHTTPClient().get(url, headers, params, handler);
+			getHTTPClient().delete(url, headers,
+					params.toArray(new NameValuePair[params.size()]));
+		} catch (HttpException e) {
+			throw new RepositoryException(e);
 		} catch (IOException e) {
 			throw new RepositoryException(e);
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
 		}
-		return handler.getString().split("\n");
+	}
+	
+	public void registerEncodableNamespaces(JSONArray formattedNamespaces) throws RepositoryException {
+		String url = getRoot() + "/encodedIds/prefixes";
+		uploadJSON(url, formattedNamespaces);
+	}
+	
+	public TupleQueryResult getEncodableNamespaces() throws RepositoryException {
+		String url = getRoot()+"/encodedIds/prefixes";
+		return getHTTPClient().getTupleQueryResult(url);
 	}
 
 }
