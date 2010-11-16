@@ -373,7 +373,12 @@ public class AGHttpRepoClient implements Closeable {
 			}
 
 			public String getContentType() {
-				return dataFormat.getDefaultMIMEType() + "; charset="
+				String format = dataFormat.getDefaultMIMEType();
+				// TODO: needs rfe10230
+				if (format.contains("turtle")) {
+					format = "text/turtle";
+				}
+				return  format + "; charset="
 						+ charset.name();
 			}
 
@@ -396,8 +401,10 @@ public class AGHttpRepoClient implements Closeable {
 			throws IOException, RDFParseException, RepositoryException,
 			UnauthorizedException {
 		// Set Content-Length to -1 as we don't know it and don't want to cache"
-		RequestEntity entity = new InputStreamRequestEntity(contents, -1,
-				dataFormat.getDefaultMIMEType());
+		String format = dataFormat.getDefaultMIMEType();
+		//TODO: needs rfe10230 
+		if (format.contains("turtle")) format = "text/turtle";
+		RequestEntity entity = new InputStreamRequestEntity(contents, -1, format);
 		upload(entity, baseURI, overwrite, null, null, null, contexts);
 	}
 
@@ -466,8 +473,12 @@ public class AGHttpRepoClient implements Closeable {
 		OpenRDFUtil.verifyContextNotNull(contexts);
 		List<Header> headers = new ArrayList<Header>(1);
 		if (dataFormat != null) {
-			headers.add(new Header("Content-Type", dataFormat
-					.getDefaultMIMEType()));
+			String format = dataFormat.getDefaultMIMEType();
+			// TODO: needs rfe10230
+			if (format.contains("turtle")) {
+				format = "text/turtle";
+			}
+			headers.add(new Header("Content-Type", format));
 		}
 		List<NameValuePair> params = new ArrayList<NameValuePair>(5);
 		for (String encodedContext : Protocol.encodeContexts(contexts)) {
