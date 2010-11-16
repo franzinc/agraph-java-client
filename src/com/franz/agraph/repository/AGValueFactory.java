@@ -81,7 +81,11 @@ public class AGValueFactory extends ValueFactoryImpl {
 
 	@Override
 	public BNode createBNode() {
-		return createBNode(null);
+		if (repository instanceof AGRepository) {
+			return createBNode(null);
+		} else {
+			return super.createBNode();
+		}
 	}
 
 	/**
