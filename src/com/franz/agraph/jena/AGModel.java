@@ -50,9 +50,11 @@ public class AGModel extends ModelCom implements Model, Closeable {
 			format = RDFFormat.NTRIPLES;
 		} else if (lang.contains("RDF")) {
 			format = RDFFormat.RDFXML;
+		} else if (lang.contains("TURTLE")) {
+			format = RDFFormat.TURTLE;
 		} else {
 			// TODO: add other supported formats and improve this error message
-			throw new IllegalArgumentException("Unsupported format: " + lang + " (expected RDF/XML or N-TRIPLE).");
+			throw new IllegalArgumentException("Unsupported format: " + lang + " (expected RDF/XML, N-TRIPLE, or TURTLE).");
 		}
 		try {
 			getGraph().getConnection().add(reader, base, format, getGraph().getGraphContext());

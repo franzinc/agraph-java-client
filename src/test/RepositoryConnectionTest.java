@@ -24,6 +24,7 @@ import info.aduna.iteration.Iterations;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -235,11 +236,11 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
     }
 
     @Test
-    @Category(TestSuites.NotApplicableForAgraph.class) // TURTLE not supported
+    //@Category(TestSuites.NotApplicableForAgraph.class) // TURTLE not supported
     public void testAddReader()
         throws Exception
     {
-        InputStream defaultGraphStream = RepositoryConnectionTest.class.getResourceAsStream(TEST_DIR_PREFIX
+        InputStream defaultGraphStream = new FileInputStream(TEST_DIR_PREFIX
                 + "default-graph.ttl");
         Reader defaultGraph = new InputStreamReader(defaultGraphStream, "UTF-8");
 
@@ -253,7 +254,7 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
                 nameAlice, false));
 
         // add file graph1.ttl to context1
-        InputStream graph1Stream = RepositoryConnectionTest.class.getResourceAsStream(TEST_DIR_PREFIX
+        InputStream graph1Stream = new FileInputStream(TEST_DIR_PREFIX
                 + "graph1.ttl");
         Reader graph1 = new InputStreamReader(graph1Stream, "UTF-8");
 
@@ -262,7 +263,7 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
         graph1.close();
 
         // add file graph2.ttl to context2
-        InputStream graph2Stream = RepositoryConnectionTest.class.getResourceAsStream(TEST_DIR_PREFIX
+        InputStream graph2Stream = new FileInputStream(TEST_DIR_PREFIX
                 + "graph2.ttl");
         Reader graph2 = new InputStreamReader(graph2Stream, "UTF-8");
 
@@ -287,12 +288,12 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
     }
 
     @Test
-    @Category(TestSuites.NotApplicableForAgraph.class) // TURTLE not supported
+    //@Category(TestSuites.NotApplicableForAgraph.class) // TURTLE not supported
     public void testAddInputStream()
         throws Exception
     {
         // add file default-graph.ttl to repository, no context
-        InputStream defaultGraph = RepositoryConnectionTest.class.getResourceAsStream(TEST_DIR_PREFIX
+        InputStream defaultGraph = new FileInputStream(TEST_DIR_PREFIX
                 + "default-graph.ttl");
 
         testCon.add(defaultGraph, "", RDFFormat.TURTLE);
@@ -305,14 +306,14 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
                 nameAlice, false));
 
         // add file graph1.ttl to context1
-        InputStream graph1 = RepositoryConnectionTest.class.getResourceAsStream(TEST_DIR_PREFIX + "graph1.ttl");
+        InputStream graph1 = new FileInputStream(TEST_DIR_PREFIX + "graph1.ttl");
 
         testCon.add(graph1, "", RDFFormat.TURTLE, context1);
 
         graph1.close();
 
         // add file graph2.ttl to context2
-        InputStream graph2 = RepositoryConnectionTest.class.getResourceAsStream(TEST_DIR_PREFIX + "graph2.ttl");
+        InputStream graph2 = new FileInputStream(TEST_DIR_PREFIX + "graph2.ttl");
 
         testCon.add(graph2, "", RDFFormat.TURTLE, context2);
 
@@ -335,12 +336,12 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
     }
 
     @Test
-    @Category(TestSuites.NotApplicableForAgraph.class) // TURTLE not supported
+    //@Category(TestSuites.NotApplicableForAgraph.class) // TURTLE not supported
     public void testAddGzipInputStream()
         throws Exception
     {
         // add file default-graph.ttl to repository, no context
-        InputStream defaultGraph = RepositoryConnectionTest.class.getResourceAsStream(TEST_DIR_PREFIX
+        InputStream defaultGraph = new FileInputStream(TEST_DIR_PREFIX
                 + "default-graph.ttl.gz");
         try {
             testCon.add(defaultGraph, "", RDFFormat.TURTLE);
@@ -357,11 +358,11 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
     }
 
     @Test
-    @Category(TestSuites.NotApplicableForAgraph.class) // TURTLE not supported
+    //@Category(TestSuites.NotApplicableForAgraph.class) // TURTLE not supported
     public void testAddZipFile()
         throws Exception
     {
-        InputStream in = RepositoryConnectionTest.class.getResourceAsStream(TEST_DIR_PREFIX + "graphs.zip");
+        InputStream in = new FileInputStream(TEST_DIR_PREFIX + "graphs.ttl.zip");
 
         testCon.add(in, "", RDFFormat.TURTLE);
 
@@ -1118,7 +1119,7 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
     }
 
     @Test
-    @Category(TestSuites.NotApplicableForAgraph.class) // TURTLE not supported
+    //@Category(TestSuites.NotApplicableForAgraph.class) // TURTLE not supported
     public void testRecoverFromParseError()
         throws RepositoryException, IOException
     {
