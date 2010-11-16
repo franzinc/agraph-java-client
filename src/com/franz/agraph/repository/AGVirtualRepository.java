@@ -2,7 +2,6 @@ package com.franz.agraph.repository;
 
 import java.io.File;
 
-import org.openrdf.model.BNode;
 import org.openrdf.repository.RepositoryException;
 
 import com.franz.agraph.http.AGHTTPClient;
@@ -15,24 +14,11 @@ public class AGVirtualRepository implements AGAbstractRepository, Closeable {
 	private String spec;
 	private AGValueFactory vf;
 
-	private class AGFederatedValueFactory extends AGValueFactory {
-		public AGFederatedValueFactory() {
-			super(null);
-		}
-
-		public BNode createBNode(String nodeID) {
-			throw new RuntimeException("Can not create a blank node for a federated store.");
-		}
-	}
-
 	public AGVirtualRepository(AGServer server, String spec, AGRepository wrapped) {
 		this.server = server;
 		this.spec = spec;
 		this.wrapped = wrapped;
-		if (wrapped == null)
-			vf = new AGFederatedValueFactory();
-		else
-			vf = new AGValueFactory(wrapped);
+		vf = new AGValueFactory(wrapped);
 	}
 
 	public AGServer getServer() {

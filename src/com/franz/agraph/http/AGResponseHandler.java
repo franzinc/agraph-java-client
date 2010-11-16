@@ -153,8 +153,7 @@ public class AGResponseHandler {
 				// TODO:
 				// .matchMIMEType(mimeType,
 				// rdfFormats);
-				RDFParser parser = Rio.createParser(format, repository
-						.getValueFactory());
+				RDFParser parser = Rio.createParser(format, repository.getValueFactory());
 				parser.setPreserveBNodeIDs(true);
 				parser.setRDFHandler(rdfhandler);
 				parser.parse(response, method.getURI().getURI());
