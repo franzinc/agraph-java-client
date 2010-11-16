@@ -9,6 +9,7 @@
 package test;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 
 import junit.framework.Assert;
@@ -360,4 +361,16 @@ public class JenaTests extends AGAbstractTest {
     	Assert.assertFalse("unexpected statement in infAll", m1.contains(a,p,d));
     	Assert.assertTrue("missing inference in infAll", infAll.contains(b,p,d));
     }
+    
+    @Test
+    @Category(TestSuites.Prepush.class)
+    public void jenaReadTurtle() throws Exception {
+    	AGGraphMaker maker = closeLater( new AGGraphMaker(conn));
+    	AGGraph g = closeLater( maker.getGraph());
+    	AGModel m = closeLater( new AGModel(g));
+    	
+    	m.read(new FileInputStream("src/test/default-graph.ttl"), null, "TURTLE");
+    	Assert.assertTrue("size of m", m.size()==4);
+    }
+    
 }
