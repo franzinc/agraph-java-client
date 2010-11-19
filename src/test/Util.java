@@ -16,6 +16,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
 
@@ -111,6 +112,85 @@ public class Util extends com.franz.util.Util {
             close(is);
             close(os);
         }
+    }
+    
+    public static List arrayList(Object...elements) {
+    	List list = new ArrayList();
+    	for (int i = 0; i < elements.length; i++) {
+			list.add(elements[i]);
+		}
+    	return list;
+    }
+    
+    /**
+     * List Arrays.asList, but is not varargs,
+     * also allows null (returns null), and will
+     * convert primitive arrays to List of wrapper objects.
+     * @return list or null
+     */
+    public static List toList(Object arr) {
+    	if (arr == null) {
+    		return null;
+    	}
+    	if (arr instanceof List) {
+    		return (List) arr;
+    	}
+    	if (arr instanceof Object[]) {
+    		return Arrays.asList((Object[])arr);
+    	}
+    	List list = new ArrayList();
+    	if (arr instanceof byte[]) {
+    		byte[] a = ((byte[])arr);
+    		for (int i = 0; i < a.length; i++) {
+				list.add(a[i]);
+			}
+    	} else if (arr instanceof char[]) {
+    		char[] a = ((char[])arr);
+    		for (int i = 0; i < a.length; i++) {
+    			list.add(a[i]);
+    		}
+    	} else if (arr instanceof int[]) {
+    		int[] a = ((int[])arr);
+    		for (int i = 0; i < a.length; i++) {
+    			list.add(a[i]);
+    		}
+    	} else if (arr instanceof long[]) {
+    		long[] a = ((long[])arr);
+    		for (int i = 0; i < a.length; i++) {
+    			list.add(a[i]);
+    		}
+    	} else if (arr instanceof float[]) {
+    		float[] a = ((float[])arr);
+    		for (int i = 0; i < a.length; i++) {
+    			list.add(a[i]);
+    		}
+    	} else if (arr instanceof double[]) {
+    		double[] a = ((double[])arr);
+    		for (int i = 0; i < a.length; i++) {
+    			list.add(a[i]);
+    		}
+    	} else {
+    		throw new IllegalArgumentException("type not handled: " + arr.getClass());
+    	}
+    	return list;
+    }
+    
+    public static List toListDeep(Object obj) {
+    	List in = toList(obj);
+    	if (in == null) {
+    		return null;
+    	}
+    	List out = new ArrayList(in.size());
+    	for (Object o : in) {
+    		if (o == null) {
+    			out.add(null);
+    		} else if (o instanceof List || o.getClass().isArray()) {
+        		out.add(toListDeep(o));
+    		} else {
+    			out.add(o);
+    		}
+    	}
+    	return out;
     }
     
 }
