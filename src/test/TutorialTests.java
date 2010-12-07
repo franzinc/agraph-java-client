@@ -339,8 +339,10 @@ public class TutorialTests extends AGAbstractTest {
         AGTupleQuery tupleQuery = conn.prepareTupleQuery(
                 QueryLanguage.SPARQL, "SELECT ?s ?p ?o ?g WHERE { GRAPH ?g {?s ?p ?o . } }");
         tupleQuery.setDataset(ds);
+	/* rfe10117 and rfe10294
         String analysis = tupleQuery.analyze();
         assertTrue(analysis.contains("desired") && analysis.contains("actual"));
+	*/
         assertSetsEqual(
                 stmts(new Stmt[] {
                         new Stmt(alice, RDF.TYPE, person, context1),
@@ -497,8 +499,10 @@ public class TutorialTests extends AGAbstractTest {
         
         String queryString = "select ?s ?p ?o where { ?s ?p ?o} ";
         AGTupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+	/* rfe10117 and rfe10294
         String analysis = tupleQuery.analyze();
         assertTrue(analysis.contains("desired") && analysis.contains("actual"));
+	*/
         assertSetsEqual("SELECT result:", inputs.values(),
                 statementSet(tupleQuery.evaluate()));
         
