@@ -24,19 +24,19 @@ public class BulkModeTests extends AGAbstractTest {
 
     @Test
     @Category(TestSuites.Prepush.class)
-    public void bulkMode_rfe10143() throws Exception {
+    public void bulkMode_rfe10303() throws Exception {
+    	Assert.assertFalse("expected bulkMode false", repo.isBulkMode());
     	Assert.assertTrue("expected autoCommit true", conn.isAutoCommit());
-    	Assert.assertFalse("expected bulkMode false", conn.isBulkMode());
-    	conn.setBulkMode(true);
+    	repo.setBulkMode(true);
     	Assert.assertTrue("expected autoCommit true", conn.isAutoCommit());
-    	Assert.assertTrue("expected bulkMode true", conn.isBulkMode());
+    	Assert.assertTrue("expected bulkMode true", repo.isBulkMode());
         String path1 = "src/tutorial/java-vcards.rdf";    
         URI context = vf.createURI("http://example.org#vcards");
         conn.add(new File(path1), null, RDFFormat.RDFXML, context);
         assertEquals("expected 16 vcard triples", 16, conn.size(context));
         conn.setAutoCommit(false);
         Assert.assertFalse("expected autoCommit false", conn.isAutoCommit());
-        Assert.assertTrue("expected bulkMode true", conn.isBulkMode());
+        Assert.assertTrue("expected bulkMode true", repo.isBulkMode());
         String path2 = "src/tutorial/java-kennedy.ntriples";            
         conn.add(new File(path2), null, RDFFormat.NTRIPLES);
         assertEquals("expected 1214 kennedy triples", 1214, conn.size((Resource)null));

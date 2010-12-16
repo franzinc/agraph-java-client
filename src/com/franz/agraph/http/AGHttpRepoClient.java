@@ -74,7 +74,6 @@ public class AGHttpRepoClient implements Closeable {
 	// delay using a dedicated session until necessary
 	private boolean usingDedicatedSession = false;
 	private boolean autoCommit = true;
-	private boolean bulkMode = false;
 	private String sessionRoot, repoRoot;
 
 	// TODO: choose proper defaults
@@ -486,9 +485,6 @@ public class AGHttpRepoClient implements Closeable {
 		if (serverSideURL != null) {
 			params.add(new NameValuePair(AGProtocol.URL_PARAM_NAME,
 					serverSideURL.stringValue()));
-		}
-		if (bulkMode) {
-			params.add(new NameValuePair("bulkMode","true"));
 		}
 		if (!overwrite) {
 			getHTTPClient().post(url,
@@ -1451,14 +1447,6 @@ public class AGHttpRepoClient implements Closeable {
 		} catch (IOException e) {
 			throw new RepositoryException(e);
 		}
-	}
-	
-	public void setBulkMode(boolean bulkMode) throws RepositoryException {
-		this.bulkMode = bulkMode;
-	}
-
-	public boolean isBulkMode() throws RepositoryException {
-		return bulkMode;
 	}
 	
 	public void registerEncodableNamespace(String namespace, String format)
