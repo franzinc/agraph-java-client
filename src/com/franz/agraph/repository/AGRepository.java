@@ -12,7 +12,10 @@
 package com.franz.agraph.repository;
 
 import java.io.File;
+import java.io.IOException;
 
+import org.apache.commons.httpclient.Header;
+import org.apache.commons.httpclient.NameValuePair;
 import org.openrdf.model.Value;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
@@ -20,6 +23,7 @@ import org.openrdf.query.TupleQueryResult;
 import org.openrdf.repository.RepositoryException;
 
 import com.franz.agraph.http.AGHTTPClient;
+import com.franz.agraph.http.AGHttpException;
 import com.franz.agraph.http.AGHttpRepoClient;
 import com.franz.util.Closeable;
 
@@ -161,4 +165,46 @@ public class AGRepository implements AGAbstractRepository, Closeable {
         shutDown();
     }
 
+    /**
+     * Sets the repository's bulkMode (defaults to false).
+     * 
+     * When in bulkMode, data can be added/loaded more quickly, but 
+     * there is no guarantee of durability in the event of a crash.
+     * The bulkMode setting persists when the repository is closed.
+     * 
+     * @param bulkMode a boolean indicating the bulkMode. 
+     * @throws RepositoryException
+     * @see #isBulkMode()
+     */
+	public void setBulkMode(boolean bulkMode) throws RepositoryException {
+		String url = repositoryURL + "/bulkMode";
+		Header[] headers = new Header[0];
+		NameValuePair[] data = {};
+		try {
+			if (bulkMode) {
+				getHTTPClient().put(url,headers,data,null);
+			} else {
+				getHTTPClient().delete(url,headers,data);
+			}
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		}
+	}
+
+	/**
+	 * Returns the repository's bulkMode setting.
+	 *  
+	 * @return a boolean indicating the bulkMode setting.
+	 * @throws RepositoryException
+	 * @see #setBulkMode(boolean)
+	 */
+	public boolean isBulkMode() throws RepositoryException {
+		try {
+			return Boolean.parseBoolean(getHTTPClient().getString(repositoryURL+"/bulkMode"));
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		}
+	}
 }

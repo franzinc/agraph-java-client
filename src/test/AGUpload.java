@@ -41,7 +41,7 @@ public class AGUpload {
 			try {
 				System.out.println("Loading: " + SOURCE_FILE);
 				long start = System.nanoTime();
-				conn.setBulkMode(true);
+				//repo.setBulkMode(true);
 				conn.add(new FileInputStream(SOURCE_FILE), null, RDFFormat.NTRIPLES);
 				System.out.println("Loaded: " + conn.size() + " triples in " + (System.nanoTime()-start)/1.0e9 + " seconds.");
 			} finally {

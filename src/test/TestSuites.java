@@ -55,8 +55,7 @@ public class TestSuites {
         JenaTests.class,
         BulkModeTests.class,
         IndexManagementTests.class,
-        EncodableNamespaceTests.class,
-        FederationTests.class
+        EncodableNamespaceTests.class
     })
     public static class Prepush {}
     
