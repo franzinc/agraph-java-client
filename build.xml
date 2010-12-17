@@ -259,13 +259,13 @@
     <target name="test-broken"
             depends="compile"
             description="run tests known to be broken">
-        <run-java tasknamex="test" classname="org.junit.runner.JUnitCore" arg="test.TestSuites$Broken"/>
+        <run-java tasknamex="test" classname="test.TestRunner" arg="test.TestSuites$Broken"/>
     </target>
     
     <target name="test-stress"
             depends="compile"
             description="long-running stress tests">
-        <run-java tasknamex="test" classname="org.junit.runner.JUnitCore" arg="test.TestSuites$Stress"/>
+        <run-java tasknamex="test" classname="test.TestRunner" arg="test.TestSuites$Stress"/>
     </target>
     
     <target name="test-temp"
@@ -279,8 +279,18 @@
     
     <target name="test-stress-events"
             depends="compile"
-            description="Run test.stress.Events">
-        <run-java tasknamex="ev" classname="test.stress.Events" arg="" maxmemory="512m"/>
+            description="Run events.sh with small settings">
+        <exec executable="time" failonerror="true">
+            <arg value="./events.sh"/>
+            <arg value="--load"/>
+            <arg value="2"/>
+            <arg value="--query"/>
+            <arg value="2"/>
+            <arg value="--time"/>
+            <arg value="1"/>
+            <arg value="--size"/>
+            <arg value="100000"/>
+        </exec>
     </target>
     
     <target name="tutorial"

@@ -82,7 +82,10 @@ public class TestSuites {
      */
     @RunWith(Categories.class)
     @IncludeCategory(Stress.class)
-    @SuiteClasses( { TransactionStressTest.class })
+    @ExcludeCategory(Prepush.class)
+    @SuiteClasses( { QuickTests.class,
+    	TutorialRunTests.class,
+    	TransactionStressTest.class })
     public static class Stress implements NonPrepushTest {}
     
 }
