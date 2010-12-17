@@ -360,7 +360,7 @@ public class QuickTests extends AGAbstractTest {
     }
     
     @Test
-    @Category(TestSuites.Prepush.class)
+    @Category(TestSuites.Stress.class)
     public void storedProcs_triples_rfe10189() throws Exception {
     	SProcTest sp = new SProcTest(conn);
     	Assert.assertNotNull("add-a-triple-int", sp.addATripleInt(1));

@@ -53,12 +53,12 @@ import com.franz.agraph.repository.AGValueFactory;
 
 public class TutorialExamples {
 
-    static private final String SERVER_URL = "http://localhost:10035";
-    static private final String CATALOG_ID = "java-catalog";
-    static private final String REPOSITORY_ID = "javatutorial";
-    static private final String USERNAME = "test";
-    static private final String PASSWORD = "xyzzy";
-    static private final String TEMPORARY_DIRECTORY = "";
+    public static String SERVER_URL = "http://localhost:10035";
+    public static String CATALOG_ID = "java-catalog";
+    public static String REPOSITORY_ID = "javatutorial";
+    public static String USERNAME = "test";
+    public static String PASSWORD = "xyzzy";
+    public static String TEMPORARY_DIRECTORY = "";
 
     static final String FOAF_NS = "http://xmlns.com/foaf/0.1/";
 
@@ -73,7 +73,7 @@ public class TutorialExamples {
         println("Server build date: " + server.getBuildDate());
         println("Server revision: " + server.getRevision());
         println("Available catalogs: " + server.listCatalogs());
-        AGCatalog catalog = server.getRootCatalog();          // open rootCatalog
+        AGCatalog catalog = server.getCatalog(CATALOG_ID);          // open catalog
         println("Available repositories in catalog " + 
                 (catalog.getCatalogName()) + ": " + 
                 catalog.listRepositories());
