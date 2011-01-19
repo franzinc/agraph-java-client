@@ -895,12 +895,24 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	 * conform to a specified format; the namespace is thereby 
 	 * bounded in size, and encodable.
 	 * 
+	 * The namespace is any valid URIref, e.g.: 
+	 * 
+	 * http://franz.com/ns0
+	 * 
 	 * The format is a string using a simplified regular expression
 	 * syntax supporting character ranges and counts specifying the
-	 * suffix portion of the URI's in the namespace. 
+	 * suffix portion of the URIs in the namespace, e.g: 
 	 * 
-	 * E.g.,  [a-z][0-9]-[a-f]{3}
+	 * [a-z][0-9]-[a-f]{3}
 	 * 
+	 * Generation of unique URIs {@link AGValueFactory#generateURI(String)}
+	 * for the above namespace and format might yield an ID such as:
+	 *  
+	 * http://franz.com/ns0@#a0-aaa
+	 * 
+	 * Note: "@#" is used to concatenate the namespace and id suffix
+	 * to facilitate efficient recognition/encoding during parsing.
+	 *    
 	 * The format can be ambiguous (e.g., "[A-Z]{1,2}[B-C}{0,1}").
 	 * We will not check for ambiguity in this first version but can
 	 * add this checking at a later time. 
