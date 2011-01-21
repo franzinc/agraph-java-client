@@ -1016,8 +1016,8 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	 * 
 	 * Lifetime is the maximum allowable idle time, in seconds.  A session 
 	 * expires when its lifetime is exceeded, freeing up server resources.
-	 * Operations such as {@link #setAutoCommit(false)}, {@link #addRules(String)}, 
-	 * and {@link #registerSNAGenerator(String, List, List, List, String)}
+	 * Operations such as setting autoCommit to false in {@link #setAutoCommit(boolean)}, 
+	 * {@link #addRules(String)}, and {@link #registerSNAGenerator(String, List, List, List, String)}
 	 * automatically spawn a dedicated session in order to perform their 
 	 * duties.
 	 * 
