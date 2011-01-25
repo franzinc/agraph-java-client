@@ -58,7 +58,8 @@ public class TestSuites {
         EncodableNamespaceTests.class,
         FederationTests.class,
         SessionLifetimeTests.class,
-        SpogiTripleCacheTests.class
+        SpogiTripleCacheTests.class,
+        UploadCommitPeriodTests.class
     })
     public static class Prepush {}
     

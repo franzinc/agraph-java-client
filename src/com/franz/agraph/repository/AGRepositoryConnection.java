@@ -1067,4 +1067,27 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
  	public void disableTripleCache() throws RepositoryException {
  		getHttpRepoClient().disableTripleCache();
  	}
+ 	
+ 	/**
+ 	 * Sets the commit period to use within large add/load operations.
+ 	 * 
+ 	 * @param period commit after this many statements
+ 	 * @throws RepositoryException
+ 	 * @see AGHttpRepoClient#setUploadCommitPeriod(int)
+ 	 */
+ 	public void setUploadCommitPeriod(int period) throws RepositoryException {
+ 		getHttpRepoClient().setUploadCommitPeriod(period);
+ 		
+ 	}
+ 	
+ 	/**
+	 * Gets the commit period used within large add/load operations.
+	 * 
+ 	 * @throws RepositoryException
+ 	 * @see AGHttpRepoClient#getUploadCommitPeriod()
+ 	 */
+ 	public int getUploadCommitPeriod() throws RepositoryException {
+ 		return getHttpRepoClient().getUploadCommitPeriod();
+ 		
+ 	}
 }
