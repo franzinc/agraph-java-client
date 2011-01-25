@@ -99,6 +99,7 @@ public class AGHttpRepoClient implements Closeable {
 	// delay using a dedicated session until necessary
 	private boolean usingDedicatedSession = false;
 	private boolean autoCommit = true;
+	private int uploadCommitPeriod = 0;
 	private String sessionRoot, repoRoot;
 
 	// TODO: choose proper defaults
@@ -110,6 +111,7 @@ public class AGHttpRepoClient implements Closeable {
 	private Repository repo;
 
 	public ConcurrentLinkedQueue<String> savedQueryDeleteQueue;
+
 
     public AGHttpRepoClient(Repository repo, AGHTTPClient client, String repoRoot, String sessionRoot) {
 		this.repo = repo;
@@ -348,6 +350,40 @@ public class AGHttpRepoClient implements Closeable {
 		return autoCommit; // TODO: let the server track this?
 	}
 
+	/**
+	 * Sets the commit period to use when uploading statements.
+	 * 
+	 * Causes a commit to happen after every period=N added statements
+	 * inside a call to 
+	 * 
+	 * {@link #upload(String, RequestEntity, String, boolean, String, URI, RDFFormat, Resource...)}
+	 * 
+	 * Defaults to period=0, meaning that no commits are done in an upload.
+	 * 
+	 * Setting period>0 can be used to work around the fact that 
+	 * uploading a huge amount of statements in a single transaction 
+	 * will require excessive amounts of memory.
+	 * 
+	 * @param period A non-negative integer. 
+	 * @see #getUploadCommitPeriod(int)
+	 */
+	public void setUploadCommitPeriod(int period) {
+		if (period < 0) {
+			throw new IllegalArgumentException("upload commit period must be non-negative.");
+		}
+		uploadCommitPeriod = period;
+	}
+	
+	/**
+	 * Gets the commit period used when uploading statements.
+	 * 
+	 * @return
+	 * @see #setUploadCommitPeriod(int)
+	 */
+	public int getUploadCommitPeriod() {
+		return uploadCommitPeriod;
+	}
+	
 	public void commit() throws RepositoryException {
 		String url = getRoot() + "/" + AGProtocol.COMMIT;
 		Header[] headers = {};
@@ -522,6 +558,9 @@ public class AGHttpRepoClient implements Closeable {
 			String encodedBaseURI = Protocol.encodeValue(new URIImpl(baseURI));
 			params.add(new NameValuePair(Protocol.BASEURI_PARAM_NAME,
 					encodedBaseURI));
+		}
+		if (uploadCommitPeriod>0) {
+			params.add(new NameValuePair("commit",Integer.toString(uploadCommitPeriod)));
 		}
 		if (serverSideFile != null && serverSideFile.trim().length() != 0) {
 			params.add(new NameValuePair(AGProtocol.FILE_PARAM_NAME,
