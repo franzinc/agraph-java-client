@@ -1,5 +1,5 @@
 /******************************************************************************
-** Copyright (c) 2008-2010 Franz Inc.
+** Copyright (c) 2008-2011 Franz Inc.
 ** All rights reserved. This program and the accompanying materials
 ** are made available under the terms of the Eclipse Public License v1.0
 ** which accompanies this distribution, and is available at
@@ -341,8 +341,12 @@ public class AGHttpRepoClient implements Closeable {
 			throw new RepositoryException(e);
 		} catch (RDFParseException e) {
 			throw new RepositoryException(e);
+		} catch (java.net.ConnectException e) {
+			// To test this exception, setup remote server and only open port to
+			// the main port, not the SessionPorts and run TutorialTest.example6()
+			throw new RepositoryException("Session port connection failure. Consult the Server Installation document for correct settings for SessionPorts. Url: " + url, e);
 		} catch (IOException e) {
-			throw new RepositoryException(e);
+			throw new RepositoryException("Possible session port connection failure. Consult the Server Installation document for correct settings for SessionPorts. Url: " + url, e);
 		}
 	}
 
