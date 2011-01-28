@@ -2,6 +2,6 @@
 
 java -cp classes:agraph.jar\
 :lib/commons-cli-1.2.jar\
-:lib/sesame-2.3.1/*\
+:lib/sesame-2.3.2/*\
 :lib/json.jar\
  test.stress.Events $*
