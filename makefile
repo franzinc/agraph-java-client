@@ -72,8 +72,8 @@ endif
 	cp agraph.jar $(DIST)/lib/agraph-$(VERSION).jar
 	cp agraph-src.jar $(DIST)/lib/agraph-$(VERSION)-src.jar
 	cp lib/json.jar $(DIST)/lib/json.jar
-	mkdir -p $(DIST)/lib/sesame-2.3.1
-	cp lib/sesame-2.3.1/*.jar $(DIST)/lib/sesame-2.3.1
+	mkdir -p $(DIST)/lib/sesame-2.3.2
+	cp lib/sesame-2.3.2/*.jar $(DIST)/lib/sesame-2.3.2
 	mkdir -p $(DIST)/lib/jena-2.6.2
 	cp lib/jena-2.6.2/*.jar $(DIST)/lib/jena-2.6.2
 	mkdir -p $(DIST)/doc
