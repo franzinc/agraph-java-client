@@ -16,6 +16,7 @@ import org.openrdf.repository.RepositoryException;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFParseException;
 
+import com.franz.agraph.repository.AGRDFFormat;
 import com.franz.agraph.repository.AGValueFactory;
 import com.franz.util.Closeable;
 import com.hp.hpl.jena.rdf.model.AnonId;
@@ -52,9 +53,11 @@ public class AGModel extends ModelCom implements Model, Closeable {
 			format = RDFFormat.RDFXML;
 		} else if (lang.contains("TURTLE")) {
 			format = RDFFormat.TURTLE;
+		} else if (lang.contains("QUADS")) {
+			format = AGRDFFormat.NQUADS;
 		} else {
 			// TODO: add other supported formats and improve this error message
-			throw new IllegalArgumentException("Unsupported format: " + lang + " (expected RDF/XML, N-TRIPLE, or TURTLE).");
+			throw new IllegalArgumentException("Unsupported format: " + lang + " (expected RDF/XML, N-TRIPLE, TURTLE, or NQUADS).");
 		}
 		try {
 			getGraph().getConnection().add(reader, base, format, getGraph().getGraphContext());

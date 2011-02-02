@@ -60,7 +60,8 @@ public class TestSuites {
         FederationTests.class,
         SessionLifetimeTests.class,
         SpogiTripleCacheTests.class,
-        UploadCommitPeriodTests.class
+        UploadCommitPeriodTests.class,
+        NQuadsTests.class
     })
     public static class Prepush {}
     
