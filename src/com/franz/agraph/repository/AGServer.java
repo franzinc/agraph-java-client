@@ -133,19 +133,22 @@ public class AGServer implements Closeable {
 	/**
 	 * Gets the catalog instance for a given catalog id.
 	 * 
-	 * Returns the root catalog if the id is a root id.
+	 * Returns the root catalog if the id is a root id.  If
+	 * the catalog Id is not found on the server,  returns
+	 * null.
 	 *    
 	 * @param catalogID a catalog id.
 	 * @return the corresponding catalog instance.
+	 * @throws AGHttpException
 	 */
-	public AGCatalog getCatalog(String catalogID) {
-		AGCatalog catalog;
+	public AGCatalog getCatalog(String catalogID) throws AGHttpException {
 		if (AGCatalog.isRootID(catalogID)) {
-			catalog = getRootCatalog();
+			return rootCatalog;
+		} else if (hasCatalog(catalogID)) {
+			return new AGCatalog(this, catalogID);
 		} else {
-			catalog = new AGCatalog(this, catalogID);
+			return null;
 		}
-		return catalog;
 	}
 
 	/**
@@ -155,6 +158,59 @@ public class AGServer implements Closeable {
 	 */
 	public AGCatalog getCatalog() {
 		return rootCatalog;
+	}
+
+	/**
+	 * Returns an AGCatalog instance for the given catalogID.
+	 * 
+	 * If the catalog already exists on the server, an AGCatalog
+	 * instance is simply returned.  If the catalog does not exist,
+	 * it is created if the server has been configured to allow 
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/daemon-config.html#DynamicCatalogs">
+	 * dynamic catalogs</a>; otherwise, an exception is thrown.
+	 * 
+	 * @param catalogID the id (the name) of the catalog
+	 * @return an AGCatalog instance.
+	 * @throws AGHttpException
+	 */
+	public AGCatalog createCatalog(String catalogID) throws AGHttpException {
+		AGCatalog catalog = getCatalog(catalogID);
+		if (catalog==null) {
+			String catalogURL = AGProtocol.getNamedCatalogLocation(getServerURL(), catalogID);
+			getHTTPClient().putCatalog(catalogURL);
+			catalog = new AGCatalog(this, catalogID);
+		}
+		return catalog;
+	}
+	
+	/**
+	 * Returns true if the catalog id is known to the server.
+	 * 
+	 * @return true if the catalog id is known to the server.
+	 * @throws AGHttpException
+	 */
+	public boolean hasCatalog(String catalogId) throws AGHttpException {
+		List<String> catalogs;
+		try {
+			catalogs = listCatalogs();
+		} catch (OpenRDFException e) {
+			throw new AGHttpException(e.getMessage());
+		}
+		return catalogs.contains(catalogId);
+	}
+
+	/**
+	 * Deletes any catalog with the given repository id.
+	 * 
+	 * This method only applies to dynamically created catalogs.
+	 * 
+	 * @param catalogID the name of the catalog to delete.
+	 * @throws AGHttpException 
+	 */
+	public void deleteCatalog(String catalogID) throws AGHttpException {
+		String catalogURL = AGProtocol.getNamedCatalogLocation(getServerURL(),
+				catalogID);
+		getHTTPClient().deleteCatalog(catalogURL);
 	}
 
 	/**
