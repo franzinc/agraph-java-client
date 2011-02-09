@@ -264,6 +264,29 @@ public class AGHttpRepoClient implements Closeable {
 		}
 	}
 
+	public void getStatements(RDFHandler handler, String... ids) throws IOException, RDFHandlerException, 
+	RepositoryException, UnauthorizedException {
+		String uri = Protocol.getStatementsLocation(getRoot())+"/id";
+		Header[] headers = { new Header(ACCEPT_PARAM_NAME,
+				getPreferredRDFFormat().getDefaultMIMEType()) };
+		
+		List<NameValuePair> params = new ArrayList<NameValuePair>(5);
+		for (String id : ids) {
+			params.add(new NameValuePair("id", id));
+		}
+		
+		try {
+			getHTTPClient()
+			.get(
+					uri,
+					headers,
+					params.toArray(new NameValuePair[params.size()]),
+					new AGResponseHandler(repo, handler, getPreferredRDFFormat()));
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		}
+	}
+	
 	public void addStatements(Resource subj, URI pred, Value obj,
 			Resource... contexts) throws IOException, RepositoryException,
 			UnauthorizedException {
