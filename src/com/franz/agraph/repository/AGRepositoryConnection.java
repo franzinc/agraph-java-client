@@ -301,6 +301,15 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		}
 	}
 
+	public void exportStatements(RDFHandler handler, String... ids)
+	throws RDFHandlerException, RepositoryException {
+		try {
+			getHttpRepoClient().getStatements(handler, ids);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+	}
+	
 	public RepositoryResult<Resource> getContextIDs()
 			throws RepositoryException {
 		try {
@@ -392,6 +401,33 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		}
 	}
 
+	/**
+	 * Returns statements having the specified ids.
+	 *  
+	 * This api is subject to change.  There is currently no 
+	 * natural way to obtain a statement's triple id from the 
+	 * java client; when that is possible, this api may change.
+	 * 
+	 * @param ids Strings representing statement ids.
+	 * @return The statements having the specified ids. The result object
+	 *         is a {@link RepositoryResult} object, a lazy Iterator-like object
+	 *         containing {@link Statement}s and optionally throwing a
+	 *         {@link RepositoryException} when an error when a problem occurs
+	 *         during retrieval.
+	 * @throws RepositoryException
+	 */
+	public RepositoryResult<Statement> getStatements(String... ids)
+			throws RepositoryException {
+		try {
+			StatementCollector collector = new StatementCollector();
+			exportStatements(collector, ids);
+			return createRepositoryResult(collector.getStatements());
+		} catch (RDFHandlerException e) {
+			// found a bug in StatementCollector?
+			throw new RuntimeException(e);
+		}
+	}
+	
 	/**
 	 * Unsupported method, throws an {@link UnsupportedOperationException}.
 	 */
