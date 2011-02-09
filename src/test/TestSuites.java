@@ -67,7 +67,8 @@ public class TestSuites {
         UploadCommitPeriodTests.class,
         NQuadsTests.class,
         AGGraphQueryTests.class,
-        QueryLimitOffsetTests.class
+        QueryLimitOffsetTests.class,
+        DynamicCatalogTests.class
     })
     public static class Prepush {}
     
