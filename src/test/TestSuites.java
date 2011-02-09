@@ -63,7 +63,8 @@ public class TestSuites {
     	ServerCodeTests.class,
         SpogiTripleCacheTests.class,
         UploadCommitPeriodTests.class,
-        NQuadsTests.class
+        NQuadsTests.class,
+        DynamicCatalogTests.class
     })
     public static class Prepush {}
     

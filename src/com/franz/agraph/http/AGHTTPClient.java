@@ -296,6 +296,24 @@ implements Closeable {
 	 * Services  *
 	 *-----------*/
 
+	public void putCatalog(String catalogURL) throws IOException,
+	UnauthorizedException, AGHttpException {
+		Header[] headers = new Header[0];
+		NameValuePair[] params = new NameValuePair[0];
+		put(catalogURL,headers,params,null);
+	}
+	
+	public void deleteCatalog(String catalogURL) throws IOException,
+	UnauthorizedException, AGHttpException {
+		Header[] headers = new Header[0];
+		NameValuePair[] params = new NameValuePair[0];
+		try {
+			delete(catalogURL, headers, params);
+		} catch (RepositoryException e) {
+			throw new AGHttpException(e.getMessage());
+		}
+	}
+	
 	public void putRepository(String repositoryURL) throws IOException,
 			RepositoryException, UnauthorizedException, AGHttpException {
 		Header[] headers = new Header[0];
