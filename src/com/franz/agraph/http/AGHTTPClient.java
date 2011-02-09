@@ -301,6 +301,19 @@ implements Closeable {
 	 * Services  *
 	 *-----------*/
 
+	public void putCatalog(String catalogURL) throws AGHttpException {
+		if (logger.isDebugEnabled()) logger.debug("putCatalog: " + catalogURL);
+		Header[] headers = new Header[0];
+		NameValuePair[] params = new NameValuePair[0];
+		put(catalogURL,headers,params,null);
+	}
+	
+	public void deleteCatalog(String catalogURL) throws AGHttpException {
+		Header[] headers = new Header[0];
+		NameValuePair[] params = new NameValuePair[0];
+		delete(catalogURL, headers, params);
+	}
+	
 	public void putRepository(String repositoryURL) throws AGHttpException {
 		if (logger.isDebugEnabled()) logger.debug("putRepository: " + repositoryURL);
 		Header[] headers = new Header[0];
