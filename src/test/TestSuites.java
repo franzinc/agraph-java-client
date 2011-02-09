@@ -75,6 +75,7 @@ public class TestSuites {
         AGConnPoolSessionTest.class,
         BlankNodeTests.class,
         MappingsTests.class,
+        DynamicCatalogTests.class,
         SpinTest.class
     })
     public static class Prepush {}
