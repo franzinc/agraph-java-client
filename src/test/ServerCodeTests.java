@@ -10,6 +10,7 @@ package test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static test.Stmt.statementSet;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,8 +21,9 @@ import junit.framework.Assert;
 import org.apache.commons.httpclient.methods.FileRequestEntity;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.openrdf.model.Statement;
+import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.query.TupleQuery;
 import org.openrdf.query.TupleQueryResult;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFHandlerException;
@@ -30,12 +32,15 @@ import org.openrdf.rio.RDFParser;
 import org.openrdf.rio.Rio;
 import org.openrdf.rio.helpers.StatementCollector;
 
+import tutorial.TutorialExamples;
+
 import com.franz.agraph.http.AGDecoder;
 import com.franz.agraph.http.AGDeserializer;
 import com.franz.agraph.http.AGEncoder;
 import com.franz.agraph.http.AGHTTPClient;
 import com.franz.agraph.http.AGSerializer;
 import com.franz.agraph.repository.AGCustomStoredProcException;
+import com.franz.agraph.repository.AGQueryLanguage;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
 
@@ -60,11 +65,27 @@ public class ServerCodeTests extends AGAbstractTest {
 			http().put(server.getServerURL() + "/scripts/" + path, null, null,
 					new FileRequestEntity(script, "text/plain"));
 		}
+		
+		public TupleQueryResult initFile() throws Exception {
+	    	return http().getTupleQueryResult(server.getServerURL() + "/initfile");
+		}
+
+		public void putInitFile(File script) throws Exception {
+			http().put(server.getServerURL() + "/initfile", null, null,
+					new FileRequestEntity(script, "text/plain"));
+		}
+		
+		public void deleteInitFile() throws Exception {
+	    	http().delete(server.getServerURL() + "/initfile", null, null);
+		}
+
 	}
-	
+
+	private static AGServerCode serverCode;
+
     @BeforeClass
     public static void installScripts() throws Exception {
-    	AGServerCode serverCode = new AGServerCode(server);
+    	serverCode = new AGServerCode(server);
     	serverCode.putScript(SProcTest.FASL, new File("src/test/ag-test-stored-proc.cl"));
     }
 
@@ -242,5 +263,69 @@ public class ServerCodeTests extends AGAbstractTest {
     	// TODO: change the expected return value when that is known
     	//Assert.assertNotNull("add-a-triple", sp.addATriple(vf.createURI("http://test.com/s"), vf.createURI("http://test.com/p"), vf.createURI("http://test.com/p")));
     }
+    
+    /**
+     * @see TutorialExamples#example18()
+     * @see TutorialTests#example18()
+     */
+    public TupleQuery rfe10256_setup() throws Exception{
+        TutorialTests.example6_setup(conn, repo);
+        conn.setNamespace("kdy", "http://www.franz.com/simple#");
+        conn.setNamespace("rltv", "http://www.franz.com/simple#");
+        // The rules are already loaded in initFile, so this line is commented:
+        // conn.addRules(new FileInputStream("src/tutorial/java-rules.txt"));
+        String queryString = 
+        	"(select (?ufirst ?ulast ?cfirst ?clast)" +
+            "(uncle ?uncle ?child)" +
+            "(name ?uncle ?ufirst ?ulast)" +
+            "(name ?child ?cfirst ?clast))";
+    	return conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
+    }
 
+    @Test
+    public void rfe10256_loadInitFile() throws Exception{
+        serverCode.deleteInitFile(); // clean before test
+        
+    	serverCode.putInitFile(new File("src/tutorial/java-rules.txt"));
+    	// note, setSessionLoadInitFile must be done before setAutoCommit in example6_setup
+    	conn.setSessionLoadInitFile(true);
+    	TupleQuery tupleQuery = rfe10256_setup();
+        assertEquals(52, statementSet(tupleQuery.evaluate()).size());
+    }
+    
+    @Test
+    public void rfe10256_doNotPut_InitFile() throws Exception{
+        serverCode.deleteInitFile(); // clean before test
+        
+    	TupleQuery tupleQuery = rfe10256_setup();
+    	try {
+        	tupleQuery.evaluate();
+        	fail("expected QueryEvaluationException");
+        } catch (QueryEvaluationException e) {
+        	if (e.getMessage().contains("attempt to call `#:uncle/2' which is an undefined function. (500)")) {
+        		// good
+        	} else {
+        		throw e;
+        	}
+        }
+    }
+    
+    @Test
+    public void rfe10256_doNotUse_InitFile() throws Exception{
+        serverCode.deleteInitFile(); // clean before test
+        
+    	serverCode.putInitFile(new File("src/tutorial/java-rules.txt"));
+    	TupleQuery tupleQuery = rfe10256_setup();
+        try {
+        	tupleQuery.evaluate();
+        	fail("expected QueryEvaluationException");
+        } catch (QueryEvaluationException e) {
+        	if (e.getMessage().contains("attempt to call `#:uncle/2' which is an undefined function. (500)")) {
+        		// good
+        	} else {
+        		throw e;
+        	}
+        }
+    }
+    
 }

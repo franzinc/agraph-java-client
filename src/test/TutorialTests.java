@@ -203,8 +203,7 @@ public class TutorialTests extends AGAbstractTest {
                 f.createLiteral("1984-12-06T09:00:00",XMLSchema.DATETIME), false)));
     }
     
-    @Test
-    public void example6() throws Exception {
+    public static URI example6_setup(AGRepositoryConnection conn, AGRepository repo) throws Exception {
         conn.clear();
         conn.setAutoCommit(false);  // dedicated session
         assertEquals(0, conn.size());
@@ -217,6 +216,12 @@ public class TutorialTests extends AGAbstractTest {
         conn.add(new File(path1), baseURI, RDFFormat.RDFXML, context);
         // read Kennedy triples into the null context:
         conn.add(new File(path2), baseURI, RDFFormat.NTRIPLES);
+        return context;
+    }
+    
+    @Test
+    public void example6() throws Exception {
+    	URI context = example6_setup(conn, repo);
         assertEquals(16, conn.size(context));
         assertEquals(1214, conn.size((Resource)null));
         assertEquals(1230, conn.size());

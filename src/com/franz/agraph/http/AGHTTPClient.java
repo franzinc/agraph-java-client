@@ -161,10 +161,14 @@ implements Closeable {
 			throws HttpException, IOException, RepositoryException {
 		DeleteMethod delete = new DeleteMethod(url);
 		setDoAuthentication(delete);
-		for (Header header : headers) {
-			delete.addRequestHeader(header);
+		if (headers != null) {
+			for (Header header : headers) {
+				delete.addRequestHeader(header);
+			}
 		}
-		delete.setQueryString(params);
+		if (params != null) {
+			delete.setQueryString(params);
+		}
 		try {
 			int httpCode = getHttpClient().executeMethod(delete);
 			if (httpCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
