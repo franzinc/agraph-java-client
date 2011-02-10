@@ -1,5 +1,5 @@
 /******************************************************************************
-** Copyright (c) 2008-2010 Franz Inc.
+** Copyright (c) 2008-2011 Franz Inc.
 ** All rights reserved. This program and the accompanying materials
 ** are made available under the terms of the Eclipse Public License v1.0
 ** which accompanies this distribution, and is available at
@@ -13,6 +13,7 @@ import static org.junit.Assert.assertTrue;
 import static test.Util.ifBlank;
 import static test.Util.or;
 import static test.Util.readLines;
+import info.aduna.iteration.CloseableIteration;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -31,7 +32,6 @@ import org.junit.BeforeClass;
 import org.openrdf.model.Statement;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.RepositoryResult;
 
 import com.franz.agraph.repository.AGAbstractRepository;
 import com.franz.agraph.repository.AGCatalog;
@@ -282,18 +282,18 @@ public class AGAbstractTest extends Closer {
         }
     }
 
-    public void println(Object x) {
-        System.out.println(x);
+    public static void println(Object x) {
+    	System.out.println(x);
     }
     
-    public void printRows(RepositoryResult<Statement> rows) throws Exception {
+    public static void printRows(CloseableIteration rows) throws Exception {
         while (rows.hasNext()) {
             println(rows.next());
         }
         close(rows);
     }
 
-    public void printRows(String headerMsg, int limit, RepositoryResult<Statement> rows) throws Exception {
+    public static void printRows(String headerMsg, int limit, CloseableIteration rows) throws Exception {
         println(headerMsg);
         int count = 0;
         while (count < limit && rows.hasNext()) {

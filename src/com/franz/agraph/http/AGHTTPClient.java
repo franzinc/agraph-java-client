@@ -1,5 +1,5 @@
 /******************************************************************************
-** Copyright (c) 2008-2010 Franz Inc.
+** Copyright (c) 2008-2011 Franz Inc.
 ** All rights reserved. This program and the accompanying materials
 ** are made available under the terms of the Eclipse Public License v1.0
 ** which accompanies this distribution, and is available at
@@ -182,12 +182,17 @@ implements Closeable {
 	public void put(String url, Header[] headers, NameValuePair[] params, RequestEntity requestEntity) throws IOException, AGHttpException, UnauthorizedException {
 		PutMethod put = new PutMethod(url);
 		setDoAuthentication(put);
-		for (Header header : headers) {
-			put.addRequestHeader(header);
+		if (headers != null) {
+			for (Header header : headers) {
+				put.addRequestHeader(header);
+			}
 		}
-		put.setQueryString(params);
-		if (requestEntity != null)
+		if (params != null) {
+			put.setQueryString(params);
+		}
+		if (requestEntity != null) {
 			put.setRequestEntity(requestEntity);
+		}
 		try {
 			int httpCode = getHttpClient().executeMethod(put);
 			if (httpCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
