@@ -1,5 +1,5 @@
 /******************************************************************************
-** Copyright (c) 2008-2010 Franz Inc.
+** Copyright (c) 2008-2011 Franz Inc.
 ** All rights reserved. This program and the accompanying materials
 ** are made available under the terms of the Eclipse Public License v1.0
 ** which accompanies this distribution, and is available at
@@ -51,7 +51,54 @@ import com.franz.agraph.http.AGResponseHandler;
 import com.franz.util.Closeable;
 
 /**
- * Implements the Sesame RepositoryConnection interface for AllegroGraph.
+ * Implements the <a href="http://www.openrdf.org/">Sesame</a>
+ * {@link RepositoryConnection} interface for AllegroGraph.
+ * 
+ * <p>By default, a connection is {@link #setAutoCommit(boolean) autoCommit}=true.
+ * For ACID transactions, a session must be created.</p>
+ * 
+ * <h3><a name="sessions">Session Overview</a></h3>
+ * 
+ * <p>Sessions with AllegroGraph server are used for ACID transactions
+ * and also for server code in InitFile and Scripts.
+ * See more documentation for
+ * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#sessions"
+ * target="_top">Sessions in the AllegroGraph HTTP Protocol</a> and
+ * <a href="http://www.franz.com/agraph/support/documentation/v4/agraph-introduction.html#ACID"
+ * target="_top">ACID transactions</a> in the AllegroGraph Server documentation.</p>
+ * 
+ * <p>Operations such as setting autoCommit to false in
+ * {@link #setAutoCommit(boolean) setAutoCommit},
+ * {@link #addRules(String) addRules}, and
+ * {@link #registerSNAGenerator(String, List, List, List, String) registerSNAGenerator}
+ * will spawn a dedicated session in order to perform their duties.
+ * Adds and deletes during a session must be {@link #commit() committed}
+ * or {@link #rollback() rolled back}.</p>
+ * 
+ * <p>A session expires when its idle {@link #setSessionLifetime(int) lifetime}
+ * is exceeded, freeing up server resources.
+ * A session lifetime may be extended by calling {@link #ping() ping}.
+ * A session should be {@link #close() closed} when finished.
+ * </p>
+ * 
+ * <p>{@link #setSessionLoadInitFile(boolean) InitFiles} are loaded into
+ * the server only for sessions.  See
+ * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#scripting"
+ * target="_top">Scripting in HTTP Protocol</a> and
+ * <a href="http://www.franz.com/agraph/support/documentation/v4/agwebview.html"
+ * target="_top">search for "InitFile" in WebView</a> for how to create initFiles.
+ * </p>
+ * 
+ * <p>Session methods:<ul>
+ * <li>{@link #setAutoCommit(boolean)}</li>
+ * <li>{@link #commit()} and {@link #rollback()}</li>
+ * <li>{@link #addRules(String)}</li>
+ * <li>{@link #registerSNAGenerator(String, List, List, List, String)}</li>
+ * <li>{@link #ping()}</li>
+ * <li>{@link #setSessionLifetime(int)} and {@link #getSessionLifetime()}</li>
+ * <li>{@link #setSessionLoadInitFile(boolean)}</li>
+ * <li>{@link #close()}</li>
+ * </ul></p>
  */
 public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		RepositoryConnection, Closeable {
@@ -689,10 +736,15 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 
 	/**
 	 * Instructs the server to extend the life of this connection's dedicated
-	 * session, if it is using one. Such connections that are idle for 3600
+	 * session, if it is using one. Such connections that are idle for
+	 * 
+	 * 3600
 	 * seconds will be closed by the server.
 	 * 
+	 * <p>See also: <a href="#sessions">Session overview</a>.</p>
+	 * 
 	 * @throws RepositoryException
+	 * @see #setSessionLifetime(int)
 	 */
 	public void ping() throws RepositoryException {
 		getHttpRepoClient().ping();
@@ -1013,15 +1065,14 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 
 	/**
 	 * Sets the 'lifetime' for a dedicated session spawned by this connection.
+	 * Seconds a session can be idle before being collected.
+	 * This method does not create a session.
 	 * 
-	 * Lifetime is the maximum allowable idle time, in seconds.  A session 
-	 * expires when its lifetime is exceeded, freeing up server resources.
-	 * Operations such as setting autoCommit to false in {@link #setAutoCommit(boolean)}, 
-	 * {@link #addRules(String)}, and {@link #registerSNAGenerator(String, List, List, List, String)}
-	 * automatically spawn a dedicated session in order to perform their 
-	 * duties.
+	 * <p>See also: <a href="#sessions">Session overview</a>.</p>
 	 * 
 	 * @param lifetimeInSeconds the session lifetime, in seconds.
+	 * @see #getSessionLifetime()
+	 * @see #ping()
 	 */
 	public void setSessionLifetime(int lifetimeInSeconds) {
 		getHttpRepoClient().setSessionLifetime(lifetimeInSeconds);
@@ -1031,10 +1082,24 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	 * Returns the lifetime for a dedicated session spawned by this connection.
 	 * 
 	 * @see #setSessionLifetime(int)
+	 * @see #ping()
 	 * @return the session lifetime, in seconds.
 	 */
 	public int getSessionLifetime() {
 		return getHttpRepoClient().getSessionLifetime();
+	}
+	
+	/**
+	 * Sets the 'loadInitFile' for a dedicated session spawned by this connection.
+	 * This method does not create a session.
+	 * 
+	 * <p>loadInitFile is a boolean, defaulting to false, which determines
+	 * whether the initfile is loaded into this session.</p>
+	 * 
+	 * <p>See also: <a href="#sessions">Session overview</a>.</p>
+	 */
+	public void setSessionLoadInitFile(boolean loadInitFile) {
+		getHttpRepoClient().setSessionLoadInitFile(loadInitFile);
 	}
 	
 	/**

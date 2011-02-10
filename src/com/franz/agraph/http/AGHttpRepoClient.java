@@ -101,6 +101,7 @@ public class AGHttpRepoClient implements Closeable {
 	private boolean autoCommit = true;
 	private int uploadCommitPeriod = 0;
 	private String sessionRoot, repoRoot;
+	private boolean loadInitFile = false;
 
 	// TODO: choose proper defaults
 	private TupleQueryResultFormat preferredTQRFormat = TupleQueryResultFormat.SPARQL;
@@ -145,6 +146,20 @@ public class AGHttpRepoClient implements Closeable {
 		return lifetimeInSeconds;
 	}
 	
+	/**
+	 * Sets the 'loadInitFile' for a dedicated session spawned by this instance.
+	 */
+	public void setSessionLoadInitFile(boolean loadInitFile) {
+		this.loadInitFile = loadInitFile;
+	}
+	
+	/**
+	 * Returns the 'loadInitFile' for a dedicated session spawned by this instance.
+	 */
+	public boolean getSessionLoadInitFile() {
+		return loadInitFile;
+	}
+	
 	public TupleQueryResultFormat getPreferredTQRFormat() {
 		return preferredTQRFormat;
 	}
@@ -186,6 +201,8 @@ public class AGHttpRepoClient implements Closeable {
 			NameValuePair[] data = {
 					new NameValuePair(AGProtocol.LIFETIME_PARAM_NAME, Integer
 							.toString(lifetimeInSeconds)),
+					new NameValuePair(AGProtocol.LOAD_INIT_FILE_PARAM_NAME, Boolean
+							.toString(loadInitFile)),
 					new NameValuePair(AGProtocol.AUTOCOMMIT_PARAM_NAME, Boolean
 							.toString(autoCommit)) };
 			AGResponseHandler handler = new AGResponseHandler("");

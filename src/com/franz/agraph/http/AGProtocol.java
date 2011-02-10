@@ -67,6 +67,11 @@ public class AGProtocol extends Protocol {
 	public static final String LIFETIME_PARAM_NAME = "lifetime";
 	
 	/**
+	 * Parameter name for the 'loadInitFile' parameter for sessions.
+	 */
+	public static final String LOAD_INIT_FILE_PARAM_NAME = "loadInitFile";
+	
+	/**
 	 * Parameter name for the 'autoCommit' parameter for sessions.
 	 */
 	public static final String AUTOCOMMIT_PARAM_NAME = "autoCommit";
