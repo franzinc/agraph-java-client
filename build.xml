@@ -7,6 +7,8 @@
     <property name="env.AGRAPH_PORT" value=""/>
     <property name="env.root" value=""/>
 
+    <property name="DIST" value="DIST"/>
+
     <!-- Version is parameterized instead of hard-coded in multiple places. -->
     <!-- This same algorithm is in clojure/project.clj -->
     <!-- VERSION and env.version are set in makefile. -->
@@ -55,6 +57,7 @@
     <target name="init">
         <tstamp/>
         <mkdir dir="${build}"/>
+        <mkdir dir="target"/>
     </target>
     
     <target name="clean"
@@ -63,6 +66,7 @@
         <delete file="${jarfile}"/>
         <delete file="${srcjarfile}"/>
         <delete dir="doc"/>
+        <delete dir="target"/>
         <delete file="agraph-java-client-test.jar"/>
         <ant dir="clojure" target="clean" inheritall="false"/>
     </target>
@@ -105,7 +109,7 @@
     <target name="srcjar"
             description="Build agraph-src.jar file."
             depends="compile">
-        <manifestclasspath property="mf.path" jarfile="${srcjarfile}">
+        <manifestclasspath property="mf.path.src" jarfile="${srcjarfile}">
             <classpath refid="classpath"/>
         </manifestclasspath>
         <tstamp prefix="srcjar">
@@ -122,7 +126,7 @@
                 <attribute name="Implementation-Vendor" value="Franz, Inc."/>
             	<attribute name="Implementation-URL" value="http://www.franz.com/agraph/"/>
             	<attribute name="Built-At" value="${srcjar.datestamp}"/>
-            	<attribute name="Class-Path" value="${mf.path}"/>
+            	<attribute name="Class-Path" value="${mf.path.src}"/>
             </manifest>
         </jar>
     </target>
@@ -184,6 +188,14 @@
             description="Tests required before git push: clean, build, and run Java and Clojure client tests"
             depends="build, test-prepush">
         <ant dir="clojure" target="prepush" inheritall="false"/>
+    </target>
+
+    <target name="dist-init"
+            description="Creates the DIST dir, runs dependencies"
+            depends="clean, build, javadoc, srcjar">
+        <delete dir="${DIST}"/>
+        <mkdir dir="${DIST}"/>
+        <copy file="LICENSE" todir="${DIST}"/>
     </target>
     
     <macrodef name="run-java"
@@ -258,7 +270,7 @@
     </target>
     
     <target name="test-bigger"
-            depends="clean, test-prepush, test-stress-events, test-stress"
+            depends="clean, test-dist, test-prepush, test-stress-events, test-stress"
             description="run bigger tests, takes about 10 minutes">
     </target>
     
@@ -271,6 +283,7 @@
     <target name="test-stress"
             depends="compile"
             description="long-running stress tests">
+        <!-- Depends on scripts installed by agraph 'make install-test-scripts' -->
         <run-java tasknamex="test" classname="test.TestRunner" arg="test.TestSuites$Stress"/>
     </target>
     
@@ -299,6 +312,81 @@
             <arg value="--size"/>
             <arg value="100000"/>
         </exec>
+    </target>
+
+    <!-- The testing/test-eclipse-workspace was created manually -->
+    <!-- because there is no easy way to create a workspace and import -->
+    <!-- a project using the eclipse command line. -->
+    <!-- Instructions to create manually: -->
+    <!-- 1. Run: ant test-dist-manual-step1 -->
+    <!-- 2. Run: eclipse -data target/manual-ws -->
+    <!-- 3. In the eclipse UI, import existing project, choose target/manual-ws/acjproject, Finish. -->
+    <!-- 4. Exit eclipse. -->
+    <!-- 5. Run: ant test-dist-manual-step2 -->
+    <!-- 6. Run: ant test-dist -->
+    <!-- 7. Run: git add testing/test-eclipse-workspace -->
+    <target name="test-dist-manual-step1">
+        <exec executable="make" taskname="make"
+              failonerror="true" timeout="20000">
+            <arg value="dist"/>
+        </exec>
+        <mkdir dir="target/manual-ws"/>
+        <untar src="agraph-${env.version}-client-java.tar.gz" compression="gzip" dest="target/manual-ws/acjproject"/>
+    </target>
+    <target name="test-dist-manual-step2">
+        <delete dir="testing/test-eclipse-workspace"/>
+        <copy todir="testing/test-eclipse-workspace">
+            <fileset dir="target/manual-ws">
+                <include name=".metadata/version.ini"/>
+                <include name=".metadata/.plugins/org.eclipse.core.resources/.root/.indexes/history.version"/>
+                <include name=".metadata/.plugins/org.eclipse.core.resources/.root/.indexes/properties.index"/>
+                <include name=".metadata/.plugins/org.eclipse.core.resources/.root/.indexes/properties.version"/>
+                <include name=".metadata/.plugins/org.eclipse.core.resources/.root/1.tree"/>
+                <include name=".metadata/.plugins/org.eclipse.core.resources/.safetable/org.eclipse.core.resources"/>
+            </fileset>
+        </copy>
+    </target>
+    
+    <target name="test-dist"
+            description="Tests distribution agraph*.tar.gz">
+        <exec executable="make" taskname="make"
+              failonerror="true" timeout="20000">
+            <env key="VERSION" value="${env.version}"/>
+            <arg value="dist"/>
+        </exec>
+        <copy todir="target/test-ws">
+            <fileset dir="testing/test-eclipse-workspace"/>
+        </copy>
+        <mkdir dir="target/test-ws/acjproject"/>
+        <untar src="agraph-${env.version}-client-java.tar.gz" compression="gzip" dest="target/test-ws/acjproject"/>
+        <exec executable="eclipse" failonerror="true" taskname="eclipse"
+              timeout="20000"
+              outputproperty="eclipse-build-output1">
+            <arg value="-nosplash"/>
+            <arg value="-data"/>        <arg value="target/test-ws/"/>
+            <arg value="-application"/> <arg value="org.eclipse.jdt.apt.core.aptBuild"/>
+        </exec>
+        <!-- exec the same thing twice.  Otherwise, it doesn't actually build. -->
+        <exec executable="eclipse" failonerror="true" taskname="eclipse"
+              timeout="20000"
+              outputproperty="eclipse-build-output">
+            <arg value="-nosplash"/>
+            <arg value="-data"/>        <arg value="target/test-ws/"/>
+            <arg value="-application"/> <arg value="org.eclipse.jdt.apt.core.aptBuild"/>
+        </exec>
+        <!-- Eclipse doesn't error if the build fails, so manually check for output. -->
+        <fail message="Eclipse build failed, see dir target/test-ws/acjproject/bin/, eclipse output: ${eclipse-build-output}">
+            <condition>
+                <and>
+                    <not>
+                        <matches pattern="Compiling acjproject/src/tutorial" string="${eclipse-build-output}"/>
+                    </not>
+                    <not>
+                        <available file="target/test-ws/acjproject/bin/tutorial/TutorialExamples.class"/>
+                    </not>
+                </and>
+            </condition>
+        </fail>
     </target>
     
     <target name="tutorial"
