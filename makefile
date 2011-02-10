@@ -56,14 +56,12 @@ TARNAME = agraph-$(VERSION)-client-java.tar.gz
 TAROPTS = 
 endif
 
-dist: clean build javadoc srcjar
+dist: FORCE
 ifndef VERSION
 	@echo VERSION is not defined.
 	@exit 1
 endif
-	rm -fr DIST
-	mkdir -p $(DIST)
-	cp LICENSE $(DIST)
+	ant -Denv.version=$(VERSION) -DDIST=$(DIST) dist-init
 	sed 's|SERVER_VERSION|$(VERSION)|g' templates/.project > $(DIST)/.project
 	sed 's|agraph-VERSION|agraph-$(VERSION)|g' templates/.classpath > $(DIST)/.classpath
 	mkdir -p $(DIST)/src/tutorial
