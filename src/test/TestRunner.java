@@ -1,5 +1,5 @@
 /******************************************************************************
-** Copyright (c) 2008-2010 Franz Inc.
+** Copyright (c) 2008-2011 Franz Inc.
 ** All rights reserved. This program and the accompanying materials
 ** are made available under the terms of the Eclipse Public License v1.0
 ** which accompanies this distribution, and is available at
@@ -122,15 +122,30 @@ public class TestRunner {
         return false;
     }
     
-    static List<Method> methodsAnnotated(Class c,
+    /**
+     * List of super class first, self class last.
+     */
+    static List<Class> getSupers(Class cl) {
+        List<Class> r = new ArrayList<Class>();
+        while (cl != null) {
+        	r.add(0, cl);
+        	cl = cl.getSuperclass();
+        }
+    	return r;
+    }
+    
+    static List<Method> methodsAnnotated(Class clazz,
             Class<? extends Annotation> annotationClass) {
-        Method[] methods = c.getMethods();
         List<Method> r = new ArrayList<Method>();
-        for (int i = 0; i < methods.length; i++) {
-            Method m = methods[i];
-            Annotation anno = m.getAnnotation(annotationClass);
-            if (anno != null) {
-                r.add(m);
+        List<Class> classes = getSupers(clazz);
+    	for (Class c : classes) {
+            Method[] methods = c.getDeclaredMethods();
+            for (int i = 0; i < methods.length; i++) {
+            	Method m = methods[i];
+            	Annotation anno = m.getAnnotation(annotationClass);
+            	if (anno != null) {
+            		r.add(m);
+            	}
             }
         }
         return r;

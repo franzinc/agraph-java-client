@@ -72,6 +72,7 @@
         <javac srcdir="${src}" destdir="${build}" encoding="utf8"
                debug="true"
                includes="**/*.java"
+               includeAntRuntime="false"
                classpathref="classpath"/>
     </target>
     
@@ -256,6 +257,11 @@
         <run-java tasknamex="test" classname="test.TestRunner" arg="test.TestSuites$Prepush"/>
     </target>
     
+    <target name="test-bigger"
+            depends="clean, test-prepush, test-stress-events, test-stress"
+            description="run bigger tests, takes about 10 minutes">
+    </target>
+    
     <target name="test-broken"
             depends="compile"
             description="run tests known to be broken">
@@ -282,6 +288,8 @@
             description="Run events.sh with small settings">
         <exec executable="time" failonerror="true">
             <arg value="./events.sh"/>
+            <arg value="--catalog"/>
+            <arg value="java-tutorial"/>
             <arg value="--load"/>
             <arg value="2"/>
             <arg value="--query"/>

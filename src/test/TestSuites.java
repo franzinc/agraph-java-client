@@ -1,5 +1,5 @@
 /******************************************************************************
-** Copyright (c) 2008-2010 Franz Inc.
+** Copyright (c) 2008-2011 Franz Inc.
 ** All rights reserved. This program and the accompanying materials
 ** are made available under the terms of the Eclipse Public License v1.0
 ** which accompanies this distribution, and is available at
@@ -38,7 +38,8 @@ public class TestSuites {
     @SuiteClasses( { TutorialTests.class,
         QuickTests.class,
         AGRepositoryConnectionTests.class,
-        JenaTests.class
+        JenaTests.class,
+        ServerCodeTests.class
     })
     public static class Temp {}
     
@@ -59,6 +60,7 @@ public class TestSuites {
         EncodableNamespaceTests.class,
         FederationTests.class,
         SessionLifetimeTests.class,
+    	ServerCodeTests.class,
         SpogiTripleCacheTests.class,
         UploadCommitPeriodTests.class
     })
@@ -90,7 +92,7 @@ public class TestSuites {
     @ExcludeCategory(Prepush.class)
     @SuiteClasses( { QuickTests.class,
     	TutorialRunTests.class,
-    	TransactionStressTest.class })
+    	TransactionStressTest.class})
     public static class Stress implements NonPrepushTest {}
     
 }

@@ -1,5 +1,5 @@
 /******************************************************************************
-** Copyright (c) 2008-2010 Franz Inc.
+** Copyright (c) 2008-2011 Franz Inc.
 ** All rights reserved. This program and the accompanying materials
 ** are made available under the terms of the Eclipse Public License v1.0
 ** which accompanies this distribution, and is available at
@@ -30,6 +30,7 @@ import org.openrdf.query.TupleQueryResult;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
 
+import test.AGAbstractTest;
 import test.TestSuites;
 
 import com.franz.agraph.repository.AGCatalog;
@@ -44,7 +45,7 @@ public class TransactionStressTest {
 
     public static AGRepositoryConnection connect() throws RepositoryException {
         AGServer server = new AGServer(findServerUrl(), username(), password());
-        AGCatalog catalog = server.getCatalog("tests");
+        AGCatalog catalog = server.getCatalog(AGAbstractTest.CATALOG_ID);
         AGRepository repository = catalog.createRepository("transaction-stress");
         repository.initialize();
         AGRepositoryConnection conn = repository.getConnection();

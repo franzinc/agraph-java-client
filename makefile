@@ -9,6 +9,9 @@ clean: dist-clean
 prepush: FORCE
 	ant prepush
 
+test-bigger: FORCE
+	ant test-bigger
+
 build: FORCE
 ifndef VERSION
 	ant build
