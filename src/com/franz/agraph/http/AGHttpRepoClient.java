@@ -102,6 +102,7 @@ public class AGHttpRepoClient implements Closeable {
 	private int uploadCommitPeriod = 0;
 	private String sessionRoot, repoRoot;
 	private boolean loadInitFile = false;
+	private List<String> scripts = null;
 
 	// TODO: choose proper defaults
 	private TupleQueryResultFormat preferredTQRFormat = TupleQueryResultFormat.SPARQL;
@@ -160,6 +161,16 @@ public class AGHttpRepoClient implements Closeable {
 		return loadInitFile;
 	}
 	
+	/**
+	 * Adds a 'script' for a dedicated session spawned by this instance.
+	 */
+	public void addSessionLoadScript(String scriptName) {
+		if (this.scripts == null) {
+			this.scripts = new ArrayList<String>();
+		}
+		this.scripts.add(scriptName);
+	}
+	
 	public TupleQueryResultFormat getPreferredTQRFormat() {
 		return preferredTQRFormat;
 	}
@@ -198,16 +209,21 @@ public class AGHttpRepoClient implements Closeable {
 		if (sessionRoot == null) {
 			String url = getSessionURL(getRoot());
 			Header[] headers = new Header[0];
-			NameValuePair[] data = {
-					new NameValuePair(AGProtocol.LIFETIME_PARAM_NAME, Integer
-							.toString(lifetimeInSeconds)),
-					new NameValuePair(AGProtocol.LOAD_INIT_FILE_PARAM_NAME, Boolean
-							.toString(loadInitFile)),
-					new NameValuePair(AGProtocol.AUTOCOMMIT_PARAM_NAME, Boolean
-							.toString(autoCommit)) };
+			List<NameValuePair> params = new ArrayList<NameValuePair>(2);
+			params.add(new NameValuePair(AGProtocol.LIFETIME_PARAM_NAME,
+					Integer.toString(lifetimeInSeconds)));
+			params.add(new NameValuePair(AGProtocol.AUTOCOMMIT_PARAM_NAME,
+					Boolean.toString(autoCommit)));
+			params.add(new NameValuePair(AGProtocol.LOAD_INIT_FILE_PARAM_NAME,
+					Boolean.toString(loadInitFile)));
+			if (scripts != null) {
+				for (String script : scripts) {
+					params.add(new NameValuePair("script", script));
+				}
+			}
 			AGResponseHandler handler = new AGResponseHandler("");
 			try {
-				getHTTPClient().post(url, headers, data, null, handler);
+				getHTTPClient().post(url, headers, params.toArray(new NameValuePair[params.size()]), null, handler);
 			} catch (RDFParseException e) {
 				// bug.
 				throw new RuntimeException(e);

@@ -19,6 +19,7 @@ import java.io.StringReader;
 import junit.framework.Assert;
 
 import org.apache.commons.httpclient.methods.FileRequestEntity;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openrdf.model.Statement;
@@ -46,6 +47,11 @@ import com.franz.agraph.repository.AGServer;
 
 @SuppressWarnings("deprecation")
 public class ServerCodeTests extends AGAbstractTest {
+
+	private static String RULES = "java-rules.prolog";
+	private static File STORED_PROC = new File("src/test/ag-test-stored-proc.cl");
+	private static File RULES_FILE = new File("src/tutorial/java-rules.txt");
+	
 	
 	static class AGServerCode {
 		private final AGServer server;
@@ -64,6 +70,10 @@ public class ServerCodeTests extends AGAbstractTest {
 		public void putScript(String path, File script) throws Exception {
 			http().put(server.getServerURL() + "/scripts/" + path, null, null,
 					new FileRequestEntity(script, "text/plain"));
+		}
+		
+		public void deleteScript(String path) throws Exception {
+			http().delete(server.getServerURL() + "/scripts/" + path, null, null);
 		}
 		
 		public TupleQueryResult initFile() throws Exception {
@@ -86,7 +96,14 @@ public class ServerCodeTests extends AGAbstractTest {
     @BeforeClass
     public static void installScripts() throws Exception {
     	serverCode = new AGServerCode(server);
-    	serverCode.putScript(SProcTest.FASL, new File("src/test/ag-test-stored-proc.cl"));
+    	serverCode.putScript(SProcTest.SCRIPT, STORED_PROC);
+    	
+        serverCode.deleteInitFile(); // clean
+    }
+    
+    @AfterClass
+    public static void cleanup() throws Exception {
+        serverCode.deleteInitFile();
     }
 
     @Test
@@ -115,7 +132,7 @@ public class ServerCodeTests extends AGAbstractTest {
      * Example class of how a user might wrap a stored-proc for convenience.
      */
     class SProcTest {
-    	static final String FASL = "ag-test-stored-proc.cl";
+    	static final String SCRIPT = "ag-test-stored-proc.cl";
     	
 		private final AGRepositoryConnection conn;
     	SProcTest(AGRepositoryConnection conn) {
@@ -123,47 +140,47 @@ public class ServerCodeTests extends AGAbstractTest {
     	}
 		
 		String addTwoStrings(String a, String b) throws Exception {
-			return (String) conn.callStoredProc("add-two-strings", FASL, a, b);
+			return (String) conn.callStoredProc("add-two-strings", SCRIPT, a, b);
 		}
 		
 		int addTwoInts(int a, int b) throws Exception {
-	    	return (Integer) conn.callStoredProc("add-two-ints", FASL, a, b);
+	    	return (Integer) conn.callStoredProc("add-two-ints", SCRIPT, a, b);
 		}
 		
 		String addTwoVecStrings(String a, String b) throws Exception {
-			return (String) conn.callStoredProc("add-two-vec-strings", FASL, a, b);
+			return (String) conn.callStoredProc("add-two-vec-strings", SCRIPT, a, b);
 		}
 		
 		String addTwoVecStringsError() throws Exception {
-			return (String) conn.callStoredProc("add-two-vec-strings", FASL);
+			return (String) conn.callStoredProc("add-two-vec-strings", SCRIPT);
 		}
 		
 		int addTwoVecInts(int a, int b) throws Exception {
-	    	return (Integer) conn.callStoredProc("add-two-vec-ints", FASL, a, b);
+	    	return (Integer) conn.callStoredProc("add-two-vec-ints", SCRIPT, a, b);
 		}
 		
 		Object bestBeNull(String a) throws Exception {
-	    	return conn.callStoredProc("best-be-nil", FASL, a);
+	    	return conn.callStoredProc("best-be-nil", SCRIPT, a);
 		}
 		
 		Object returnAllTypes() throws Exception {
-	    	return conn.callStoredProc("return-all-types", FASL);
+	    	return conn.callStoredProc("return-all-types", SCRIPT);
 		}
 		
 		Object identity(Object input) throws Exception {
-	    	return conn.callStoredProc("identity", FASL, input);
+	    	return conn.callStoredProc("identity", SCRIPT, input);
 		}
 		
 		Object checkAllTypes(Object input) throws Exception {
-	    	return conn.callStoredProc("check-all-types", FASL, input);
+	    	return conn.callStoredProc("check-all-types", SCRIPT, input);
 		}
 		
 		Object addATripleInt(int i) throws Exception {
-	    	return conn.callStoredProc("add-a-triple-int", FASL, i);
+	    	return conn.callStoredProc("add-a-triple-int", SCRIPT, i);
 		}
 		
 		Statement getATripleInt(int i) throws Exception {
-			String r = (String) conn.callStoredProc("get-a-triple-int", FASL, i);
+			String r = (String) conn.callStoredProc("get-a-triple-int", SCRIPT, i);
 			Statement st = parseNtriples(r);
 	    	return st;
 		}
@@ -206,7 +223,7 @@ public class ServerCodeTests extends AGAbstractTest {
     @Test
     public void storedProcsEncoded_rfe10189() throws Exception {
     	String response = (String) AGDeserializer.decodeAndDeserialize(
-    			conn.getHttpRepoClient().callStoredProcEncoded("add-two-strings", SProcTest.FASL,
+    			conn.getHttpRepoClient().callStoredProcEncoded("add-two-strings", SProcTest.SCRIPT,
     					AGSerializer.serializeAndEncode(
     							new String[] {"123", "456"})));
     	assertEquals(579, Integer.parseInt(response));
@@ -264,6 +281,8 @@ public class ServerCodeTests extends AGAbstractTest {
     	//Assert.assertNotNull("add-a-triple", sp.addATriple(vf.createURI("http://test.com/s"), vf.createURI("http://test.com/p"), vf.createURI("http://test.com/p")));
     }
     
+    // rfe10256: support loadInitFile param
+    
     /**
      * @see TutorialExamples#example18()
      * @see TutorialTests#example18()
@@ -282,11 +301,24 @@ public class ServerCodeTests extends AGAbstractTest {
     	return conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
     }
 
+	private void rfe10256_fail(TupleQuery tupleQuery) throws QueryEvaluationException {
+		try {
+			tupleQuery.evaluate();
+			fail("expected QueryEvaluationException");
+		} catch (QueryEvaluationException e) {
+			if (e.getMessage().contains("attempt to call `#:uncle/2' which is an undefined function. (500)")) {
+				// good
+			} else {
+				throw e;
+			}
+		}
+	}
+
     @Test
     public void rfe10256_loadInitFile() throws Exception{
         serverCode.deleteInitFile(); // clean before test
         
-    	serverCode.putInitFile(new File("src/tutorial/java-rules.txt"));
+    	serverCode.putInitFile(RULES_FILE);
     	// note, setSessionLoadInitFile must be done before setAutoCommit in example6_setup
     	conn.setSessionLoadInitFile(true);
     	TupleQuery tupleQuery = rfe10256_setup();
@@ -298,34 +330,49 @@ public class ServerCodeTests extends AGAbstractTest {
         serverCode.deleteInitFile(); // clean before test
         
     	TupleQuery tupleQuery = rfe10256_setup();
-    	try {
-        	tupleQuery.evaluate();
-        	fail("expected QueryEvaluationException");
-        } catch (QueryEvaluationException e) {
-        	if (e.getMessage().contains("attempt to call `#:uncle/2' which is an undefined function. (500)")) {
-        		// good
-        	} else {
-        		throw e;
-        	}
-        }
+    	rfe10256_fail(tupleQuery);
     }
-    
+
     @Test
     public void rfe10256_doNotUse_InitFile() throws Exception{
         serverCode.deleteInitFile(); // clean before test
         
-    	serverCode.putInitFile(new File("src/tutorial/java-rules.txt"));
+    	serverCode.putInitFile(RULES_FILE);
     	TupleQuery tupleQuery = rfe10256_setup();
-        try {
-        	tupleQuery.evaluate();
-        	fail("expected QueryEvaluationException");
-        } catch (QueryEvaluationException e) {
-        	if (e.getMessage().contains("attempt to call `#:uncle/2' which is an undefined function. (500)")) {
-        		// good
-        	} else {
-        		throw e;
-        	}
-        }
+        rfe10256_fail(tupleQuery);
+    }
+    
+    // rfe10257: support script param
+    
+    @Test
+    public void rfe10257_script() throws Exception{
+        serverCode.deleteInitFile(); // clean before test
+        serverCode.deleteScript(RULES); // clean before test
+        
+    	serverCode.putScript(RULES, RULES_FILE);
+    	// note, addSessionLoadScript must be done before setAutoCommit in example6_setup
+    	conn.addSessionLoadScript(RULES);
+    	TupleQuery tupleQuery = rfe10256_setup();
+        assertEquals(52, statementSet(tupleQuery.evaluate()).size());
+    }
+    
+    @Test
+    public void rfe10257_doNotPut_script() throws Exception{
+        serverCode.deleteInitFile(); // clean before test
+        serverCode.deleteScript(RULES); // clean before test
+        
+    	TupleQuery tupleQuery = rfe10256_setup();
+    	rfe10256_fail(tupleQuery);
+    }
+    
+    @Test
+    public void rfe10257_doNotUse_script() throws Exception{
+        serverCode.deleteInitFile(); // clean before test
+        serverCode.deleteScript(RULES); // clean before test
+        
+    	serverCode.putScript(RULES, RULES_FILE);
+    	TupleQuery tupleQuery = rfe10256_setup();
+        rfe10256_fail(tupleQuery);
     }
     
 }

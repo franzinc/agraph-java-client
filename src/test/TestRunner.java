@@ -75,14 +75,16 @@ public class TestRunner {
                         e.printStackTrace(System.err);
                         System.err.println("FAIL Testcase: " + m.getName() + " took " + (System.currentTimeMillis() - start) + " ms");
                     } finally {
-                        invokeAll(methodsAnnotated(testClass, After.class), false, test);
-                        System.out.flush();
+                		System.out.flush();
+                    	invokeAllIgnoreExceptions(Util.reverse( methodsAnnotated(testClass, After.class)), false, test);
+                		System.out.flush();
                         System.err.flush();
                         Thread.sleep(2);
                     }
                 }
             } finally {
-                invokeAll(methodsAnnotated(testClass, AfterClass.class), false, testClass);
+        		System.out.flush();
+                invokeAllIgnoreExceptions(Util.reverse( methodsAnnotated(testClass, AfterClass.class) ), false, testClass);
             }
         }
         if (failures > 0) {
@@ -171,6 +173,19 @@ public class TestRunner {
         List<Object> r = new ArrayList<Object>();
         for (Method m : methods) {
             r.add( m.invoke(obj, args) );
+        }
+        return r;
+    }
+
+    static List<Object> invokeAllIgnoreExceptions(List<Method> methods,
+            boolean logExceptions, Object obj, Object...args) throws Exception {
+        List<Object> r = new ArrayList<Object>();
+        for (Method m : methods) {
+        	try {
+                r.add( m.invoke(obj, args) );
+        	} catch (Exception e) {
+                e.printStackTrace(System.err);
+        	}
         }
         return r;
     }
