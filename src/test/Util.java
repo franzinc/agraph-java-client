@@ -1,5 +1,5 @@
 /******************************************************************************
-** Copyright (c) 2008-2010 Franz Inc.
+** Copyright (c) 2008-2011 Franz Inc.
 ** All rights reserved. This program and the accompanying materials
 ** are made available under the terms of the Eclipse Public License v1.0
 ** which accompanies this distribution, and is available at
@@ -17,12 +17,14 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
 
 import com.franz.util.Closeable;
 
 public class Util extends com.franz.util.Util {
+	
 
     public static String get(String[] arr, int i, String defaultVal) {
         if (arr != null && arr.length > i) {
@@ -191,6 +193,12 @@ public class Util extends com.franz.util.Util {
     		}
     	}
     	return out;
+    }
+    
+    public static List reverse(List list) {
+    	list = new ArrayList(list);
+		Collections.reverse(list);
+    	return list;
     }
     
 }

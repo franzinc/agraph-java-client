@@ -81,8 +81,9 @@ import com.franz.util.Closeable;
  * A session should be {@link #close() closed} when finished.
  * </p>
  * 
- * <p>{@link #setSessionLoadInitFile(boolean) InitFiles} are loaded into
- * the server only for sessions.  See
+ * <p>{@link #setSessionLoadInitFile(boolean) InitFiles}
+ * and {@link #addSessionLoadScript(String) Scripts}
+ * are loaded into the server only for sessions.  See
  * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#scripting"
  * target="_top">Scripting in HTTP Protocol</a> and
  * <a href="http://www.franz.com/agraph/support/documentation/v4/agwebview.html"
@@ -97,6 +98,7 @@ import com.franz.util.Closeable;
  * <li>{@link #ping()}</li>
  * <li>{@link #setSessionLifetime(int)} and {@link #getSessionLifetime()}</li>
  * <li>{@link #setSessionLoadInitFile(boolean)}</li>
+ * <li>{@link #addSessionLoadScript(String)}</li>
  * <li>{@link #close()}</li>
  * </ul></p>
  */
@@ -1100,6 +1102,20 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	 */
 	public void setSessionLoadInitFile(boolean loadInitFile) {
 		getHttpRepoClient().setSessionLoadInitFile(loadInitFile);
+	}
+	
+	/**
+	 * Adds a 'script' for a dedicated session spawned by this connection.
+	 * This method does not create a session.
+	 * May be called multiple times for different scripts.
+	 * The script text must already be uploaded to the user.
+	 * 
+	 * <p>Scripts are server code that may be loaded during a session.</p>
+	 * 
+	 * <p>See also: <a href="#sessions">Session overview</a>.</p>
+	 */
+	public void addSessionLoadScript(String scriptName) {
+		getHttpRepoClient().addSessionLoadScript(scriptName);
 	}
 	
 	/**
