@@ -15,6 +15,7 @@ import static test.AGAbstractTest.username;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.management.ManagementFactory;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -48,8 +49,9 @@ import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.query.BindingSet;
-import org.openrdf.query.TupleQuery;
 import org.openrdf.query.TupleQueryResult;
+import org.openrdf.query.TupleQueryResultHandler;
+import org.openrdf.query.TupleQueryResultHandlerException;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.rio.ntriples.NTriplesUtil;
 
@@ -58,6 +60,7 @@ import com.franz.agraph.repository.AGQueryLanguage;
 import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
+import com.franz.agraph.repository.AGStreamTupleQuery;
 import com.franz.agraph.repository.AGTupleQuery;
 import com.franz.util.Util;
 
@@ -65,7 +68,7 @@ public class Events {
     
     static private final Random RANDOM = new Random();
     
-    private static class Defaults {
+    static class Defaults {
         
         private static CommandLine cmd;
         
@@ -91,10 +94,10 @@ public class Events {
         static int SIZE = (int) Math.pow(10, 9);
         
         // The catalog name
-        static private String CATALOG = "tests";
+        static String CATALOG = "tests";
         
         // The repository name
-        static private String REPOSITORY = "events_test";
+        static String REPOSITORY = "events_test";
         
         static int PHASE = 1;
         
@@ -115,6 +118,12 @@ public class Events {
         }
         
         static LOGT LOG = LOGT.ALL;
+        
+        public enum STREAM {
+            NONE, PULL, HAND, PULH;
+        }
+        
+        static STREAM stream = STREAM.NONE;
         
         static String cmdVal(String opt, String defaultVal) {
             String val = cmd.getOptionValue(opt);
@@ -257,6 +266,10 @@ public class Events {
                     .withArgName("LOG").hasArg()
                     .withDescription("One of: " + Arrays.asList(LOGT.values()) + ". [default=" + LOG + "]")
                     .create());
+            options.addOption(OptionBuilder.withLongOpt("stream")
+                    .withArgName("STREAM").hasArg()
+                    .withDescription("Stream results. One of: " + Arrays.asList(STREAM.values()) + ". [default=" + stream + "]")
+                    .create());
             
             cmd = new PosixParser().parse(options, args);
             if (cmd.hasOption("help")) {
@@ -297,12 +310,19 @@ public class Events {
             PHASE = cmdVal("phase", PHASE);
             MONITOR = cmdVal("monitor", MONITOR);
             LOG = cmdVal("log", LOG);
+            stream = cmdVal("stream", stream);
             
             if (cmd.hasOption("seed")) {
                 long seed = Long.parseLong(cmd.getOptionValue("seed"));
                 RANDOM.setSeed(seed);
                 trace("Set random seed to %s.", seed);
             }
+            trace("Parameters:"
+            		+ " catalog=" + CATALOG
+            		+ " repository=" + REPOSITORY
+            		+ " url=" + URL
+            		+ " size=" + SIZE
+            		+ " stream=" + stream);
         }
         
         public static boolean hasOption(String opt) {
@@ -347,8 +367,8 @@ public class Events {
         formatter.format(format, values);
         System.out.println(sb.toString());
     }
-    
-    public static AGRepositoryConnection connect(boolean shared) throws RepositoryException {
+
+    public static synchronized AGRepositoryConnection connect(boolean shared) throws RepositoryException {
         AGServer server = new AGServer(findServerUrl(), username(), password());
         AGCatalog catalog = server.getCatalog(Defaults.CATALOG);
         AGRepository repository = catalog.createRepository(Defaults.REPOSITORY);
@@ -801,10 +821,10 @@ public class Events {
     }
     
     private static class QueryResult {
-        public int queries;
-        public int triples;
+        public long queries;
+        public long triples;
         
-        public QueryResult(int theQueries, int theTriples) {
+        public QueryResult(long theQueries, long theTriples) {
             queries = theQueries;
             triples = theTriples;
         }
@@ -822,7 +842,7 @@ public class Events {
             this.dateMaker = dateMaker;
         }
         
-        private int randomQuery(AGRepositoryConnection conn, ValueFactory vf, boolean trace) {
+        private long randomQuery(AGRepositoryConnection conn, ValueFactory vf, boolean trace) {
             // Pick a random customer
             String customerNT = NTriplesUtil.toNTriplesString(new RandomCustomer().makeValue());
             
@@ -842,7 +862,7 @@ public class Events {
             endNT = NTriplesUtil.toNTriplesString(CalendarToValue(end));
             
             String queryString;
-            TupleQuery tupleQuery;
+            AGTupleQuery tupleQuery;
             if (Defaults.hasOption("sparql")) {
                 queryString = String.format(
                         "select ?s ?p ?o " +
@@ -863,16 +883,23 @@ public class Events {
                         timestamp, startNT, endNT, customerNT, customerNT);
                 tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
             }
+            tupleQuery = streamQuery(tupleQuery);
             
             // Actually pull the full results to the client, then just count them
             TupleQueryResult result = null;
-            int count = 0;
+            long count = 0;
             try {
                 if (Defaults.VERBOSE > 0 && trace) {
                     trace("query: %s", queryString);
                 }
-                result = tupleQuery.evaluate();
-                count = count(result);
+                if (Defaults.stream == Defaults.STREAM.HAND || Defaults.stream == Defaults.STREAM.PULH) {
+                	CountingHandler handler = new CountingHandler();
+                    tupleQuery.evaluate(handler);
+                    count = handler.count;
+                } else {
+                    result = tupleQuery.evaluate();
+                    count = count(result);
+                }
                 // test sparql and prolog return same results:
                 //				Set<Stmt> stmts = Stmt.statementSet(result);
                 //				count = stmts.size();
@@ -889,7 +916,18 @@ public class Events {
             return count;
         }
         
-        private int count(TupleQueryResult result) throws Exception {
+        class CountingHandler implements TupleQueryResultHandler {
+            long count = 0;
+			public void startQueryResult(List<String> bindingNames) throws TupleQueryResultHandlerException {
+			}
+			public void handleSolution(BindingSet bindingSet) throws TupleQueryResultHandlerException {
+				count++;
+			}
+			public void endQueryResult() throws TupleQueryResultHandlerException {
+			}
+		}
+
+		private int count(TupleQueryResult result) throws Exception {
             int count = 0;
             while (result.hasNext()) {
                 result.next();
@@ -915,13 +953,13 @@ public class Events {
             timestamp = NTriplesUtil.toNTriplesString(vf.createURI(Defaults.NS, "EventTimeStamp"));
             
             final int statusSize = Math.max(1, Defaults.STATUS / 5);
-            int count = 0, subcount = 0, queries = 0, restarts = 0;
+            long count = 0, subcount = 0, queries = 0, restarts = 0;
             Calendar startTime, start, end;
             startTime = start= GregorianCalendar.getInstance();
             
             while (true) {
                 // Do the query
-                int result = randomQuery(conn, vf, (queries % statusSize == 0));
+                long result = randomQuery(conn, vf, (queries % statusSize == 0));
                 if (result < 0) {
                     restarts++;
                 } else {
@@ -1017,18 +1055,25 @@ public class Events {
                         trace(queryString);
                     }
                     AGTupleQuery query = conn.prepareTupleQuery(AGQueryLanguage.SPARQL, queryString);
+                    query = streamQuery(query);
                     TupleQueryResult result = null;
                     count = 0;
                     try {
                         long before = conn.size();
-                        result = query.evaluate();
-                        while (result.hasNext()) {
-                            BindingSet bs = result.next();
-                            conn.remove(conn.getValueFactory().createStatement(
-                                    (BNode)bs.getValue("s"),
-                                    (URI)bs.getValue("p"),
-                                    bs.getValue("o")));
-                            count++;
+                        if (Defaults.stream == Defaults.STREAM.HAND || Defaults.stream == Defaults.STREAM.PULH) {
+                        	DeletingHandler handler = new DeletingHandler(conn);
+                        	query.evaluate(handler);
+                            count = handler.count;
+                        } else {
+                            result = query.evaluate();
+                            while (result.hasNext()) {
+                                BindingSet bs = result.next();
+                                conn.remove(conn.getValueFactory().createStatement(
+                                        (BNode)bs.getValue("s"),
+                                        (URI)bs.getValue("p"),
+                                        bs.getValue("o")));
+                                count++;
+                            }
                         }
                         long sizeDiff = before - conn.size();
                         if (Defaults.VERBOSE > 0 && count != sizeDiff) {
@@ -1080,6 +1125,30 @@ public class Events {
             
             return -1;
         }
+        
+        class DeletingHandler implements TupleQueryResultHandler {
+            long count = 0;
+			private final AGRepositoryConnection conn;
+            DeletingHandler(AGRepositoryConnection conn) {
+				this.conn = conn;
+            }
+			public void startQueryResult(List<String> bindingNames) throws TupleQueryResultHandlerException {
+			}
+			public void handleSolution(BindingSet bs) throws TupleQueryResultHandlerException {
+                try {
+					conn.remove(conn.getValueFactory().createStatement(
+					        (BNode)bs.getValue("s"),
+					        (URI)bs.getValue("p"),
+					        bs.getValue("o")));
+				} catch (RepositoryException e) {
+					throw new TupleQueryResultHandlerException("failed to remove " + bs, e);
+				}
+				count++;
+			}
+			public void endQueryResult() throws TupleQueryResultHandlerException {
+			}
+		}
+
     }
     
     public static class Monitor {
@@ -1123,6 +1192,13 @@ public class Events {
             }
         }
     }
+    
+	static AGTupleQuery streamQuery(AGTupleQuery tupleQuery) {
+		if (Defaults.stream == Defaults.STREAM.PULL || Defaults.stream == Defaults.STREAM.PULH) {
+			tupleQuery = new AGStreamTupleQuery(tupleQuery);
+		}
+		return tupleQuery;
+	}
     
     /**
      * @param args Run with --help
@@ -1263,8 +1339,9 @@ public class Events {
                 double seconds = (end.getTimeInMillis() - start.getTimeInMillis()) / 1000.0;
                 trace("Phase 4 End: %d total triples returned over %d queries in " +
 		      "%.1f seconds (%.2f triples/second, %.2f queries/second, " +
-		      "%d triples/query).", triples, queries, logtime(seconds),
-		      logtime(triples/seconds), logtime(queries/seconds), triples/queries);
+		      "%d triples/query) MemUsed %d.", triples, queries, logtime(seconds),
+		      logtime(triples/seconds), logtime(queries/seconds), triples/queries,
+		      ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getUsed());
                 Monitor.stop();
                 executor.shutdown();
             }

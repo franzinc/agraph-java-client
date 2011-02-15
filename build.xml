@@ -39,7 +39,7 @@
         <path location="${lib}/sesame-2.3.2/commons-logging-1.1.1.jar"/>
         <path location="${lib}/sesame-2.3.2/openrdf-sesame-2.3.2-onejar.jar"/>
         <path location="${lib}/sesame-2.3.2/slf4j-api-1.5.8.jar"/>
-        <path location="${lib}/sesame-2.3.2/slf4j-nop-1.5.8.jar"/>
+        <path location="${lib}/slf4j-simple-1.5.8.jar"/>
         <path location="${lib}/jena-2.6.2/arq-2.8.1.jar"/>
         <path location="${lib}/jena-2.6.2/icu4j-3.4.4.jar"/>
         <path location="${lib}/jena-2.6.2/iri-0.7.jar"/>
@@ -190,7 +190,8 @@
         <attribute name="tasknamex" default="java"/>
         <attribute name="classname"/>
         <attribute name="arg"/>
-        <attribute name="maxmemory" default="128m"/>
+        <attribute name="maxmemory" default="1024m"/>
+        <attribute name="streamResults" default="false"/>
         <sequential>
             <property name="log" value="info"/>
             <java classname="@{classname}" failonerror="true" taskname="@{tasknamex}"
@@ -207,9 +208,14 @@
                              value="info"/>
                 <sysproperty key="org.apache.commons.logging.simplelog.showlogname"
                              value="true"/>
+                <sysproperty key="org.apache.commons.logging.simplelog.log.com"
+                             value="info"/>
+                <sysproperty key="org.apache.commons.logging.simplelog.log.test"
+                             value="info"/>
                 <sysproperty key="AGRAPH_HOST" value="${env.AGRAPH_HOST}"/>
                 <sysproperty key="AGRAPH_PORT" value="${env.AGRAPH_PORT}"/>
                 <sysproperty key="AGRAPH_ROOT" value="${env.root}"/>
+                <sysproperty key="com.franz.agraph.repository.AGRepositoryConnection.streamResults" value="@{streamResults}"/>
                 <classpath>
                     <path refid="classpath"/>
                     <path location="classes"/>
@@ -265,6 +271,8 @@
     <target name="test-stress"
             depends="compile"
             description="long-running stress tests">
+        <run-java tasknamex="test-stream" classname="test.TestRunner" arg="test.TestSuites$Prepush"
+                  streamResults="true"/>
         <run-java tasknamex="test" classname="test.TestRunner" arg="test.TestSuites$Stress"/>
     </target>
     
@@ -274,13 +282,15 @@
         <property name="cat" value="Temp"/>
         <property name="prefix" value="test.TestSuites$"/>
         <property name="test" value="${prefix}${cat}"/>
-        <run-java tasknamex="test" classname="test.TestRunner" arg="${test}"/>
+        <run-java tasknamex="test" classname="test.TestRunner" arg="${test}"
+                  streamResults="${streamResults}"/>
     </target>
     
     <target name="test-stress-events"
             depends="compile"
             description="Run events.sh with small settings">
-        <exec executable="time" failonerror="true">
+        <exec executable="time" taskname="events"
+              failonerror="true">
             <arg value="./events.sh"/>
             <arg value="--load"/>
             <arg value="2"/>

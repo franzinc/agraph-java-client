@@ -192,5 +192,51 @@ public class Util extends com.franz.util.Util {
     	}
     	return out;
     }
+	
+    public static long fromHumanInt(String value) {
+        int len = value.length();
+        if (len > 1) {
+            char c = value.charAt(len-1);
+            if ( ! Character.isDigit(c)) {
+                int n = Integer.parseInt(value.substring(0, len-1));
+                if (c == 'm')
+                    return n * (long) Math.pow(10, 6);
+                else if (c == 'b')
+                    return n * (long) Math.pow(10, 9);
+                else if (c == 't')
+                    return n * (long) Math.pow(10, 12);
+            }
+        }
+        return Long.parseLong(value);
+    }
+    
+    public static String toHumanInt(long num, int type) {
+    	long[] mult;
+    	if (type == 2)
+            mult = new long[] {1024, 1024, 1024, 1024, 1024};
+    	else if (type == 10)
+            mult = new long[] {1000, 1000, 1000, 1000, 1000};
+    	else if (type == 60) // milliseconds
+            mult = new long[] {1000, 60, 60, 24, 30};
+    	else
+    		throw new IllegalArgumentException("unknown type: " + type);
+    	long temp = num;
+    	String[] abbrevs;
+    	if (type == 2)
+            abbrevs = new String[] {"b", "k", "m", "g", "t"};
+    	else if (type == 10)
+            abbrevs = new String[] {"", "k", "m", "b", "t"};
+    	else if (type == 60) // time
+            abbrevs = new String[] {"ms", "s", "m", "h", "d"};
+    	else
+    		throw new IllegalArgumentException("unknown type: " + type);
+    	for (int i = 0; i < abbrevs.length; i++) {
+        	if (num < (mult[i] * 10)) {
+        		return num + abbrevs[i];
+        	}
+        	num = num/mult[i];
+		}
+    	return "" + num;
+    }
     
 }
