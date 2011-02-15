@@ -42,7 +42,7 @@ public class TestRunner {
         Class<? extends Annotation> include = includeCat == null ? null : (Class) includeCat.value();
         ExcludeCategory excludeCat = (ExcludeCategory) suiteClass.getAnnotation(ExcludeCategory.class);
         Class<? extends Annotation> exclude = excludeCat == null ? null : (Class) excludeCat.value();
-        int failures = 0;
+        List<String> failures = new ArrayList<String>();
         for (Class testClass : suite.value()) {
             List<Method> testMethods = testMethods(testClass, include, exclude);
             if (testMethods.isEmpty()) {
@@ -50,30 +50,40 @@ public class TestRunner {
             }
             invokeAll(methodsAnnotated(testClass, BeforeClass.class), false, testClass);
             try {
+            	Method setTestName;
+            	try {
+            		setTestName = testClass.getMethod("setTestName", String.class);
+            	} catch (NoSuchMethodException e) {
+            		setTestName = null;
+            	}
                 for (Method m : testMethods) {
+                	String fullname = testClass.getName() + "." + m.getName();
                     long start = System.currentTimeMillis();
                     System.out.flush();
                     System.err.flush();
                     System.out.println();
-                    System.out.println("Testcase: " + m.getName());
+                    System.out.println("Testcase: " + fullname);
                     Object test = testClass.newInstance();
+                	if (setTestName != null) {
+                		setTestName.invoke(test, m.getName());
+                	}
                     try {
                         invokeAll(methodsAnnotated(testClass, Before.class), false, test);
                         m.invoke(test);
-                        System.out.println("SUCCESS Testcase: " + m.getName() + " took " + (System.currentTimeMillis() - start) + " ms");
+                        System.out.println("SUCCESS Testcase: " + fullname + " took " + (System.currentTimeMillis() - start) + " ms");
                     } catch (Error e) {
-                        failures++;
+                        failures.add(fullname);
                         System.out.flush();
-                        System.err.println("ERROR Testcase: " + m.getName() + " took " + (System.currentTimeMillis() - start) + " ms");
+                        System.err.println("ERROR Testcase: " + fullname + " took " + (System.currentTimeMillis() - start) + " ms");
                         throw e;
                     } catch (Throwable e) {
-                        failures++;
+                        failures.add(fullname);
                         System.out.flush();
                         if (e instanceof InvocationTargetException) {
                             e = e.getCause();
                         }
                         e.printStackTrace(System.err);
-                        System.err.println("FAIL Testcase: " + m.getName() + " took " + (System.currentTimeMillis() - start) + " ms");
+                        System.err.println("FAIL Testcase: " + fullname + " took " + (System.currentTimeMillis() - start) + " ms");
                     } finally {
                         invokeAll(methodsAnnotated(testClass, After.class), false, test);
                         System.out.flush();
@@ -85,10 +95,10 @@ public class TestRunner {
                 invokeAll(methodsAnnotated(testClass, AfterClass.class), false, testClass);
             }
         }
-        if (failures > 0) {
+        if ( ! failures.isEmpty()) {
         	System.err.println("Failures: " + failures);
         }
-        System.exit(failures);
+        System.exit(failures.isEmpty() ? 0 : -1);
     }
 
     static List<Method> testMethods(Class c,

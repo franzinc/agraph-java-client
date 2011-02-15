@@ -119,9 +119,9 @@ public class TransactionStressTest {
     @Category(TestSuites.Stress.class)
     public void test() throws Exception {
         AGRepositoryConnection conn = connect();
-        conn.clear();  // remove previous triples, if any.
-
         try {
+            conn.clear();  // remove previous triples, if any.
+
             LinkedList<Worker> workers = new LinkedList<Worker>();
             for (int i = 0; i < WORKERS; i++) {
                 Worker w = new Worker(i * PER, (i + 1) * PER);
@@ -144,4 +144,5 @@ public class TransactionStressTest {
         }
         finally {conn.close();}
     }
+
 }
