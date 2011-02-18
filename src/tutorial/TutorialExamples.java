@@ -1673,6 +1673,18 @@ public class TutorialExamples {
             Value l = bindingSet.getValue("last");
             println(f.stringValue() + " " + l.stringValue());
         }
+        println("\nGetting the triple id of <kdy:person11 rdf:type kdy:person>.");
+        queryString =
+            "(select (?id)\n" +
+            "        (q !kdy:person11 !rdf:type !kdy:person ?g ?id))\n";
+        tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
+        result = tupleQuery.evaluate();
+        while (result.hasNext()) {
+            BindingSet bindingSet = result.next();
+            Value id = bindingSet.getValue("id");
+            println("id: " + id);
+        }
+        
         result.close();
         conn.close();
     }

@@ -14,8 +14,14 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.openrdf.model.BNode;
 import org.openrdf.model.Statement;
+import org.openrdf.model.URI;
+import org.openrdf.model.Value;
 import org.openrdf.model.vocabulary.RDF;
+import org.openrdf.query.TupleQueryResult;
 import org.openrdf.repository.RepositoryResult;
+
+import com.franz.agraph.repository.AGQueryLanguage;
+import com.franz.agraph.repository.AGTupleQuery;
 
 public class TripleIdTests extends AGAbstractTest {
 
@@ -23,11 +29,19 @@ public class TripleIdTests extends AGAbstractTest {
     @Category(TestSuites.Prepush.class)
     public void tripleIds_rfe10177() throws Exception {
     	BNode bnode = vf.createBNode();
-    	conn.add(bnode, RDF.TYPE, vf.createURI("http://Foo"));
-    	RepositoryResult<Statement> stmts = conn.getStatements("1");
+    	URI foo = vf.createURI("http://Foo");
+    	conn.add(bnode, RDF.TYPE, foo);
+    	conn.add(foo, foo, foo);
+    	String queryString = "(select (?id) (q ?s !rdf:type ?o ?g ?id))";
+    	AGTupleQuery q = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
+    	TupleQueryResult r = q.evaluate();
+    	Assert.assertTrue("Expected a result", r.hasNext());
+    	Value id = r.next().getBinding("id").getValue();
+    	Assert.assertFalse("Unexpected second result", r.hasNext());
+    	RepositoryResult<Statement> stmts = conn.getStatements(id.stringValue());
     	Assert.assertTrue("Expected a match", stmts.hasNext());
-    	stmts = conn.getStatements("2");
-    	Assert.assertFalse("Unexpected match", stmts.hasNext());
+    	Assert.assertEquals("Expected rdf:type", RDF.TYPE, stmts.next().getPredicate());
+    	Assert.assertFalse("Unexpected second match", stmts.hasNext());
     }
 
 }
