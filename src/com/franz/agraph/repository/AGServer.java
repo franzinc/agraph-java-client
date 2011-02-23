@@ -23,7 +23,17 @@ import com.franz.util.Closeable;
 import com.franz.util.Util;
 
 /**
- * The top-level class for interacting with an AllegroGraph server.
+ * The starting point for interacting with an
+ * <a target="_top"
+ *    href="http://www.franz.com/agraph/support/documentation/v4/agraph-introduction.html"
+ *    >AllegroGraph server</a>.
+ * 
+ * An AGServer {@link #listCatalogs() references} {@link AGCatalog}s,
+ * which {@link AGCatalog#listRepositories() reference}
+ * {@link AGRepository AGRepositories}, from which
+ * {@link AGRepositoryConnection connections} may be obtained,
+ * on which data is manipulated and queried.
+ * AGServer also provides {@link #federate(AGAbstractRepository...) federated} repositories.
  */
 public class AGServer implements Closeable {
 
@@ -140,10 +150,20 @@ public class AGServer implements Closeable {
 		return rootCatalog;
 	}
 
+	/**
+	 * Used by AllegroGraph Jena implementation.
+	 */
 	public AGVirtualRepository virtualRepository(String spec) {
 		return new AGVirtualRepository(this, spec, null);
 	}
 
+	/**
+	 * Create a federated view of multiple repositories.
+	 * 
+	 * See <a href="http://www.franz.com/agraph/support/documentation/v4/agraph-introduction.html#intro-federation">Managing
+	 * Massive Data - Federation</a>.
+	 * @return a virtual repository that federates queries across multiple physical repositories
+	 */
 	public AGVirtualRepository federate(AGAbstractRepository... repositories) {
 		String[] specstrings = new String[repositories.length];
 		for (int i = 0; i < repositories.length; i++)
@@ -153,6 +173,9 @@ public class AGServer implements Closeable {
 		return new AGVirtualRepository(this, spec, null);
 	}
 
+	/**
+	 * Close the HTTP connection resources to the AllegroGraph server.
+	 */
     @Override
     public void close() {
         Util.close(httpClient);
