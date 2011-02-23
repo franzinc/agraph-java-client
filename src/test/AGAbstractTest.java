@@ -32,6 +32,8 @@ import org.junit.BeforeClass;
 import org.openrdf.model.Statement;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.franz.agraph.repository.AGAbstractRepository;
 import com.franz.agraph.repository.AGCatalog;
@@ -43,6 +45,8 @@ import com.franz.agraph.repository.AGValueFactory;
 public class AGAbstractTest extends Closer {
 
     static public final String CATALOG_ID = "java-tutorial";
+
+    public Logger log = LoggerFactory.getLogger(this.getClass());
     
     protected static AGServer server;
     protected static AGCatalog cat;
@@ -53,6 +57,8 @@ public class AGAbstractTest extends Closer {
     protected AGValueFactory vf;
     
     private static String serverUrl;
+    
+    private String testName = null;
 
     public static String findServerUrl() {
     	if (serverUrl == null) {
@@ -123,6 +129,15 @@ public class AGAbstractTest extends Closer {
         } finally {
             Util.close(repo);
         }
+	}
+	
+	public void setTestName(String testName) {
+		this.testName = testName;
+		log = LoggerFactory.getLogger(this.getClass().getName() + "." + testName);
+	}
+	
+	public String getTestName() {
+		return testName;
 	}
     
     @Before

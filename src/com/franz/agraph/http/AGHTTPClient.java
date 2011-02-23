@@ -97,7 +97,7 @@ implements Closeable {
 	}
 
 	public void post(String url, Header[] headers, NameValuePair[] params,
-			RequestEntity requestEntity, AGResponseHandler handler) throws HttpException, IOException,
+			RequestEntity requestEntity, AGResponseHandlerInf handler) throws HttpException, IOException,
 			RepositoryException, RDFParseException {
 		PostMethod post = new PostMethod(url);
 		setDoAuthentication(post);
@@ -128,12 +128,14 @@ implements Closeable {
 				}
 			}
 		} finally {
-			releaseConnection(post);
+			if (handler == null || handler.releaseConnection()) {
+				releaseConnection(post);
+			}
 		}
 	}
 
 	public void get(String url, Header[] headers, NameValuePair[] params,
-			AGResponseHandler handler) throws IOException, RepositoryException,
+			AGResponseHandlerInf handler) throws IOException, RepositoryException,
 			AGHttpException {
 		GetMethod get = new GetMethod(url);
 		setDoAuthentication(get);
@@ -153,7 +155,9 @@ implements Closeable {
 				throw new AGHttpException(errInfo);
 			}
 		} finally {
-			releaseConnection(get);
+			if (handler == null || handler.releaseConnection()) {
+				releaseConnection(get);
+			}
 		}
 	}
 
