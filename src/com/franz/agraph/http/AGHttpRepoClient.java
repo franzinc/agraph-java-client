@@ -433,7 +433,7 @@ public class AGHttpRepoClient implements Closeable {
 	 * will require excessive amounts of memory.
 	 * 
 	 * @param period A non-negative integer. 
-	 * @see #getUploadCommitPeriod(int)
+	 * @see #getUploadCommitPeriod()
 	 */
 	public void setUploadCommitPeriod(int period) {
 		if (period < 0) {
@@ -445,7 +445,6 @@ public class AGHttpRepoClient implements Closeable {
 	/**
 	 * Gets the commit period used when uploading statements.
 	 * 
-	 * @return
 	 * @see #setUploadCommitPeriod(int)
 	 */
 	public int getUploadCommitPeriod() {

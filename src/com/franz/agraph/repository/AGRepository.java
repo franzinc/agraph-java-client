@@ -1,5 +1,5 @@
 /******************************************************************************
-** Copyright (c) 2008-2010 Franz Inc.
+** Copyright (c) 2008-2011 Franz Inc.
 ** All rights reserved. This program and the accompanying materials
 ** are made available under the terms of the Eclipse Public License v1.0
 ** which accompanies this distribution, and is available at
@@ -28,8 +28,12 @@ import com.franz.agraph.http.AGHttpRepoClient;
 import com.franz.util.Closeable;
 
 /**
- * Implements the Sesame Repository interface for AllegroGraph.
- * 
+ * Implements the Sesame Repository interface for AllegroGraph, representing
+ * <a href="http://www.franz.com/agraph/support/documentation/v4/agraph-introduction.html#triple-store">triple-stores
+ * on the server</a>.
+ * In AllegroGraph, a {@link AGCatalog} contains multiple repositories.
+ * With the Sesame API, most data operations on a repository are done through
+ * the {@link AGRepositoryConnection} returned by {@link #getConnection()}.
  */
 public class AGRepository implements AGAbstractRepository, Closeable {
 
@@ -39,15 +43,14 @@ public class AGRepository implements AGAbstractRepository, Closeable {
 	private final String repositoryURL;
 	private final AGValueFactory vf;
 
-	private File dataDir;
-
-	/*--------------*
-	 * Constructors *
-	 *--------------*/
-
 	/**
 	 * Creates an AGRepository instance for a repository having the given
-	 * repository id in the given catalog.  
+	 * repository id in the given catalog.
+	 * 
+	 * <p>Preferred access is from {@link AGCatalog} methods
+	 * such as {@link AGCatalog#createRepository(String, boolean)}
+	 * or {@link AGCatalog#openRepository(String)}.
+	 * </p>
 	 */
 	public AGRepository(AGCatalog catalog, String repositoryID) {
 		this.catalog = catalog;
@@ -80,7 +83,7 @@ public class AGRepository implements AGAbstractRepository, Closeable {
 	}
 	
 	/**
-	 * Gets the URL of this repository.
+	 * The AllegroGraph URL of this repository.
 	 * 
 	 * @return the URL of this repository.
 	 */
@@ -92,23 +95,25 @@ public class AGRepository implements AGAbstractRepository, Closeable {
 		return vf;
 	}
 
+	/**
+	 * The http connection to AllegroGraph server.
+	 */
 	public AGHTTPClient getHTTPClient() {
 		return getCatalog().getHTTPClient();
 	}
-	
+
+	/**
+	 * Required by OpenRDF/Sesame, a repository must be initialized before use.
+	 */
 	public void initialize() throws RepositoryException {
 	}
 
+	/**
+	 * Create a connection to the repository.
+	 */
 	public AGRepositoryConnection getConnection() throws RepositoryException {
 		AGHttpRepoClient repoclient = new AGHttpRepoClient(this, getCatalog().getHTTPClient(), repositoryURL, null);
 		return new AGRepositoryConnection(this, repoclient);
-	}
-
-	/**
-	 * The dataDir is not currently applicable to AllegroGraph.
-	 */
-	public File getDataDir() {
-		return dataDir;
 	}
 
 	/**
@@ -150,16 +155,28 @@ public class AGRepository implements AGAbstractRepository, Closeable {
 	}
 
 	/**
+	 * The dataDir is not currently applicable to AllegroGraph.
+	 * @deprecated not applicable to AllegroGraph
+	 */
+	public File getDataDir() {
+		return null;
+	}
+
+	/**
 	 * The dataDir is not currently applicable to AllegroGraph. 
+	 * @deprecated not applicable to AllegroGraph
 	 */
 	public void setDataDir(File dataDir) {
 		// TODO: consider using this for client-side logging
-		this.dataDir = dataDir;
 	}
 
+    @Override
 	public void shutDown() throws RepositoryException {
 	}
 
+	/**
+	 * Calls Sesame method {@link #shutDown()}.
+	 */
     @Override
     public void close() throws RepositoryException {
         shutDown();
@@ -172,8 +189,6 @@ public class AGRepository implements AGAbstractRepository, Closeable {
      * there is no guarantee of durability in the event of a crash.
      * The bulkMode setting persists when the repository is closed.
      * 
-     * @param bulkMode a boolean indicating the bulkMode. 
-     * @throws RepositoryException
      * @see #isBulkMode()
      */
 	public void setBulkMode(boolean bulkMode) throws RepositoryException {
@@ -182,9 +197,9 @@ public class AGRepository implements AGAbstractRepository, Closeable {
 		NameValuePair[] data = {};
 		try {
 			if (bulkMode) {
-				getHTTPClient().put(url,headers,data,null);
+				getHTTPClient().put(url, headers, data, null);
 			} else {
-				getHTTPClient().delete(url,headers,data);
+				getHTTPClient().delete(url, headers, data);
 			}
 		} catch (IOException e) {
 			throw new RepositoryException(e);
@@ -197,7 +212,6 @@ public class AGRepository implements AGAbstractRepository, Closeable {
 	 * Returns the repository's bulkMode setting.
 	 *  
 	 * @return a boolean indicating the bulkMode setting.
-	 * @throws RepositoryException
 	 * @see #setBulkMode(boolean)
 	 */
 	public boolean isBulkMode() throws RepositoryException {
@@ -216,7 +230,6 @@ public class AGRepository implements AGAbstractRepository, Closeable {
 	 * duplicate triples, ignoring graph).
 	 *  
 	 * @param mode a String indicating the mode. 
-	 * @throws RepositoryException
 	 * @see #getDeleteDuplicatesMode()
 	 */
 	public void setDeleteDuplicatesMode(String mode) throws RepositoryException {
@@ -242,7 +255,6 @@ public class AGRepository implements AGAbstractRepository, Closeable {
 	 * Returns the repository's deleteDuplicates mode.
 	 *  
 	 * @return a String indicating the deleteDuplicates mode.
-	 * @throws RepositoryException
 	 * @see #setDeleteDuplicatesMode(String)
 	 */
 	public String getDeleteDuplicatesMode() throws RepositoryException {

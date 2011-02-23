@@ -16,6 +16,11 @@ import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Close functions for various object types.
+ * These close functions are null safe and will catch Exception
+ * and call log.warn instead of throwing.
+ */
 public class Util {
 
 	final static Logger logger = LoggerFactory.getLogger(Util.class);
