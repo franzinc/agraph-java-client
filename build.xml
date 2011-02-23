@@ -360,7 +360,7 @@
         <mkdir dir="target/test-ws/acjproject"/>
         <untar src="agraph-${env.version}-client-java.tar.gz" compression="gzip" dest="target/test-ws/acjproject"/>
         <exec executable="./eclipse-build.sh" taskname="eclipse-build.sh"
-              failonerror="true" timeout="20000">
+              failonerror="true" timeout="80000">
             <arg value="target/test-ws/"/>
             <arg value="target/test-ws/acjproject/bin/tutorial/TutorialExamples.class"/>
         </exec>
