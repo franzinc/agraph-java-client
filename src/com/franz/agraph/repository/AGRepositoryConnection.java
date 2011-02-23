@@ -63,9 +63,9 @@ import com.franz.util.Closeable;
  * and also for server code in InitFile and Scripts.
  * See more documentation for
  * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#sessions"
- * target="_top">Sessions in the AllegroGraph HTTP Protocol</a> and
+ *    target="_top">Sessions in the AllegroGraph HTTP Protocol</a> and
  * <a href="http://www.franz.com/agraph/support/documentation/v4/agraph-introduction.html#ACID"
- * target="_top">ACID transactions</a> in the AllegroGraph Server documentation.</p>
+ *    target="_top">ACID transactions</a> in the AllegroGraph Server documentation.</p>
  * 
  * <p>Operations such as setting autoCommit to false in
  * {@link #setAutoCommit(boolean) setAutoCommit},
@@ -85,9 +85,9 @@ import com.franz.util.Closeable;
  * and {@link #addSessionLoadScript(String) Scripts}
  * are loaded into the server only for sessions.  See
  * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#scripting"
- * target="_top">Scripting in HTTP Protocol</a> and
+ *    target="_top">Scripting in HTTP Protocol</a> and
  * <a href="http://www.franz.com/agraph/support/documentation/v4/agwebview.html"
- * target="_top">search for "InitFile" in WebView</a> for how to create initFiles.
+ *    target="_top">search for "InitFile" in WebView</a> for how to create initFiles.
  * </p>
  * 
  * <p>Session methods:<ul>

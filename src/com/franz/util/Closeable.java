@@ -1,5 +1,5 @@
 /******************************************************************************
-** Copyright (c) 2008-2010 Franz Inc.
+** Copyright (c) 2008-2011 Franz Inc.
 ** All rights reserved. This program and the accompanying materials
 ** are made available under the terms of the Eclipse Public License v1.0
 ** which accompanies this distribution, and is available at
@@ -17,6 +17,10 @@ package com.franz.util;
  */
 public interface Closeable {
 
+	/**
+	 * Releases system resources associated with the object.
+	 * @see java.io.Closeable#close()
+	 */
     void close() throws Exception;
     
 }
