@@ -17,6 +17,10 @@ package com.franz.util;
  */
 public interface Closeable {
 
+	/**
+	 * Releases system resources associated with the object.
+	 * @see java.io.Closeable#close()
+	 */
     void close() throws Exception;
     
 }

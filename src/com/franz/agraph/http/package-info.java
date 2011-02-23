@@ -6,23 +6,12 @@
 ** http://www.eclipse.org/legal/epl-v10.html
 ******************************************************************************/
 
-package com.franz.agraph.repository;
-
-import org.openrdf.repository.Repository;
-import org.openrdf.repository.RepositoryException;
-import com.franz.util.Closeable;
-
 /**
+ * Java client to the
+ * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html">AllegroGraph
+ * HTTP Protocol</a>, used by {@link com.franz.agraph.repository}
+ * and {@link com.franz.agraph.jena}.
  * 
+ * @since v4.0
  */
-public interface AGAbstractRepository extends Repository, Closeable {
-
-	public String getSpec();
-	
-	public AGValueFactory getValueFactory();
-	
-	public AGRepositoryConnection getConnection() throws RepositoryException;
-	
-	public AGCatalog getCatalog();
-
-}
+package com.franz.agraph.http;

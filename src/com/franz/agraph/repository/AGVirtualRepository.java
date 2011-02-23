@@ -17,6 +17,9 @@ import com.franz.agraph.http.AGHTTPClient;
 import com.franz.agraph.http.AGHttpRepoClient;
 import com.franz.util.Closeable;
 
+/**
+ * 
+ */
 public class AGVirtualRepository implements AGAbstractRepository, Closeable {
 	private final AGServer server;
 	final AGRepository wrapped;
@@ -41,29 +44,56 @@ public class AGVirtualRepository implements AGAbstractRepository, Closeable {
 	}
 
 	// interface
+	
 	public boolean isWritable() {
 		return wrapped != null;
 	}
+	
 	public AGValueFactory getValueFactory() {
 		return vf;
 	}
+	
 	public AGRepositoryConnection getConnection() throws RepositoryException {
 		AGHTTPClient client = server.getHTTPClient();
 		AGHttpRepoClient repoclient = new AGHttpRepoClient(this, client, null, client.openSession(spec, true));
 		return new AGRepositoryConnection(this, repoclient);
 	}
-    public void close() throws RepositoryException {
+
+	/**
+	 * Calls Sesame method {@link #shutDown()}.
+	 */
+    @Override
+	public void close() throws RepositoryException {
         shutDown();
     }
 
 	// stubs
+    
+	/**
+	 * Required by OpenRDF/Sesame, a repository must be initialized before use.
+	 */
+    @Override
 	public void initialize() {}
+	
+    @Override
 	public void shutDown() throws RepositoryException {}
+	
+	/**
+	 * The dataDir is not currently applicable to AllegroGraph. 
+	 * @deprecated not applicable to AllegroGraph
+	 * @throws UnsupportedOperationException
+	 */
 	public void setDataDir(File dataDir) {
-		throw new RuntimeException("setDataDir is inapplicable for AG repositories");
+		throw new UnsupportedOperationException("setDataDir is inapplicable for AG repositories");
 	}
+	
+	/**
+	 * The dataDir is not currently applicable to AllegroGraph. 
+	 * @deprecated not applicable to AllegroGraph
+	 * @throws UnsupportedOperationException
+	 */
 	public File getDataDir() {
-		throw new RuntimeException("getDataDir is inapplicable for AG repositories");
+		throw new UnsupportedOperationException("getDataDir is inapplicable for AG repositories");
 	}
 
 	// string-mangling utilities for creating sessions

@@ -166,6 +166,7 @@
                  doctitle="Franz, Inc. AllegroGraph ${env.version} Javadoc"
                  header="Franz Inc, AllegroGraph"
                  footer="Copyright &amp;copy; 2008-2011 Franz Inc."
+                 overview="src/overview.html"
                  nodeprecated="false"
                  nodeprecatedlist="false"
                  noindex="false"
