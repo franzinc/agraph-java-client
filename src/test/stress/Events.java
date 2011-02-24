@@ -24,7 +24,6 @@ import java.util.Calendar;
 import java.util.Formatter;
 import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.Random;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -66,7 +65,7 @@ import com.franz.util.Util;
 
 public class Events {
     
-    static private final Random RANDOM = new Random();
+    static private final test.Util.RandomLong RANDOM = new test.Util.RandomLong();
     
     static class Defaults {
         
@@ -91,7 +90,7 @@ public class Events {
         static private int BULK_EVENTS = 250;
         
         // Goal store size
-        static int SIZE = (int) Math.pow(10, 9);
+        static long SIZE = (long) Math.pow(10, 9);
         
         // The catalog name
         static String CATALOG = "tests";
@@ -297,7 +296,7 @@ public class Events {
             DELETE_WORKERS = cmdVal("delete", DELETE_WORKERS);
             MIXED_RUNS = cmdVal("mixed", MIXED_RUNS);
             STATUS = cmdVal("status", STATUS);
-            SIZE = Math.max(1000, fromHumanInt( cmdVal("size", "" + SIZE) ));
+            SIZE = Math.max(1000, test.Util.fromHumanInt( cmdVal("size", "" + SIZE) ));
             QUERY_TIME = cmdVal("time", QUERY_TIME);
             EVENT_SIZE = cmdVal("event", EVENT_SIZE);
             BULK_EVENTS = cmdVal("bulk", BULK_EVENTS);
@@ -317,35 +316,14 @@ public class Events {
                 RANDOM.setSeed(seed);
                 trace("Set random seed to %s.", seed);
             }
-            trace("Parameters:"
-            		+ " catalog=" + CATALOG
-            		+ " repository=" + REPOSITORY
-            		+ " url=" + URL
-            		+ " size=" + SIZE
-            		+ " stream=" + stream);
+            trace("Parameters: catalog=%s repository=%s url=%s size=%d stream=%s",
+            		CATALOG, REPOSITORY, URL, SIZE, stream);
         }
         
         public static boolean hasOption(String opt) {
             return cmd.hasOption(opt);
         }
-        
-        static int fromHumanInt(String value) {
-            int len = value.length();
-            if (len > 1) {
-                char c = value.charAt(len-1);
-                if ( ! Character.isDigit(c)) {
-                    int n = Integer.parseInt(value.substring(0, len-1));
-                    if (c == 'm')
-                        return n * (int) Math.pow(10, 6);
-                    else if (c == 'b')
-                        return n * (int) Math.pow(10, 9);
-                    else if (c == 't')
-                        return n * (int) Math.pow(10, 12);
-                }
-            }
-            return Integer.parseInt(value);
-        }
-        
+
     }
     
     static double logtime(double time) {
@@ -550,19 +528,19 @@ public class Events {
     
     private static class RandomCustomer implements RandomCallback {
         public Value makeValue() {
-            return ThreadVars.valueFactory.get().createURI(Defaults.NS, "Customer-" + RANDOM.nextInt(Defaults.SIZE/1000));
+            return ThreadVars.valueFactory.get().createURI(Defaults.NS, "Customer-" + RANDOM.nextLong(Defaults.SIZE/1000));
         }
     }
     
     private static class RandomAccount implements RandomCallback {
         public Value makeValue() {
-            return ThreadVars.valueFactory.get().createURI(Defaults.NS, "Account-" + RANDOM.nextInt(Defaults.SIZE/1000));
+            return ThreadVars.valueFactory.get().createURI(Defaults.NS, "Account-" + RANDOM.nextLong(Defaults.SIZE/1000));
         }
     }
     
     private static class RandomProductID implements RandomCallback {
         public Value makeValue() {
-            return ThreadVars.valueFactory.get().createURI(Defaults.NS, "ProductID-" + RANDOM.nextInt(Defaults.SIZE/1000));
+            return ThreadVars.valueFactory.get().createURI(Defaults.NS, "ProductID-" + RANDOM.nextLong(Defaults.SIZE/1000));
         }
     }
     
@@ -747,12 +725,12 @@ public class Events {
     
     private static class Loader implements Callable<Object> {
         private int id;
-        private int loopCount;
+        private long loopCount;
         private int eventsPerCommit;
         private int triplesPerCommit;
         private final RandomDate dateMaker;
         
-        public Loader(int theId, int theTripleGoal, int theEventsPerCommit, RandomDate dateMaker) {
+        public Loader(int theId, long theTripleGoal, int theEventsPerCommit, RandomDate dateMaker) {
             id = theId;
             this.dateMaker = dateMaker;
             triplesPerCommit = theEventsPerCommit * Defaults.EVENT_SIZE;
@@ -810,11 +788,7 @@ public class Events {
             trace("Loading Done - %d triples at %d triples " +
                     "per commit, %d errors.", count, triplesPerCommit, errors);
             
-            try {
-                conn.close();
-            } catch (RepositoryException e) {
-                e.printStackTrace();
-            }
+            Util.close(conn);
             
             return 0;
         }
@@ -990,11 +964,7 @@ public class Events {
                     "(%f queries/second, %d triples per query), %d queries aborted.",
                     count, queries, logtime(seconds), logtime(queries/seconds), count/queries, restarts);
             
-            try {
-                conn.close();
-            } catch (RepositoryException e) {
-                e.printStackTrace();
-            }
+            Util.close(conn);
             
             return new QueryResult(queries, count);
         }
@@ -1257,10 +1227,10 @@ public class Events {
                 triples = triplesEnd - triplesStart;
                 seconds = (end - start) / 1000.0;
                 trace("Phase 1 End: %d total triples added in %.1f seconds " +
-		      "(%.2f triples/second, %.2f commits/second). " +
-		      "Store contains %d triples.", triples, logtime(seconds),
-		      logtime(triples/seconds),
-		      logtime(triples/Defaults.EVENT_SIZE/seconds), triplesEnd);
+                		"(%.2f triples/second, %.2f commits/second). " +
+                		"Store contains %d triples.", triples, logtime(seconds),
+                		logtime(triples/seconds),
+                		logtime(triples/Defaults.EVENT_SIZE/seconds), triplesEnd);
                 Monitor.stop(); // sync phase after phase-1 complete.
             }
             
@@ -1268,7 +1238,7 @@ public class Events {
             if (Defaults.PHASE <= 2) {
                 triplesStart = triplesEnd;
                 for (int task = 0; task < (Defaults.LOAD_WORKERS); task++) {
-                    tasks.set(task, new Loader(task, Defaults.SIZE*9/10, Defaults.BULK_EVENTS, BulkRange));
+                    tasks.set(task, new Loader(task, (Defaults.SIZE/10)*9, Defaults.BULK_EVENTS, BulkRange));
                 }
                 trace("Phase 2 Begin: Grow store by about %d triples.", (Defaults.SIZE*9/10));
                 Monitor.start("phase-2");
@@ -1279,9 +1249,9 @@ public class Events {
                 triples = triplesEnd - triplesStart;
                 seconds = (end - start) / 1000.0;
                 trace("Phase 2 End: %d total triples bulk-loaded in %.1f seconds " +
-		      "(%.2f triples/second, %.2f commits/second). " +
-		      "Store contains %d triples.", triples, seconds, triples/seconds,
-		      triples/Defaults.BULK_EVENTS/Defaults.EVENT_SIZE/seconds, triplesEnd);
+                		"(%.2f triples/second, %.2f commits/second). " +
+                		"Store contains %d triples.", triples, seconds, triples/seconds,
+                		triples/Defaults.BULK_EVENTS/Defaults.EVENT_SIZE/seconds, triplesEnd);
                 Monitor.stop();
             }
             
@@ -1300,10 +1270,10 @@ public class Events {
                 triples = triplesEnd - triplesStart;
                 seconds = (end - start) / 1000.0;
                 trace("Phase 3 End: %d total triples added in %.1f seconds " +
-		      "(%.2f triples/second, %.2f commits/second). " +
-		      "Store contains %d triples.", triples, seconds, triples/seconds,
-		      triples/Defaults.EVENT_SIZE/seconds, triplesEnd);
-		Monitor.stop();
+                		"(%.2f triples/second, %.2f commits/second). " +
+                		"Store contains %d triples.", triples, seconds, triples/seconds,
+                		triples/Defaults.EVENT_SIZE/seconds, triplesEnd);
+                Monitor.stop();
                 executor.shutdown();
             }
         }
@@ -1448,8 +1418,8 @@ public class Events {
         trace("Test completed in %.1f total seconds - store contains %d triples (%d triples added/removed).",
                 logtime(totalSeconds), triplesEnd, triples);
         
-        conn.close();
-        repository.shutDown();
+        Util.close(conn);
+        Util.close(repository);
     }
     
     private static <Type> void invokeAndGetAll(ExecutorService executor,
