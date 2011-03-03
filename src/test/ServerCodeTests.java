@@ -263,7 +263,6 @@ public class ServerCodeTests extends AGAbstractTest {
     	} catch (AGCustomStoredProcException e) {
     		assertEquals("test error", "There's junk in this string: \"abc\".", e.getMessage());
     	}
-    	System.out.println(ALL_TYPES);
     	assertEqualsDeep("supports all types, originating from java", ALL_TYPES, sp.checkAllTypes(ALL_TYPES));
     	assertEqualsDeep("supports all types, round-trip", ALL_TYPES, sp.identity(ALL_TYPES));
     	assertEqualsDeep("supports all types, originating from lisp", ALL_TYPES, sp.returnAllTypes());

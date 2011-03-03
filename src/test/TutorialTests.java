@@ -151,7 +151,6 @@ public class TutorialTests extends AGAbstractTest {
         Literal rouge = f.createLiteral("Rouge", "fr");
         Literal fortyTwoInt = f.createLiteral("42", XMLSchema.INT);
         Literal fortyTwoLong = f.createLiteral("42", XMLSchema.LONG);
-        println("42L=" + fortyTwoLong);
         Literal fortyTwoUntyped = f.createLiteral("42");
         Literal date = f.createLiteral("1984-12-06", XMLSchema.DATE);
         // TODO: added Z to fix the error
@@ -567,7 +566,6 @@ public class TutorialTests extends AGAbstractTest {
      * Range matches
      */
     @Test
-    @Category(TestSuites.Broken.class)
     public void example15() throws Exception {
         ValueFactory f = conn.getValueFactory();
         conn.clear();

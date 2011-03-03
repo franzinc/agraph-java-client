@@ -191,7 +191,6 @@ public abstract class RepositoryConnectionTest {
 public static abstract class RepositoryConnectionTests extends RepositoryConnectionTest {
     
     @Test
-    @Category(TestSuites.Broken.class)
     public void testAddStatement()
         throws Exception
     {
@@ -787,7 +786,6 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
     }
 
     @Test
-    @Category(TestSuites.Broken.class)
     public void testGetStatementsInSingleContext()
         throws Exception
     {
@@ -1015,7 +1013,6 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
     }
 
     @Test
-    @Category(TestSuites.Broken.class)
     public void testRemoveStatementCollection()
         throws Exception
     {
@@ -1037,7 +1034,6 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
     }
 
     @Test
-    @Category(TestSuites.Broken.class)
     public void testRemoveStatementIteration()
         throws Exception
     {
@@ -1145,7 +1141,6 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
     }
 
     @Test
-    @Category(TestSuites.Broken.class)
     public void testStatementSerialization()
         throws Exception
     {
@@ -1177,7 +1172,6 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
     }
 
     @Test
-    @Category(TestSuites.Broken.class)
     public void testBNodeSerialization()
         throws Exception
     {
@@ -1277,7 +1271,6 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
     }
 
     @Test
-    @Category(TestSuites.Broken.class)
     public void testGraphSerialization()
         throws Exception
     {
@@ -1491,7 +1484,6 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
     }
 
     @Test
-    @Category(TestSuites.Broken.class)
     public void testOptionalFilter()
         throws Exception
     {
