@@ -37,6 +37,7 @@ public class Stmt implements Statement {
     private static final String XSD_FLOAT = "http://www.w3.org/2001/XMLSchema#float";
     private static final String XSD_LONG = "http://www.w3.org/2001/XMLSchema#long";
     private static final String XSD_DATETIME = "http://www.w3.org/2001/XMLSchema#dateTime";
+    private static final String XSD_DOUBLE = "http://www.w3.org/2001/XMLSchema#double";
 
     private final Resource s;
     private final URI p;
@@ -206,6 +207,10 @@ public class Stmt implements Statement {
                 if (eq(al.getDatatype().toString(), XSD_LONG)) {
                     //System.out.println("eq long: " + al.longValue() + " " + bl.longValue());
                     return al.longValue() == bl.longValue();
+                }
+                if (eq(al.getDatatype().toString(), XSD_DOUBLE)) {
+                	//System.out.println("eq long: " + al.longValue() + " " + bl.longValue());
+                	return al.doubleValue() == bl.doubleValue();
                 }
             }
         }

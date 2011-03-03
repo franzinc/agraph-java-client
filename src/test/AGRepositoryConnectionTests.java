@@ -296,7 +296,6 @@ public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
 	}
 
     @Test
-    @Category(TestSuites.Broken.class)
 	public void testSimpleTupleQueryUnicodeSparql() throws Exception {
 		testCon.add(alexander, name, Александър);
 
@@ -368,7 +367,6 @@ public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
 	}
 
     @Test
-    @Category(TestSuites.Broken.class)
 	public void testPreparedTupleQueryUnicodeSparql() throws Exception {
 		testCon.add(alexander, name, Александър);
 
