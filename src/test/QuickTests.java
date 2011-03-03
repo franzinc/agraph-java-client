@@ -66,7 +66,6 @@ public class QuickTests extends AGAbstractTest {
                 Stmt.dropSubjects(statementSet(conn.getStatements(s, p, o, true))));
         RepositoryResult<Statement> statements = conn.getStatements(null, null, null, false);
         Statement st = statements.next();
-        System.out.println(new Stmt(st));
         AGAbstractTest.assertSetsEqual("",
                 Stmt.stmts(new Stmt(st)),
                 Stmt.statementSet(conn.getStatements(s, st.getPredicate(), st.getObject(), false)));
@@ -106,14 +105,12 @@ public class QuickTests extends AGAbstractTest {
     }
 
     /**
-     * Simplified from tutorial example13 to show the error.
-     * Example13 now has a workaround: setting the prefix in the sparql query.
      * Namespaces are cleared in setUp(), otherwise the first errors don't happen.
-     * After the (expected) failure for xxx, setting the ont namespace
-     * does not hold, so the query with ont fails.
+     * After the (expected) failure for xxx, ensure setting the ont namespace
+     * holds; this test used to fail, but now passes, adding to Prepush.
      */
     @Test
-    @Category(TestSuites.Broken.class)
+    @Category(TestSuites.Prepush.class)
     public void namespaceAfterError() throws Exception {
         URI alice = vf.createURI("http://example.org/people/alice");
         URI name = vf.createURI("http://example.org/ontology/name");
@@ -125,7 +122,6 @@ public class QuickTests extends AGAbstractTest {
             fail("");
         } catch (Exception e) {
             // expected
-            //e.printStackTrace();
         }
         conn.setNamespace("ont", "http://example.org/ontology/");
         assertTrue("Boolean result",
