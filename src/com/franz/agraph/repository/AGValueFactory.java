@@ -1,5 +1,5 @@
 /******************************************************************************
-** Copyright (c) 2008-2010 Franz Inc.
+** Copyright (c) 2008-2011 Franz Inc.
 ** All rights reserved. This program and the accompanying materials
 ** are made available under the terms of the Eclipse Public License v1.0
 ** which accompanies this distribution, and is available at
@@ -159,19 +159,19 @@ public class AGValueFactory extends ValueFactoryImpl {
 	/**
 	 * Returns unique URIs within the specified encodable namespace.
 	 * 
-	 * The generated URIs will conform to the format that was specified
+	 * <p>The generated URIs will conform to the format that was specified
 	 * when the encodable namespace was registered, and are guaranteed
 	 * to be unique for this namespace generator.  Note that this does
 	 * not prevent other parties from independently using URIs that
-	 * involve this namespace, however.
+	 * involve this namespace, however.</p>
 	 * 
-	 * If amount cannot be generated, up to amount URIs will be returned,
-	 * or an exception will be thrown if none are available.
+	 * <p>If amount cannot be generated, up to amount URIs will be returned,
+	 * or an exception will be thrown if none are available.</p>
 	 *   
 	 * @see AGRepositoryConnection#registerEncodableNamespace(String, String)
+	 * @see #generateURI(String)
 	 * 
 	 * @return a unique URI within the specified namespace.
-	 * @throws RepositoryException
 	 */
 	public URI[] generateURIs(String namespace, int amount) throws RepositoryException {
 		String[] uri_strs;
@@ -193,18 +193,19 @@ public class AGValueFactory extends ValueFactoryImpl {
 	/**
 	 * Returns a unique URI within the specified encodable namespace.
 	 * 
-	 * The generated URI will conform to the format that was specified
+	 * <p>The generated URI will conform to the format that was specified
 	 * when the encodable namespace was registered, and is guaranteed
 	 * to be unique for this namespace generator.  Note that this does
 	 * not prevent other parties from independently using URIs that
-	 * involve this namespace, however.
+	 * involve this namespace, however.</p>
 	 * 
 	 * @see AGRepositoryConnection#registerEncodableNamespace(String, String)
+	 * @see #generateURIs(String, int)
 	 * 
 	 * @return a unique URI within the specified namespace.
-	 * @throws RepositoryException
 	 */
 	public URI generateURI(String registeredEncodableNamespace) throws RepositoryException {
 		return generateURIs(registeredEncodableNamespace,1)[0];
 	}
+
 }
