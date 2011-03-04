@@ -65,4 +65,17 @@ public class AGGraphQuery extends AGQuery implements GraphQuery {
 							RDFFormat.NTRIPLES));
 	}
 
+	/**
+	 * Evaluates the query and returns only the number of results
+	 * to the client (counting is done on the server, the results
+	 * are not returned).
+	 * 
+	 * @return the number of results
+	 * @throws QueryEvaluationException
+	 */
+	public long count() throws QueryEvaluationException {
+		AGResponseHandler handler = new AGResponseHandler(0L);
+		evaluate(handler);
+		return handler.getLong();
+	}
 }

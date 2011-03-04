@@ -46,6 +46,14 @@ public class AGTupleQuery extends AGQuery implements TupleQuery {
 		evaluate(new AGResponseHandler(httpCon.getRepository(), handler));
 	}
 
+	/**
+	 * Evaluates the query and returns only the number of results
+	 * to the client (counting is done on the server, the results
+	 * are not returned).
+	 * 
+	 * @return the number of results
+	 * @throws QueryEvaluationException
+	 */
 	public long count() throws QueryEvaluationException {
 		AGResponseHandler handler = new AGResponseHandler(0L);
 		evaluate(handler);
