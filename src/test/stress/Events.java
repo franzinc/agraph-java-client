@@ -348,18 +348,16 @@ public class Events {
         System.out.println(sb.toString());
     }
     
-    public static AGRepositoryConnection connect(boolean shared) throws RepositoryException {
+    public static AGRepositoryConnection connect() throws RepositoryException {
         AGServer server = new AGServer(findServerUrl(), username(), password());
         AGCatalog catalog = server.getCatalog(Defaults.CATALOG);
         AGRepository repository = catalog.createRepository(Defaults.REPOSITORY);
         repository.initialize();
         AGRepositoryConnection conn = repository.getConnection();
         
-        if (!shared) {
-            // Force an auto-committing non-shared backend 
-            conn.setAutoCommit(false);
-            conn.setAutoCommit(true);
-        }
+        // Force an auto-committing non-shared backend 
+        conn.setAutoCommit(false);
+        conn.setAutoCommit(true);
         
         return conn;
     }
@@ -745,7 +743,7 @@ public class Events {
             ThreadVars.dateMaker.set(dateMaker);
             AGRepositoryConnection conn;
             try {
-                conn = connect(false);
+                conn = connect();
             } catch (RepositoryException e) {
                 e.printStackTrace();
                 return -1;
@@ -904,7 +902,7 @@ public class Events {
             AGRepositoryConnection conn;
             ValueFactory vf;
             try {
-                conn = connect(true);
+                conn = connect();
             } catch (RepositoryException e) {
                 e.printStackTrace();
                 return null;
@@ -973,7 +971,7 @@ public class Events {
             Thread.currentThread().setName("deleter(" + range + ")");
             AGRepositoryConnection conn;
             try {
-                conn = connect(false);
+                conn = connect();
             } catch (RepositoryException e) {
                 e.printStackTrace();
                 return 0;
@@ -1148,6 +1146,7 @@ public class Events {
         AGRepository repository = catalog.createRepository(Defaults.REPOSITORY);
         repository.initialize();
         AGRepositoryConnection conn = repository.getConnection();
+        conn.setAutoCommit(true);
         ThreadVars.connection.set(conn);
         ThreadVars.valueFactory.set(conn.getValueFactory());
         
