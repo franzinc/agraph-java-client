@@ -57,7 +57,7 @@ public abstract class Closer implements Closeable {
 	/**
 	 * TODO: move to com.franz.util.Util
 	 */
-    public static <Obj extends Object>
+    public <Obj extends Object>
     Obj close(Obj o) {
         if (o instanceof Closeable) {
             com.franz.util.Util.close((Closeable)o);

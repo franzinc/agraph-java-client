@@ -11,7 +11,7 @@ import com.franz.util.Closeable;
 
 public class AGVirtualRepository implements AGAbstractRepository, Closeable {
 	private AGServer server;
-	private AGRepository wrapped;
+	AGRepository wrapped;
 	private String spec;
 	private AGValueFactory vf;
 

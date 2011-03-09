@@ -151,7 +151,7 @@ public class AGAbstractTest extends Closer {
     @AfterClass
     public static void tearDownOnce() throws Exception {
         cat = null;
-        server = Closer.close(server);
+        server = Util.close(server);
     }
 
     AGRepositoryConnection getConnection() throws RepositoryException {
