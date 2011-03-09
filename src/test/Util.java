@@ -8,6 +8,8 @@
 
 package test;
 
+import info.aduna.iteration.CloseableIteration;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.zip.GZIPOutputStream;
 
 import com.franz.util.Closeable;
@@ -33,11 +36,33 @@ public class Util extends com.franz.util.Util {
         return defaultVal;
     }
     
-    public static Object close(Object o) {
+	/**
+	 * TODO: move to com.franz.util.Util
+	 */
+	public static <Elem extends Object, Exc extends Exception>
+	CloseableIteration<Elem, Exc> close(CloseableIteration<Elem, Exc> o) {
+        if (o != null) {
+            try {
+                o.close();
+            } catch (Exception e) {
+                System.err.println("ignoring error with close:" + e);
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+
+	/**
+	 * TODO: move to com.franz.util.Util
+	 */
+    public static <Obj extends Object>
+    Obj close(Obj o) {
         if (o instanceof Closeable) {
-            close((Closeable)o);
+            com.franz.util.Util.close((Closeable)o);
         } else if (o instanceof java.io.Closeable) {
-            close((java.io.Closeable)o);
+            com.franz.util.Util.close((java.io.Closeable)o);
+        } else if (o instanceof CloseableIteration) {
+        	close((CloseableIteration)o);
         } else if (o != null) {
             try {
                 o.getClass().getMethod("close").invoke(o);
@@ -200,5 +225,5 @@ public class Util extends com.franz.util.Util {
 		Collections.reverse(list);
     	return list;
     }
-    
+
 }
