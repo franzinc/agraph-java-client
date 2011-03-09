@@ -1,5 +1,5 @@
 /******************************************************************************
-** Copyright (c) 2008-2010 Franz Inc.
+** Copyright (c) 2008-2011 Franz Inc.
 ** All rights reserved. This program and the accompanying materials
 ** are made available under the terms of the Eclipse Public License v1.0
 ** which accompanies this distribution, and is available at
@@ -30,6 +30,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -53,18 +54,23 @@ import org.openrdf.query.TupleQueryResult;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.rio.ntriples.NTriplesUtil;
 
+import test.Closer;
+
 import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGQueryLanguage;
 import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
 import com.franz.agraph.repository.AGTupleQuery;
+import com.franz.util.Closeable;
 import com.franz.util.Util;
 
-public class Events {
+public class Events extends Closer {
     
     static private final Random RANDOM = new Random();
-    
+
+    long errors = 0;
+
     private static class Defaults {
         
         private static CommandLine cmd;
@@ -348,25 +354,23 @@ public class Events {
         System.out.println(sb.toString());
     }
     
-    public static AGRepositoryConnection connect(boolean shared) throws RepositoryException {
-        AGServer server = new AGServer(findServerUrl(), username(), password());
-        AGCatalog catalog = server.getCatalog(Defaults.CATALOG);
-        AGRepository repository = catalog.createRepository(Defaults.REPOSITORY);
-        repository.initialize();
-        AGRepositoryConnection conn = repository.getConnection();
-        
-        if (!shared) {
-            // Force an auto-committing non-shared backend 
-            conn.setAutoCommit(false);
-            conn.setAutoCommit(true);
-        }
-        
-        return conn;
+	public AGRepositoryConnection connect() throws RepositoryException {
+		AGServer server = closeLater( new AGServer(findServerUrl(), username(), password()) );
+		server.getHTTPClient().getHttpClient().setConnectionTimeout((int) TimeUnit.MINUTES.toMillis(10));
+		AGCatalog cat = server.getCatalog(Defaults.CATALOG);
+		AGRepository repo = closeLater( cat.createRepository(Defaults.REPOSITORY) );
+		repo.initialize();
+		AGRepositoryConnection conn = closeLater( repo.getConnection() );
+		conn.setSessionLifetime((int) TimeUnit.MINUTES.toSeconds(10));
+		// Force an auto-committing non-shared backend 
+		//conn.setAutoCommit(false);
+		conn.setAutoCommit(true);
+		trace("Dedicated backend: " + conn.getHttpRepoClient().getRoot());
+		return conn;
     }
-    
+	
     private static class ThreadVars {
         private static ThreadLocal<ValueFactory> valueFactory = new ThreadLocal<ValueFactory>();
-        private static ThreadLocal<AGRepositoryConnection> connection = new ThreadLocal<AGRepositoryConnection>();
         private static ThreadLocal<RandomDate> dateMaker = new ThreadLocal<RandomDate>();
         private static ThreadLocal<DatatypeFactory> datatypeFactory = new ThreadLocal<DatatypeFactory>() {
             protected DatatypeFactory initialValue() {
@@ -425,7 +429,7 @@ public class Events {
             BaselineRange.end);
     static private final RandomDate FullDateRange = new RandomDate(BaselineRange.start,
             SmallCommitsRange.end);
-    
+
     private static interface RandomCallback {
         public Value makeValue();
     }
@@ -725,32 +729,26 @@ public class Events {
         }
     }
     
-    private static class Loader implements Callable<Object> {
+    class Loader implements Callable<Object>, Closeable {
         private int id;
         private int loopCount;
         private int eventsPerCommit;
         private int triplesPerCommit;
         private final RandomDate dateMaker;
+        private AGRepositoryConnection conn;
         
-        public Loader(int theId, int theTripleGoal, int theEventsPerCommit, RandomDate dateMaker) {
+        public Loader(int theId, int theTripleGoal, int theEventsPerCommit, RandomDate dateMaker) throws Exception {
             id = theId;
             this.dateMaker = dateMaker;
             triplesPerCommit = theEventsPerCommit * Defaults.EVENT_SIZE;
             loopCount = theTripleGoal / triplesPerCommit / Defaults.LOAD_WORKERS;
             eventsPerCommit = theEventsPerCommit;
+            conn = connect();
         }
         
         public Integer call() {
             Thread.currentThread().setName("loader(" + id + ")");
             ThreadVars.dateMaker.set(dateMaker);
-            AGRepositoryConnection conn;
-            try {
-                conn = connect(false);
-            } catch (RepositoryException e) {
-                e.printStackTrace();
-                return -1;
-            }
-            ThreadVars.connection.set(conn);
             ThreadVars.valueFactory.set(conn.getValueFactory());
             
             final int statusSize = Defaults.STATUS;
@@ -782,6 +780,7 @@ public class Events {
                     conn.add(statements);
                     count += triplesPerCommit;
                 } catch (Exception e) {
+        			errors++;
                     trace("Error adding statements...");
                     e.printStackTrace();
                 }
@@ -790,14 +789,13 @@ public class Events {
             trace("Loading Done - %d triples at %d triples " +
                     "per commit, %d errors.", count, triplesPerCommit, errors);
             
-            try {
-                conn.close();
-            } catch (RepositoryException e) {
-                e.printStackTrace();
-            }
-            
             return 0;
         }
+
+		@Override
+		public void close() {
+			Events.this.close(conn);
+		}
     }
     
     private static class QueryResult {
@@ -810,16 +808,18 @@ public class Events {
         }
     }
     
-    private static class Querier implements Callable<Object> {
+    class Querier implements Callable<Object>, Closeable {
         private int secondsToRun;
         private int id;
         private String timestamp;
         private final RandomDate dateMaker;
+        AGRepositoryConnection conn;
         
-        public Querier(int theId, int theSecondsToRun, RandomDate dateMaker) {
+        public Querier(int theId, int theSecondsToRun, RandomDate dateMaker) throws Exception {
             id = theId;
             secondsToRun = theSecondsToRun;
             this.dateMaker = dateMaker;
+            conn = connect();
         }
         
         private int randomQuery(AGRepositoryConnection conn, ValueFactory vf, boolean trace) {
@@ -879,11 +879,12 @@ public class Events {
                 //				AGAbstractTest.assertSetsEqual(queryString, stmts,
                 //						Stmt.statementSet(tupleQuery2.evaluate()));
             } catch (Exception e) {
+    			errors++;
                 trace("Error executing query:\n%s\n", queryString);
                 e.printStackTrace();
                 count = -1;
             } finally {
-                Util.close(result);
+                Events.this.close(result);
             }
             
             return count;
@@ -901,15 +902,7 @@ public class Events {
         public QueryResult call() {
             Thread.currentThread().setName("query(" + id + ")");
             ThreadVars.dateMaker.set(dateMaker);
-            AGRepositoryConnection conn;
             ValueFactory vf;
-            try {
-                conn = connect(true);
-            } catch (RepositoryException e) {
-                e.printStackTrace();
-                return null;
-            }
-            ThreadVars.connection.set(conn);
             ThreadVars.valueFactory.set(vf = conn.getValueFactory());
             
             timestamp = NTriplesUtil.toNTriplesString(vf.createURI(Defaults.NS, "EventTimeStamp"));
@@ -952,34 +945,28 @@ public class Events {
                     "(%f queries/second, %d triples per query), %d queries aborted.",
                     count, queries, logtime(seconds), logtime(queries/seconds), count/queries, restarts);
             
-            try {
-                conn.close();
-            } catch (RepositoryException e) {
-                e.printStackTrace();
-            }
-            
             return new QueryResult(queries, count);
         }
-    }	
+
+		@Override
+		public void close() {
+			Events.this.close(conn);
+		}
+    }
     
-    private static class Deleter implements Callable<Object> {
+    class Deleter implements Callable<Object>, Closeable {
+    	
         private final RandomDate range;
+        private AGRepositoryConnection conn;
         
-        public Deleter(RandomDate range) {
+        public Deleter(RandomDate range) throws Exception {
             this.range = range;
+            conn = connect();
         }
         
         public Integer call() {
             Thread.currentThread().setName("deleter(" + range + ")");
-            AGRepositoryConnection conn;
-            try {
-                conn = connect(false);
-            } catch (RepositoryException e) {
-                e.printStackTrace();
-                return 0;
-            }
             ValueFactory vf;
-            ThreadVars.connection.set(conn);
             ThreadVars.valueFactory.set(vf = conn.getValueFactory());
             
             String timestamp = NTriplesUtil.toNTriplesString(vf.createURI(Defaults.NS, "EventTimeStamp"));
@@ -1035,11 +1022,12 @@ public class Events {
                             trace("delete counts differ: size-diff: %d, query-count: %d", count, sizeDiff);
                         }
                     } catch (Exception e) {
+            			errors++;
                         trace("Error executing query:\n%s\n", queryString);
                         e.printStackTrace();
                         count = -1;
                     } finally {
-                        Util.close(result);
+                    	Events.this.close(result);
                     }
                 } else {
                     queryString = String.format("(select0 (?event)" +
@@ -1058,6 +1046,7 @@ public class Events {
                             trace("delete counts differ: size-diff: %d, query-count: %d", count, count1);
                         }
                     } catch (Exception e) {
+            			errors++;
                         trace("Error executing query:\n%s\n", queryString);
                         e.printStackTrace();
                     }
@@ -1076,10 +1065,13 @@ public class Events {
             
             trace("Found %d events (%d triples) to delete.", events, events * Defaults.EVENT_SIZE);
             
-            Util.close(conn);
-            
             return -1;
         }
+        
+		@Override
+		public void close() {
+			Events.this.close(conn);
+		}
     }
     
     public static class Monitor {
@@ -1123,11 +1115,29 @@ public class Events {
             }
         }
     }
-    
+
     /**
      * @param args Run with --help
      */
     public static void main(String[] args) throws Exception {
+    	Events events = new Events();
+    	try {
+    		events.run(args);
+    	} catch (Exception e) {
+    		System.err.println(e);
+    		e.printStackTrace();
+    		System.exit(-1);
+    	} finally {
+    		Util.close(events);
+    	}
+    	if (events.errors > 0) {
+    		// exit with error
+    		throw new Exception("Errors during execution: " + events.errors);
+    	}
+		System.exit(0);
+    }
+    
+    public void run(String[] args) throws Exception {
         Defaults.init(args);
         
         Thread.currentThread().setName("./events");
@@ -1140,15 +1150,12 @@ public class Events {
         
         AGServer server = new AGServer(Defaults.URL, Defaults.USERNAME, Defaults.PASSWORD);
         AGCatalog catalog = server.getCatalog(Defaults.CATALOG);
-        
         if (false == Defaults.hasOption("open")) {
             catalog.deleteRepository(Defaults.REPOSITORY);
         }
+        server.close();
         
-        AGRepository repository = catalog.createRepository(Defaults.REPOSITORY);
-        repository.initialize();
-        AGRepositoryConnection conn = repository.getConnection();
-        ThreadVars.connection.set(conn);
+        AGRepositoryConnection conn = connect();
         ThreadVars.valueFactory.set(conn.getValueFactory());
         
         AllEvents.initialize();
@@ -1165,34 +1172,36 @@ public class Events {
             long start, end, triples;
             double seconds;
             ExecutorService executor = Executors.newFixedThreadPool(Defaults.LOAD_WORKERS);
-            List<Callable<Object>> tasks = new ArrayList<Callable<Object>>(Defaults.LOAD_WORKERS);
-            for (int task = 0; task < Defaults.LOAD_WORKERS; task++) {
-                tasks.add(new Loader(task, Defaults.SIZE / 10, 1, BaselineRange));
-            }
             
             /////////////////////////////////////////////////////////////////////// PHASE 1
             if (Defaults.PHASE <= 1) {
+                List<Callable<Object>> tasks = new ArrayList<Callable<Object>>(Defaults.LOAD_WORKERS);
+            	for (int task = 0; task < Defaults.LOAD_WORKERS; task++) {
+            		tasks.add(new Loader(task, Defaults.SIZE / 10, 1, BaselineRange));
+            	}
                 trace("Phase 1 Begin: Baseline %d triple commits.", Defaults.EVENT_SIZE);
                 Monitor.start("phase-1");
-                start = startTime;
+                start = System.currentTimeMillis();
                 invokeAndGetAll(executor, tasks);
                 end = System.currentTimeMillis();
                 triplesEnd = conn.size();
                 triples = triplesEnd - triplesStart;
                 seconds = (end - start) / 1000.0;
                 trace("Phase 1 End: %d total triples added in %.1f seconds " +
-		      "(%.2f triples/second, %.2f commits/second). " +
-		      "Store contains %d triples.", triples, logtime(seconds),
-		      logtime(triples/seconds),
-		      logtime(triples/Defaults.EVENT_SIZE/seconds), triplesEnd);
+                		"(%.2f triples/second, %.2f commits/second). " +
+                		"Store contains %d triples.", triples, logtime(seconds),
+                		logtime(triples/seconds),
+                		logtime(triples/Defaults.EVENT_SIZE/seconds), triplesEnd);
                 Monitor.stop(); // sync phase after phase-1 complete.
+                closeAll(tasks);
             }
             
             /////////////////////////////////////////////////////////////////////// PHASE 2
             if (Defaults.PHASE <= 2) {
                 triplesStart = triplesEnd;
+                List<Callable<Object>> tasks = new ArrayList<Callable<Object>>(Defaults.LOAD_WORKERS);
                 for (int task = 0; task < (Defaults.LOAD_WORKERS); task++) {
-                    tasks.set(task, new Loader(task, Defaults.SIZE*9/10, Defaults.BULK_EVENTS, BulkRange));
+                    tasks.add(task, new Loader(task, Defaults.SIZE*9/10, Defaults.BULK_EVENTS, BulkRange));
                 }
                 trace("Phase 2 Begin: Grow store by about %d triples.", (Defaults.SIZE*9/10));
                 Monitor.start("phase-2");
@@ -1203,17 +1212,19 @@ public class Events {
                 triples = triplesEnd - triplesStart;
                 seconds = (end - start) / 1000.0;
                 trace("Phase 2 End: %d total triples bulk-loaded in %.1f seconds " +
-		      "(%.2f triples/second, %.2f commits/second). " +
-		      "Store contains %d triples.", triples, seconds, triples/seconds,
-		      triples/Defaults.BULK_EVENTS/Defaults.EVENT_SIZE/seconds, triplesEnd);
+                		"(%.2f triples/second, %.2f commits/second). " +
+                		"Store contains %d triples.", triples, seconds, triples/seconds,
+                		triples/Defaults.BULK_EVENTS/Defaults.EVENT_SIZE/seconds, triplesEnd);
                 Monitor.stop();
+                closeAll(tasks);
             }
             
             /////////////////////////////////////////////////////////////////////// PHASE 3
             if (Defaults.PHASE <= 3) {
                 triplesStart = triplesEnd;
+                List<Callable<Object>> tasks = new ArrayList<Callable<Object>>(Defaults.LOAD_WORKERS);
                 for (int task = 0; task < Defaults.LOAD_WORKERS; task++) {
-                    tasks.set(task, new Loader(task, Defaults.SIZE/10, 1, SmallCommitsRange));
+                    tasks.add(task, new Loader(task, Defaults.SIZE/10, 1, SmallCommitsRange));
                 }
                 trace("Phase 3 Begin: Perform %d triple commits.", Defaults.EVENT_SIZE);
                 Monitor.start("phase-3");
@@ -1224,11 +1235,12 @@ public class Events {
                 triples = triplesEnd - triplesStart;
                 seconds = (end - start) / 1000.0;
                 trace("Phase 3 End: %d total triples added in %.1f seconds " +
-		      "(%.2f triples/second, %.2f commits/second). " +
-		      "Store contains %d triples.", triples, seconds, triples/seconds,
-		      triples/Defaults.EVENT_SIZE/seconds, triplesEnd);
-		Monitor.stop();
+                		"(%.2f triples/second, %.2f commits/second). " +
+                		"Store contains %d triples.", triples, seconds, triples/seconds,
+                		triples/Defaults.EVENT_SIZE/seconds, triplesEnd);
+                Monitor.stop();
                 executor.shutdown();
+                closeAll(tasks);
             }
         }
         
@@ -1246,7 +1258,7 @@ public class Events {
                 Monitor.start("phase-4");
                 int queries = 0;
                 long triples = 0;
-                Calendar start = GregorianCalendar.getInstance();
+                long start = System.currentTimeMillis();
                 try {
                     List<Future<Object>> fs = executor.invokeAll(queriers);
                     for (Future<Object> f : fs) {
@@ -1255,18 +1267,21 @@ public class Events {
                         triples += queryResult.triples;
                     }
                 } catch (InterruptedException e) {
+        			errors++;
                     e.printStackTrace();
                 } catch (ExecutionException e) {
+        			errors++;
                     e.printStackTrace();
                 }
-                Calendar end = GregorianCalendar.getInstance();
-                double seconds = (end.getTimeInMillis() - start.getTimeInMillis()) / 1000.0;
+                long end = System.currentTimeMillis();
+                double seconds = (end - start) / 1000.0;
                 trace("Phase 4 End: %d total triples returned over %d queries in " +
 		      "%.1f seconds (%.2f triples/second, %.2f queries/second, " +
 		      "%d triples/query).", triples, queries, logtime(seconds),
 		      logtime(triples/seconds), logtime(queries/seconds), triples/queries);
                 Monitor.stop();
                 executor.shutdown();
+                closeAll(queriers);
             }
         }
         
@@ -1284,6 +1299,7 @@ public class Events {
             long start = System.currentTimeMillis();
             invokeAndGetAll(executor, tasks);
             long end = System.currentTimeMillis();
+            closeAll(tasks);
             executor.shutdown();
             long triplesEnd = conn.size();
             long triples = triplesEnd - triplesStart;
@@ -1307,7 +1323,6 @@ public class Events {
                 long triples = 0;
                 long added = 0;
                 long deleted = 0;
-                Calendar start = GregorianCalendar.getInstance();
                 smallCommitsRange = smallCommitsRange.next(Calendar.DAY_OF_YEAR, 30);
                 fullDateRange = new RandomDate(deleteRangeTwo.end, smallCommitsRange.end);
                 deleteRangeOne = deleteRangeTwo.next(Calendar.DAY_OF_YEAR, 15);
@@ -1329,6 +1344,7 @@ public class Events {
                     }
                 }
                 
+                long start = System.currentTimeMillis();
                 try {
                     List<Future<Object>> fs = executor.invokeAll(tasks);
                     for (Future f : fs) {
@@ -1347,17 +1363,20 @@ public class Events {
                         }
                     }
                 } catch (InterruptedException e) {
+        			errors++;
                     e.printStackTrace();
                 } catch (ExecutionException e) {
+        			errors++;
                     e.printStackTrace();
                 }
-                Calendar end = GregorianCalendar.getInstance();
-                double seconds = (end.getTimeInMillis() - start.getTimeInMillis()) / 1000.0;
+                long end = System.currentTimeMillis();
+                double seconds = (end - start) / 1000.0;
                 trace("Phase 6 End: %d total triples returned over %d queries in " +
-		      "%.1f seconds (%.2f triples/second, %.2f queries/second, " +
-		      "%d triples/query, %d triples added, %d deletes).", triples, queries,
-		      logtime(seconds), logtime(triples/seconds), logtime(queries/seconds),
-		      (queries==0 ? 0 : triples/queries), added, deleted);
+                		"%.1f seconds (%.2f triples/second, %.2f queries/second, " +
+                		"%d triples/query, %d triples added, %d deletes).", triples, queries,
+                		logtime(seconds), logtime(triples/seconds), logtime(queries/seconds),
+                		(queries==0 ? 0 : triples/queries), added, deleted);
+                closeAll(tasks);
             }
             executor.shutdown();
             Monitor.stop();
@@ -1370,12 +1389,9 @@ public class Events {
         
         trace("Test completed in %.1f total seconds - store contains %d triples (%d triples added/removed).",
                 logtime(totalSeconds), triplesEnd, triples);
-        
-        conn.close();
-        repository.shutDown();
     }
     
-    private static <Type> void invokeAndGetAll(ExecutorService executor,
+    private <Type> void invokeAndGetAll(ExecutorService executor,
             List<Callable<Type>> tasks) {
         try {
             List<Future<Type>> fs = executor.invokeAll(tasks);
@@ -1383,8 +1399,10 @@ public class Events {
                 f.get();
             }
         } catch (InterruptedException e) {
+			errors++;
             e.printStackTrace();
         } catch (ExecutionException e) {
+			errors++;
             e.printStackTrace();
         }
     }
