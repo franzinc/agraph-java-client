@@ -1572,4 +1572,13 @@ public class AGHttpRepoClient implements Closeable {
 		return o;
 	}
 
+
+	public String[] getBlankNodes(int blankNodeAmount) throws RepositoryException {
+		try {
+			return getHTTPClient().getBlankNodes(getRoot(), blankNodeAmount);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		}
+	}
+
 }

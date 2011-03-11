@@ -10,10 +10,10 @@ import com.franz.agraph.http.AGHttpRepoClient;
 import com.franz.util.Closeable;
 
 public class AGVirtualRepository implements AGAbstractRepository, Closeable {
-	private AGServer server;
-	private AGRepository wrapped;
-	private String spec;
-	private AGValueFactory vf;
+	private final AGServer server;
+	final AGRepository wrapped;
+	private final String spec;
+	private final AGValueFactory vf;
 
 	public AGVirtualRepository(AGServer server, String spec, AGRepository wrapped) {
 		this.server = server;
