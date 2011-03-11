@@ -58,11 +58,20 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 
 	private final AGAbstractRepository repository;
 	private final AGHttpRepoClient repoclient;
+	private final AGValueFactory vf;
 
-	public AGRepositoryConnection(AGAbstractRepository repository, AGHttpRepoClient client) {
+	public AGRepositoryConnection(AGRepository repository, AGHttpRepoClient client) {
 		super(repository);
 		this.repository = repository;
 		this.repoclient = client;
+		vf = new AGValueFactory(repository, this);
+	}
+
+	public AGRepositoryConnection(AGVirtualRepository repository, AGHttpRepoClient client) {
+		super(repository);
+		this.repository = repository;
+		this.repoclient = client;
+		vf = new AGValueFactory(repository.wrapped, this);
 	}
 
 	/*
@@ -81,7 +90,7 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 
 	@Override
 	public AGValueFactory getValueFactory() {
-		return getRepository().getValueFactory();
+		return vf;
 	}
 
 	@Override

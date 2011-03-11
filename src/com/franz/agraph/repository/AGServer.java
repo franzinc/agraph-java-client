@@ -55,7 +55,7 @@ public class AGServer implements Closeable {
 		return serverURL;
 	}
 	
-	AGHTTPClient getHTTPClient() {
+	public AGHTTPClient getHTTPClient() {
 		return httpClient;
 	}
 	
