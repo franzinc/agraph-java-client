@@ -44,11 +44,13 @@ import org.openrdf.rio.rdfxml.RDFXMLWriter;
 import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGFreetextIndexConfig;
 import com.franz.agraph.repository.AGFreetextQuery;
+import com.franz.agraph.repository.AGGraphQuery;
 import com.franz.agraph.repository.AGQueryLanguage;
 import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGAbstractRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
+import com.franz.agraph.repository.AGTupleQuery;
 import com.franz.agraph.repository.AGValueFactory;
 
 public class TutorialExamples {
@@ -169,7 +171,7 @@ public class TutorialExamples {
         println("\nStarting example3().");
        try {
             String queryString = "SELECT ?s ?p ?o  WHERE {?s ?p ?o .}";
-            TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+            AGTupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
             TupleQueryResult result = tupleQuery.evaluate();
             try {
                 while (result.hasNext()) {
@@ -182,6 +184,10 @@ public class TutorialExamples {
             } finally {
                 result.close();
             }
+            // Just the count now.  The count is done server-side,
+            // and only the count is returned.
+            long count = tupleQuery.count();
+            println("count: " + count);
         } finally {
             conn.close();
         }
@@ -1462,7 +1468,7 @@ public class TutorialExamples {
      * Ask, Construct, and Describe queries
      */ 
     public static void example13 () throws Exception {
-        RepositoryConnection conn = example6();
+        AGRepositoryConnection conn = example6();
         conn.setNamespace("kdy", "http://www.franz.com/simple#");
         // We don't want the vcards this time. This is how to delete an entire subgraph.
         ValueFactory vf = conn.getValueFactory();
@@ -1492,13 +1498,18 @@ public class TutorialExamples {
         queryString = "construct {?a kdy:has-grandchild ?c}" + 
 	                  "    where { ?a kdy:has-child ?b . " +
 	                  "            ?b kdy:has-child ?c . }";
-        GraphQuery constructQuery = conn.prepareGraphQuery(QueryLanguage.SPARQL, queryString);
+        AGGraphQuery constructQuery = conn.prepareGraphQuery(QueryLanguage.SPARQL, queryString);
         GraphQueryResult gresult = constructQuery.evaluate(); 
         while (gresult.hasNext()) {
             conn.add(gresult.next());  // adding new triples to the store
         }
         gresult.close();
-        String queryString3 = "select ?s ?o where { ?s kdy:has-grandchild ?o} limit 5";
+        // Just the count now.  The count is done server-side,
+        // and only the count is returned.
+        long count = constructQuery.count();
+        println("count: " + count);
+
+        String queryString3 = "select ?s ?o where { ?s kdy:has-grandchild ?o}";
         TupleQuery tupleQuery3 = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString3);
         TupleQueryResult result3 = tupleQuery3.evaluate();
         println("\nShow the has-grandchild triples:");

@@ -338,7 +338,7 @@ reside in the background graph.
  <p>The SELECT clause returns the variables ?s, ?p and ?o. The variables are bound to the subject, predicate and object values of each triple that satisfies the WHERE clause. In this case the WHERE clause is unconstrained. The dot (.) in the fourth position signifies the end of the pattern. </p>
 <p>The connection object's <strong>prepareTupleQuery()</strong> method
   creates a query object that can be evaluated one or more times. (A &quot;tuple&quot; is an ordered sequence of data elements.)   The results are returned in a TupleQueryResult iterator that gives access to a sequence of bindingSets.</p>
-<pre class="input">            TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);<br>            TupleQueryResult result = tupleQuery.evaluate();</pre>
+<pre class="input">            AGTupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);<br>            TupleQueryResult result = tupleQuery.evaluate();</pre>
 <p>Below we illustrate one (rather heavyweight) method for extracting the values
   from a binding set, indexed by the name of the corresponding column variable
 in the SELECT clause.</p>
@@ -349,12 +349,19 @@ http://example.org/people/alice http://example.org/ontology/name "Alice"
 http://example.org/people/bob http://www.w3.org/1999/02/22-rdf-syntax-ns#type http://example.org/ontology/Person
 http://example.org/people/bob http://example.org/ontology/name "Bob"
 </pre>
-<p>The repositoryConnection class is designed to be created for the duration of a sequence of updates and queries, and then closed. In practice, many AllegroGraph applications keep a connection open indefinitely. However, best practice dictates that the connection should be closed, as illustrated below. The same hygiene applies to the iterators that generate binding sets.</p>
+<p>If one wants only the number of results, using the count() method is more efficient than using evaluate() and counting the returned results client-side.  The repositoryConnection class is designed to be created for the duration of a sequence of updates and queries, and then closed. In practice, many AllegroGraph applications keep a connection open indefinitely. However, best practice dictates that the connection should be closed, as illustrated below. The same hygiene applies to the iterators that generate binding sets.</p>
 <pre class="input">
-        finally:
-            result.close();
-    finally:
-        conn.close();</pre>
+            } finally {
+                result.close();
+            }
+            // Just the count now.  The count is done server-side,
+            // and only the count is returned.
+            long count = tupleQuery.count();
+            println("count: " + count);
+        } finally {
+            conn.close();
+        }
+</pre>
 <h2 id="Statement Matching">Statement Matching (example4()) &nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 
 <p>
@@ -1194,9 +1201,16 @@ Note that SELECT returns variable bindings. In this case it returns subject URIs
 <pre class="output">ASK: Is there anyone named John? true
 ASK: Is there anyone named Alice? false</pre>
 <p>The CONSTRUCT query contructs a statement object out of the matching values in the triple pattern. A &quot;statement&quot; is a client-side triple. Construction queries use <strong>prepareGraphQuery()</strong>. The point is that the query can bind variables from existing triples and then &quot;construct&quot; a<em> new triple</em> by recombining the values. This query constructs new triples using a <strong>kdy:has-grandchild</strong> predicate. </p>
-<pre class="input">        queryString = &quot;construct {?a kdy:has-grandchild ?c}&quot; + <br>	                  &quot;    where { ?a kdy:has-child ?b . &quot; +<br>	                  &quot;            ?b kdy:has-child ?c . }&quot;;<br>        GraphQuery constructQuery = conn.prepareGraphQuery(QueryLanguage.SPARQL, queryString);<br>        GraphQueryResult gresult = constructQuery.evaluate(); ; </pre>
+<pre class="input">        queryString = &quot;construct {?a kdy:has-grandchild ?c}&quot; + <br>	                  &quot;    where { ?a kdy:has-child ?b . &quot; +<br>	                  &quot;            ?b kdy:has-child ?c . }&quot;;<br>        AGGraphQuery constructQuery = conn.prepareGraphQuery(QueryLanguage.SPARQL, queryString);<br>        GraphQueryResult gresult = constructQuery.evaluate(); ; </pre>
 <p>The CONSTRUCT query does not actually add the new triples to the store. You have to iterate through the results and add them yourself: </p>
 <pre class="input">        while (gresult.hasNext()) {<br>            conn.add(gresult.next());  // adding new triples to the store<br>        }</pre>
+<p>As with SELECT queries, it is possible to request just the number of results of a CONSTRUCT query using the AGGraphQuery#count() method. </p>
+<pre class="input">
+        // Just the count now.  The count is done server-side,
+        // and only the count is returned.
+        long count = constructQuery.count();
+        println("count: " + count);
+</pre>
 <p>The DESCRIBE query returns a &quot;graph,&quot; meaning all triples of the matching resources. It uses <strong>prepareGraphQuery()</strong>. In this case we asked SPARQL to describe one grandparent and one grandchild. (This confirms that the kdy:has-grandchild triples successfully entered the triple store.) </p>
 <pre class="input">        queryString = &quot;describe ?s ?o where { ?s kdy:has-grandchild ?o . } limit 1&quot;;<br>        GraphQuery describeQuery = conn.prepareGraphQuery(QueryLanguage.SPARQL, queryString);<br>        gresult = describeQuery.evaluate(); <br>        println(&quot;\nDescribe one grandparent and one grandchild:&quot;);<br>        while (gresult.hasNext()) {<br>            println(gresult.next());<br>        }</pre>
 <p>The output of this loop is lengthy, because the Kennedy resources have many triples. One block of triples looked like this, showing the new has-grandchild triples: </p>
