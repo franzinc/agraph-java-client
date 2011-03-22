@@ -151,7 +151,7 @@ public class AGAbstractTest extends Closer {
     @AfterClass
     public static void tearDownOnce() throws Exception {
         cat = null;
-        server = Closer.close(server);
+        server = Util.close(server);
     }
 
     AGRepositoryConnection getConnection() throws RepositoryException {
@@ -290,7 +290,7 @@ public class AGAbstractTest extends Closer {
         while (rows.hasNext()) {
             println(rows.next());
         }
-        close(rows);
+        Util.close(rows);
     }
 
     public static void printRows(String headerMsg, int limit, CloseableIteration rows) throws Exception {
@@ -301,7 +301,7 @@ public class AGAbstractTest extends Closer {
             count++;
         }
         println("Number of results: " + count);
-        close(rows);
+        Util.close(rows);
     }
 
 //    static void close(RepositoryConnection conn) {
