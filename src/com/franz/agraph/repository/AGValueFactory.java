@@ -29,6 +29,7 @@ import com.hp.hpl.jena.graph.Node;
 public class AGValueFactory extends ValueFactoryImpl {
 
 	private final AGRepository repository;
+	private final AGRepositoryConnection conn;
 	
 	private int blankNodeAmount = 100;
 	private String[] blankNodeIds;
@@ -37,7 +38,13 @@ public class AGValueFactory extends ValueFactoryImpl {
 	public AGValueFactory(AGRepository repository) {
 		super();
 		this.repository = repository;
-		blankNodeIds = new String[blankNodeAmount];
+		this.conn = null;
+	}
+	
+	public AGValueFactory(AGRepository repository, AGRepositoryConnection conn) {
+		super();
+		this.repository = repository;
+		this.conn = conn;
 	}
 	
 	public AGRepository getRepository() {
@@ -50,14 +57,18 @@ public class AGValueFactory extends ValueFactoryImpl {
 	
 	private void getBlankNodeIds() {
 		try {
-			blankNodeIds = getHTTPClient().getBlankNodes(getRepository().getRepositoryURL(),blankNodeAmount);
+			if (conn == null) {
+				blankNodeIds = getHTTPClient().getBlankNodes(getRepository().getRepositoryURL(), blankNodeAmount);
+			} else {
+				blankNodeIds = conn.getHttpRepoClient().getBlankNodes(blankNodeAmount);
+			}
 			index = blankNodeIds.length - 1;
 		} catch (UnauthorizedException e) {
 			// TODO: check on the proper exceptions to throw here
 			throw new IllegalStateException(e);
-		} catch (IOException e) {
-			throw new IllegalStateException(e);
 		} catch (RepositoryException e) {
+			throw new IllegalStateException(e);
+		} catch (IOException e) {
 			throw new IllegalStateException(e);
 		}		
 	}
