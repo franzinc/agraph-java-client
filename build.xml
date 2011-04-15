@@ -171,7 +171,7 @@
                  noindex="false"
                  nonavbar="false"
                  notree="false"
-                 packagenames="com.franz.agraph.jena,com.franz.util,com.franz.agraph.repository"
+                 packagenames="com.franz.agraph.jena,com.franz.agraph.repository,com.franz.openrdf.rio.nquads,com.franz.util"
                  source="1.6"
                  sourcepath="src"
                  splitindex="true"
