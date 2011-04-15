@@ -149,10 +149,7 @@ public class AGResponseHandler {
 		String mimeType = getResponseMIMEType(method);
 		try {
 			if (rdfhandler != null) {
-				RDFFormat format = RDFFormat.forMIMEType(mimeType, RDFFormat.TRIX); 
-				// TODO:
-				// .matchMIMEType(mimeType,
-				// rdfFormats);
+				RDFFormat format = RDFFormat.forMIMEType(mimeType); 
 				RDFParser parser = Rio.createParser(format, repository.getValueFactory());
 				parser.setPreserveBNodeIDs(true);
 				parser.setRDFHandler(rdfhandler);
