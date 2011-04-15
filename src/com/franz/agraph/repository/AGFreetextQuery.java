@@ -12,7 +12,6 @@ import org.openrdf.model.Statement;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
-import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFHandler;
 import org.openrdf.rio.RDFHandlerException;
 import org.openrdf.rio.helpers.StatementCollector;
@@ -77,8 +76,8 @@ public class AGFreetextQuery {
 			RDFHandlerException {
 		try {
 			conn.getHttpRepoClient().evalFreetextQuery(pattern, expression, index, sorted, limit, offset, 
-						new AGResponseHandler(conn.getRepository(), handler,
-								RDFFormat.TRIX));
+						new AGResponseHandler(conn.getRepository(), handler, 
+								conn.getHttpRepoClient().getPreferredRDFFormat()));
 		} catch (RepositoryException e) {
 			throw new QueryEvaluationException(e);
 		}
