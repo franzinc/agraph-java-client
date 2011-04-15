@@ -62,6 +62,7 @@ import org.slf4j.LoggerFactory;
 
 import com.franz.agraph.repository.AGCustomStoredProcException;
 import com.franz.agraph.repository.AGQuery;
+import com.franz.agraph.repository.AGRDFFormat;
 import com.franz.util.Closeable;
 
 /**
@@ -107,7 +108,7 @@ public class AGHttpRepoClient implements Closeable {
 	// TODO: choose proper defaults
 	private TupleQueryResultFormat preferredTQRFormat = TupleQueryResultFormat.SPARQL;
 	private BooleanQueryResultFormat preferredBQRFormat = BooleanQueryResultFormat.TEXT;
-	private RDFFormat preferredRDFFormat = RDFFormat.TRIX;
+	private RDFFormat preferredRDFFormat = getDefaultRDFFormat();
 
 	private AGHTTPClient client;
 	private Repository repo;
@@ -188,11 +189,45 @@ public class AGHttpRepoClient implements Closeable {
 		this.preferredBQRFormat = preferredBQRFormat;
 	}
 
+	/**
+	 * Gets the default RDFFormat to use in making requests that
+	 * return RDF statements; the format should support contexts.
+	 * 
+	 * Gets System property com.franz.agraph.http.defaultRDFFormat
+	 * (NQUADS and TRIX are currently supported), defaults to TRIX
+	 * if the property is not present, and returns the corresponding
+	 * RDFFormat.
+	 * 
+	 * @return an RDFFormat, either NQUADS or TRIX
+	 */
+	public RDFFormat getDefaultRDFFormat() {
+		RDFFormat format = System.getProperty("com.franz.agraph.http.defaultRDFFormat","TRIX").equalsIgnoreCase("NQUADS") ? AGRDFFormat.NQUADS : RDFFormat.TRIX;
+		logger.debug("Defaulting to " + format.getDefaultMIMEType() + " for requests that return RDF statements.");
+		return format;
+	}
+	
+	/**
+	 * Gets the RDFFormat to use in making requests that return
+	 * RDF statements.
+	 * 
+	 * Defaults to the format returned by {@link getDefaultRDFFormat()}
+	 * 
+	 * @return an RDFFormat, either NQUADS or TRIX
+	 */
 	public RDFFormat getPreferredRDFFormat() {
 		return preferredRDFFormat;
 	}
 
+	/**
+	 * Sets the RDFFormat to use in making requests that return
+	 * RDF statements; the format should support contexts.
+	 * 
+	 * AGRDFFormat.NQUADS and RDFFormat.TRIX are currently supported.
+	 * Defaults to the format returned by {@link getDefaultRDFFormat()}
+	 * 
+	 */
 	public void setPreferredRDFFormat(RDFFormat preferredRDFFormat) {
+		logger.debug("Defaulting to " + preferredRDFFormat.getDefaultMIMEType() + " for requests that return RDF statements.");
 		this.preferredRDFFormat = preferredRDFFormat;
 	}
 
