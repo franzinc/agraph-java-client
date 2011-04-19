@@ -1007,9 +1007,9 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	 * Generation of unique URIs {@link AGValueFactory#generateURI(String)}
 	 * for the above namespace and format might yield an ID such as:
 	 *  
-	 * http://franz.com/ns0@#a0-aaa
+	 * http://franz.com/ns0@@a0-aaa
 	 * 
-	 * Note: "@#" is used to concatenate the namespace and id suffix
+	 * Note: "@@" is used to concatenate the namespace and id suffix
 	 * to facilitate efficient recognition/encoding during parsing.
 	 *    
 	 * The format can be ambiguous (e.g., "[A-Z]{1,2}[B-C}{0,1}").
