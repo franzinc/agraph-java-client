@@ -64,7 +64,8 @@ public class TestSuites {
         SpogiTripleCacheTests.class,
         UploadCommitPeriodTests.class,
         NQuadsTests.class,
-        AGGraphQueryTests.class
+        AGGraphQueryTests.class,
+        QueryLimitOffsetTests.class
     })
     public static class Prepush {}
     

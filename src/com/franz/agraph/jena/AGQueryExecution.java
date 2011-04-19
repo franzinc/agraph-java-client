@@ -83,6 +83,8 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 		gq.setIncludeInferred(model.getGraph() instanceof AGInfGraph);
 		gq.setEntailmentRegime(model.getGraph().getEntailmentRegime());
 		gq.setCheckVariables(query.isCheckVariables());
+		gq.setLimit(query.getLimit());
+		gq.setOffset(query.getOffset());
 		GraphQueryResult result;
 		try {
 			gq.setDataset(model.getGraph().getDataset());
@@ -120,6 +122,8 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 		tq.setIncludeInferred(model.getGraph() instanceof AGInfGraph);
 		tq.setEntailmentRegime(model.getGraph().getEntailmentRegime());
 		tq.setCheckVariables(query.isCheckVariables());
+		tq.setLimit(query.getLimit());
+		tq.setOffset(query.getOffset());
 		TupleQueryResult result;
 		try {
 			tq.setDataset(model.getGraph().getDataset());
