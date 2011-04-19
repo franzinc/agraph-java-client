@@ -22,6 +22,8 @@ public class AGQuery {
 	private final String queryString;
 	
 	private boolean checkVariables = false;
+	private int limit = -1;
+	private int offset = -1;
 	
 	AGQuery(String queryString) {
 		this.language = AGQueryLanguage.SPARQL;
@@ -59,6 +61,42 @@ public class AGQuery {
 	 */
 	public void setCheckVariables(boolean checkVariables) {
 		this.checkVariables = checkVariables;
+	}
+	
+	/**
+	 * Gets the limit on the number of solutions for this query.
+	 * 
+	 * @return limit
+	 */
+	public int getLimit() {
+		return limit;
+	}
+
+	/**
+	 * Sets the limit on the number of solutions for this query.
+	 * 
+	 * By default, the value is -1, meaning no constraint is imposed.
+	 */
+	public void setLimit(int limit) {
+		this.limit = limit;
+	}
+	
+	/**
+	 * Gets the offset, the number of solutions to skip for this query.
+	 * 
+	 * @return offset
+	 */
+	public int getOffset() {
+		return offset;
+	}
+	
+	/**
+	 * Sets the offset, the number of solutions to skip for this query.
+	 * 
+	 * By default, the value is -1, meaning no constraint is imposed.
+	 */
+	public void setOffset(int offset) {
+		this.offset = offset;
 	}
 	
 }
