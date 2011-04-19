@@ -70,6 +70,10 @@ public abstract class AGQuery extends AbstractQuery {
 	protected boolean prepared = false;
 	
 	protected boolean checkVariables = false;
+
+	protected int limit = -1;
+	
+	protected int offset = -1;
 	
 	public AGQuery(AGRepositoryConnection con, QueryLanguage ql, String queryString, String baseURI) {
 		super.setIncludeInferred(false); // set default
@@ -298,4 +302,40 @@ public abstract class AGQuery extends AbstractQuery {
 		}
 	}
 
+	/**
+	 * Gets the limit on the number of solutions for this query.
+	 * 
+	 * @return limit
+	 */
+	public int getLimit() {
+		return limit;
+	}
+
+	/**
+	 * Sets the limit on the number of solutions for this query.
+	 * 
+	 * By default, the value is -1, meaning no constraint is imposed.
+	 */
+	public void setLimit(int limit) {
+		this.limit = limit;
+	}
+	
+	/**
+	 * Gets the offset, the number of solutions to skip for this query.
+	 * 
+	 * @return offset
+	 */
+	public int getOffset() {
+		return offset;
+	}
+	
+	/**
+	 * Sets the offset, the number of solutions to skip for this query.
+	 * 
+	 * By default, the value is -1, meaning no constraint is imposed.
+	 */
+	public void setOffset(int offset) {
+		this.offset = offset;
+	}
+	
 }
