@@ -822,6 +822,14 @@ public class AGHttpRepoClient implements Closeable {
 				queryParams.add(new NameValuePair(AGProtocol.CHECK_VARIABLES,
 						Boolean.toString(q.isCheckVariables())));
 			}
+			if (q.getLimit()>=0) {
+				queryParams.add(new NameValuePair(AGProtocol.LIMIT_PARAM_NAME,
+						Integer.toString(q.getLimit())));
+			}
+			if (q.getOffset()>=0) {
+				queryParams.add(new NameValuePair("offset",
+						Integer.toString(q.getOffset())));
+			}
 			if (planner != null) {
 				queryParams.add(new NameValuePair(AGProtocol.PLANNER_PARAM_NAME,
 					planner));
