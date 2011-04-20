@@ -134,6 +134,43 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 		return new AGResultSet(result, model);
 	}
 
+	public long countSelect() {
+		AGTupleQuery tq = model.getGraph().getConnection().prepareTupleQuery(query.getLanguage(), query.getQueryString());
+		tq.setIncludeInferred(model.getGraph() instanceof AGInfGraph);
+		tq.setEntailmentRegime(model.getGraph().getEntailmentRegime());
+		tq.setCheckVariables(query.isCheckVariables());
+		tq.setLimit(query.getLimit());
+		tq.setOffset(query.getOffset());
+		tq.setDataset(model.getGraph().getDataset());
+		long count;
+		try {
+			count = tq.count();
+		} catch (QueryEvaluationException e) {
+			throw new RuntimeException(e);
+		}
+		return count;
+	}
+	
+	public long countConstruct() {
+		if (query.getLanguage()!=QueryLanguage.SPARQL) {
+			throw new UnsupportedOperationException(query.getLanguage().getName() + " language does not support CONSTRUCT queries.");
+		}
+		AGGraphQuery gq = model.getGraph().getConnection().prepareGraphQuery(query.getLanguage(), query.getQueryString());
+		gq.setIncludeInferred(model.getGraph() instanceof AGInfGraph);
+		gq.setEntailmentRegime(model.getGraph().getEntailmentRegime());
+		gq.setCheckVariables(query.isCheckVariables());
+		gq.setLimit(query.getLimit());
+		gq.setOffset(query.getOffset());
+		gq.setDataset(model.getGraph().getDataset());
+		long count;
+		try {
+			count = gq.count();
+		} catch (QueryEvaluationException e) {
+			throw new RuntimeException(e);
+		}
+		return count;
+	}
+	
 	@Override
 	public Context getContext() {
 		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
