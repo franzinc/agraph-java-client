@@ -1,7 +1,7 @@
 <html>
 <head>
       <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" >
-<title>Jena API Tutorial for AllegroGraph 4.0</title>
+<title>Jena API Tutorial for AllegroGraph 4</title>
 
 <style type="text/css">
 
@@ -11,8 +11,8 @@
 </style>
 </head>
 <body>
-<h1>Java Jena API Tutorial for AllegroGraph 4.0</h1>
-<p>This is an introduction to the Jena client API to AllegroGraph RDFStore&#8482; version 4.0 from <a href="http://agraph.franz.com/allegrograph/">Franz Inc.</a> </p>
+<h1>Java Jena API Tutorial for AllegroGraph 4</h1>
+<p>This is an introduction to the Jena client API to the AllegroGraph 4 RDFStore&#8482; from <a href="http://agraph.franz.com/allegrograph/">Franz Inc.</a> </p>
 <p>
 The Java Jena API offers convenient and efficient
 access to an AllegroGraph server from a Java-based application.  This API provides methods for
@@ -57,8 +57,8 @@ creating, querying and maintaining RDF data, and for managing the stored triples
 <p>The Jena client tutorial rests on a simple architecture involving AllegroGraph, disk-based data files, Java, and a file of examples called JenaTutorialExamples.java.</p>
 <table width="964" border="0">
   <tr>
-    <td width="286"><p>AllegroGraph 4.0 Server contains the Java API, which is part of the AllegroGraph installation. </p>
-    <p>Java communicates with AllegroGraph through HTTP port 10035 in this example. Java and AllegroGraph may be installed on the same computer, but in practice one server is shared by multiple clients. </p>
+    <td width="286"><p>The AllegroGraph 4 Java client distribution contains the Java Jena API. </p>
+    <p>The Java client communicates with the AllegroGraph Server through HTTP port 10035 in this tutorial. Java and AllegroGraph may be installed on the same computer, but in practice one server is shared by multiple clients running on different machines. </p>
     <p>Load JenaTutorialExamples.java into Java to view the tutorial examples. </p></td>
     <td width="668"><img src="allegrographdiagramJena.jpg" width="668" height="443"></td>
   </tr>
@@ -437,7 +437,7 @@ The Java Jena API client can load triples in either RDF/XML format or  NTriples 
 <pre class="input">		println(&quot;\nMatch all and print subjects and graph (model_vcards)&quot;);<br>		statements = model_vcards.listStatements();<br>		for (int i = 0; i &lt; 25 &amp;&amp; statements.hasNext(); i++) {<br>			Statement stmt = statements.next();<br>			println(stmt.getSubject() + &quot;  &quot; + stmt.getModel().getGraph());<br>		}<br>		statements.close();</pre>
 <pre class="output">Match all and print subjects and graph (model_vcards)<br>http://somewhere/JohnSmith/  http://example.org#vcards<br>http://somewhere/JohnSmith/  http://example.org#vcards<br>1  http://example.org#vcards<br>1  http://example.org#vcards<br>http://somewhere/RebeccaSmith/  http://example.org#vcards... [and 11 more]</pre>
 <p>In this case, the loop prints out only v-card triples from model_vcards. The two odd-looking triples are from &quot;blank&quot; nodes in the v-cards model. </p>
-<p>In the Java Sesame API it is possible to query multiple graphs and combine the results, but the Java Jena API (for release 4.0 m2) is tightly focused on one graph at a time. Multi-graph queries are expected in a later release. </p>
+
 <h2 id="Exporting Triples">Exporting Triples (example8() and example9()) &nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>The next examples show how to write triples out to a file in either NTriples format or RDF/XML format. The output of either format may be optionally redirected to standard output (the Java command window) for inspection.</p>
 <p>Example example8() begins by obtaining a GraphMaker object from example6(). This means the repository contains Kennedy family tree triples in the<strong> </strong>the default graph. We'll create a new model object to give us access to the default graph: </p>
