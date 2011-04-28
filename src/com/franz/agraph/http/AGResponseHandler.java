@@ -37,7 +37,7 @@ import org.openrdf.rio.Rio;
 import org.openrdf.rio.UnsupportedRDFormatException;
 
 // TODO: make this class abstract and subclass the distinct handlers
-public class AGResponseHandler {
+public class AGResponseHandler implements AGResponseHandlerInf {
 
 	private final Repository repository;
 	private final RDFHandler rdfhandler;
@@ -123,8 +123,14 @@ public class AGResponseHandler {
 		requestMIMEType = "application/json";
 	}
 	
+	@Override
 	public String getRequestMIMEType() {
 		return requestMIMEType;
+	}
+	
+	@Override
+	public boolean releaseConnection() {
+		return true;
 	}
 	
 	public boolean getBoolean() {
