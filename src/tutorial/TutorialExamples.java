@@ -33,6 +33,7 @@ import org.openrdf.query.GraphQueryResult;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.TupleQuery;
 import org.openrdf.query.TupleQueryResult;
+import org.openrdf.query.TupleQueryResultHandler;
 import org.openrdf.query.impl.DatasetImpl;
 import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryConnection;
@@ -41,13 +42,13 @@ import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.ntriples.NTriplesWriter;
 import org.openrdf.rio.rdfxml.RDFXMLWriter;
 
+import com.franz.agraph.repository.AGAbstractRepository;
 import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGFreetextIndexConfig;
 import com.franz.agraph.repository.AGFreetextQuery;
 import com.franz.agraph.repository.AGGraphQuery;
 import com.franz.agraph.repository.AGQueryLanguage;
 import com.franz.agraph.repository.AGRepository;
-import com.franz.agraph.repository.AGAbstractRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
 import com.franz.agraph.repository.AGTupleQuery;
@@ -188,6 +189,46 @@ public class TutorialExamples {
             // and only the count is returned.
             long count = tupleQuery.count();
             println("count: " + count);
+        } finally {
+            conn.close();
+        }
+    }
+
+    /**
+     * A SPARQL Query, streaming results.
+     * 
+     * The handleSolution method is called while the http response
+     * stream is read instead of reading all results into a list.
+     * This is appropriate for processing large result sets that
+     * do not fit in memory, and may also improve performance.
+     * The bindingSets should not be retained beyond the handleSolution
+     * method, or they will consume memory.
+     */
+    public static void example3a() throws Exception {
+        AGRepositoryConnection conn = example2(false);
+        println("\nStarting example3a().");
+        try {
+            String queryString = "SELECT ?s ?p ?o  WHERE {?s ?p ?o .}";
+            TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+            tupleQuery.evaluate(new TupleQueryResultHandler() {
+				
+				@Override
+				public void startQueryResult(List<String> bindingNames) {
+                    System.out.format("Bindings: %s\n", bindingNames);
+				}
+				
+				@Override
+				public void handleSolution(BindingSet bindingSet) {
+                    Value s = bindingSet.getValue("s");
+                    Value p = bindingSet.getValue("p");
+                    Value o = bindingSet.getValue("o");
+                    System.out.format("%s %s %s\n", s, p, o);
+				}
+				
+				@Override
+				public void endQueryResult() {
+				}
+			});
         } finally {
             conn.close();
         }
@@ -2673,7 +2714,10 @@ public class TutorialExamples {
                 switch(choice) {
                 case 1: example1(true); break;
                 case 2: example2(true); break;            
-                case 3: example3(); break;            
+                case 3:
+                	example3();
+                	example3a();
+                	break;
                 case 4: example4(); break;                        
                 case 5: example5(); break;                                    
                 case 6: example6(); break;    
@@ -2763,4 +2807,3 @@ public class TutorialExamples {
     }
     
 }
-// Update September 22, 2010 AG 4.1

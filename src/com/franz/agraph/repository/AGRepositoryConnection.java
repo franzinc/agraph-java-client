@@ -107,12 +107,15 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 
 	private final AGAbstractRepository repository;
 	private final AGHttpRepoClient repoclient;
+	private boolean streamResults;
 	private final AGValueFactory vf;
 
 	public AGRepositoryConnection(AGRepository repository, AGHttpRepoClient client) {
 		super(repository);
 		this.repository = repository;
 		this.repoclient = client;
+		// use system property so this can be tested from build.xml
+		setStreamResults("true".equals(System.getProperty("com.franz.agraph.repository.AGRepositoryConnection.streamResults")));
 		vf = new AGValueFactory(repository, this);
 	}
 
@@ -120,6 +123,8 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		super(repository);
 		this.repository = repository;
 		this.repoclient = client;
+		// use system property so this can be tested from build.xml
+		setStreamResults("true".equals(System.getProperty("com.franz.agraph.repository.AGRepositoryConnection.streamResults")));
 		vf = new AGValueFactory(repository.wrapped, this);
 	}
 
@@ -276,6 +281,24 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		getHttpRepoClient().rollback();
 	}
 
+	/**
+	 * Set to true to automatically use {@link AGStreamTupleQuery}
+	 * for {@link #prepareTupleQuery(QueryLanguage, String, String)}.
+	 * @see #isStreamResults()
+	 */
+	public void setStreamResults(boolean streamResults) {
+		this.streamResults = streamResults;
+	}
+
+	/**
+	 * If true, automatically use {@link AGStreamTupleQuery}.
+	 * Default is false.
+	 * @see #setStreamResults(boolean)
+	 */
+	public boolean isStreamResults() {
+		return streamResults;
+	}
+	
 	/**
 	 * This method should do nothing, as the AllegroGraph server manages
 	 * autoCommit.
@@ -458,6 +481,9 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		// throw MalformedQueryException, etc.
 		AGTupleQuery q = new AGTupleQuery(this, ql, queryString, baseURI);
 		q.prepare();
+		if (streamResults) {
+			q = new AGStreamTupleQuery(q);
+		}
 		return q;
 	}
 

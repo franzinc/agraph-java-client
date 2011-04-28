@@ -808,7 +808,7 @@ public class AGHttpRepoClient implements Closeable {
 		}
 	}
 
-	public void query(AGQuery q, boolean analyzeOnly, AGResponseHandler handler) throws HttpException,
+	public void query(AGQuery q, boolean analyzeOnly, AGResponseHandlerInf handler) throws HttpException,
 			RepositoryException, RDFParseException, IOException {
 
 		String url = getRoot();
