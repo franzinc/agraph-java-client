@@ -127,7 +127,7 @@ public class JenaTests extends AGAbstractTest {
 				qe.execSelect();
 				Assert.fail("query should have failed because of ?x");
 			} catch (Exception e) {
-				if ( ! e.getMessage().contains("MALFORMED QUERY: Variables do not intersect with query: ?x")) {
+			    if ( ! (e.getMessage().contains("MALFORMED QUERY: Variables do not intersect with query: ?x") || e.getMessage().contains("unknown variable in order expression: ?x")) ) {
 					throw e;
 				}
 			}
