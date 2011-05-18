@@ -23,6 +23,7 @@ import com.franz.agraph.jena.AGQueryExecutionFactory;
 import com.franz.agraph.jena.AGQueryFactory;
 import com.franz.agraph.jena.AGReasoner;
 import com.franz.agraph.repository.AGCatalog;
+import com.franz.agraph.repository.AGFreetextIndexConfig;
 import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
@@ -496,6 +497,96 @@ public class JenaTutorialExamples {
 	}
 
 	/**
+	 * Text search
+	 */
+	public static void example12() throws Exception {
+		AGGraphMaker maker = example1(false);
+		AGGraph graph = maker.getGraph();
+		AGModel model = new AGModel(graph);
+		String exns = "http://example.org/people/";
+		model.setNsPrefix("ex", exns);
+		// Create index1
+		AGFreetextIndexConfig config = AGFreetextIndexConfig.newInstance();
+		Property fullname = model.createProperty(exns + "fullname");
+		AGRepositoryConnection conn = maker.getRepositoryConnection();
+		config.getPredicates().add( // need a Sesame URI
+				conn.getValueFactory().createURI(exns, "fullname"));
+		conn.createFreetextIndex("index1", config);
+		// Create parts of person resources.
+		Resource alice = model.createResource(exns + "alice1");
+		Resource carroll = model.createResource(exns + "carroll");
+		Resource persontype = model.createResource(exns + "Person");
+		Literal alicename = model.createLiteral("Alice B. Toklas");
+		Literal lewisCarroll = model.createLiteral("Lewis Carroll");
+		// Create parts of book resources.
+		Resource book = model.createResource(exns + "book1");
+		Resource booktype = model.createResource(exns + "Book");
+		Property booktitle = model.createProperty(exns + "title");
+		Property author = model.createProperty(exns + "author");
+		Literal wonderland = model.createLiteral("Alice in Wonderland");
+		// Add Alice B. Toklas triples
+		model.removeAll();
+		model.add(alice, RDF.type, persontype);
+		model.add(alice, fullname, alicename);
+		// Add Alice in Wonderland triples
+		model.add(book, RDF.type, booktype);
+		model.add(book, booktitle, wonderland);
+		model.add(book, author, carroll);
+		// Add Lewis Carroll triples
+		model.add(carroll, RDF.type, persontype);
+		model.add(carroll, fullname, lewisCarroll);
+		// Check triples
+		StmtIterator statements = model.listStatements();
+		try {
+			while (statements.hasNext()) {
+				println(statements.next());
+			}
+		} finally {
+			statements.close();
+		}
+
+		println("\nWhole-word match for 'Alice'.");
+		String queryString = "SELECT ?s ?p ?o " + "WHERE { ?s ?p ?o . "
+				+ "        ?s fti:match 'Alice' . }";
+		AGQuery sparql = AGQueryFactory.create(queryString);
+		QueryExecution qe = AGQueryExecutionFactory.create(sparql, model);
+		ResultSet results = qe.execSelect();
+		while (results.hasNext()) {
+			println(results.next());
+		}
+
+		println("\nWildcard match for 'Ali*'.");
+		queryString = "SELECT ?s ?p ?o "
+				+ "WHERE { ?s ?p ?o . ?s fti:match 'Ali*' . }";
+		sparql = AGQueryFactory.create(queryString);
+		qe = AGQueryExecutionFactory.create(sparql, model);
+		results = qe.execSelect();
+		while (results.hasNext()) {
+			println(results.next());
+		}
+
+		println("\nWildcard match for '?l?ce?.");
+		queryString = "SELECT ?s ?p ?o "
+				+ "WHERE { ?s ?p ?o . ?s fti:match '?l?c?' . }";
+		sparql = AGQueryFactory.create(queryString);
+		qe = AGQueryExecutionFactory.create(sparql, model);
+		results = qe.execSelect();
+		while (results.hasNext()) {
+			println(results.next());
+		}
+
+		println("\nSubstring match for 'lic'.");
+		queryString = "SELECT ?s ?p ?o "
+				+ "WHERE { ?s ?p ?o . FILTER regex(?o, \"lic\") }";
+		sparql = AGQueryFactory.create(queryString);
+		qe = AGQueryExecutionFactory.create(sparql, model);
+		results = qe.execSelect();
+		while (results.hasNext()) {
+			println(results.next());
+		}
+	}	
+	
+	/**
 	 * Ask, Construct, and Describe queries
 	 */
 	public static void example13() throws Exception {
@@ -654,7 +745,7 @@ public class JenaTutorialExamples {
 	}
 
 	/**
-	 * Usage: all Usage: [1-9,11,13,19]+
+	 * Usage: all Usage: [1-9,11-13,19]+
 	 */
 	public static void main(String[] args) throws Exception {
 		List<Integer> choices = new ArrayList<Integer>();
@@ -666,6 +757,7 @@ public class JenaTutorialExamples {
 				choices.add(i);
 			}
 			choices.add(11);
+			choices.add(12);
 			choices.add(13);
 			choices.add(19);
 		} else {
@@ -706,6 +798,9 @@ public class JenaTutorialExamples {
 					break;
 				case 11:
 					example11();
+					break;
+				case 12:
+					example12();
 					break;
 				case 13:
 					example13();
