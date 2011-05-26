@@ -117,6 +117,8 @@ public class Events extends Closer {
         static String PASSWORD = password();
         
         static boolean MONITOR = true;
+
+	static boolean BULKMODE = false;
         
         public enum LOGT {
             ALL, ELAPSED, NOTIME;
@@ -275,6 +277,10 @@ public class Events extends Closer {
                     .withArgName("STREAM").hasArg()
                     .withDescription("Stream results. One of: " + Arrays.asList(STREAM.values()) + ". [default=" + stream + "]")
                     .create());
+            options.addOption(OptionBuilder.withLongOpt("bulkmode")
+                    .withArgName("true|false").hasArg()
+                    .withDescription("Use repository bulk mode. [default=" + BULKMODE + "]")
+                    .create());
             
             cmd = new PosixParser().parse(options, args);
             if (cmd.hasOption("help")) {
@@ -316,6 +322,7 @@ public class Events extends Closer {
             MONITOR = cmdVal("monitor", MONITOR);
             LOG = cmdVal("log", LOG);
             stream = cmdVal("stream", stream);
+	    BULKMODE = cmdVal("bulkmode", BULKMODE);
             
             if (cmd.hasOption("seed")) {
                 long seed = Long.parseLong(cmd.getOptionValue("seed"));
@@ -1214,6 +1221,7 @@ public class Events extends Closer {
         
         AGRepositoryConnection conn = connect();
         ThreadVars.valueFactory.set(conn.getValueFactory());
+	conn.getRepository().getValueFactory().getRepository().setBulkMode(Defaults.BULKMODE);
         
         AllEvents.initialize();
         
