@@ -6,29 +6,24 @@
 ** http://www.eclipse.org/legal/epl-v10.html
 ******************************************************************************/
 
-package com.franz.agraph.http;
+package com.franz.agraph.http.exception;
 
-public class AGHttpException extends Exception {
-	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -2608901334300829491L;
-	
-	private final AGErrorInfo errorInfo;
-	
-	AGHttpException(AGErrorInfo errorInfo) {
-	    super(errorInfo.getErrorMessage());
-		this.errorInfo = errorInfo;
-	}
-	
-	public AGHttpException(String message) {
+
+
+public class AGUnsupportedFileFormatException extends AGHttpException {
+		
+	private static final long serialVersionUID = -2912726941057964054L;
+
+	public AGUnsupportedFileFormatException(String message) {
 		super(message);
-		errorInfo = new AGErrorInfo(message);
 	}
 
-	public AGErrorInfo getErrorInfo() {
-		return errorInfo;
+	public AGUnsupportedFileFormatException(Exception e) {
+		super(e);
 	}
-	
+
+	public AGUnsupportedFileFormatException(String message, Throwable cause) {
+		super(message,cause);
+	}
+
 }

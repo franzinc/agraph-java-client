@@ -8,7 +8,6 @@
 
 package com.franz.agraph.jena;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 import org.openrdf.http.protocol.UnauthorizedException;
@@ -22,6 +21,7 @@ import org.openrdf.repository.RepositoryResult;
 import org.openrdf.rio.RDFHandlerException;
 import org.openrdf.rio.helpers.StatementCollector;
 
+import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGValueFactory;
 import com.franz.util.Closeable;
@@ -199,11 +199,9 @@ public class AGGraph extends GraphBase implements Graph, Closeable {
 						.getMatchObject()), entailmentRegime, collector, contexts);
 				result = conn.createRepositoryResult(collector.getStatements());
 			}
-		} catch (RepositoryException e) {
+		} catch (AGHttpException e) {
 			throw new RuntimeException(e);
 		} catch (RDFHandlerException e) {
-			throw new RuntimeException(e);
-		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 		return new AGTripleIterator(this, result);

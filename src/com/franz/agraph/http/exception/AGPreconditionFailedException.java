@@ -6,10 +6,24 @@
 ** http://www.eclipse.org/legal/epl-v10.html
 ******************************************************************************/
 
-/**
- * AllegroGraph Java client HTTP layer response handlers for the
- * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html">
- * AllegroGraph HTTP Protocol</a> in support of {@link com.franz.agraph.http}.
- * 
- */
-package com.franz.agraph.http.handler;
+package com.franz.agraph.http.exception;
+
+
+
+public class AGPreconditionFailedException extends AGHttpException {
+	
+	private static final long serialVersionUID = -5446862828628318163L;
+
+	public AGPreconditionFailedException(String message) {
+		super(message);
+	}
+
+	public AGPreconditionFailedException(Exception e) {
+		super(e);
+	}
+
+	public AGPreconditionFailedException(String message, Throwable cause) {
+		super(message,cause);
+	}
+
+}

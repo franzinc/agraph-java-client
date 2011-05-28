@@ -8,18 +8,15 @@
 
 package com.franz.agraph.repository;
 
-import java.io.IOException;
 import java.util.Iterator;
 
-import org.apache.commons.httpclient.HttpException;
 import org.openrdf.query.Binding;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.impl.AbstractQuery;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.rio.RDFParseException;
 
+import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.http.handler.AGResponseHandler;
 import com.franz.agraph.http.handler.AGStringHandler;
 
@@ -232,13 +229,7 @@ public abstract class AGQuery extends AbstractQuery {
 			throws QueryEvaluationException {
 		try {
 			httpCon.getHttpRepoClient().query(this, analyzeOnly, handler);
-		} catch (HttpException e) {
-			throw new QueryEvaluationException(e);
-		} catch (RepositoryException e) {
-			throw new QueryEvaluationException(e);
-		} catch (RDFParseException e) {
-			throw new QueryEvaluationException(e);
-		} catch (IOException e) {
+		} catch (AGHttpException e) {
 			throw new QueryEvaluationException(e);
 		}
 	}
