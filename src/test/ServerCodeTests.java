@@ -40,7 +40,7 @@ import com.franz.agraph.http.AGDeserializer;
 import com.franz.agraph.http.AGEncoder;
 import com.franz.agraph.http.AGHTTPClient;
 import com.franz.agraph.http.AGSerializer;
-import com.franz.agraph.repository.AGCustomStoredProcException;
+import com.franz.agraph.http.exception.AGCustomStoredProcException;
 import com.franz.agraph.repository.AGQueryLanguage;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
@@ -326,7 +326,7 @@ public class ServerCodeTests extends AGAbstractTest {
 			tupleQuery.evaluate();
 			fail("expected QueryEvaluationException");
 		} catch (QueryEvaluationException e) {
-			if (e.getMessage().contains("attempt to call `#:uncle/2' which is an undefined function. (500)")) {
+			if (e.getMessage().contains("attempt to call `#:uncle/2' which is an undefined function.")) {
 				// good
 			} else {
 				throw e;

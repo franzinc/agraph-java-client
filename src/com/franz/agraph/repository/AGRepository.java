@@ -17,11 +17,10 @@ import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.TupleQueryResult;
 import org.openrdf.repository.RepositoryException;
-import org.openrdf.rio.RDFParseException;
 
 import com.franz.agraph.http.AGHTTPClient;
-import com.franz.agraph.http.AGHttpException;
 import com.franz.agraph.http.AGHttpRepoClient;
+import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.util.Closeable;
 
 /**
@@ -267,11 +266,7 @@ public class AGRepository implements AGAbstractRepository, Closeable {
 		String url = repositoryURL + "/force-checkpoint";
 		Header[] hdr = new Header[0];
 		NameValuePair[] data = {};
-		try {
-		    getHTTPClient().post(url,hdr,data,null,null);
-		} catch (RDFParseException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().post(url,hdr,data,null,null);
 	}
     /**
      * Waits until background db processes have gone idle.
@@ -282,11 +277,7 @@ public class AGRepository implements AGAbstractRepository, Closeable {
 		String url = repositoryURL + "/ensure-db-idle";
 		Header[] hdr = new Header[0];
 		NameValuePair[] data = {};
-		try {
-		    getHTTPClient().post(url,hdr,data,null,null);
-		} catch (RDFParseException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().post(url,hdr,data,null,null);
 	}
 
 }

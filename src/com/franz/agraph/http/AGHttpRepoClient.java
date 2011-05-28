@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.RequestEntity;
@@ -35,7 +34,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.openrdf.OpenRDFUtil;
 import org.openrdf.http.protocol.Protocol;
-import org.openrdf.http.protocol.UnauthorizedException;
 import org.openrdf.model.BNode;
 import org.openrdf.model.Resource;
 import org.openrdf.model.URI;
@@ -50,7 +48,6 @@ import org.openrdf.query.TupleQueryResultHandlerException;
 import org.openrdf.query.impl.TupleQueryResultBuilder;
 import org.openrdf.query.resultio.BooleanQueryResultFormat;
 import org.openrdf.query.resultio.TupleQueryResultFormat;
-import org.openrdf.repository.RepositoryException;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFHandler;
 import org.openrdf.rio.RDFHandlerException;
@@ -59,6 +56,8 @@ import org.openrdf.rio.ntriples.NTriplesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.franz.agraph.http.exception.AGCustomStoredProcException;
+import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.http.handler.AGJSONHandler;
 import com.franz.agraph.http.handler.AGLongHandler;
 import com.franz.agraph.http.handler.AGRDFHandler;
@@ -66,7 +65,6 @@ import com.franz.agraph.http.handler.AGResponseHandler;
 import com.franz.agraph.http.handler.AGStringHandler;
 import com.franz.agraph.http.handler.AGTQRHandler;
 import com.franz.agraph.repository.AGAbstractRepository;
-import com.franz.agraph.repository.AGCustomStoredProcException;
 import com.franz.agraph.repository.AGQuery;
 import com.franz.agraph.repository.AGRDFFormat;
 import com.franz.agraph.repository.AGValueFactory;
@@ -144,10 +142,10 @@ public class AGHttpRepoClient implements Closeable {
 		+ "}";
     }
 
-	public String getRoot() throws RepositoryException {
+	public String getRoot() throws AGHttpException {
 		if (sessionRoot != null) return sessionRoot;
 		else if (repoRoot != null) return repoRoot;
-		else throw new RepositoryException("This session-only connection has been closed. Re-open a new one to start using it again.");
+		else throw new AGHttpException("This session-only connection has been closed. Re-open a new one to start using it again.");
 	}
 
 	public AGValueFactory getValueFactory() {
@@ -264,7 +262,7 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	private void useDedicatedSession(boolean autoCommit)
-			throws RepositoryException, UnauthorizedException {
+			throws AGHttpException {
 		if (sessionRoot == null) {
 			String url = getSessionURL(getRoot());
 			Header[] headers = new Header[0];
@@ -281,20 +279,16 @@ public class AGHttpRepoClient implements Closeable {
 				}
 			}
 			AGStringHandler handler = new AGStringHandler();
-			try {
-				getHTTPClient().post(url, headers, params.toArray(new NameValuePair[params.size()]), null, handler);
-				usingDedicatedSession = true;
-			} catch (RDFParseException e) {
-				// bug.
-				throw new RuntimeException(e);
-			}
+			getHTTPClient().post(url, headers, params.toArray(new NameValuePair[params.size()]), null, handler);
+			usingDedicatedSession = true;
 			sessionRoot = handler.getResult();
 			if (logger.isDebugEnabled())
 				logger.debug("openSession: {}", sessionRoot);
 		}
 	}
 
-	private void closeSession(String sessionRoot) throws RepositoryException {
+	private void closeSession(String sessionRoot) throws 
+			AGHttpException {
 		if (sessionRoot != null && !getHTTPClient().isClosed()) {
 			String url = AGProtocol.getSessionCloseLocation(sessionRoot);
 			Header[] headers = new Header[0];
@@ -303,9 +297,6 @@ public class AGHttpRepoClient implements Closeable {
 				getHTTPClient().post(url, headers, params, null, null);
 				if (logger.isDebugEnabled())
 					logger.debug("closeSession: {}", url);
-			} catch (RDFParseException e) {
-				// bug.
-				throw new RuntimeException(e);
 			} finally {
 				sessionRoot = null;
 			}
@@ -314,8 +305,7 @@ public class AGHttpRepoClient implements Closeable {
 
 	public void getStatements(Resource subj, URI pred, Value obj,
 			String includeInferred, RDFHandler handler, Resource... contexts)
-			throws IOException, RDFHandlerException, RepositoryException,
-			UnauthorizedException {
+			throws RDFHandlerException, AGHttpException {
 		String uri = Protocol.getStatementsLocation(getRoot());
 		Header[] headers = { new Header(ACCEPT_PARAM_NAME,
 				getPreferredRDFFormat().getDefaultMIMEType()) };
@@ -345,20 +335,16 @@ public class AGHttpRepoClient implements Closeable {
 		params.add(new NameValuePair(Protocol.INCLUDE_INFERRED_PARAM_NAME,
 				includeInferred));
 
-		try {
-			getHTTPClient().get(
+		getHTTPClient().get(
 					uri,
 					headers,
 					params.toArray(new NameValuePair[params.size()]),
 					new AGRDFHandler(getPreferredRDFFormat(), handler,
 							getValueFactory(),getAllowExternalBlankNodeIds()));
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		}
 	}
 
-	public void getStatements(RDFHandler handler, String... ids) throws IOException, RDFHandlerException, 
-	RepositoryException, UnauthorizedException {
+	public void getStatements(RDFHandler handler, String... ids) throws RDFHandlerException, 
+	AGHttpException {
 		String uri = Protocol.getStatementsLocation(getRoot())+"/id";
 		Header[] headers = { new Header(ACCEPT_PARAM_NAME,
 				getPreferredRDFFormat().getDefaultMIMEType()) };
@@ -368,21 +354,15 @@ public class AGHttpRepoClient implements Closeable {
 			params.add(new NameValuePair("id", id));
 		}
 		
-		try {
-			getHTTPClient()
-			.get(
+		getHTTPClient().get(
 					uri,
 					headers,
 					params.toArray(new NameValuePair[params.size()]),
 					new AGRDFHandler(getPreferredRDFFormat(),handler,getValueFactory(),getAllowExternalBlankNodeIds()));
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		}
 	}
 	
 	public void addStatements(Resource subj, URI pred, Value obj,
-			Resource... contexts) throws IOException, RepositoryException,
-			UnauthorizedException {
+			Resource... contexts) throws AGHttpException {
 		String uri = Protocol.getStatementsLocation(getRoot());
 		Header[] headers = { new Header("Content-Type", RDFFormat.NTRIPLES
 				.getDefaultMIMEType()) };
@@ -403,17 +383,13 @@ public class AGHttpRepoClient implements Closeable {
 			params.add(new NameValuePair(Protocol.CONTEXT_PARAM_NAME,
 					encodedContext));
 		}
-		try {
-			getHTTPClient().post(uri, headers,
+		getHTTPClient().post(uri, headers,
 					params.toArray(new NameValuePair[params.size()]), null,
 					null);
-		} catch (RDFParseException e) {
-			throw new RepositoryException(e);
-		}
 	}
 
 	public void deleteStatements(Resource subj, URI pred, Value obj,
-			Resource... contexts) throws RepositoryException {
+			Resource... contexts) throws AGHttpException {
 		String url = Protocol.getStatementsLocation(getRoot());
 		Header[] headers = {};
 
@@ -438,21 +414,17 @@ public class AGHttpRepoClient implements Closeable {
 				params.toArray(new NameValuePair[params.size()]));
 	}
 
-	public void setAutoCommit(boolean autoCommit) throws RepositoryException {
+	public void setAutoCommit(boolean autoCommit) throws AGHttpException {
 		useDedicatedSession(autoCommit);
 		String url = AGProtocol.getAutoCommitLocation(getRoot());
 		Header[] headers = {};
 		NameValuePair[] params = { new NameValuePair(AGProtocol.ON_PARAM_NAME,
 				Boolean.toString(autoCommit)) };
-		try {
-			getHTTPClient().post(url, headers, params, null, null);
-			this.autoCommit = autoCommit; // TODO: let the server track this?
-		} catch (RDFParseException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().post(url, headers, params, null, null);
+		this.autoCommit = autoCommit; // TODO: let the server track this?
 	}
 
-	public boolean isAutoCommit() throws RepositoryException {
+	public boolean isAutoCommit() throws AGHttpException {
 		return autoCommit; // TODO: let the server track this?
 	}
 
@@ -489,31 +461,21 @@ public class AGHttpRepoClient implements Closeable {
 		return uploadCommitPeriod;
 	}
 	
-	public void commit() throws RepositoryException {
+	public void commit() throws AGHttpException {
 		String url = getRoot() + "/" + AGProtocol.COMMIT;
 		Header[] headers = {};
-		try {
-			getHTTPClient().post(url, headers, new NameValuePair[0],
+		getHTTPClient().post(url, headers, new NameValuePair[0],
 					(RequestEntity) null, null);
-		} catch (RDFParseException e) {
-			// bug.
-			throw new RuntimeException(e);
-		}
 	}
 
-	public void rollback() throws RepositoryException {
+	public void rollback() throws AGHttpException {
 		String url = getRoot() + "/" + AGProtocol.ROLLBACK;
 		Header[] headers = {};
-		try {
-			getHTTPClient().post(url, headers, new NameValuePair[0],
+		getHTTPClient().post(url, headers, new NameValuePair[0],
 					(RequestEntity) null, null);
-		} catch (RDFParseException e) {
-			// bug.
-			throw new RuntimeException(e);
-		}
 	}
 
-	public void clearNamespaces() throws RepositoryException {
+	public void clearNamespaces() throws AGHttpException {
 		String url = Protocol.getNamespacesLocation(getRoot());
 		Header[] headers = {};
 		getHTTPClient().delete(url, headers, new NameValuePair[0]);
@@ -521,8 +483,7 @@ public class AGHttpRepoClient implements Closeable {
 
 	public void upload(final Reader contents, String baseURI,
 			final RDFFormat dataFormat, boolean overwrite, Resource... contexts)
-			throws IOException, RDFParseException, RepositoryException,
-			UnauthorizedException {
+			throws RDFParseException, AGHttpException {
 		final Charset charset = dataFormat.hasCharset() ? dataFormat
 				.getCharset() : Charset.forName("UTF-8");
 
@@ -558,8 +519,7 @@ public class AGHttpRepoClient implements Closeable {
 
 	public void upload(InputStream contents, String baseURI,
 			RDFFormat dataFormat, boolean overwrite, Resource... contexts)
-			throws IOException, RDFParseException, RepositoryException,
-			UnauthorizedException {
+			throws RDFParseException, AGHttpException {
 		// Set Content-Length to -1 as we don't know it and don't want to cache"
 		String format = dataFormat.getDefaultMIMEType();
 		//TODO: needs rfe10230 
@@ -568,21 +528,20 @@ public class AGHttpRepoClient implements Closeable {
 		upload(entity, baseURI, overwrite, null, null, null, contexts);
 	}
 
-	public void sendRDFTransaction(InputStream rdftransaction) throws RepositoryException,
-			RDFParseException, IOException {
+	public void sendRDFTransaction(InputStream rdftransaction) throws AGHttpException {
 		RequestEntity entity = new InputStreamRequestEntity(rdftransaction, -1,
 				"application/x-rdftransaction");
 		upload(entity, null, false, null, null, null);
 	}
 
 	public void uploadJSON(JSONArray rows, Resource... contexts)
-	throws RepositoryException {
+	throws AGHttpException {
 		String url = Protocol.getStatementsLocation(getRoot());
 		uploadJSON(url, rows, contexts);
 	}
 
 	public void uploadJSON(String url, JSONArray rows, Resource... contexts)
-            throws RepositoryException {
+            throws AGHttpException {
 		if (rows == null)
 			return;
 		InputStream in;
@@ -593,41 +552,38 @@ public class AGHttpRepoClient implements Closeable {
 			upload(url, entity, null, false, null, null, null, contexts);
 		} catch (UnsupportedEncodingException e) {
 			throw new RuntimeException(e);
-		} catch (RDFParseException e) {
-			throw new RuntimeException(e);
 		}
 	}
 
 	public void deleteJSON(JSONArray rows, Resource... contexts)
-	throws RepositoryException {
+	throws AGHttpException {
 		uploadJSON(AGProtocol.getStatementsDeleteLocation(getRoot()), rows, contexts);
 	}
 	
 	public void load(URI source, String baseURI, RDFFormat dataFormat,
-			Resource... contexts) throws IOException, RDFParseException,
-			RepositoryException, UnauthorizedException {
+			Resource... contexts) throws AGHttpException {
 		upload(null, baseURI, false, null, source, dataFormat, contexts);
 	}
 
 	public void load(String serverAbsolutePath, String baseURI,
-			RDFFormat dataFormat, Resource... contexts) throws IOException,
-			RDFParseException, RepositoryException, UnauthorizedException {
+			RDFFormat dataFormat, Resource... contexts) throws 
+			AGHttpException {
 		upload(null, baseURI, false, serverAbsolutePath, null, dataFormat,
 				contexts);
 	}
 
 	public void upload(RequestEntity reqEntity, String baseURI,
 			boolean overwrite, String serverSideFile, URI serverSideURL,
-			RDFFormat dataFormat, Resource... contexts) throws IOException,
-			RDFParseException, RepositoryException, UnauthorizedException {
+			RDFFormat dataFormat, Resource... contexts) throws 
+			AGHttpException {
 		String url = Protocol.getStatementsLocation(getRoot());
 		upload(url, reqEntity, baseURI, overwrite, serverSideFile, serverSideURL, dataFormat, contexts);
 	}
 
 	public void upload(String url, RequestEntity reqEntity, String baseURI,
 			boolean overwrite, String serverSideFile, URI serverSideURL,
-			RDFFormat dataFormat, Resource... contexts) throws
-			RDFParseException, RepositoryException, UnauthorizedException {
+			RDFFormat dataFormat, Resource... contexts) throws 
+			AGHttpException {
 		OpenRDFUtil.verifyContextNotNull(contexts);
 		List<Header> headers = new ArrayList<Header>(1);
 		if (dataFormat != null) {
@@ -670,8 +626,8 @@ public class AGHttpRepoClient implements Closeable {
 		}
 	}
 
-	public TupleQueryResult getContextIDs() throws IOException,
-			RepositoryException, UnauthorizedException {
+	public TupleQueryResult getContextIDs() throws 
+			AGHttpException {
 		try {
 			TupleQueryResultBuilder builder = new TupleQueryResultBuilder();
 			getContextIDs(builder);
@@ -683,24 +639,20 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	public void getContextIDs(TupleQueryResultHandler handler)
-			throws IOException, TupleQueryResultHandlerException,
-			RepositoryException, UnauthorizedException {
+			throws TupleQueryResultHandlerException,
+			AGHttpException {
 		String url = Protocol.getContextsLocation(getRoot());
 		Header[] headers = { new Header(ACCEPT_PARAM_NAME,
 				getPreferredTQRFormat().getDefaultMIMEType()) };
-		try {
-			getHTTPClient().get(
+		getHTTPClient().get(
 					url,
 					headers,
 					new NameValuePair[0],
 					new AGTQRHandler(getPreferredTQRFormat(), handler, getValueFactory(),getAllowExternalBlankNodeIds()));
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		}
 	}
 
-	public long size(Resource... contexts) throws IOException,
-			RepositoryException, UnauthorizedException {
+	public long size(Resource... contexts) throws 
+			AGHttpException {
 		String url = Protocol.getSizeLocation(getRoot());
 		Header[] headers = {};
 		String[] encodedContexts = Protocol.encodeContexts(contexts);
@@ -710,16 +662,12 @@ public class AGHttpRepoClient implements Closeable {
 					encodedContexts[i]);
 		}
 		AGLongHandler handler = new AGLongHandler();
-		try {
-			getHTTPClient().get(url, headers, contextParams, handler);
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().get(url, headers, contextParams, handler);
 		return handler.getResult();
 	}
 
-	public TupleQueryResult getNamespaces() throws IOException,
-			RepositoryException, UnauthorizedException {
+	public TupleQueryResult getNamespaces() throws 
+			AGHttpException {
 		try {
 			TupleQueryResultBuilder builder = new TupleQueryResultBuilder();
 			getNamespaces(builder);
@@ -731,24 +679,20 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	public void getNamespaces(TupleQueryResultHandler handler)
-			throws IOException, TupleQueryResultHandlerException,
-			RepositoryException, UnauthorizedException {
+			throws TupleQueryResultHandlerException,
+			AGHttpException {
 		String url = Protocol.getNamespacesLocation(getRoot());
 		Header[] headers = { new Header(ACCEPT_PARAM_NAME,
 				getPreferredTQRFormat().getDefaultMIMEType()) };
-		try {
-			getHTTPClient().get(
+		getHTTPClient().get(
 					url,
 					headers,
 					new NameValuePair[0],
 					new AGTQRHandler(getPreferredTQRFormat(), handler, getValueFactory(),getAllowExternalBlankNodeIds()));
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		}
 	}
 
-	public String getNamespace(String prefix) throws IOException,
-			RepositoryException, UnauthorizedException {
+	public String getNamespace(String prefix) throws 
+			AGHttpException {
 		String url = Protocol.getNamespacePrefixLocation(getRoot(),
 				prefix);
 		Header[] headers = {};
@@ -757,14 +701,14 @@ public class AGHttpRepoClient implements Closeable {
 			getHTTPClient().get(url, headers, new NameValuePair[0], handler);
 		} catch (AGHttpException e) {
 			if (!e.getMessage().equals("Not found.")) {
-				throw new RepositoryException(e);
+				throw e;
 			}
 		}
 		return handler.getResult();
 	}
 
 	public void setNamespacePrefix(String prefix, String name)
-			throws RepositoryException {
+			throws AGHttpException {
 		String url = Protocol.getNamespacePrefixLocation(getRoot(),
 				prefix);
 		Header[] headers = {};
@@ -773,21 +717,19 @@ public class AGHttpRepoClient implements Closeable {
 			getHTTPClient().put(url, headers, params,
 					new StringRequestEntity(name, "text/plain", "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
-			throw new RepositoryException(e);
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
+			throw new RuntimeException(e);
 		}
 	}
 
-	public void removeNamespacePrefix(String prefix) throws RepositoryException {
+	public void removeNamespacePrefix(String prefix) throws AGHttpException {
 		String url = Protocol.getNamespacePrefixLocation(getRoot(),
 				prefix);
 		Header[] headers = {};
 		getHTTPClient().delete(url, headers, new NameValuePair[0]);
 	}
 
-	public void query(AGQuery q, boolean analyzeOnly, AGResponseHandler handler) throws HttpException,
-			RepositoryException, RDFParseException, IOException {
+	public void query(AGQuery q, boolean analyzeOnly, AGResponseHandler handler) throws 
+			AGHttpException {
 
 		String url = getRoot();
 		if (q.isPrepared()) {
@@ -888,23 +830,23 @@ public class AGHttpRepoClient implements Closeable {
 	 * Free up any no-longer-needed saved queries as reported 
 	 * by AGQuery finalizer.
 	 *  
-	 * @throws RepositoryException
+	 * @throws AGHttpException
 	 */
-	private void processSavedQueryDeleteQueue() throws RepositoryException {
+	private void processSavedQueryDeleteQueue() throws AGHttpException {
 		String queryName;
 		while((queryName=savedQueryDeleteQueue.poll())!=null) {
 			deleteSavedQuery(queryName);
 		}
 	}
 	
-	public void deleteSavedQuery(String queryName) throws RepositoryException {
+	public void deleteSavedQuery(String queryName) throws AGHttpException {
 		String url = AGProtocol.getSavedQueryLocation(getRoot(), queryName);
 		Header[] headers = {};
 		NameValuePair[] params = {};
 		getHTTPClient().delete(url, headers, params);
 	}
 	
-	public synchronized void close() throws RepositoryException {
+	public synchronized void close() throws AGHttpException {
 		if (sessionRoot != null) {
 			closeSession(sessionRoot);
 			sessionRoot = null;
@@ -918,7 +860,7 @@ public class AGHttpRepoClient implements Closeable {
 	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#put-freetext-index">put-freetext-index</a>
 	 */
 	public void createFreetextIndex(String name, List<String> predicates, boolean indexLiterals, List<String> indexLiteralTypes, String indexResources, List<String> indexFields, int minimumWordSize, List<String> stopWords, List<String> wordFilters)
-	throws RepositoryException {
+	throws AGHttpException {
 		String url = AGProtocol.getFreetextIndexLocation(getRoot(), name);
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
 		if (predicates != null) {
@@ -960,20 +902,16 @@ public class AGHttpRepoClient implements Closeable {
 				params.add(new NameValuePair("wordFilter", filter));
 			}
 		}
-		try {
-			getHTTPClient().put(url, new Header[0], params.toArray(new NameValuePair[params.size()]), null);
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().put(url, new Header[0], params.toArray(new NameValuePair[params.size()]), null);
 	}
 	
 	/**
 	 * Delete the freetext index of the given name.
 	 * 
 	 * @param index the name of the index
-	 * @throws RepositoryException
+	 * @throws AGHttpException
 	 */
-	public void deleteFreetextIndex(String index) throws RepositoryException {
+	public void deleteFreetextIndex(String index) throws AGHttpException {
 		String url = AGProtocol.getFreetextIndexLocation(getRoot(), index);
 		Header[] headers = {};
 		NameValuePair[] params = {};
@@ -984,10 +922,10 @@ public class AGHttpRepoClient implements Closeable {
 	 * Lists the free text indices defined on the repository.
 	 *  
 	 * @return a list of index names
-	 * @throws RepositoryException
+	 * @throws AGHttpException
 	 */
 	public List<String> listFreetextIndices()
-			throws RepositoryException {
+			throws AGHttpException {
 		return Arrays.asList(getFreetextIndices());
 	}
 
@@ -996,14 +934,10 @@ public class AGHttpRepoClient implements Closeable {
 	 * @see #listFreetextIndices()
 	 */
 	public String[] getFreetextIndices()
-	throws RepositoryException {
+	throws AGHttpException {
 		String url = AGProtocol.getFreetextIndexLocation(getRoot());
 		AGStringHandler handler = new AGStringHandler();
-		try {
-			getHTTPClient().get(url, new Header[0], new NameValuePair[0], handler);
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().get(url, new Header[0], new NameValuePair[0], handler);
 		return handler.getResult().split("\n");
 	}
 	
@@ -1011,31 +945,24 @@ public class AGHttpRepoClient implements Closeable {
 	 * Gets the configuration of the given index.
 	 */
 	public JSONObject getFreetextIndexConfiguration(String index)
-			throws RepositoryException {
+			throws AGHttpException {
 		String url = AGProtocol.getFreetextIndexLocation(getRoot(), index);
 		AGJSONHandler handler = new AGJSONHandler();
-		try {
-			getHTTPClient().get(url, new Header[0], new NameValuePair[0],
+		getHTTPClient().get(url, new Header[0], new NameValuePair[0],
 					handler);
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		}
 		return handler.getResult();
 	}
 
 	public String[] getFreetextPredicates(String index)
-	throws RepositoryException {
+	throws AGHttpException {
 		String url = AGProtocol.getFreetextIndexLocation(getRoot(), index) + "/predicates";
 		AGStringHandler handler = new AGStringHandler();
-		try {
-			getHTTPClient().get(url, new Header[0], new NameValuePair[0], handler);
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().get(url, new Header[0], new NameValuePair[0], handler);
 		return handler.getResult().split("\n");
 	}
 	
-	public void evalFreetextQuery(String pattern, String expression, String index, boolean sorted, int limit, int offset, AGResponseHandler handler) throws RepositoryException {
+	public void evalFreetextQuery(String pattern, String expression, String index, boolean sorted, int limit, int offset, AGResponseHandler handler) 
+	throws AGHttpException {
 		String url = AGProtocol.getFreetextLocation(getRoot());
 		List<Header> headers = new ArrayList<Header>(5);
 		headers.add(new Header("Content-Type", Protocol.FORM_MIME_TYPE
@@ -1063,18 +990,13 @@ public class AGHttpRepoClient implements Closeable {
 		if (offset>0) {
 			queryParams.add(new NameValuePair("offset",Integer.toString(offset)));
 		}
-		try {
-			getHTTPClient().post(url, headers.toArray(new Header[headers.size()]),
+		getHTTPClient().post(url, headers.toArray(new Header[headers.size()]),
 					queryParams.toArray(new NameValuePair[queryParams.size()]),
 					null, handler);
-		} catch (RDFParseException e) {
-			throw new RepositoryException(e);
-		}
-		
 	}
 	
 	public void registerPredicateMapping(URI predicate, URI primitiveType)
-			throws RepositoryException {
+			throws AGHttpException {
 		String url = AGProtocol.getPredicateMappingLocation(getRoot());
 		String pred_nt = NTriplesUtil.toNTriplesString(predicate);
 		String primtype_nt = NTriplesUtil.toNTriplesString(primitiveType);
@@ -1083,15 +1005,11 @@ public class AGHttpRepoClient implements Closeable {
 				new NameValuePair(AGProtocol.FTI_PREDICATE_PARAM_NAME, pred_nt),
 				new NameValuePair(AGProtocol.ENCODED_TYPE_PARAM_NAME,
 						primtype_nt) };
-		try {
-			getHTTPClient().post(url, headers, params, null, null);
-		} catch (RDFParseException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().post(url, headers, params, null, null);
 	}
 
 	public void deletePredicateMapping(URI predicate)
-			throws RepositoryException {
+			throws AGHttpException {
 		String url = AGProtocol.getPredicateMappingLocation(getRoot());
 		String pred_nt = NTriplesUtil.toNTriplesString(predicate);
 		Header[] headers = {};
@@ -1100,16 +1018,12 @@ public class AGHttpRepoClient implements Closeable {
 		getHTTPClient().delete(url, headers, params);
 	}
 
-	public String[] getPredicateMappings() throws RepositoryException {
+	public String[] getPredicateMappings() throws AGHttpException {
 		String url = AGProtocol.getPredicateMappingLocation(getRoot());
 		Header[] headers = new Header[0];
 		NameValuePair[] params = new NameValuePair[0];
 		AGStringHandler handler = new AGStringHandler();
-		try {
-			getHTTPClient().get(url, headers, params, handler);
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().get(url, headers, params, handler);
 		String result = handler.getResult();
 		if (result.equals("")) {
 			return new String[0];
@@ -1119,7 +1033,7 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	public void registerDatatypeMapping(URI datatype, URI primitiveType)
-			throws RepositoryException {
+			throws AGHttpException {
 		String url = AGProtocol.getDatatypeMappingLocation(getRoot());
 		String datatype_nt = NTriplesUtil.toNTriplesString(datatype);
 		String primtype_nt = NTriplesUtil.toNTriplesString(primitiveType);
@@ -1128,14 +1042,10 @@ public class AGHttpRepoClient implements Closeable {
 				new NameValuePair(AGProtocol.TYPE_PARAM_NAME, datatype_nt),
 				new NameValuePair(AGProtocol.ENCODED_TYPE_PARAM_NAME,
 						primtype_nt) };
-		try {
-			getHTTPClient().post(url, headers, params, null, null);
-		} catch (RDFParseException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().post(url, headers, params, null, null);
 	}
 
-	public void deleteDatatypeMapping(URI datatype) throws RepositoryException {
+	public void deleteDatatypeMapping(URI datatype) throws AGHttpException {
 		String url = AGProtocol.getDatatypeMappingLocation(getRoot());
 		String datatype_nt = NTriplesUtil.toNTriplesString(datatype);
 		Header[] headers = {};
@@ -1144,16 +1054,12 @@ public class AGHttpRepoClient implements Closeable {
 		getHTTPClient().delete(url, headers, params);
 	}
 
-	public String[] getDatatypeMappings() throws RepositoryException {
+	public String[] getDatatypeMappings() throws AGHttpException {
 		String url = AGProtocol.getDatatypeMappingLocation(getRoot());
 		Header[] headers = new Header[0];
 		NameValuePair[] params = new NameValuePair[0];
 		AGStringHandler handler = new AGStringHandler();
-		try {
-			getHTTPClient().get(url, headers, params, handler);
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().get(url, headers, params, handler);
 		String result = handler.getResult();
 		if (result.equals("")) {
 			return new String[0];
@@ -1162,11 +1068,11 @@ public class AGHttpRepoClient implements Closeable {
 		}
 	}
 
-	public void clearMappings() throws RepositoryException {
+	public void clearMappings() throws AGHttpException {
 		clearMappings(false);
 	}
 
-	public void clearMappings(boolean includeAutoEncodedPrimitiveTypes) throws RepositoryException {
+	public void clearMappings(boolean includeAutoEncodedPrimitiveTypes) throws AGHttpException {
 		String url = AGProtocol.getMappingLocation(getRoot());
 		if (includeAutoEncodedPrimitiveTypes) {
 			url = url+"/all";
@@ -1175,84 +1081,70 @@ public class AGHttpRepoClient implements Closeable {
 		NameValuePair[] params = {};
 		getHTTPClient().delete(url, headers, params);
 	}
-	
-	public void addRules(String rules) throws RepositoryException {
-		try {
-			InputStream rulestream = new ByteArrayInputStream(rules
-					.getBytes("UTF-8"));
+
+	public void addRules(String rules) throws AGHttpException {
+			InputStream rulestream;
+			try {
+				rulestream = new ByteArrayInputStream(rules
+						.getBytes("UTF-8"));
+			} catch (UnsupportedEncodingException e) {
+				throw new RuntimeException(e);
+			}
 			addRules(rulestream);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
-		}
 	}
 
-	public void addRules(InputStream rulestream) throws RepositoryException {
+	public void addRules(InputStream rulestream) throws AGHttpException {
 		useDedicatedSession(isAutoCommit());
 		String url = AGProtocol.getFunctorLocation(getRoot());
 		Header[] headers = {};
 		NameValuePair[] params = {};
-		try {
-			RequestEntity entity = new InputStreamRequestEntity(rulestream, -1,
+		RequestEntity entity = new InputStreamRequestEntity(rulestream, -1,
 					null);
-			getHTTPClient().post(url, headers, params, entity, null);
-		} catch (RDFParseException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().post(url, headers, params, entity, null);
 	}
 
-	public String evalInServer(String lispForm) throws RepositoryException {
+	public String evalInServer(String lispForm) throws AGHttpException {
 		String result;
-		try {
-			InputStream stream = new ByteArrayInputStream(lispForm
-					.getBytes("UTF-8"));
+			InputStream stream;
+			try {
+				stream = new ByteArrayInputStream(lispForm
+						.getBytes("UTF-8"));
+			} catch (UnsupportedEncodingException e) {
+				throw new RuntimeException(e);
+			}
 			result = evalInServer(stream);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
-		}
 		return result;
 	}
 
-	public String evalInServer(InputStream stream) throws RepositoryException {
+	public String evalInServer(InputStream stream) throws AGHttpException {
 		String url = AGProtocol.getEvalLocation(getRoot());
 		Header[] headers = {};
 		NameValuePair[] params = {};
 		AGStringHandler handler = new AGStringHandler();
-		try {
-			RequestEntity entity = new InputStreamRequestEntity(stream, -1,
+		RequestEntity entity = new InputStreamRequestEntity(stream, -1,
 					null);
-			getHTTPClient().post(url, headers, params, entity, handler);
-		} catch (RDFParseException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().post(url, headers, params, entity, handler);
 		return handler.getResult();
 	}
 
-	public void ping() throws RepositoryException {
+	public void ping() throws AGHttpException {
 		if (usingDedicatedSession) {
 			String url = AGProtocol.getSessionPingLocation(getRoot());
 			Header[] headers = {};
-			try {
-				getHTTPClient().get(url, headers, new NameValuePair[0], null);
-			} catch (AGHttpException e) {
-				throw new RepositoryException(e);
-			}
+			getHTTPClient().get(url, headers, new NameValuePair[0], null);
 		}
 	}
 
-	public String[] getGeoTypes() throws RepositoryException {
+	public String[] getGeoTypes() throws AGHttpException {
 		String url = AGProtocol.getGeoTypesLocation(getRoot());
 		Header[] headers = {};
 		AGStringHandler handler = new AGStringHandler();
-		try {
-			getHTTPClient().get(url, headers, new NameValuePair[0], handler);
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().get(url, headers, new NameValuePair[0], handler);
 		return handler.getResult().split("\n");
 	}
 
 	public String registerCartesianType(float stripWidth, float xmin, float xmax,
-			float ymin, float ymax) throws RepositoryException {
+			float ymin, float ymax) throws AGHttpException {
 		String url = AGProtocol.getGeoTypesCartesianLocation(getRoot());
 		Header[] headers = {};
 		NameValuePair[] params = {
@@ -1263,16 +1155,12 @@ public class AGHttpRepoClient implements Closeable {
 				new NameValuePair(AGProtocol.YMAX_PARAM_NAME, Float.toString(ymax))
 				};
 		AGStringHandler handler = new AGStringHandler();
-		try {
-			getHTTPClient().post(url, headers, params, null, handler);
-		} catch (RDFParseException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().post(url, headers, params, null, handler);
 		return handler.getResult();
 	}
 
 	public String registerSphericalType(float stripWidth, String unit, float latmin, float longmin,
-			float latmax, float longmax) throws RepositoryException {
+			float latmax, float longmax) throws AGHttpException {
 		String url = AGProtocol.getGeoTypesSphericalLocation(getRoot());
 		Header[] headers = {};
 		NameValuePair[] params = {
@@ -1284,15 +1172,12 @@ public class AGHttpRepoClient implements Closeable {
 				new NameValuePair(AGProtocol.LONGMAX_PARAM_NAME, Float.toString(longmax))
 		};
 		AGStringHandler handler = new AGStringHandler();
-		try {
-			getHTTPClient().post(url, headers, params, null, handler);
-		} catch (RDFParseException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().post(url, headers, params, null, handler);
 		return handler.getResult();
 	}
 	
-	public void registerPolygon(String polygon, List<String> points) throws RepositoryException {
+	public void registerPolygon(String polygon, List<String> points) 
+	throws AGHttpException {
 		if (points.size()<3) {
 			throw new IllegalArgumentException("A minimum of three points are required to register a polygon.");
 		}
@@ -1303,16 +1188,12 @@ public class AGHttpRepoClient implements Closeable {
 		for (String point: points) {
 			params.add(new NameValuePair(AGProtocol.POINT_PARAM_NAME, point));
 		}
-		try {
-			getHTTPClient().put(url, headers, params.toArray(new NameValuePair[params.size()]), null);
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().put(url, headers, params.toArray(new NameValuePair[params.size()]), null);
 	}
 	
 	public void getGeoBox(String type_uri, String predicate_uri, float xmin, float xmax,
 			float ymin, float ymax, int limit, boolean infer, AGResponseHandler handler) 
-	throws RepositoryException {
+	throws AGHttpException {
 		String url = AGProtocol.getGeoBoxLocation(getRoot());
 		Header[] headers = { new Header(ACCEPT_PARAM_NAME,
 				getPreferredRDFFormat().getDefaultMIMEType()) };
@@ -1327,21 +1208,16 @@ public class AGHttpRepoClient implements Closeable {
 		if (0!=limit) {
 			params.add(new NameValuePair(AGProtocol.LIMIT_PARAM_NAME, Integer.toString(limit)));
 		}
-		try {
-			getHTTPClient()
-			.get(
+		getHTTPClient().get(
 					url,
 					headers,
 					params.toArray(new NameValuePair[params.size()]),
 					handler);
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		}
 	}
 
 	public void getGeoCircle(String type_uri, String predicate_uri, float x, float y,
 			float radius, int limit, boolean infer, AGResponseHandler handler) 
-	throws RepositoryException {
+	throws AGHttpException {
 		String url = AGProtocol.getGeoCircleLocation(getRoot());
 		Header[] headers = { new Header(ACCEPT_PARAM_NAME,
 				getPreferredRDFFormat().getDefaultMIMEType()) };
@@ -1355,20 +1231,15 @@ public class AGHttpRepoClient implements Closeable {
 		if (0!=limit) {
 			params.add(new NameValuePair(AGProtocol.LIMIT_PARAM_NAME, Integer.toString(limit)));
 		}
-		try {
-			getHTTPClient()
-			.get(
+		getHTTPClient().get(
 					url,
 					headers,
 					params.toArray(new NameValuePair[params.size()]),
 					handler);
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		}
 	}
 
 	public void getGeoHaversine(String type_uri, String predicate_uri, float lat, float lon, float radius, String unit, int limit, boolean infer, AGResponseHandler handler) 
-	throws RepositoryException {
+	throws AGHttpException {
 		String url = AGProtocol.getGeoHaversineLocation(getRoot());
 		Header[] headers = { new Header(ACCEPT_PARAM_NAME,
 				getPreferredRDFFormat().getDefaultMIMEType()) };
@@ -1382,20 +1253,15 @@ public class AGHttpRepoClient implements Closeable {
 		if (0!=limit) {
 			params.add(new NameValuePair(AGProtocol.LIMIT_PARAM_NAME, Integer.toString(limit)));
 		}
-		try {
-			getHTTPClient()
-			.get(
+		getHTTPClient().get(
 					url,
 					headers,
 					params.toArray(new NameValuePair[params.size()]),
 					handler);
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		}
 	}
 	
 	public void getGeoPolygon(String type_uri, String predicate_uri, String polygon, int limit, boolean infer, AGResponseHandler handler) 
-	throws RepositoryException {
+	throws AGHttpException {
 		String url = AGProtocol.getGeoPolygonLocation(getRoot());
 		Header[] headers = { new Header(ACCEPT_PARAM_NAME,
 				getPreferredRDFFormat().getDefaultMIMEType()) };
@@ -1407,19 +1273,15 @@ public class AGHttpRepoClient implements Closeable {
 		if (0!=limit) {
 			params.add(new NameValuePair(AGProtocol.LIMIT_PARAM_NAME, Integer.toString(limit)));
 		}
-		try {
-			getHTTPClient()
-			.get(
+		getHTTPClient().get(
 					url,
 					headers,
 					params.toArray(new NameValuePair[params.size()]),
 					handler);
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		}
 	}
 	
-	public void registerSNAGenerator(String generator, List<String> objectOfs, List<String> subjectOfs, List<String> undirecteds, String query) throws RepositoryException {
+	public void registerSNAGenerator(String generator, List<String> objectOfs, List<String> subjectOfs, List<String> undirecteds, String query) 
+	throws AGHttpException {
 		useDedicatedSession(autoCommit);
 		String url = AGProtocol.getSNAGeneratorLocation(getRoot(), generator);
 		Header[] headers = {};
@@ -1436,14 +1298,11 @@ public class AGHttpRepoClient implements Closeable {
 		if (query!=null) {
 			params.add(new NameValuePair(AGProtocol.QUERY_PARAM_NAME, query));
 		}
-		try {
-			getHTTPClient().put(url, headers, params.toArray(new NameValuePair[params.size()]), null);
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		} // TODO: need an RDFParseException for query param?
+		getHTTPClient().put(url, headers, params.toArray(new NameValuePair[params.size()]), null);
 	}
 	
-	public void registerSNANeighborMatrix(String matrix, String generator, List<String> group, int depth) throws RepositoryException {
+	public void registerSNANeighborMatrix(String matrix, String generator, List<String> group, int depth) 
+	throws AGHttpException {
 		String url = AGProtocol.getSNANeighborMatrixLocation(getRoot(), matrix);
 		Header[] headers = {};
 		List<NameValuePair> params = new ArrayList<NameValuePair>(7);
@@ -1452,11 +1311,7 @@ public class AGHttpRepoClient implements Closeable {
 			params.add(new NameValuePair(AGProtocol.GROUP_PARAM_NAME, node));
 		}
 		params.add(new NameValuePair(AGProtocol.DEPTH_PARAM_NAME, Integer.toString(depth)));
-		try {
-			getHTTPClient().put(url, headers, params.toArray(new NameValuePair[params.size()]), null);
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().put(url, headers, params.toArray(new NameValuePair[params.size()]), null);
 	}
 
 	/**
@@ -1466,19 +1321,16 @@ public class AGHttpRepoClient implements Closeable {
 	 *   
 	 * @param listValid true yields all valid types, false yields active types. 
 	 * @return list of indices, never null
+	 * @throws AGHttpException
 	 */
-	public List<String> listIndices(boolean listValid) throws RepositoryException {
+	public List<String> listIndices(boolean listValid) throws AGHttpException {
 		String url = AGProtocol.getIndicesURL(getRoot());
 		Header[] headers = new Header[0];
 		NameValuePair[] data = { new NameValuePair("listValid", Boolean
 				.toString(listValid)) };
 
 		AGStringHandler handler = new AGStringHandler();
-		try {
-			getHTTPClient().get(url, headers, data, handler);
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().get(url, headers, data, handler);
 		return Arrays.asList(handler.getResult().split("\n"));
 	}
 
@@ -1487,18 +1339,14 @@ public class AGHttpRepoClient implements Closeable {
      * This will take affect on the next commit.
      * 
      * @param index a valid index type
-     * @throws RepositoryException
+     * @throws AGHttpException
      * @see #listIndices(boolean)
      */
-	public void addIndex(String index) throws RepositoryException {
+	public void addIndex(String index) throws AGHttpException {
 		String url = AGProtocol.getIndicesURL(getRoot())+"/"+index;
 		Header[] headers = {};
 		NameValuePair[] params = {};
-		try {
-			getHTTPClient().put(url, headers, params, null);
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().put(url, headers, params, null);
 	}
 	
 	/**
@@ -1506,10 +1354,10 @@ public class AGHttpRepoClient implements Closeable {
 	 * This will take affect on the next commit.
 	 * 
 	 * @param index a valid index type
-	 * @throws RepositoryException
+	 * @throws AGHttpException
 	 * @see #listIndices(boolean)
 	 */
-	public void dropIndex(String index) throws RepositoryException {
+	public void dropIndex(String index) throws AGHttpException {
 		String url = AGProtocol.getIndicesURL(getRoot())+"/"+index;
 		Header[] headers = {};
 		NameValuePair[] params = {};
@@ -1517,54 +1365,47 @@ public class AGHttpRepoClient implements Closeable {
 	}
 	
 	public void registerEncodableNamespace(String namespace, String format)
-			throws RepositoryException {
+			throws AGHttpException {
 		String url = getRoot() + "/encodedIds/prefixes";
 		Header[] headers = {};
 		List<NameValuePair> params = new ArrayList<NameValuePair>(2);
 		params.add(new NameValuePair("prefix", namespace));
 		params.add(new NameValuePair("format", format));
-		try {
-			getHTTPClient().post(url, headers,
+		getHTTPClient().post(url, headers,
 					params.toArray(new NameValuePair[params.size()]), null,
 					null);
-		} catch (RDFParseException e) {
-			throw new RepositoryException(e);
-		}
 	}
 	
 	public void unregisterEncodableNamespace(String namespace)
-			throws RepositoryException {
+			throws AGHttpException {
 		String url = getRoot() + "/encodedIds/prefixes";
 		Header[] headers = {};
 		List<NameValuePair> params = new ArrayList<NameValuePair>(2);
 		params.add(new NameValuePair("prefix", namespace));
 		getHTTPClient().delete(url, headers,
-				params.toArray(new NameValuePair[params.size()]));
+					params.toArray(new NameValuePair[params.size()]));
 	}
 
 	/**
 	 * Enables the spogi cache in this repository.
 	 * 
 	 * @param size the size of the cache, in triples.
-	 * @throws RepositoryException
+	 * @throws AGHttpException
 	 */
-	public void enableTripleCache(long size) throws RepositoryException {
+	public void enableTripleCache(long size) throws AGHttpException {
 		String url = getRoot()+"/tripleCache";
 		Header[] headers = {};
 		NameValuePair[] params = {new NameValuePair("size", Long.toString(size))};
-		try {
-			getHTTPClient().put(url, headers, params, null);
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().put(url, headers, params, null);
 	}
 
-	public void registerEncodableNamespaces(JSONArray formattedNamespaces) throws RepositoryException {
+	public void registerEncodableNamespaces(JSONArray formattedNamespaces) 
+	throws AGHttpException {
 		String url = getRoot() + "/encodedIds/prefixes";
 		uploadJSON(url, formattedNamespaces);
 	}
 	
-	public TupleQueryResult getEncodableNamespaces() throws RepositoryException {
+	public TupleQueryResult getEncodableNamespaces() throws AGHttpException {
 		String url = getRoot()+"/encodedIds/prefixes";
 		return getHTTPClient().getTupleQueryResult(url);
 	}
@@ -1597,17 +1438,13 @@ public class AGHttpRepoClient implements Closeable {
 	 * @deprecated The stored proc feature and API are experimental, and subject to change in a future release.
 	 */
 	public String callStoredProcEncoded(String functionName, String moduleName, String argsEncoded)
-	throws RepositoryException {
+	throws AGHttpException {
 		String url = AGProtocol.getStoredProcLocation(getRoot())+"/"+functionName;
 		Header[] headers = { new Header("x-scripts", moduleName) };
 		NameValuePair[] params = { new NameValuePair("spargstr", argsEncoded) };
 		AGStringHandler handler = new AGStringHandler();
-		try {
-			getHTTPClient().post(url, headers, params, null, handler);
-			return handler.getResult();
-		} catch (RDFParseException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().post(url, headers, params, null, handler);
+		return handler.getResult();
 	}
 	
 	/**
@@ -1629,7 +1466,7 @@ public class AGHttpRepoClient implements Closeable {
 	 * @deprecated The stored proc feature and API are experimental, and subject to change in a future release.
 	 */
 	public Object callStoredProc(String functionName, String moduleName, Object...args)
-	throws RepositoryException {
+	throws AGHttpException {
 		Object o = AGDeserializer.decodeAndDeserialize(
 				callStoredProcEncoded(functionName, moduleName,
 						AGSerializer.serializeAndEncode(args)));
@@ -1646,147 +1483,110 @@ public class AGHttpRepoClient implements Closeable {
 	 * Returns the size of the spogi cache.
 	 * 
 	 * @return the size of the spogi cache, in triples.
-	 * @throws RepositoryException
+	 * @throws AGHttpException
 	 */
-	public long getTripleCacheSize() throws RepositoryException {
+	public long getTripleCacheSize() throws AGHttpException {
 		String url = getRoot()+"/tripleCache";
 		Header[] headers = new Header[0];
 		NameValuePair[] data = {};
 		AGLongHandler handler = new AGLongHandler();
-		try {
-			getHTTPClient().get(url, headers, data, handler);
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().get(url, headers, data, handler);
 		return handler.getResult();
 	}
 
 	/**
 	 * Disables the spogi triple cache.
 	 * 
-	 * @throws RepositoryException
+	 * @throws AGHttpException
 	 */
- 	public void disableTripleCache() throws RepositoryException {
+ 	public void disableTripleCache() throws AGHttpException {
 		String url = getRoot()+"/tripleCache";
 		Header[] headers = {};
 		NameValuePair[] params = {};
 		getHTTPClient().delete(url, headers, params);
 	}
 
-	public String[] getBlankNodes(int blankNodeAmount) throws RepositoryException {
-		try {
-			return getHTTPClient().getBlankNodes(getRoot(), blankNodeAmount);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
-		}
+	public String[] getBlankNodes(int blankNodeAmount) throws AGHttpException {
+		return getHTTPClient().getBlankNodes(getRoot(), blankNodeAmount);
 	}
 
-	public void optimizeIndices(Boolean wait, int level) throws RepositoryException {
+	public void optimizeIndices(Boolean wait, int level) throws AGHttpException {
 		String url = repoRoot + "/indices/optimize";
 		Header[] headers = {};
 		NameValuePair[] params = { new NameValuePair("wait", Boolean.toString(wait)),
 		                           new NameValuePair("level", Integer.toString(level))};
 
-		try {
-			getHTTPClient().post(url,headers,params,null,null);
-		} catch (RDFParseException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().post(url,headers,params,null,null);
 	}
 
-	public void optimizeIndices(Boolean wait) throws RepositoryException {
+	public void optimizeIndices(Boolean wait) throws AGHttpException {
 		String url = repoRoot + "/indices/optimize";
 		Header[] headers = {};
 		NameValuePair[] params = { new NameValuePair("wait", Boolean.toString(wait)) };
-
-		try {
-			getHTTPClient().post(url,headers,params,null,null);
-		} catch (RDFParseException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().post(url,headers,params,null,null);
 	}
 
-	private void putSpinX(String x, String uri, String sparqlQuery, String[] arguments) throws RepositoryException {
+	private void putSpinX(String x, String uri, String sparqlQuery, String[] arguments) throws AGHttpException {
 		NameValuePair[] params = new NameValuePair[(arguments == null ? 0 : arguments.length) + 1];
 		params[0] = new NameValuePair(AGProtocol.SPIN_QUERY, sparqlQuery);
 		for (int i = 0; arguments != null && i < arguments.length; i++) {
 			params[i+1] = new NameValuePair(AGProtocol.SPIN_ARGUMENTS, arguments[i]);
 		}
-		try {
-			getHTTPClient().put(AGProtocol.spinURL(getRoot(), x, uri), null, params, null);
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().put(AGProtocol.spinURL(getRoot(), x, uri), null, params, null);
 	}
 
-	public String getSpinFunction(String uri) throws RepositoryException {
-		try {
-			return getHTTPClient().getString(AGProtocol.spinURL(getRoot(), AGProtocol.SPIN_FUNCTION, uri));
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		}
+	public String getSpinFunction(String uri) throws AGHttpException {
+		return getHTTPClient().getString(AGProtocol.spinURL(getRoot(), AGProtocol.SPIN_FUNCTION, uri));
 	}
 	
 	/**
 	 * TODO MH: refactor to return a list
 	 */
-	public String listSpinFunctions() throws RepositoryException {
-		try {
-			return getHTTPClient().getString(AGProtocol.spinURL(getRoot(), AGProtocol.SPIN_FUNCTION, "*"));
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		}
+	public String listSpinFunctions() throws AGHttpException {
+		return getHTTPClient().getString(AGProtocol.spinURL(getRoot(), AGProtocol.SPIN_FUNCTION, "*"));
 	}
 	
-	public void putSpinFunction(String uri, String sparqlQuery, String[] arguments) throws RepositoryException {
+	public void putSpinFunction(String uri, String sparqlQuery, String[] arguments) throws AGHttpException {
 		putSpinX(AGProtocol.SPIN_FUNCTION, uri, sparqlQuery, arguments);
 	}
 
-	public void deleteSpinFunction(String uri) throws RepositoryException {
+	public void deleteSpinFunction(String uri) throws AGHttpException {
 		getHTTPClient().delete(AGProtocol.spinURL(getRoot(), AGProtocol.SPIN_FUNCTION, uri), null, null);
 	}
 
-	public void deleteHardSpinFunction(String uri) throws RepositoryException {
+	public void deleteHardSpinFunction(String uri) throws AGHttpException {
 		try {
 			deleteSpinFunction(uri);
-		} catch (RepositoryException e) {
+		} catch (AGHttpException e) {
 			if (! e.getMessage().contains(uri + " is not a registered SPIN function")) {
 				throw e;
 			}
 		}
 	}
 
-	public String getSpinMagicProperty(String uri) throws RepositoryException {
-		try {
-			return getHTTPClient().getString(AGProtocol.spinURL(getRoot(), AGProtocol.SPIN_MAGICPROPERTY, uri));
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		}
+	public String getSpinMagicProperty(String uri) throws AGHttpException {
+		return getHTTPClient().getString(AGProtocol.spinURL(getRoot(), AGProtocol.SPIN_MAGICPROPERTY, uri));
 	}
 	
-	public void putSpinMagicProperty(String uri, String sparqlQuery, String[] arguments) throws RepositoryException {
+	public void putSpinMagicProperty(String uri, String sparqlQuery, String[] arguments) throws AGHttpException {
 		putSpinX(AGProtocol.SPIN_MAGICPROPERTY, uri, sparqlQuery, arguments);
 	}
 
 	/**
 	 * TODO MH: refactor to return a list
 	 */
-	public String listSpinMagicProperties() throws RepositoryException {
-		try {
-			return getHTTPClient().getString(AGProtocol.spinURL(getRoot(), AGProtocol.SPIN_MAGICPROPERTY, "*"));
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		}
+	public String listSpinMagicProperties() throws AGHttpException {
+		return getHTTPClient().getString(AGProtocol.spinURL(getRoot(), AGProtocol.SPIN_MAGICPROPERTY, "*"));
 	}
 	
-	public void deleteSpinMagicProperty(String uri) throws RepositoryException {
+	public void deleteSpinMagicProperty(String uri) throws AGHttpException {
 		getHTTPClient().delete(AGProtocol.spinURL(getRoot(), AGProtocol.SPIN_MAGICPROPERTY, uri), null, null);
 	}
 
-	public void deleteHardSpinMagicProperty(String uri) throws RepositoryException {
+	public void deleteHardSpinMagicProperty(String uri) throws AGHttpException {
 		try {
 			deleteSpinMagicProperty(uri);
-		} catch (RepositoryException e) {
+		} catch (AGHttpException e) {
 			if (! e.getMessage().contains(uri + " is not a registered SPIN magic property")) {
 				throw e;
 			}

@@ -10,7 +10,6 @@ package com.franz.agraph.repository;
 
 import static com.franz.agraph.http.AGProtocol.encode;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,8 +21,8 @@ import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryException;
 
 import com.franz.agraph.http.AGHTTPClient;
-import com.franz.agraph.http.AGHttpException;
 import com.franz.agraph.http.AGProtocol;
+import com.franz.agraph.http.exception.AGHttpException;
 
 /**
  * Catalogs are locations on disk where AllegroGraph Server keeps its repositories.
@@ -236,12 +235,8 @@ public class AGCatalog {
 			if (strict || !hasRepository(repositoryID)) {
 				getHTTPClient().putRepository(repoURL);
 			}
-		} catch (IOException e) {
-			throw new RepositoryException(e);
 		} catch (OpenRDFException e) {
-			// TODO: consider having methods in this class all throw OpenRDFExceptions
-			throw new RepositoryException(e);
-		} catch (AGHttpException e) {
+			// TODO: modify hasRepository, shouldn't need to do this 
 			throw new RepositoryException(e);
 		}
 		return new AGRepository(this, repositoryID);
@@ -283,7 +278,7 @@ public class AGCatalog {
 				repositoryID);
 		try {
 			getHTTPClient().deleteRepository(repoURL);
-		} catch (IOException e) {
+		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
 	}

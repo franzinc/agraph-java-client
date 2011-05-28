@@ -17,7 +17,7 @@ import org.openrdf.query.resultio.BooleanQueryResultParser;
 import org.openrdf.query.resultio.QueryResultIO;
 import org.openrdf.query.resultio.QueryResultParseException;
 
-import com.franz.agraph.http.AGHttpException;
+import com.franz.agraph.http.exception.AGHttpException;
 
 public class AGBQRHandler extends AGResponseHandler {
 

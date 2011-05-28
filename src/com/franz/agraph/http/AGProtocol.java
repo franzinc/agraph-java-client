@@ -16,6 +16,8 @@ import org.apache.commons.httpclient.util.URIUtil;
 import org.openrdf.http.protocol.Protocol;
 import org.openrdf.repository.RepositoryException;
 
+import com.franz.agraph.http.exception.AGHttpException;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
@@ -602,7 +604,7 @@ public class AGProtocol extends Protocol {
 		return root + "/" + INDICES;
 	}
 	
-	public static String spinURL(String root, String type, String uri) throws RepositoryException {
+	public static String spinURL(String root, String type, String uri) throws AGHttpException {
 		try {
 			if (uri == null) {
 				return root + "/" + SPIN + "/" + type;
@@ -610,7 +612,7 @@ public class AGProtocol extends Protocol {
 				return root + "/" + SPIN + "/" + type + "/" + URIUtil.encodeAll(uri);
 			}
 		} catch (URIException e) {
-			throw new RepositoryException(e);
+			throw new AGHttpException(e);
 		}
 	}
 	

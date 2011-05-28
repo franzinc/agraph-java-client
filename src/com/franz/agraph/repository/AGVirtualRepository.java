@@ -15,6 +15,7 @@ import org.openrdf.repository.RepositoryException;
 
 import com.franz.agraph.http.AGHTTPClient;
 import com.franz.agraph.http.AGHttpRepoClient;
+import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.util.Closeable;
 
 /**
@@ -83,7 +84,12 @@ public class AGVirtualRepository implements AGAbstractRepository, Closeable {
 	
 	public AGRepositoryConnection getConnection() throws RepositoryException {
 		AGHTTPClient client = server.getHTTPClient();
-		AGHttpRepoClient repoclient = new AGHttpRepoClient(this, client, null, client.openSession(spec, true));
+		AGHttpRepoClient repoclient;
+		try {
+			repoclient = new AGHttpRepoClient(this, client, null, client.openSession(spec, true));
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		}
 		return new AGRepositoryConnection(this, repoclient);
 	}
 

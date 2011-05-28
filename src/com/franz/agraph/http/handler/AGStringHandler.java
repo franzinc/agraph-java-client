@@ -13,7 +13,7 @@ import java.io.InputStream;
 
 import org.apache.commons.httpclient.HttpMethod;
 
-import com.franz.agraph.http.AGHttpException;
+import com.franz.agraph.http.exception.AGHttpException;
 
 public class AGStringHandler extends AGResponseHandler {
 
