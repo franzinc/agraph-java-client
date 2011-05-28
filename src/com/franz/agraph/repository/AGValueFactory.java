@@ -8,9 +8,6 @@
 
 package com.franz.agraph.repository;
 
-import java.io.IOException;
-
-import org.openrdf.http.protocol.UnauthorizedException;
 import org.openrdf.model.BNode;
 import org.openrdf.model.Resource;
 import org.openrdf.model.URI;
@@ -18,11 +15,10 @@ import org.openrdf.model.Value;
 import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.rio.ntriples.NTriplesUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.franz.agraph.http.AGHTTPClient;
 import com.franz.agraph.http.AGHttpRepoClient;
+import com.franz.agraph.http.exception.AGHttpException;
 import com.hp.hpl.jena.graph.Node;
 
 /**
@@ -68,13 +64,9 @@ public class AGValueFactory extends ValueFactoryImpl {
 				blankNodeIds = conn.getHttpRepoClient().getBlankNodes(blankNodeAmount);
 			}
 			index = blankNodeIds.length - 1;
-		} catch (UnauthorizedException e) {
-			// TODO: check on the proper exceptions to throw here
-			throw new IllegalStateException(e);
-		} catch (RepositoryException e) {
-			throw new IllegalStateException(e);
-		} catch (IOException e) {
-			throw new IllegalStateException(e);
+		} catch (AGHttpException e) {
+			// TODO: server's out of blank nodes?
+			throw new RuntimeException(e);
 		}		
 	}
 	
@@ -259,9 +251,7 @@ public class AGValueFactory extends ValueFactoryImpl {
 			for (int i=0;i<uri_strs.length;i++) {
 				uris[i] = NTriplesUtil.parseURI(uri_strs[i],this);
 			}
-		} catch (UnauthorizedException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
+		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
 		return uris;

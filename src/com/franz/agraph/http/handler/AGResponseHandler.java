@@ -16,7 +16,7 @@ import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HeaderElement;
 import org.apache.commons.httpclient.HttpMethod;
 
-import com.franz.agraph.http.AGHttpException;
+import com.franz.agraph.http.exception.AGHttpException;
 
 public abstract class AGResponseHandler {
 

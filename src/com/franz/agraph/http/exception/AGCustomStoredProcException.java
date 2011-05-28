@@ -6,9 +6,8 @@
  ** http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
 
-package com.franz.agraph.repository;
+package com.franz.agraph.http.exception;
 
-import org.openrdf.repository.RepositoryException;
 
 /**
  * Error message returned by custom stored procedure.
@@ -16,9 +15,9 @@ import org.openrdf.repository.RepositoryException;
  * @since v4.2
  * @deprecated The stored proc feature and API are experimental, and subject to change in a future release.
  */
-public class AGCustomStoredProcException extends RepositoryException {
+public class AGCustomStoredProcException extends AGHttpException {
 
-	private static final long serialVersionUID = -6193406940075840175L;
+	private static final long serialVersionUID = -2612222758468197539L;
 
 	public AGCustomStoredProcException(String message) {
 		super(message);

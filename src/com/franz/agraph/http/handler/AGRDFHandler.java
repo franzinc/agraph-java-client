@@ -22,9 +22,9 @@ import org.openrdf.rio.RDFParseException;
 import org.openrdf.rio.RDFParser;
 import org.openrdf.rio.Rio;
 
-import com.franz.agraph.http.AGHttpException;
 import com.franz.agraph.http.AGHttpRepoClient;
 import com.franz.agraph.repository.AGValueFactory;
+import com.franz.agraph.http.exception.AGHttpException;
 
 public class AGRDFHandler extends AGResponseHandler {
 
