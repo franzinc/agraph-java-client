@@ -27,7 +27,7 @@ import org.openrdf.rio.ntriples.NTriplesUtil;
 /**
  * An implementation of the RDFWriter interface that writes RDF documents in
  * N-Quads format. The N-Quads format is defined 
- * <a href="href="http://sw.deri.org/2008/07/n-quads/">here</a>.
+ * <a href="http://sw.deri.org/2008/07/n-quads/">here</a>.
  */
 public class NQuadsWriter implements RDFWriter {
 

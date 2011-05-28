@@ -20,7 +20,7 @@ import org.openrdf.rio.RDFParseException;
 import org.openrdf.rio.RDFParser;
 import org.openrdf.rio.Rio;
 
-import com.franz.agraph.http.AGHttpException;
+import com.franz.agraph.http.exception.AGHttpException;
 
 public class AGRDFHandler extends AGResponseHandler {
 
@@ -48,9 +48,9 @@ public class AGRDFHandler extends AGResponseHandler {
 			parser.setRDFHandler(rdfhandler);
 			parser.parse(response, method.getURI().getURI());
 		} catch (RDFParseException e) {
-			throw new AGHttpException(e.getLocalizedMessage());
+			throw new AGHttpException(e);
 		} catch (RDFHandlerException e) {
-			throw new AGHttpException(e.getLocalizedMessage());
+			throw new AGHttpException(e);
 		}
 	}
 	

@@ -17,7 +17,7 @@ import org.openrdf.query.resultio.BooleanQueryResultParser;
 import org.openrdf.query.resultio.QueryResultIO;
 import org.openrdf.query.resultio.QueryResultParseException;
 
-import com.franz.agraph.http.AGHttpException;
+import com.franz.agraph.http.exception.AGHttpException;
 
 public class AGBQRHandler extends AGResponseHandler {
 
@@ -39,7 +39,7 @@ public class AGBQRHandler extends AGResponseHandler {
 			BooleanQueryResultParser parser = QueryResultIO.createParser(format);
 			result = parser.parse(response);
 		} catch (QueryResultParseException e) {
-			throw new AGHttpException(e.getLocalizedMessage());
+			throw new AGHttpException(e);
 		}
 	}
 	

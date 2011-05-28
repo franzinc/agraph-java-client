@@ -29,7 +29,7 @@ import org.openrdf.query.resultio.TupleQueryResultFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.franz.agraph.http.AGHttpException;
+import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.util.Util;
 
 /**

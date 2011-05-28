@@ -9,7 +9,6 @@
 package com.franz.agraph.repository;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.NameValuePair;
@@ -20,8 +19,8 @@ import org.openrdf.query.TupleQueryResult;
 import org.openrdf.repository.RepositoryException;
 
 import com.franz.agraph.http.AGHTTPClient;
-import com.franz.agraph.http.AGHttpException;
 import com.franz.agraph.http.AGHttpRepoClient;
+import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.util.Closeable;
 
 /**
@@ -198,8 +197,6 @@ public class AGRepository implements AGAbstractRepository, Closeable {
 			} else {
 				getHTTPClient().delete(url, headers, data);
 			}
-		} catch (IOException e) {
-			throw new RepositoryException(e);
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
@@ -241,8 +238,6 @@ public class AGRepository implements AGAbstractRepository, Closeable {
 			} else {
 				throw new IllegalArgumentException("Illegal mode: " + mode + "(must be one of: false, true, spo).");
 			}
-		} catch (IOException e) {
-			throw new RepositoryException(e);
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}

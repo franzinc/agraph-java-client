@@ -17,8 +17,8 @@ import org.openrdf.query.BindingSet;
 import org.openrdf.query.TupleQueryResult;
 
 import com.franz.agraph.http.AGHTTPClient;
-import com.franz.agraph.http.AGHttpException;
 import com.franz.agraph.http.AGProtocol;
+import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.util.Closeable;
 import com.franz.util.Util;
 

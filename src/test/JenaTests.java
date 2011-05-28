@@ -27,6 +27,7 @@ import com.franz.agraph.jena.AGQueryExecution;
 import com.franz.agraph.jena.AGQueryExecutionFactory;
 import com.franz.agraph.jena.AGQueryFactory;
 import com.franz.agraph.jena.AGReasoner;
+import com.hp.hpl.jena.query.QueryException;
 import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Property;
@@ -126,8 +127,8 @@ public class JenaTests extends AGAbstractTest {
 			try {
 				qe.execSelect();
 				Assert.fail("query should have failed because of ?x");
-			} catch (Exception e) {
-				if ( ! e.getMessage().contains("MALFORMED QUERY: Variables do not intersect with query: ?x")) {
+			} catch (QueryException e) {
+				if ( ! e.getMessage().contains("Variables do not intersect with query: ?x")) {
 					throw e;
 				}
 			}
