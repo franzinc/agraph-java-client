@@ -7,9 +7,9 @@
 ******************************************************************************/
 
 /**
- * Java client to the
- * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html">AllegroGraph
- * HTTP Protocol</a>, used by {@link com.franz.agraph.repository}
+ * AllegroGraph Java client HTTP layer for the
+ * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html">
+ * AllegroGraph HTTP Protocol</a>, used by {@link com.franz.agraph.repository}
  * and {@link com.franz.agraph.jena}.
  * 
  * @since v4.0

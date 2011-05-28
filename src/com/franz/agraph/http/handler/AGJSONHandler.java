@@ -15,7 +15,7 @@ import org.apache.commons.httpclient.HttpMethod;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.franz.agraph.http.AGHttpException;
+import com.franz.agraph.http.exception.AGHttpException;
 
 public class AGJSONHandler extends AGResponseHandler {
 
@@ -32,8 +32,8 @@ public class AGJSONHandler extends AGResponseHandler {
 		if (!mimeType.equals(getRequestMIMEType())) {
 			throw new AGHttpException("unexpected response MIME type: " + mimeType);
 		}*/
-		InputStream response = getInputStream(method);
 		try {
+			InputStream response = getInputStream(method);
 			result = new JSONObject(streamToString(response));
 		} catch (JSONException e) {
 			throw new AGHttpException(e);

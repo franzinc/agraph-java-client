@@ -48,6 +48,9 @@ import org.openrdf.rio.helpers.StatementCollector;
 import org.openrdf.rio.ntriples.NTriplesUtil;
 
 import com.franz.agraph.http.AGHttpRepoClient;
+import com.franz.agraph.http.exception.AGCustomStoredProcException;
+import com.franz.agraph.http.exception.AGHttpException;
+import com.franz.agraph.http.exception.AGMalformedDataException;
 import com.franz.agraph.http.handler.AGRDFHandler;
 import com.franz.agraph.http.handler.AGResponseHandler;
 import com.franz.util.Closeable;
@@ -206,7 +209,11 @@ implements RepositoryConnection, Closeable {
 			Value object, Resource... contexts) throws RepositoryException {
 		Statement st = new StatementImpl(subject, predicate, object);
 		JSONArray rows = encodeJSON(st,contexts);
-		getHttpRepoClient().uploadJSON(rows);
+		try {
+			getHttpRepoClient().uploadJSON(rows);
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		}
 	}
 
 	@Override
@@ -218,7 +225,11 @@ implements RepositoryConnection, Closeable {
 			JSONArray rows_st = encodeJSON(st);
 			append(rows, rows_st);
 		}
-		getHttpRepoClient().uploadJSON(rows, contexts);
+		try {
+			getHttpRepoClient().uploadJSON(rows, contexts);
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		}
 	}
 
 	private void append(JSONArray rows, JSONArray rowsSt) {
@@ -240,7 +251,11 @@ implements RepositoryConnection, Closeable {
 		while (statementIter.hasNext()) {
 			append(rows, encodeJSON(statementIter.next(),contexts));
 		}
-		getHttpRepoClient().uploadJSON(rows);
+		try {
+			getHttpRepoClient().uploadJSON(rows);
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		}
 	}
 
 	private JSONArray encodeJSON(Statement st, Resource... contexts) {
@@ -279,11 +294,19 @@ implements RepositoryConnection, Closeable {
 			throws IOException, RDFParseException, RepositoryException {
 
 		if (inputStreamOrReader instanceof InputStream) {
-			getHttpRepoClient().upload(((InputStream) inputStreamOrReader),
+			try {
+				getHttpRepoClient().upload(((InputStream) inputStreamOrReader),
 					baseURI, dataFormat, false, contexts);
+			} catch (AGMalformedDataException e) {
+				throw new RDFParseException(e);
+			}
 		} else if (inputStreamOrReader instanceof Reader) {
-			getHttpRepoClient().upload(((Reader) inputStreamOrReader), baseURI,
+			try {
+				getHttpRepoClient().upload(((Reader) inputStreamOrReader), baseURI,
 					dataFormat, false, contexts);
+			} catch (AGMalformedDataException e) {
+				throw new RDFParseException(e);
+			}
 		} else {
 			throw new IllegalArgumentException(
 					"inputStreamOrReader must be an InputStream or a Reader, is a: "
@@ -419,21 +442,13 @@ implements RepositoryConnection, Closeable {
 	public void exportStatements(Resource subj, URI pred, Value obj,
 			boolean includeInferred, RDFHandler handler, Resource... contexts)
 			throws RDFHandlerException, RepositoryException {
-		try {
-			getHttpRepoClient().getStatements(subj, pred, obj, Boolean.toString(includeInferred),
+		getHttpRepoClient().getStatements(subj, pred, obj, Boolean.toString(includeInferred),
 					handler, contexts);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
-		}
 	}
 
 	public void exportStatements(RDFHandler handler, String... ids)
 	throws RDFHandlerException, RepositoryException {
-		try {
-			getHttpRepoClient().getStatements(handler, ids);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
-		}
+		getHttpRepoClient().getStatements(handler, ids);
 	}
 	
 	public RepositoryResult<Resource> getContextIDs()
@@ -458,8 +473,6 @@ implements RepositoryConnection, Closeable {
 			return createRepositoryResult(contextList);
 		} catch (QueryEvaluationException e) {
 			throw new RepositoryException(e);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
 		}
 	}
 
@@ -474,11 +487,7 @@ implements RepositoryConnection, Closeable {
 	}
 
 	public String getNamespace(String prefix) throws RepositoryException {
-		try {
-			return getHttpRepoClient().getNamespace(prefix);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
-		}
+		return getHttpRepoClient().getNamespace(prefix);
 	}
 
 	public RepositoryResult<Namespace> getNamespaces()
@@ -507,8 +516,6 @@ implements RepositoryConnection, Closeable {
 
 			return createRepositoryResult(namespaceList);
 		} catch (QueryEvaluationException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
 			throw new RepositoryException(e);
 		}
 	}
@@ -622,11 +629,7 @@ implements RepositoryConnection, Closeable {
 	}
 
 	public long size(Resource... contexts) throws RepositoryException {
-		try {
-			return getHttpRepoClient().size(contexts);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
-		}
+		return getHttpRepoClient().size(contexts);
 	}
 
 	/************************************
@@ -952,13 +955,7 @@ implements RepositoryConnection, Closeable {
 	 */
 	public void load(URI source, String baseURI, RDFFormat dataFormat,
 			Resource... contexts) throws RepositoryException {
-		try {
-			getHttpRepoClient().load(source, baseURI, dataFormat, contexts);
-		} catch (RDFParseException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
-		}
+		getHttpRepoClient().load(source, baseURI, dataFormat, contexts);
 	}
 
 	/**
@@ -977,14 +974,8 @@ implements RepositoryConnection, Closeable {
 	public void load(String absoluteServerPath, String baseURI,
 			RDFFormat dataFormat, Resource... contexts)
 			throws RepositoryException {
-		try {
-			getHttpRepoClient().load(absoluteServerPath, baseURI, dataFormat,
+		getHttpRepoClient().load(absoluteServerPath, baseURI, dataFormat,
 					contexts);
-		} catch (RDFParseException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
-		}
 	}
 
 	/**
@@ -1208,7 +1199,11 @@ implements RepositoryConnection, Closeable {
 	 */
 	public void sendRDFTransaction(InputStream rdftransaction) throws RepositoryException,
 			RDFParseException, IOException {
-		getHttpRepoClient().sendRDFTransaction(rdftransaction);
+		try {
+			getHttpRepoClient().sendRDFTransaction(rdftransaction);
+		} catch (AGMalformedDataException e) {
+			throw new RDFParseException(e);
+		}
 	}
 
 	/**

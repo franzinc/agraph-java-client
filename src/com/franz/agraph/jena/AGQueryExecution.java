@@ -20,6 +20,7 @@ import com.franz.agraph.repository.AGGraphQuery;
 import com.franz.agraph.repository.AGTupleQuery;
 import com.franz.util.Closeable;
 import com.hp.hpl.jena.query.Dataset;
+import com.hp.hpl.jena.query.QueryException;
 import com.hp.hpl.jena.query.QueryExecution;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
@@ -74,7 +75,7 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 			bq.setDataset(model.getGraph().getDataset());
 			result = bq.evaluate();
 		} catch (QueryEvaluationException e) {
-			throw new RuntimeException(e);
+			throw new QueryException(e);
 		}
 		return result;
 	}
@@ -107,7 +108,7 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 			gq.setDataset(model.getGraph().getDataset());
 			result = gq.evaluate();
 		} catch (QueryEvaluationException e) {
-			throw new RuntimeException(e);
+			throw new QueryException(e);
 		}
 		if (m==null) {
 			m = ModelFactory.createDefaultModel();
@@ -118,7 +119,7 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 				m.add(model.asStatement(AGNodeFactory.asTriple(result.next())));
 			}
 		} catch (QueryEvaluationException e) {
-			throw new RuntimeException(e);
+			throw new QueryException(e);
 		}
 		return m;
 	}
@@ -153,7 +154,7 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 			tq.setDataset(model.getGraph().getDataset());
 			result = tq.evaluate();
 		} catch (QueryEvaluationException e) {
-			throw new RuntimeException(e);
+			throw new QueryException(e);
 		}
 		return new AGResultSet(result, model);
 	}
@@ -177,7 +178,7 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 		try {
 			count = tq.count();
 		} catch (QueryEvaluationException e) {
-			throw new RuntimeException(e);
+			throw new QueryException(e);
 		}
 		return count;
 	}
@@ -204,7 +205,7 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 		try {
 			count = gq.count();
 		} catch (QueryEvaluationException e) {
-			throw new RuntimeException(e);
+			throw new QueryException(e);
 		}
 		return count;
 	}

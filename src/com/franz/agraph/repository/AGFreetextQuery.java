@@ -10,12 +10,12 @@ package com.franz.agraph.repository;
 
 import org.openrdf.model.Statement;
 import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
 import org.openrdf.rio.RDFHandler;
 import org.openrdf.rio.RDFHandlerException;
 import org.openrdf.rio.helpers.StatementCollector;
 
+import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.http.handler.AGRDFHandler;
 
 public class AGFreetextQuery {
@@ -77,7 +77,8 @@ public class AGFreetextQuery {
 		try {
 			conn.getHttpRepoClient().evalFreetextQuery(pattern, expression, index, sorted, limit, offset, 
 						new AGRDFHandler(conn.getHttpRepoClient().getPreferredRDFFormat(), handler, conn.getValueFactory(),conn.getHttpRepoClient().getAllowExternalBlankNodeIds()));
-		} catch (RepositoryException e) {
+		} catch (AGHttpException e) {
+			// TODO: distinguish RDFHandlerException
 			throw new QueryEvaluationException(e);
 		}
 	}
