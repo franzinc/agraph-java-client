@@ -8,7 +8,9 @@
 
 package com.franz.agraph.repository;
 
-
+/**
+ * @see AGRepositoryConnection#registerEncodableNamespace(String, String)
+ */
 public class AGFormattedNamespace {
 
 	protected final String namespace;
