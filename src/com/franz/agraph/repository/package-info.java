@@ -10,20 +10,19 @@
  * Implementation of the
  * <a href="http://www.openrdf.org/" target="_top">OpenRDF</a> Sesame API 2.3.2
  * with extensions for
- * <a target="_top"
- *    href="http://www.franz.com/agraph/support/documentation/v4/agraph-introduction.html"
- *    >AllegroGraph</a> features.
+ * <a href="http://www.franz.com/agraph/support/documentation/v4/agraph-introduction.html"
+ * target="_top">AllegroGraph</a> features.
+ * 
+ * <p>Initiate a connection to an AllegroGraph server starting with
+ * {@link com.franz.agraph.repository.AGServer#AGServer(String, String, String)}.</p>
  * 
  * <p>See also:<ul>
- *   <li><a target="_top"
- *          href="http://www.franz.com/agraph/support/documentation/v4/java-tutorial/java-tutorial-40.html"
- *          >Java Sesame API Tutorial for AllegroGraph</a></li>
- *   <li><a target="_top"
- *          href="http://www.openrdf.org/doc/sesame2/2.3.2/users/index.html"
- *          >Sesame User Guide</a></li>
- *   <li><a target="_top"
- *          href="http://www.openrdf.org/doc/sesame2/2.3.2/apidocs/"
- *          >Sesame Javadocs</a></li>
+ *   <li><a href="http://www.franz.com/agraph/support/documentation/v4/java-tutorial/java-tutorial-40.html"
+ *          target="_top">Java Sesame API Tutorial for AllegroGraph</a></li>
+ *   <li><a href="http://www.openrdf.org/doc/sesame2/2.3.2/users/index.html"
+ *          target="_top">Sesame User Guide</a></li>
+ *   <li><a href="http://www.openrdf.org/doc/sesame2/2.3.2/apidocs/"
+ *          target="_top">Sesame Javadocs</a></li>
  * </p>
  * 
  * @since v4.0

@@ -31,6 +31,7 @@ import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.model.impl.NamespaceImpl;
 import org.openrdf.model.impl.StatementImpl;
+import org.openrdf.model.vocabulary.XMLSchema;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.QueryLanguage;
@@ -67,7 +68,7 @@ import com.franz.util.Closeable;
  * <a href="http://www.franz.com/agraph/support/documentation/v4/agraph-introduction.html#ACID"
  *    target="_top">ACID transactions</a> in the AllegroGraph Server documentation.</p>
  * 
- * <p>Operations such as setting autoCommit to false in
+ * <p>Operations such as
  * {@link #setAutoCommit(boolean) setAutoCommit},
  * {@link #addRules(String) addRules}, and
  * {@link #registerSNAGenerator(String, List, List, List, String) registerSNAGenerator}
@@ -90,26 +91,67 @@ import com.franz.util.Closeable;
  *    target="_top">search for "InitFile" in WebView</a> for how to create initFiles.
  * </p>
  * 
- * <p>Session methods:<ul>
+ * <p>Starting a session causes http requests to use a new port, which
+ * may cause an exception if the client can not access it.
+ * See <a href="http://www.franz.com/agraph/support/documentation/v4/server-installation.html#sessionport"
+ * target="_top">Session Port Setup</a>.
+ * </p>
+ * 
+ * <p>Methods that start a session if not already started:<ul>
  * <li>{@link #setAutoCommit(boolean)}</li>
- * <li>{@link #commit()} and {@link #rollback()}</li>
  * <li>{@link #addRules(String)}</li>
+ * <li>{@link #addRules(InputStream)}</li>
  * <li>{@link #registerSNAGenerator(String, List, List, List, String)}</li>
+ * </ul>
+ * 
+ * Methods that affect a session in use:<ul>
+ * <li>{@link #commit()}</li>
+ * <li>{@link #rollback()}</li>
  * <li>{@link #ping()}</li>
+ * <li>{@link #close()}</li>
+ * </ul>
+ * 
+ * Methods to configure a session before it is started:<ul>
  * <li>{@link #setSessionLifetime(int)} and {@link #getSessionLifetime()}</li>
  * <li>{@link #setSessionLoadInitFile(boolean)}</li>
  * <li>{@link #addSessionLoadScript(String)}</li>
- * <li>{@link #close()}</li>
  * </ul></p>
+ * 
+ * <h3><a name="mapping">Data-type and Predicate Mapping</a></h3>
+ * 
+ * <p>For more details, see the HTTP Protocol docs for
+ * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#mapping"
+ * target="_top">Type Mappings</a>
+ * and the Lisp reference for
+ * <a href="http://www.franz.com/agraph/support/documentation/v4/lisp-reference.html#ref-type-mapping"
+ * target="_top">Data-type and Predicate Mapping</a>.
+ * </p>
+ * 
+ * <p>Methods for type mappings:<ul>
+ * <li>{@link #clearMappings()}</li>
+ * <li>{@link #getDatatypeMappings()}</li>
+ * <li>{@link #registerDatatypeMapping(URI, URI)}</li>
+ * <li>{@link #deleteDatatypeMapping(URI)}</li>
+ * <li>{@link #getPredicateMappings()}</li>
+ * <li>{@link #registerPredicateMapping(URI, URI)}</li>
+ * <li>{@link #deletePredicateMapping(URI)}</li>
+ * </ul></p>
+ * 
+ * @since v4.0
  */
-public class AGRepositoryConnection extends RepositoryConnectionBase implements
-		RepositoryConnection, Closeable {
+public class AGRepositoryConnection
+extends RepositoryConnectionBase
+implements RepositoryConnection, Closeable {
 
 	private final AGAbstractRepository repository;
 	private final AGHttpRepoClient repoclient;
 	private boolean streamResults;
 	private final AGValueFactory vf;
 
+	/**
+	 * @see AGRepository#getConnection()
+	 * @see AGVirtualRepository#getConnection()
+	 */
 	public AGRepositoryConnection(AGRepository repository, AGHttpRepoClient client) {
 		super(repository);
 		this.repository = repository;
@@ -263,20 +305,50 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		getHttpRepoClient().deleteJSON(rows);
 	}
 
+	/**
+	 * Setting autoCommit to false creates a dedicated server session
+	 * which supports ACID transactions.
+	 * Setting to true will create a dedicated server session.
+	 * 
+	 * See <a href="#sessions">session overview</a> and
+	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#post-session"
+	 * target="_top">POST session</a> for more details.
+	 * 
+	 * <p>Starting a session causes http requests to use a new port, which
+	 * may cause an exception if the client can not access it.
+	 * See <a href="http://www.franz.com/agraph/support/documentation/v4/server-installation.html#sessionport"
+	 * target="_top">Session Port Setup</a>.
+	 * </p>
+	 */
 	@Override
 	public void setAutoCommit(boolean autoCommit) throws RepositoryException {
 		getHttpRepoClient().setAutoCommit(autoCommit);
 	}
 
+	/**
+	 * @see #setAutoCommit(boolean)
+	 */
 	@Override
 	public boolean isAutoCommit() throws RepositoryException {
 		return getHttpRepoClient().isAutoCommit();
 	}
 
+	/**
+	 * Commit the current transaction.
+	 * See <a href="#sessions">session overview</a> and
+	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#post-commit"
+	 * target="_top">POST commit</a> for more details.
+	 */
 	public void commit() throws RepositoryException {
 		getHttpRepoClient().commit();
 	}
 
+	/**
+	 * Roll back the current transaction (discard all changes made since last commit).
+	 * See <a href="#sessions">session overview</a> and
+	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#post-rollback"
+	 * target="_top">POST rollback</a> for more details.
+	 */
 	public void rollback() throws RepositoryException {
 		getHttpRepoClient().rollback();
 	}
@@ -314,6 +386,12 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		getHttpRepoClient().clearNamespaces();
 	}
 
+	/**
+	 * Closes the session if there is one started.
+	 * See <a href="#sessions">session overview</a> and
+	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#post-close-session"
+	 * target="_top">POST close</a> for more details.
+	 */
 	@Override
 	public void close() throws RepositoryException {
 		if (isOpen()) {
@@ -603,7 +681,6 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	 * Lists the freetext indices that have been defined for this repository.
 	 * 
 	 * @return a list of freetext index names
-	 * @throws RepositoryException
 	 */
 	public List<String> listFreetextIndices() throws RepositoryException {
 		return getHttpRepoClient().listFreetextIndices();
@@ -614,20 +691,21 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	 * This can be useful in speeding up query performance and enabling range
 	 * queries over datatypes.
 	 * 
-	 * Once registered, the objects of any data added via this connection that
-	 * have this predicate will be mapped to the primitive datatype.
+	 * <p>Once registered, the objects of any data added via this connection that
+	 * have this predicate will be mapped to the primitive datatype.</p>
 	 * 
-	 * For example, registering that predicate <http://example.org/age> is
-	 * mapped to XMLSchema.INT and adding the triple:
+	 * <p>For example, registering that predicate {@code <http://example.org/age>}
+	 * is mapped to {@link XMLSchema#INT} and adding the triple:
+	 * {@code <http://example.org/Fred> <http://example.org/age> "24"}
+	 * will result in the object being treated as {@code "24"^^xsd:int}.</p>
 	 * 
-	 * <http://example.org/Fred> <http://example.org/age> "24"
+	 * <p>See <a href="#mapping">mapping overview</a> and
+	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#post-put-predmapping"
+	 * target="_top">POST predicate mapping</a>.</p>
 	 * 
-	 * will result in the object being treated as having datatype "24"^^xsd:int.
-	 * 
-	 * @param predicate
-	 *            the predicate
-	 * @param primtype
-	 * @throws RepositoryException
+	 * @param predicate the predicate URI
+	 * @param primtype datatype URI
+	 * @see #getPredicateMappings()
 	 */
 	public void registerPredicateMapping(URI predicate, URI primtype)
 			throws RepositoryException {
@@ -637,9 +715,12 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	/**
 	 * Deletes any predicate mapping associated with the given predicate.
 	 * 
-	 * @param predicate
-	 *            the predicate
-	 * @throws RepositoryException
+	 * <p>See <a href="#mapping">mapping overview</a> and
+	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#delete-predmapping"
+	 * target="_top">DELETE predicate mapping</a>.</p>
+	 * 
+	 * @param predicate the predicate
+	 * @see #getPredicateMappings()
 	 */
 	public void deletePredicateMapping(URI predicate)
 			throws RepositoryException {
@@ -649,6 +730,18 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	// TODO: return RepositoryResult<Mapping>?
 	/**
 	 * Gets the predicate mappings defined for this connection.
+	 * 
+	 * <p>See <a href="#mapping">mapping overview</a> and
+	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#get-predmapping"
+	 * target="_top">GET predicate mapping</a>
+	 * and the Lisp reference for the
+	 * <a href="http://www.franz.com/agraph/support/documentation/v4/lisp-reference.html#function.predicate-mapping"
+	 * target="_top">predicate-mapping function</a>.
+	 * </p>
+	 * 
+	 * @see #registerPredicateMapping(URI, URI)
+	 * @see #deletePredicateMapping(URI)
+	 * @see #getDatatypeMappings()
 	 */
 	public String[] getPredicateMappings() throws RepositoryException {
 		return getHttpRepoClient().getPredicateMappings();
@@ -660,22 +753,21 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	 * This can be useful in speeding up query performance and enabling range
 	 * queries over user datatypes.
 	 * 
-	 * Once registered, the objects of any data added via this connection that
-	 * have this datatype will be mapped to the primitive datatype.
+	 * <p>Once registered, the objects of any data added via this connection that
+	 * have this datatype will be mapped to the primitive datatype.</p>
 	 * 
-	 * For example, registering that datatype <http://example.org/usertype> is
-	 * mapped to XMLSchema.INT and adding the triple:
+	 * <p>For example, registering that datatype {@code <http://example.org/usertype>}
+	 * is mapped to {@link XMLSchema#INT} and adding the triple:
+	 * {@code <http://example.org/Fred> <http://example.org/age> "24"^^<http://example.org/usertype>}
+	 * will result in the object being treated as {@code "24"^^xsd:int}.</p>
 	 * 
-	 * <http://example.org/Fred> <http://example.org/age>
-	 * "24"^^<http://example.org/usertype>
+	 * <p>See <a href="#mapping">mapping overview</a> and
+	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#post-put-typemapping"
+	 * target="_top">POST type mapping</a>.</p>
 	 * 
-	 * will result in the object being treated as having datatype "24"^^xsd:int.
-	 * 
-	 * @param datatype
-	 *            the user datatype
-	 * @param primtype
-	 *            the primitive type
-	 * @throws RepositoryException
+	 * @param datatype the user datatype
+	 * @param primtype the primitive type
+	 * @see #getDatatypeMappings()
 	 */
 	public void registerDatatypeMapping(URI datatype, URI primtype)
 			throws RepositoryException {
@@ -685,9 +777,13 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	/**
 	 * Deletes any datatype mapping associated with the given datatype.
 	 * 
-	 * @param datatype
-	 *            the user datatype
-	 * @throws RepositoryException
+	 * <p>See <a href="#mapping">mapping overview</a> and
+	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#delete-typemapping"
+	 * target="_top">DELETE type mapping</a>.</p>
+	 * 
+	 * @param datatype the user datatype
+	 * @see #getDatatypeMappings()
+	 * @see #clearMappings()
 	 */
 	public void deleteDatatypeMapping(URI datatype) throws RepositoryException {
 		getHttpRepoClient().deleteDatatypeMapping(datatype);
@@ -696,6 +792,18 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	// TODO: return RepositoryResult<Mapping>?
 	/**
 	 * Gets the datatype mappings defined for this connection.
+	 * 
+	 * <p>See <a href="#mapping">mapping overview</a> and
+	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#get-typemapping"
+	 * target="_top">GET type mapping</a>
+	 * and the Lisp reference for the
+	 * <a href="http://www.franz.com/agraph/support/documentation/v4/lisp-reference.html#function.datatype-mapping"
+	 * target="_top">datatype-mapping function</a>.
+	 * 
+	 * @see #deleteDatatypeMapping(URI)
+	 * @see #clearMappings()
+	 * @see #registerDatatypeMapping(URI, URI)
+	 * @see #getPredicateMappings()
 	 */
 	public String[] getDatatypeMappings() throws RepositoryException {
 		return getHttpRepoClient().getDatatypeMappings();
@@ -704,7 +812,12 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	/**
 	 * Deletes all predicate and datatype mappings for this connection.
 	 * 
-	 * @throws RepositoryException
+	 * <p>See <a href="#mapping">mapping overview</a> and
+	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#delete-all-mapping"
+	 * target="_top">DELETE all mapping</a> for more details.</p>
+	 * 
+	 * @see #getDatatypeMappings()
+	 * @see #getPredicateMappings()
 	 */
 	public void clearMappings() throws RepositoryException {
 		getHttpRepoClient().clearMappings();
@@ -713,9 +826,21 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	/**
 	 * Adds Prolog rules to be used on this connection.
 	 * 
-	 * @param rules
-	 *            a string of rules.
-	 * @throws RepositoryException
+	 * See <a href="http://www.franz.com/agraph/support/documentation/v4/agraph-introduction.html#prolog"
+	 * target="_top">Prolog Lisp documentation</a>
+	 * and <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#post-functor"
+	 * target="_top">Prolog functor registration</a>.
+	 * 
+	 * <p>Starts a session if one is not already started.
+	 * See <a href="#sessions">session overview</a> for more details.
+	 * Starting a session causes http requests to use a new port, which
+	 * may cause an exception if the client can not access it.
+	 * See <a href="http://www.franz.com/agraph/support/documentation/v4/server-installation.html#sessionport"
+	 * target="_top">Session Port Setup</a>.
+	 * </p>
+	 * 
+	 * @param rules a string of rule text
+	 * @see #addRules(InputStream)
 	 */
 	public void addRules(String rules) throws RepositoryException {
 		getHttpRepoClient().addRules(rules);
@@ -725,9 +850,21 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	/**
 	 * Adds Prolog rules to be used on this connection.
 	 * 
-	 * @param rulestream
-	 *            a stream of rules.
-	 * @throws RepositoryException
+	 * See <a href="http://www.franz.com/agraph/support/documentation/v4/agraph-introduction.html#prolog"
+	 * target="_top">Prolog Lisp documentation</a>
+	 * and <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#post-functor"
+	 * target="_top">Prolog functor registration</a>.
+	 * 
+	 * <p>Starts a session if one is not already started.
+	 * See <a href="#sessions">session overview</a> for more details.
+	 * Starting a session causes http requests to use a new port, which
+	 * may cause an exception if the client can not access it.
+	 * See <a href="http://www.franz.com/agraph/support/documentation/v4/server-installation.html#sessionport"
+	 * target="_top">Session Port Setup</a>.
+	 * </p>
+	 * 
+	 * @param rulestream a stream of rule text
+	 * @see #addRules(String)
 	 */
 	public void addRules(InputStream rulestream) throws RepositoryException {
 		getHttpRepoClient().addRules(rulestream);
@@ -736,10 +873,12 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	/**
 	 * Evaluates a Lisp form on the server, and returns the result as a String.
 	 * 
-	 * @param lispForm
-	 *            the Lisp form to evaluate, in a String.
-	 * @return the result in a String.
-	 * @throws RepositoryException
+	 * See <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#post-eval"
+	 * target="_top">HTTP POST eval</a>.
+	 * 
+	 * @param lispForm the Lisp form to evaluate
+	 * @return the result in a String
+	 * @see #evalInServer(String)
 	 */
 	public String evalInServer(String lispForm) throws RepositoryException {
 		return getHttpRepoClient().evalInServer(lispForm);
@@ -748,10 +887,12 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	/**
 	 * Evaluates a Lisp form on the server, and returns the result as a String.
 	 * 
-	 * @param stream
-	 *            the Lisp form to evaluate, in a stream.
-	 * @return the result in a String.
-	 * @throws RepositoryException
+	 * See <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#post-eval"
+	 * target="_top">HTTP POST eval</a>.
+	 * 
+	 * @param stream the Lisp form to evaluate
+	 * @return the result in a String
+	 * @see #evalInServer(String)
 	 */
 	public String evalInServer(InputStream stream) throws RepositoryException {
 		return getHttpRepoClient().evalInServer(stream);
@@ -814,7 +955,9 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	 * 3600
 	 * seconds will be closed by the server.
 	 * 
-	 * <p>See also: <a href="#sessions">Session overview</a>.</p>
+	 * <p>See <a href="#sessions">session overview</a> and
+	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#get-ping"
+	 * target="_top">GET ping</a> for more details.</p>
 	 * 
 	 * @throws RepositoryException
 	 * @see #setSessionLifetime(int)
@@ -913,6 +1056,26 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 		return createRepositoryResult(collector.getStatements());
 	}
 	
+	/**
+	 * See <a href="http://www.franz.com/agraph/support/documentation/v4/lisp-reference.html#sna"
+	 * target="_top">Social network analysis Lisp documentation</a>
+	 * and <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#sna"
+	 * target="_top">SNA generator registration</a>.
+	 * 
+	 * <p>Starts a session if one is not already started.
+	 * See <a href="#sessions">session overview</a> for more details.
+	 * Starting a session causes http requests to use a new port, which
+	 * may cause an exception if the client can not access it.
+	 * See <a href="http://www.franz.com/agraph/support/documentation/v4/server-installation.html#sessionport"
+	 * target="_top">Session Port Setup</a>.
+	 * </p>
+	 * 
+	 * @param generator
+	 * @param objectOfs
+	 * @param subjectOfs
+	 * @param undirecteds
+	 * @param query
+	 */
 	public void registerSNAGenerator(String generator, List<URI> objectOfs, List<URI> subjectOfs, List<URI> undirecteds, String query) throws RepositoryException {
 		List<String> objOfs = new ArrayList<String>();
 		if (objectOfs!=null) {
@@ -1014,41 +1177,50 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	/**
 	 * Registers an encodable namespace having the specified format.
 	 * 
-	 * Registering an encodable namespace enables a more efficient 
+	 * <p>Registering an encodable namespace enables a more efficient 
 	 * encoding of URIs in a namespace, and generation of unique 
 	 * URIs for that namespace, because its URIs are declared to 
 	 * conform to a specified format; the namespace is thereby 
-	 * bounded in size, and encodable.
+	 * bounded in size, and encodable.</p>
 	 * 
-	 * The namespace is any valid URIref, e.g.: 
+	 * <p>The namespace is any valid URIref, e.g.: 
+	 * <code>http://franz.com/ns0</code>
+	 * </p>
 	 * 
-	 * http://franz.com/ns0
-	 * 
-	 * The format is a string using a simplified regular expression
+	 * <p>The format is a string using a simplified regular expression
 	 * syntax supporting character ranges and counts specifying the
-	 * suffix portion of the URIs in the namespace, e.g: 
+	 * suffix portion of the URIs in the namespace, e.g:
+	 * <code>[a-z][0-9]-[a-f]{3}</code>
+	 * </p>
 	 * 
-	 * [a-z][0-9]-[a-f]{3}
-	 * 
-	 * Generation of unique URIs {@link AGValueFactory#generateURI(String)}
+	 * <p>Generation of unique URIs {@link AGValueFactory#generateURI(String)}
 	 * for the above namespace and format might yield an ID such as:
 	 *  
-	 * http://franz.com/ns0@@a0-aaa
+	 * <code>http://franz.com/ns0@@a0-aaa</code>
+	 * </p>
 	 * 
-	 * Note: "@@" is used to concatenate the namespace and id suffix
-	 * to facilitate efficient recognition/encoding during parsing.
+	 * <p>Note: "@@" is used to concatenate the namespace and id suffix
+	 * to facilitate efficient recognition/encoding during parsing.</p>
 	 *    
-	 * The format can be ambiguous (e.g., "[A-Z]{1,2}[B-C}{0,1}").
+	 * <p>The format can be ambiguous (e.g., "[A-Z]{1,2}[B-C}{0,1}").
 	 * We will not check for ambiguity in this first version but can
-	 * add this checking at a later time. 
+	 * add this checking at a later time.</p>
 	 * 
-	 * If the format corresponds to a namespace that is not encodable
+	 * <p>If the format corresponds to a namespace that is not encodable
 	 * (it may be malformed, or perhaps it's too large to encode), an 
-	 * exception is thrown.
+	 * exception is thrown.</p>
+	 * 
+	 * <p>For more details, see
+	 * <a href="http://www.franz.com/agraph/support/documentation/v4/encoded-ids.html"
+	 * target="_top">Encoded IDs</a>.</p>
 	 *  
 	 * @param namespace a valid namespace, a URI ref
 	 * @param format a valid format for an encodable namespace
-	 * @throws RepositoryException
+	 * @see #registerEncodableNamespaces(Iterable)
+	 * @see #listEncodableNamespaces()
+	 * @see #unregisterEncodableNamespace(String)
+	 * @see AGValueFactory#generateURI(String)
+	 * @see AGValueFactory#generateURIs(String, int)
 	 */
 	public void registerEncodableNamespace(String namespace, String format) throws RepositoryException {
 		getHttpRepoClient().registerEncodableNamespace(namespace, format);
@@ -1057,8 +1229,7 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	/**
 	 * Registers multiple formatted namespaces in a single request.
 	 * 
-	 * @param formattedNamespaces
-	 * @throws RepositoryException
+	 * @see #registerEncodableNamespace(String, String)
 	 */
 	public void registerEncodableNamespaces(Iterable <? extends AGFormattedNamespace> formattedNamespaces) throws RepositoryException {
 		JSONArray rows = new JSONArray();
@@ -1078,8 +1249,8 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	/**
 	 * Returns a list of the registered encodable namespaces.
 	 *  
-	 * @return a list of the registered encodable namespaces. 
-	 * @throws RepositoryException
+	 * @return a list of the registered encodable namespaces
+	 * @see #registerEncodableNamespace(String, String)
 	 */
 	public List<AGFormattedNamespace> listEncodableNamespaces()
 			throws OpenRDFException {
@@ -1103,8 +1274,8 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	/**
 	 * Unregisters the specified encodable namespace.
 	 * 
-	 * @param namespace the namespace to unregister.
-	 * @throws RepositoryException
+	 * @param namespace the namespace to unregister
+	 * @see #registerEncodableNamespace(String, String)
 	 */
 	public void unregisterEncodableNamespace(String namespace) throws RepositoryException {
 		getHttpRepoClient().unregisterEncodableNamespace(namespace);
@@ -1141,7 +1312,9 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	 * Seconds a session can be idle before being collected.
 	 * This method does not create a session.
 	 * 
-	 * <p>See also: <a href="#sessions">Session overview</a>.</p>
+	 * <p>See <a href="#sessions">session overview</a> and
+	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#post-session"
+	 * target="_top">POST session</a> for more details.</p>
 	 * 
 	 * @param lifetimeInSeconds the session lifetime, in seconds.
 	 * @see #getSessionLifetime()
@@ -1153,6 +1326,8 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	
 	/**
 	 * Returns the lifetime for a dedicated session spawned by this connection.
+	 * 
+	 * <p>See also: <a href="#sessions">Session overview</a>.</p>
 	 * 
 	 * @see #setSessionLifetime(int)
 	 * @see #ping()
@@ -1170,6 +1345,8 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	 * whether the initfile is loaded into this session.</p>
 	 * 
 	 * <p>See also: <a href="#sessions">Session overview</a>.</p>
+	 * 
+	 * @see #addSessionLoadScript(String)
 	 */
 	public void setSessionLoadInitFile(boolean loadInitFile) {
 		getHttpRepoClient().setSessionLoadInitFile(loadInitFile);
@@ -1184,6 +1361,8 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
 	 * <p>Scripts are server code that may be loaded during a session.</p>
 	 * 
 	 * <p>See also: <a href="#sessions">Session overview</a>.</p>
+	 * 
+	 * @see #setSessionLoadInitFile(boolean)
 	 */
 	public void addSessionLoadScript(String scriptName) {
 		getHttpRepoClient().addSessionLoadScript(scriptName);
