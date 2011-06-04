@@ -1261,7 +1261,7 @@ public class Events extends Closer {
                 }
                 trace("Phase 4 Begin: Perform customer/date range queries with %d processes for %d minutes.",
                         Defaults.QUERY_WORKERS, Defaults.QUERY_TIME);
-                Monitor.start("phase-4");
+                // Monitor.start("phase-4");
                 int queries = 0;
                 long triples = 0;
                 long start = System.currentTimeMillis();
@@ -1285,7 +1285,7 @@ public class Events extends Closer {
 		      "%.1f seconds (%.2f triples/second, %.2f queries/second, " +
 		      "%d triples/query).", triples, queries, logtime(seconds),
 		      logtime(triples/seconds), logtime(queries/seconds), triples/queries);
-                Monitor.stop();
+                // Monitor.stop();
                 executor.shutdown();
                 closeAll(queriers);
             }
@@ -1301,7 +1301,7 @@ public class Events extends Closer {
                 tasks.add(new Deleter(DeleteRangeTwo));
             }
             trace("Phase 5 Begin: Shrink store by 1 month.");
-            Monitor.start("phase-5");
+            // Monitor.start("phase-5");
             long start = System.currentTimeMillis();
             invokeAndGetAll(executor, tasks);
             long end = System.currentTimeMillis();
@@ -1313,7 +1313,7 @@ public class Events extends Closer {
             trace("Phase 5 End: %d total triples deleted in %.1f seconds " +
 		  "(%.2f triples/second). Store contains %d triples.", triples,
 		  logtime(seconds), logtime(triples/seconds), triplesEnd);
-            Monitor.stop();
+            // Monitor.stop();
         }
         
         if (Defaults.PHASE <= 6 && Defaults.MIXED_RUNS != 0) {
