@@ -20,5 +20,7 @@
 	<classpathentry kind="lib" path="lib/logging/commons-logging-1.1.1.jar" sourcepath="lib/logging/commons-logging-1.1.1-sources.jar"/>
 	<classpathentry kind="lib" path="lib/logging/slf4j-api-1.6.1.jar" sourcepath="lib/logging/slf4j-api-1.6.1-sources.jar"/>
 	<classpathentry kind="lib" path="lib/logging/slf4j-jcl-1.6.1.jar" sourcepath="lib/logging/slf4j-jcl-1.6.1-sources.jar"/>
+	<classpathentry kind="lib" path="lib/commons-pool-1.5.5.jar"/>
+	<classpathentry kind="lib" path="lib/servlet-api-2.5.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

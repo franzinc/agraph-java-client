@@ -8,8 +8,6 @@
 
 package test;
 
-import info.aduna.iteration.CloseableIteration;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -20,15 +18,14 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.zip.GZIPOutputStream;
 
-import com.franz.util.Closeable;
-
 public class Util extends com.franz.util.Util {
-	
-
+    
     public static String get(String[] arr, int i, String defaultVal) {
         if (arr != null && arr.length > i) {
             return arr[i];
@@ -36,44 +33,6 @@ public class Util extends com.franz.util.Util {
         return defaultVal;
     }
     
-	/**
-	 * TODO: move to com.franz.util.Util
-	 */
-	public static <Elem extends Object, Exc extends Exception>
-	CloseableIteration<Elem, Exc> close(CloseableIteration<Elem, Exc> o) {
-        if (o != null) {
-            try {
-                o.close();
-            } catch (Exception e) {
-                System.err.println("ignoring error with close:" + e);
-                e.printStackTrace();
-            }
-        }
-        return null;
-    }
-
-	/**
-	 * TODO: move to com.franz.util.Util
-	 */
-    public static <Obj extends Object>
-    Obj close(Obj o) {
-        if (o instanceof Closeable) {
-            com.franz.util.Util.close((Closeable)o);
-        } else if (o instanceof java.io.Closeable) {
-            com.franz.util.Util.close((java.io.Closeable)o);
-        } else if (o instanceof CloseableIteration) {
-        	close((CloseableIteration)o);
-        } else if (o != null) {
-            try {
-                o.getClass().getMethod("close").invoke(o);
-            } catch (Exception e) {
-                System.err.println("ignoring error with close:" + e);
-                e.printStackTrace();
-            }
-        }
-        return null;
-    }
-
     public static List<String> readLines(File file) {
         List list = new ArrayList<String>();
         FileReader f = null;
@@ -271,6 +230,27 @@ public class Util extends com.franz.util.Util {
     	return list;
     }
 
+    public static Map toMap(Object[] keyValuePairs) {
+    	Map map = new HashMap();
+    	for (int i = 0; i < keyValuePairs.length; i=i+2) {
+			map.put(keyValuePairs[i], keyValuePairs[i+1]);
+		}
+    	return map;
+    }
+
+    public static String[] toStrings(Object[] objects) {
+    	if (objects == null) {
+    		return null;
+    	}
+    	String[] arr = new String[objects.length];
+    	for (int i = 0; i < arr.length; i++) {
+    		if (objects[i] != null) {
+    			arr[i] = objects[i].toString();
+    		}
+		}
+    	return arr;
+    }
+    
     /**
      * Adds a method nextLong with a max value similar to {@link Random#nextInt(int)}.
      */
@@ -292,7 +272,6 @@ public class Util extends com.franz.util.Util {
         		}
         	}
         }
-    	
     }
 
 }

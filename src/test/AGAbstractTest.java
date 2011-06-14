@@ -41,7 +41,9 @@ import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
 import com.franz.agraph.repository.AGValueFactory;
+import com.franz.util.Closer;
 
+@SuppressWarnings("deprecation")
 public class AGAbstractTest extends Closer {
 
     static public final String CATALOG_ID = "java-tutorial";

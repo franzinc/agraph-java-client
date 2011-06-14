@@ -211,7 +211,6 @@ public class TutorialExamples {
             String queryString = "SELECT ?s ?p ?o  WHERE {?s ?p ?o .}";
             TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
             tupleQuery.evaluate(new TupleQueryResultHandler() {
-                    
                     @Override
                         public void startQueryResult(List<String> bindingNames) {
                         System.out.format("Bindings: %s\n", bindingNames);
