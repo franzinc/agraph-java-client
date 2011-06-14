@@ -247,7 +247,6 @@ public class Util extends com.franz.util.Util {
             mult = new long[] {1000, 60, 60, 24, 30};
     	else
     		throw new IllegalArgumentException("unknown type: " + type);
-    	long temp = num;
     	String[] abbrevs;
     	if (type == 2)
             abbrevs = new String[] {"b", "k", "m", "g", "t"};
@@ -270,6 +269,30 @@ public class Util extends com.franz.util.Util {
     	list = new ArrayList(list);
 		Collections.reverse(list);
     	return list;
+    }
+
+    /**
+     * Adds a method nextLong with a max value similar to {@link Random#nextInt(int)}.
+     */
+    public static class RandomLong extends Random {
+		private static final long serialVersionUID = 4874437974204550876L;
+		
+        public long nextLong(long max) {
+        	if (max <= 0) {
+        		throw new IllegalArgumentException("max must be positive");
+        	}
+        	if (max <= Integer.MAX_VALUE) {
+        		return nextInt((int) max);
+        	} else {
+        		int x = (int) (max >> 31);
+        		if (x == 0) {
+            		return nextInt();
+        		} else {
+            		return ((long)nextInt((int) (max >> 31)) << 32) + nextInt();
+        		}
+        	}
+        }
+    	
     }
 
 }

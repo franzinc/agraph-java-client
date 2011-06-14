@@ -211,24 +211,24 @@ public class TutorialExamples {
             String queryString = "SELECT ?s ?p ?o  WHERE {?s ?p ?o .}";
             TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
             tupleQuery.evaluate(new TupleQueryResultHandler() {
-				
-				@Override
-				public void startQueryResult(List<String> bindingNames) {
-                    System.out.format("Bindings: %s\n", bindingNames);
-				}
-				
-				@Override
-				public void handleSolution(BindingSet bindingSet) {
-                    Value s = bindingSet.getValue("s");
-                    Value p = bindingSet.getValue("p");
-                    Value o = bindingSet.getValue("o");
-                    System.out.format("%s %s %s\n", s, p, o);
-				}
-				
-				@Override
-				public void endQueryResult() {
-				}
-			});
+                    
+                    @Override
+                        public void startQueryResult(List<String> bindingNames) {
+                        System.out.format("Bindings: %s\n", bindingNames);
+                    }
+                    
+                    @Override
+                        public void handleSolution(BindingSet bindingSet) {
+                        Value s = bindingSet.getValue("s");
+                        Value p = bindingSet.getValue("p");
+                        Value o = bindingSet.getValue("o");
+                        System.out.format("%s %s %s\n", s, p, o);
+                    }
+                    
+                    @Override
+                        public void endQueryResult() {
+                    }
+                });
         } finally {
             conn.close();
         }

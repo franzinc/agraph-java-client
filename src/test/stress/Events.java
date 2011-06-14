@@ -24,7 +24,6 @@ import java.util.Calendar;
 import java.util.Formatter;
 import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.Random;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -70,7 +69,7 @@ import com.franz.util.Util;
 
 public class Events extends Closer {
     
-    static private final Random RANDOM = new Random();
+    static private final test.Util.RandomLong RANDOM = new test.Util.RandomLong();
     
     long errors = 0;
 
@@ -97,7 +96,7 @@ public class Events extends Closer {
         static private int BULK_EVENTS = 250;
         
         // Goal store size
-        static int SIZE = (int) Math.pow(10, 9);
+        static long SIZE = (long) Math.pow(10, 9);
         
         // The catalog name
         static String CATALOG = "tests";
@@ -303,7 +302,7 @@ public class Events extends Closer {
             DELETE_WORKERS = cmdVal("delete", DELETE_WORKERS);
             MIXED_RUNS = cmdVal("mixed", MIXED_RUNS);
             STATUS = cmdVal("status", STATUS);
-            SIZE = Math.max(1000, fromHumanInt( cmdVal("size", "" + SIZE) ));
+            SIZE = Math.max(1000, test.Util.fromHumanInt( cmdVal("size", "" + SIZE) ));
             QUERY_TIME = cmdVal("time", QUERY_TIME);
             EVENT_SIZE = cmdVal("event", EVENT_SIZE);
             BULK_EVENTS = cmdVal("bulk", BULK_EVENTS);
@@ -334,24 +333,7 @@ public class Events extends Closer {
         public static boolean hasOption(String opt) {
             return cmd.hasOption(opt);
         }
-        
-        static int fromHumanInt(String value) {
-            int len = value.length();
-            if (len > 1) {
-                char c = value.charAt(len-1);
-                if ( ! Character.isDigit(c)) {
-                    int n = Integer.parseInt(value.substring(0, len-1));
-                    if (c == 'm')
-                        return n * (int) Math.pow(10, 6);
-                    else if (c == 'b')
-                        return n * (int) Math.pow(10, 9);
-                    else if (c == 't')
-                        return n * (int) Math.pow(10, 12);
-                }
-            }
-            return Integer.parseInt(value);
-        }
-        
+
     }
     
     static double logtime(double time) {
@@ -552,19 +534,19 @@ public class Events extends Closer {
     
     private static class RandomCustomer implements RandomCallback {
         public Value makeValue() {
-            return ThreadVars.valueFactory.get().createURI(Defaults.NS, "Customer-" + RANDOM.nextInt(Defaults.SIZE/1000));
+            return ThreadVars.valueFactory.get().createURI(Defaults.NS, "Customer-" + RANDOM.nextLong(Defaults.SIZE/1000));
         }
     }
     
     private static class RandomAccount implements RandomCallback {
         public Value makeValue() {
-            return ThreadVars.valueFactory.get().createURI(Defaults.NS, "Account-" + RANDOM.nextInt(Defaults.SIZE/1000));
+            return ThreadVars.valueFactory.get().createURI(Defaults.NS, "Account-" + RANDOM.nextLong(Defaults.SIZE/1000));
         }
     }
     
     private static class RandomProductID implements RandomCallback {
         public Value makeValue() {
-            return ThreadVars.valueFactory.get().createURI(Defaults.NS, "ProductID-" + RANDOM.nextInt(Defaults.SIZE/1000));
+            return ThreadVars.valueFactory.get().createURI(Defaults.NS, "ProductID-" + RANDOM.nextLong(Defaults.SIZE/1000));
         }
     }
     
@@ -749,13 +731,13 @@ public class Events extends Closer {
     
     class Loader implements Callable<Object>, Closeable {
         private int id;
-        private int loopCount;
+        private long loopCount;
         private int eventsPerCommit;
         private int triplesPerCommit;
         private final RandomDate dateMaker;
         private AGRepositoryConnection conn;
         
-        public Loader(int theId, int theTripleGoal, int theEventsPerCommit, RandomDate dateMaker) throws Exception {
+        public Loader(int theId, long theTripleGoal, int theEventsPerCommit, RandomDate dateMaker) throws Exception {
             id = theId;
             this.dateMaker = dateMaker;
             triplesPerCommit = theEventsPerCommit * Defaults.EVENT_SIZE;
@@ -1112,7 +1094,7 @@ public class Events extends Closer {
         }
 
         @Override
-            public void close() {
+        public void close() {
             Events.this.close(conn);
         }
 
@@ -1276,7 +1258,7 @@ public class Events extends Closer {
                 triplesStart = triplesEnd;
                 List<Callable<Object>> tasks = new ArrayList<Callable<Object>>(Defaults.LOAD_WORKERS);
                 for (int task = 0; task < (Defaults.LOAD_WORKERS); task++) {
-                    tasks.add(task, new Loader(task, Defaults.SIZE*9/10, Defaults.BULK_EVENTS, BulkRange));
+                    tasks.add(new Loader(task, (Defaults.SIZE/10)*9, Defaults.BULK_EVENTS, BulkRange));
                 }
                 trace("Phase 2 Begin: Grow store by about %d triples.", (Defaults.SIZE*9/10));
                 Monitor.start("phase-2");
