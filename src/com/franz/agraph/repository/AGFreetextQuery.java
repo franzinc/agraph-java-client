@@ -16,7 +16,7 @@ import org.openrdf.rio.RDFHandler;
 import org.openrdf.rio.RDFHandlerException;
 import org.openrdf.rio.helpers.StatementCollector;
 
-import com.franz.agraph.http.AGResponseHandler;
+import com.franz.agraph.http.handler.AGRDFHandler;
 
 public class AGFreetextQuery {
 
@@ -76,8 +76,7 @@ public class AGFreetextQuery {
 			RDFHandlerException {
 		try {
 			conn.getHttpRepoClient().evalFreetextQuery(pattern, expression, index, sorted, limit, offset, 
-						new AGResponseHandler(conn.getRepository(), handler, 
-								conn.getHttpRepoClient().getPreferredRDFFormat()));
+						new AGRDFHandler(conn.getHttpRepoClient().getPreferredRDFFormat(), handler, conn.getValueFactory()));
 		} catch (RepositoryException e) {
 			throw new QueryEvaluationException(e);
 		}

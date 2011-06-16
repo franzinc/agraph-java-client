@@ -50,6 +50,9 @@ import org.openrdf.sail.memory.MemoryStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.franz.agraph.http.handler.AGResponseHandler;
+import com.franz.agraph.http.handler.AGStringHandler;
+import com.franz.agraph.http.handler.AGTQRHandler;
 import com.franz.util.Closeable;
 import com.franz.util.Util;
 
@@ -98,7 +101,7 @@ implements Closeable {
 	}
 
 	public void post(String url, Header[] headers, NameValuePair[] params,
-			RequestEntity requestEntity, AGResponseHandlerInf handler) throws HttpException, IOException,
+			RequestEntity requestEntity, AGResponseHandler handler) throws HttpException, IOException,
 			RepositoryException, RDFParseException {
 		PostMethod post = new PostMethod(url);
 		setDoAuthentication(post);
@@ -128,6 +131,8 @@ implements Closeable {
 							+ errInfo + " (" + httpCode + ")");
 				}
 			}
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
 		} finally {
 			if (handler == null || handler.releaseConnection()) {
 				releaseConnection(post);
@@ -136,7 +141,7 @@ implements Closeable {
 	}
 
 	public void get(String url, Header[] headers, NameValuePair[] params,
-			AGResponseHandlerInf handler) throws IOException, RepositoryException,
+			AGResponseHandler handler) throws IOException, RepositoryException,
 			AGHttpException {
 		GetMethod get = new GetMethod(url);
 		setDoAuthentication(get);
@@ -224,9 +229,9 @@ implements Closeable {
 		try {
 			// TODO: check the case where the server supplies
 			// no error message
-			AGResponseHandler handler = new AGResponseHandler("");
+			AGStringHandler handler = new AGStringHandler();
 			handler.handleResponse(method);
-			errorInfo = AGErrorInfo.parse(handler.getString());
+			errorInfo = AGErrorInfo.parse(handler.getResult());
 			logger.warn("Server reports problem: {}", errorInfo.getErrorMessage());
 		} catch (Exception e) {
 			logger.warn("Unable to retrieve error info from server");
@@ -321,7 +326,7 @@ implements Closeable {
 		Repository repo = new SailRepository( new MemoryStore() );
 		repo.initialize();
 		TupleQueryResultBuilder builder = new TupleQueryResultBuilder();
-		AGResponseHandler handler = new AGResponseHandler(repo,builder);
+		AGTQRHandler handler = new AGTQRHandler(TupleQueryResultFormat.SPARQL,builder,repo.getValueFactory());
 		try {
 			get(url, headers, params, handler);
 		} catch (IOException e) {
@@ -339,20 +344,20 @@ implements Closeable {
 		NameValuePair[] data = { new NameValuePair(AMOUNT_PARAM_NAME, Integer
 				.toString(amount)) };
 
-		AGResponseHandler handler = new AGResponseHandler("");
+		AGStringHandler handler = new AGStringHandler();
 		try {
 			post(url, headers, data, null, handler);
 		} catch (RDFParseException e) {
 			// bug.
 			throw new RuntimeException(e);
 		}
-		return handler.getString().split("\n");
+		return handler.getResult().split("\n");
 	}
 
 	public String getString(String url) throws AGHttpException {
 		Header[] headers = new Header[0];
 		NameValuePair[] data = {};
-		AGResponseHandler handler = new AGResponseHandler("");
+		AGStringHandler handler = new AGStringHandler();
 		try {
 			get(url, headers, data, handler);
 		} catch (RepositoryException e) {
@@ -360,7 +365,7 @@ implements Closeable {
 		} catch (IOException e) {
 			throw new AGHttpException(e.getMessage());
 		}
-		return handler.getString();
+		return handler.getResult();
 	}
 	
 	public String openSession(String spec, boolean autocommit) throws RepositoryException {
@@ -371,7 +376,7 @@ implements Closeable {
 												   Boolean.toString(autocommit)),
 								 new NameValuePair(AGProtocol.LIFETIME_PARAM_NAME,
 												   Long.toString(3600)) }; // TODO have some kind of policy for this
-		AGResponseHandler handler = new AGResponseHandler("");
+		AGStringHandler handler = new AGStringHandler();
 		try {
 			post(url, headers, data, null, handler);
 		} catch (HttpException e) {
@@ -379,7 +384,7 @@ implements Closeable {
 		} catch (IOException e) {
 			throw new RepositoryException(e);
 		} catch (RDFParseException e) {}
-		return handler.getString();
+		return handler.getResult();
 	}
 
     @Override
@@ -394,13 +399,13 @@ implements Closeable {
 		Header[] headers = new Header[0];
 		NameValuePair[] data = { new NameValuePair("prefix", namespace),
 				new NameValuePair(AMOUNT_PARAM_NAME, Integer.toString(amount)) };
-		AGResponseHandler handler = new AGResponseHandler("");
+		AGStringHandler handler = new AGStringHandler();
 		try {
 			post(url, headers, data, null, handler);
 		} catch (RDFParseException e) {
 			throw new RepositoryException(e);
 		}
-		return handler.getString().split("\n");
+		return handler.getResult().split("\n");
 	}
 
 

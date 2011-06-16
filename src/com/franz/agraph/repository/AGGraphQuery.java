@@ -18,7 +18,8 @@ import org.openrdf.rio.RDFHandler;
 import org.openrdf.rio.RDFHandlerException;
 import org.openrdf.rio.helpers.StatementCollector;
 
-import com.franz.agraph.http.AGResponseHandler;
+import com.franz.agraph.http.handler.AGLongHandler;
+import com.franz.agraph.http.handler.AGRDFHandler;
 
 /**
  * Implements the Sesame GraphQuery interface for AllegroGraph.
@@ -61,8 +62,7 @@ public class AGGraphQuery extends AGQuery implements GraphQuery {
 	public void evaluate(RDFHandler handler) throws QueryEvaluationException,
 			RDFHandlerException {
 		// TODO: deal with the hard coded return format
-		evaluate(new AGResponseHandler(httpCon.getRepository(), handler,
-							RDFFormat.NTRIPLES));
+		evaluate(new AGRDFHandler(RDFFormat.NTRIPLES, handler, httpCon.getValueFactory()));
 	}
 
 	/**
@@ -74,8 +74,8 @@ public class AGGraphQuery extends AGQuery implements GraphQuery {
 	 * @throws QueryEvaluationException
 	 */
 	public long count() throws QueryEvaluationException {
-		AGResponseHandler handler = new AGResponseHandler(0L);
+		AGLongHandler handler = new AGLongHandler();
 		evaluate(handler);
-		return handler.getLong();
+		return handler.getResult();
 	}
 }

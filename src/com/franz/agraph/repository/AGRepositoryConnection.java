@@ -48,7 +48,8 @@ import org.openrdf.rio.helpers.StatementCollector;
 import org.openrdf.rio.ntriples.NTriplesUtil;
 
 import com.franz.agraph.http.AGHttpRepoClient;
-import com.franz.agraph.http.AGResponseHandler;
+import com.franz.agraph.http.handler.AGRDFHandler;
+import com.franz.agraph.http.handler.AGResponseHandler;
 import com.franz.util.Closeable;
 
 /**
@@ -1015,8 +1016,8 @@ implements RepositoryConnection, Closeable {
 			URI predicate, float xmin, float xmax, float ymin,
 			float ymax, int limit, boolean infer) throws RepositoryException {
 		StatementCollector collector = new StatementCollector();
-		AGResponseHandler handler = new AGResponseHandler(getRepository(),
-				collector, getHttpRepoClient().getPreferredRDFFormat());
+		AGResponseHandler handler = new AGRDFHandler(getHttpRepoClient().getPreferredRDFFormat(),
+				collector, getValueFactory());
 		getHttpRepoClient().getGeoBox(NTriplesUtil.toNTriplesString(type),
 		                              NTriplesUtil.toNTriplesString(predicate),
 		                              xmin, xmax, ymin, ymax, limit, infer, handler);
@@ -1027,8 +1028,8 @@ implements RepositoryConnection, Closeable {
 			URI predicate, float x, float y, float radius,
 			int limit, boolean infer) throws RepositoryException {
 		StatementCollector collector = new StatementCollector();
-		AGResponseHandler handler = new AGResponseHandler(getRepository(),
-				collector, getHttpRepoClient().getPreferredRDFFormat());
+		AGResponseHandler handler = new AGRDFHandler(getHttpRepoClient().getPreferredRDFFormat(),
+				collector, getValueFactory());
 		getHttpRepoClient().getGeoCircle(NTriplesUtil.toNTriplesString(type),
 		                                 NTriplesUtil.toNTriplesString(predicate),
 		                                 x, y, radius, limit, infer, handler);
@@ -1039,8 +1040,8 @@ implements RepositoryConnection, Closeable {
 			URI predicate, float lat, float lon, float radius,
 			String unit, int limit, boolean infer) throws RepositoryException {
 		StatementCollector collector = new StatementCollector();
-		AGResponseHandler handler = new AGResponseHandler(getRepository(),
-				collector, getHttpRepoClient().getPreferredRDFFormat());
+		AGResponseHandler handler = new AGRDFHandler(getHttpRepoClient().getPreferredRDFFormat(),
+				collector, getValueFactory());
 		getHttpRepoClient().getGeoHaversine(NTriplesUtil.toNTriplesString(type),
 		                                    NTriplesUtil.toNTriplesString(predicate),
 		                                    lat, lon, radius, unit, limit, infer, handler);
@@ -1050,8 +1051,8 @@ implements RepositoryConnection, Closeable {
 	public RepositoryResult<Statement> getStatementsInPolygon(URI type,
 			URI predicate, URI polygon, int limit, boolean infer) throws RepositoryException {
 		StatementCollector collector = new StatementCollector();
-		AGResponseHandler handler = new AGResponseHandler(getRepository(),
-				collector, getHttpRepoClient().getPreferredRDFFormat());
+		AGResponseHandler handler = new AGRDFHandler(getHttpRepoClient().getPreferredRDFFormat(),
+				collector, getValueFactory());
 		getHttpRepoClient().getGeoPolygon(NTriplesUtil.toNTriplesString(type), NTriplesUtil.toNTriplesString(predicate), NTriplesUtil.toNTriplesString(polygon), limit, infer, handler);
 		return createRepositoryResult(collector.getStatements());
 	}

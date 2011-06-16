@@ -16,7 +16,7 @@ import org.openrdf.query.TupleQueryResult;
 import org.openrdf.query.TupleQueryResultHandler;
 import org.openrdf.query.TupleQueryResultHandlerException;
 
-import com.franz.agraph.http.SparqlResponseStreamer;
+import com.franz.agraph.http.handler.AGTQRStreamer;
 
 /**
  * Wraps an AGTupleQuery to provide streaming results.
@@ -62,13 +62,13 @@ public class AGStreamTupleQuery extends AGTupleQuery implements TupleQuery {
 	 */
 	@Override
 	public TupleQueryResult evaluate() throws QueryEvaluationException {
-		SparqlResponseStreamer handler = new SparqlResponseStreamer(httpCon.getRepository());
+		AGTQRStreamer handler = new AGTQRStreamer(httpCon.getHttpRepoClient().getPreferredTQRFormat(),httpCon.getRepository().getValueFactory());
 		try {
 			httpCon.getHttpRepoClient().query(this, false, handler);
 		} catch (Exception e) {
 			throw new QueryEvaluationException(e);
 		}
-		return handler.getTupleQueryResult();
+		return handler.getResult();
 	}
 
 	/**
