@@ -20,7 +20,8 @@ import org.openrdf.query.impl.AbstractQuery;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.rio.RDFParseException;
 
-import com.franz.agraph.http.AGResponseHandler;
+import com.franz.agraph.http.handler.AGResponseHandler;
+import com.franz.agraph.http.handler.AGStringHandler;
 
 /**
  * An abstract query class common to Boolean, Graph and Tuple Queries.
@@ -251,9 +252,9 @@ public abstract class AGQuery extends AbstractQuery {
 	 * @throws QueryEvaluationException
 	 */
 	public String analyze() throws QueryEvaluationException {
-		AGResponseHandler handler = new AGResponseHandler("");
+		AGStringHandler handler = new AGStringHandler();
 		evaluate(true, handler);
-		return handler.getString();
+		return handler.getResult();
 	}
 	
 	/**

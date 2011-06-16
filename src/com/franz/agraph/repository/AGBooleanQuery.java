@@ -12,7 +12,7 @@ import org.openrdf.query.BooleanQuery;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.QueryLanguage;
 
-import com.franz.agraph.http.AGResponseHandler;
+import com.franz.agraph.http.handler.AGBQRHandler;
 
 /**
  * Implements the Sesame BooleanQuery interface for AllegroGraph.
@@ -37,9 +37,9 @@ public class AGBooleanQuery extends AGQuery implements BooleanQuery {
 	 * Evaluates the query and returns a boolean result.
 	 */
 	public boolean evaluate() throws QueryEvaluationException {
-		AGResponseHandler handler = new AGResponseHandler(true);
+		AGBQRHandler handler = new AGBQRHandler();
 		evaluate(handler);
-		return handler.getBoolean();
+		return handler.getResult();
 	}
 
 }

@@ -6,7 +6,7 @@
 ** http://www.eclipse.org/legal/epl-v10.html
 ******************************************************************************/
 
-package com.franz.agraph.http;
+package com.franz.agraph.http.handler;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,11 +26,10 @@ import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.TupleQueryResult;
 import org.openrdf.query.impl.MapBindingSet;
 import org.openrdf.query.resultio.TupleQueryResultFormat;
-import org.openrdf.repository.Repository;
-import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.franz.agraph.http.AGHttpException;
 import com.franz.util.Util;
 
 /**
@@ -41,7 +40,7 @@ import com.franz.util.Util;
  * 
  * @since v4.3
  */
-public class SparqlResponseStreamer implements AGResponseHandlerInf {
+public class AGTQRStreamer extends AGResponseHandler {
 
 	private static final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
 	
@@ -51,8 +50,9 @@ public class SparqlResponseStreamer implements AGResponseHandlerInf {
 	private XMLStreamReader xml;
 	private HttpMethod method;
 
-	public SparqlResponseStreamer(Repository repository) {
-		vf = repository.getValueFactory();
+	public AGTQRStreamer(TupleQueryResultFormat format, ValueFactory vf) {
+		super(format.getDefaultMIMEType());
+		this.vf = vf;
 	}
 
 	@Override
@@ -72,16 +72,16 @@ public class SparqlResponseStreamer implements AGResponseHandlerInf {
 	}
 
 	@Override
-	public void handleResponse(HttpMethod method) throws IOException, RepositoryException {
+	public void handleResponse(HttpMethod method) throws IOException, AGHttpException {
 		this.method = method;
 		try {
 			xml = xmlInputFactory.createXMLStreamReader(AGResponseHandler.getInputStream(method));
 		} catch (XMLStreamException e) {
-			throw new RepositoryException(e);
+			throw new AGHttpException(e.getMessage());
 		} 
 	}
 	
-	public TupleQueryResult getTupleQueryResult() {
+	public TupleQueryResult getResult() {
 		return new Result();
 	}
 

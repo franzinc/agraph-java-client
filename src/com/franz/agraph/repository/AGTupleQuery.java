@@ -16,7 +16,8 @@ import org.openrdf.query.TupleQueryResultHandler;
 import org.openrdf.query.TupleQueryResultHandlerException;
 import org.openrdf.query.impl.TupleQueryResultBuilder;
 
-import com.franz.agraph.http.AGResponseHandler;
+import com.franz.agraph.http.handler.AGLongHandler;
+import com.franz.agraph.http.handler.AGTQRHandler;
 
 /**
  * Implements the Sesame TupleQuery interface for AllegroGraph.
@@ -43,7 +44,7 @@ public class AGTupleQuery extends AGQuery implements TupleQuery {
 
 	public void evaluate(TupleQueryResultHandler handler)
 			throws QueryEvaluationException, TupleQueryResultHandlerException {
-		evaluate(new AGResponseHandler(httpCon.getRepository(), handler));
+		evaluate(new AGTQRHandler(httpCon.getHttpRepoClient().getPreferredTQRFormat(), handler, httpCon.getValueFactory()));
 	}
 
 	/**
@@ -55,8 +56,8 @@ public class AGTupleQuery extends AGQuery implements TupleQuery {
 	 * @throws QueryEvaluationException
 	 */
 	public long count() throws QueryEvaluationException {
-		AGResponseHandler handler = new AGResponseHandler(0L);
+		AGLongHandler handler = new AGLongHandler();
 		evaluate(handler);
-		return handler.getLong();
+		return handler.getResult();
 	}
 }
