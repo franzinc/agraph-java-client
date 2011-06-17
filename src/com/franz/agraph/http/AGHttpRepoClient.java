@@ -224,6 +224,7 @@ public class AGHttpRepoClient implements Closeable {
 			AGResponseHandler handler = new AGResponseHandler("");
 			try {
 				getHTTPClient().post(url, headers, params.toArray(new NameValuePair[params.size()]), null, handler);
+				usingDedicatedSession = true;
 			} catch (RDFParseException e) {
 				// bug.
 				throw new RuntimeException(e);
@@ -1792,4 +1793,22 @@ public class AGHttpRepoClient implements Closeable {
 		}
 	}
 
+	public void optimizeIndices(Boolean wait, int level) throws RepositoryException {
+		String url = repoRoot + "/indices/optimize";
+		Header[] headers = {};
+		NameValuePair[] params = { new NameValuePair("wait", Boolean.toString(wait)),
+		                           new NameValuePair("level", Integer.toString(level))};
+
+		try {
+			getHTTPClient().post(url,headers,params,null,null);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		} catch (RDFParseException e) {
+			throw new RepositoryException(e);
+		}
+	}
+
+	public void optimizeIndices(Boolean wait) throws RepositoryException {
+		optimizeIndices(wait, 1);
+	}
 }
