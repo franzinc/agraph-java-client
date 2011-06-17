@@ -1217,4 +1217,21 @@ public class AGRepositoryConnection extends RepositoryConnectionBase implements
  		
  	}
 
+	/**
+	 * tells the server to try and optimize the indices for this
+	 * store.
+	 *
+	 * @param wait is a boolean, false for request to return immediately
+	 * @param level determines the work to be done. See the index documentation
+	 *        for an explanation of the different levels.
+	 * @throws RepositoryException
+	 */
+	public void optimizeIndices(Boolean wait, int level) throws RepositoryException {
+		getHttpRepoClient().optimizeIndices(wait, level);
+	}
+
+	public void optimizeIndices(Boolean wait) throws RepositoryException {
+		getHttpRepoClient().optimizeIndices(wait);
+	}
+
 }
