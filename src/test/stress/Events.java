@@ -1072,6 +1072,29 @@ public class Events extends Closer {
 		}
     }
     
+    class Pinger implements Runnable {
+
+	    private AGRepositoryConnection conn;
+
+	    public Pinger(AGRepositoryConnection c) {
+		    conn = c;
+	    }
+
+	    public void run() {
+		while (true) {
+		    try {
+			trace("pinger running for " + conn.getHttpRepoClient().getRoot());
+			conn.ping();
+			Thread.sleep(Math.round(conn.getSessionLifetime() * 1000 /2));
+		    } catch (InterruptedException e) {
+			    trace("Exception encountered in pinger: %s", e.toString());
+		    } catch (RepositoryException e) {
+			    trace("Exception encountered in pinger: %s", e.toString());
+		    }
+		}
+	    }
+    }
+
     public static class Monitor {
 
         private static void printOutput(Process p) throws IOException {
@@ -1154,6 +1177,11 @@ public class Events extends Closer {
         server.close();
         
         AGRepositoryConnection conn = connect();
+	AGRepository repo = conn.getRepository().getValueFactory().getRepository();
+	// thread needed to send pings to conn in case any phase exceeds the session lifetime.
+	Thread ping = new Thread(new Pinger(conn));
+	ping.start();
+
         ThreadVars.valueFactory.set(conn.getValueFactory());
         
         AllEvents.initialize();
@@ -1178,7 +1206,7 @@ public class Events extends Closer {
             		tasks.add(new Loader(task, Defaults.SIZE / 10, 1, BaselineRange));
             	}
                 trace("Phase 1 Begin: Baseline %d triple commits.", Defaults.EVENT_SIZE);
-                Monitor.start("phase-1");
+                // Monitor.start("phase-1");
                 start = System.currentTimeMillis();
                 invokeAndGetAll(executor, tasks);
                 end = System.currentTimeMillis();
@@ -1190,8 +1218,19 @@ public class Events extends Closer {
                 		"Store contains %d triples.", triples, logtime(seconds),
                 		logtime(triples/seconds),
                 		logtime(triples/Defaults.EVENT_SIZE/seconds), triplesEnd);
-                Monitor.stop(); // sync phase after phase-1 complete.
+
                 closeAll(tasks);
+                // Monitor.stop(); // sync phase after phase-1 complete.
+
+		// use http api for starting checkpoint and merge.
+		trace("Phase 0 Begin: Forced Merge");
+		conn.optimizeIndices(true, 1);
+		repo.ensureDBIdle();
+		trace("Phase 0 End: Forced Merge");
+		trace("Phase 0 Begin: Forced Checkpoint");
+		repo.forceCheckpoint();
+		trace("Phase 0 End: Forced Checkpoint");
+
             }
             
             /////////////////////////////////////////////////////////////////////// PHASE 2
@@ -1202,7 +1241,7 @@ public class Events extends Closer {
                     tasks.add(task, new Loader(task, Defaults.SIZE*9/10, Defaults.BULK_EVENTS, BulkRange));
                 }
                 trace("Phase 2 Begin: Grow store by about %d triples.", (Defaults.SIZE*9/10));
-                Monitor.start("phase-2");
+                // Monitor.start("phase-2");
                 start = System.currentTimeMillis();
                 invokeAndGetAll(executor, tasks);
                 end = System.currentTimeMillis();
@@ -1213,8 +1252,18 @@ public class Events extends Closer {
                 		"(%.2f triples/second, %.2f commits/second). " +
                 		"Store contains %d triples.", triples, seconds, triples/seconds,
                 		triples/Defaults.BULK_EVENTS/Defaults.EVENT_SIZE/seconds, triplesEnd);
-                Monitor.stop();
+
                 closeAll(tasks);
+                // Monitor.stop();
+
+		trace("Phase 0 Begin: Forced Merge");
+		conn.optimizeIndices(true, 1);
+		repo.ensureDBIdle();		
+		trace("Phase 0 End: Forced Merge");
+
+		trace("Phase 0 Begin: Forced Checkpoint");
+		repo.forceCheckpoint();
+		trace("Phase 0 End: Forced Checkpoint");
             }
             
             /////////////////////////////////////////////////////////////////////// PHASE 3
@@ -1225,10 +1274,11 @@ public class Events extends Closer {
                     tasks.add(task, new Loader(task, Defaults.SIZE/10, 1, SmallCommitsRange));
                 }
                 trace("Phase 3 Begin: Perform %d triple commits.", Defaults.EVENT_SIZE);
-                Monitor.start("phase-3");
+                // Monitor.start("phase-3");
                 start = System.currentTimeMillis();
                 invokeAndGetAll(executor, tasks);
                 end = System.currentTimeMillis();
+		trace("p3: trying to get repo size on conn " + conn.getHttpRepoClient().getRoot());
                 triplesEnd = conn.size();
                 triples = triplesEnd - triplesStart;
                 seconds = (end - start) / 1000.0;
@@ -1236,9 +1286,20 @@ public class Events extends Closer {
                 		"(%.2f triples/second, %.2f commits/second). " +
                 		"Store contains %d triples.", triples, seconds, triples/seconds,
                 		triples/Defaults.EVENT_SIZE/seconds, triplesEnd);
-                Monitor.stop();
+
                 executor.shutdown();
                 closeAll(tasks);
+                // Monitor.stop();
+
+		trace("Phase 0 Begin: Forced Merge");
+		conn.optimizeIndices(true, 1);
+		repo.ensureDBIdle();
+		trace("Phase 0 End: Forced Merge");
+
+		trace("Phase 0 Begin: Forced Checkpoint");
+		repo.forceCheckpoint();
+		trace("Phase 0 End: Forced Checkpoint");
+
             }
         }
         
