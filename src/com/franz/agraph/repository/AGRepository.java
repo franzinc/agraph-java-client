@@ -21,6 +21,7 @@ import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.TupleQueryResult;
 import org.openrdf.repository.RepositoryException;
+import org.openrdf.rio.RDFParseException;
 
 import com.franz.agraph.http.AGHTTPClient;
 import com.franz.agraph.http.AGHttpException;
@@ -252,4 +253,41 @@ public class AGRepository implements AGAbstractRepository, Closeable {
 			throw new RepositoryException(e);
 		}
 	}
+
+    /**
+     * Forces a checkpoint for this repository. 
+     * 
+     * This is an internal and undocumented function.
+     */
+	public void forceCheckpoint() throws RepositoryException {
+		String url = repositoryURL + "/force-checkpoint";
+		Header[] hdr = new Header[0];
+		NameValuePair[] data = {};
+		try {
+		    getHTTPClient().post(url,hdr,data,null,null);
+
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		} catch (RDFParseException e) {
+			throw new RepositoryException(e);
+		}
+	}
+    /**
+     * Waits until background db processes have gone idle.
+     * 
+     * This is an internal and undocumented function.
+     */
+	public void ensureDBIdle() throws RepositoryException {
+		String url = repositoryURL + "/ensure-db-idle";
+		Header[] hdr = new Header[0];
+		NameValuePair[] data = {};
+		try {
+		    getHTTPClient().post(url,hdr,data,null,null);
+		} catch (IOException e) {
+			throw new RepositoryException(e);
+		} catch (RDFParseException e) {
+			throw new RepositoryException(e);
+		}
+	}
+
 }
