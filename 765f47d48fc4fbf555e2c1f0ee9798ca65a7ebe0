@@ -1,0 +1,9 @@
+Code-Review+2: Ahmon Dancy <dancy@franz.com>
+Code-Review+2: Kevin Layer <layer@franz.com>
+Verified+1: Kevin Layer <layer@franz.com>
+Code-Review+1: John O'Rourke <john.orourke@franz.com>
+Submitted-by: Kevin Layer <layer@franz.com>
+Submitted-at: Thu, 30 Sep 2010 10:41:40 -0700
+Reviewed-on: https://gerrit.franz.com:9080/765
+Project: agraph-java-client
+Branch: refs/heads/v4.1

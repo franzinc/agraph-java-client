@@ -1,0 +1,9 @@
+Change-Id: I8865995249e6230cc182c13f30d498437e5c9e8c
+Code-Review+2: Kevin Layer <layer@franz.com>
+Verified+1: Kevin Layer <layer@franz.com>
+Code-Review+1: John O'Rourke <john.orourke@franz.com>
+Submitted-by: Kevin Layer <layer@franz.com>
+Submitted-at: Wed, 01 Sep 2010 11:26:52 -0700
+Reviewed-on: https://gerrit.franz.com:9080/644
+Project: agraph-java-client
+Branch: refs/heads/v4.0.6
