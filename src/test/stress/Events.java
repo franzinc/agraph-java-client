@@ -1251,6 +1251,10 @@ public class Events extends Closer {
             trace("SUPERSEDING %s %s:%s.", Defaults.URL, Defaults.CATALOG, Defaults.REPOSITORY);
         }
         
+	long initStart = System.currentTimeMillis(), initEnd;
+	double initSeconds;
+	trace("Phase 0 Begin: " + (Defaults.hasOption("open") ? "opening " : "renewing ") +
+	      Defaults.CATALOG + ":" + Defaults.REPOSITORY);
         AGServer server = new AGServer(Defaults.URL, Defaults.USERNAME, Defaults.PASSWORD);
         AGCatalog catalog = server.getCatalog(Defaults.CATALOG);
         if (false == Defaults.hasOption("open")) {
@@ -1259,6 +1263,11 @@ public class Events extends Closer {
         server.close();
         
         AGRepositoryConnection conn = connect();
+	initEnd = System.currentTimeMillis();
+	initSeconds = (initEnd - initStart) / 1000;
+	trace("Phase 0 End: Initial " + (Defaults.hasOption("open") ? "opening" : "renewing") +
+	      " took " + initSeconds + " seconds.");
+
 	// thread needed to send pings to conn in case any phase exceeds the session lifetime.
 	Thread ping = new Thread(new Pinger(conn));
 	ping.start();
@@ -1283,10 +1292,16 @@ public class Events extends Closer {
             
             /////////////////////////////////////////////////////////////////////// PHASE 1
             if (Defaults.PHASE <= 1) {
+		start = System.currentTimeMillis();
+		trace("Phase 0 Begin: Launching child load workers.");
                 List<Callable<Object>> tasks = new ArrayList<Callable<Object>>(Defaults.LOAD_WORKERS);
             	for (int task = 0; task < Defaults.LOAD_WORKERS; task++) {
             		tasks.add(new Loader(task, Defaults.SIZE / 10, 1, BaselineRange));
             	}
+		end = System.currentTimeMillis();
+		seconds = (end - start) / 1000;
+		trace("Phase 0 End: Initial load_workers took " + seconds + " seconds.");
+		
                 trace("Phase 1 Begin: Baseline %d triple commits.", Defaults.EVENT_SIZE);
                 Monitor.start(1);
                 start = System.currentTimeMillis();
@@ -1362,18 +1377,25 @@ public class Events extends Closer {
         /////////////////////////////////////////////////////////////////////// PHASE 4
         if (Defaults.PHASE <= 4) {
             if (Defaults.QUERY_WORKERS > 0 && Defaults.PHASE > 0) {
+		long start = System.currentTimeMillis(), end;
+		double seconds;
+
+		trace("Phase 0 Begin: Launching child query workers.");
+
                 ExecutorService executor = Executors.newFixedThreadPool(Defaults.QUERY_WORKERS);
-                
                 List<Callable<Object>> queriers = new ArrayList<Callable<Object>>(Defaults.QUERY_WORKERS);
                 for (int task = 0; task < Defaults.QUERY_WORKERS; task++) {
                     queriers.add(new Querier(task, Defaults.QUERY_TIME*60, FullDateRange));
                 }
+                end = System.currentTimeMillis();
+                seconds = (end - start) / 1000.0;
+		trace("Phase 0 End: Initial query_workers took " + seconds + " seconds.");
                 trace("Phase 4 Begin: Perform customer/date range queries with %d processes for %d minutes.",
                         Defaults.QUERY_WORKERS, Defaults.QUERY_TIME);
                 Monitor.start(4);
                 int queries = 0;
                 long triples = 0;
-                long start = System.currentTimeMillis();
+                start = System.currentTimeMillis();
                 try {
                     List<Future<Object>> fs = executor.invokeAll(queriers);
                     for (Future<Object> f : fs) {
@@ -1388,8 +1410,8 @@ public class Events extends Closer {
         			errors++;
                     e.printStackTrace();
                 }
-                long end = System.currentTimeMillis();
-                double seconds = (end - start) / 1000.0;
+                end = System.currentTimeMillis();
+                seconds = (end - start) / 1000.0;
                 trace("Phase 4 End: %d total triples returned over %d queries in " +
 		      "%.1f seconds (%.2f triples/second, %.2f queries/second, " +
 		      "%d triples/query) MemUsed %d.", triples, queries, logtime(seconds),
@@ -1404,22 +1426,30 @@ public class Events extends Closer {
         /////////////////////////////////////////////////////////////////////// PHASE 5
         if (Defaults.PHASE <= 5 && Defaults.DELETE_WORKERS > 0) {
             long triplesStart = conn.size();
+	    long start = System.currentTimeMillis(), end;
+	    double seconds;
+
+	    trace("Phase 0 Begin: Launching child delete workers.");
+
             ExecutorService executor = Executors.newFixedThreadPool(2);
             List<Callable<Object>> tasks = new ArrayList<Callable<Object>>(2);
             tasks.add(new Deleter(DeleteRangeOne));
             if (Defaults.DELETE_WORKERS > 1) {
                 tasks.add(new Deleter(DeleteRangeTwo));
             }
+	    end = System.currentTimeMillis();
+	    seconds = (end - start) / 1000.0;
+	    trace("Phase 0 End: Initial delete_workers took " + seconds + " seconds.");
             trace("Phase 5 Begin: Shrink store by 1 month.");
             Monitor.start(5);
-            long start = System.currentTimeMillis();
+            start = System.currentTimeMillis();
             invokeAndGetAll(executor, tasks);
-            long end = System.currentTimeMillis();
+            end = System.currentTimeMillis();
             closeAll(tasks);
             executor.shutdown();
             long triplesEnd = conn.size();
             long triples = triplesEnd - triplesStart;
-            double seconds = (end - start) / 1000.0;
+            seconds = (end - start) / 1000.0;
             trace("Phase 5 End: %d total triples deleted in %.1f seconds " +
 		  "(%.2f triples/second). Store contains %d triples.", triples,
 		  logtime(seconds), logtime(triples/seconds), triplesEnd);
