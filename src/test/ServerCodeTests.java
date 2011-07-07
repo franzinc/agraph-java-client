@@ -35,12 +35,12 @@ import org.openrdf.rio.helpers.StatementCollector;
 
 import tutorial.TutorialExamples;
 
-import com.franz.agraph.http.AGDecoder;
-import com.franz.agraph.http.AGDeserializer;
-import com.franz.agraph.http.AGEncoder;
 import com.franz.agraph.http.AGHTTPClient;
-import com.franz.agraph.http.AGSerializer;
 import com.franz.agraph.http.exception.AGCustomStoredProcException;
+import com.franz.agraph.http.storedproc.AGDecoder;
+import com.franz.agraph.http.storedproc.AGDeserializer;
+import com.franz.agraph.http.storedproc.AGEncoder;
+import com.franz.agraph.http.storedproc.AGSerializer;
 import com.franz.agraph.repository.AGQueryLanguage;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;

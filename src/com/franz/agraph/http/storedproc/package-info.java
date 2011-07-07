@@ -6,20 +6,10 @@
 ** http://www.eclipse.org/legal/epl-v10.html
 ******************************************************************************/
 
-package com.franz.agraph.http;
-
 /**
- *
+ * AllegroGraph client stored procedure support code for the
+ * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html">
+ * AllegroGraph HTTP Protocol</a> in support of {@link com.franz.agraph.http}.
+ * 
  */
-interface SerialConstants {
-
-	byte SO_VECTOR = 1;
-	byte SO_STRING = 5;
-	byte SO_NULL = 7;
-	byte SO_LIST = 8;
-	byte SO_POS_INTEGER = 9;
-	byte SO_END_OF_ITEMS = 10;
-	byte SO_NEG_INTEGER = 11;
-	byte SO_BYTEVECTOR = 15; // usb8 vector
-	
-}
+package com.franz.agraph.http.storedproc;

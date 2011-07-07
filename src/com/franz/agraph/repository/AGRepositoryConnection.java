@@ -1478,7 +1478,7 @@ implements RepositoryConnection, Closeable {
 	 * @param arguments name of arguments in the sparqlQuery
 	 * @see #getSpinFunction(String)
 	 * @see #deleteSpinFunction(String)
-	 * @see #putSpinMagicProperty(String, String, String)
+	 * @see #putSpinMagicProperty(String, String, String[])
 	 */
 	public void putSpinFunction(String uri, String sparqlQuery, String[] arguments) throws RepositoryException {
 		getHttpRepoClient().putSpinFunction(uri, sparqlQuery, arguments);
