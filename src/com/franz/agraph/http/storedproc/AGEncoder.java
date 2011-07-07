@@ -6,7 +6,7 @@
  ** http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
 
-package com.franz.agraph.http;
+package com.franz.agraph.http.storedproc;
 
 import java.util.ArrayList;
 
