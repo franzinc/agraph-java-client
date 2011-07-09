@@ -49,6 +49,7 @@ import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.query.BindingSet;
+import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.TupleQuery;
 import org.openrdf.query.TupleQueryResult;
 import org.openrdf.repository.RepositoryException;
@@ -820,16 +821,18 @@ public class Events extends Closer {
         private int id;
         private String timestamp;
         private final RandomDate dateMaker;
+	private final QueryLanguage language;
         AGRepositoryConnection conn;
         
-        public Querier(int theId, int theSecondsToRun, RandomDate dateMaker) throws Exception {
+        public Querier(int theId, int theSecondsToRun, RandomDate dateMaker, QueryLanguage lang) throws Exception {
             id = theId;
             secondsToRun = theSecondsToRun;
             this.dateMaker = dateMaker;
+	    language = lang;
             conn = connect();
         }
         
-        private int randomQuery(AGRepositoryConnection conn, ValueFactory vf, boolean trace) {
+	private int sparqlQuery(AGRepositoryConnection conn, ValueFactory vf, boolean trace) {
             // Pick a random customer
             String customerNT = NTriplesUtil.toNTriplesString(new RandomCustomer().makeValue());
             
@@ -850,27 +853,17 @@ public class Events extends Closer {
             
             String queryString;
             TupleQuery tupleQuery;
-            if (Defaults.hasOption("sparql")) {
-                queryString = String.format(
-                        "select ?s ?p ?o " +
-                        "from %s " +
-                        "where { " +
-                        "  ?s %s ?date . " +
-                        "  filter ( ( ?date >= %s ) && ( ?date <= %s ) ) " +
-                        "  ?s ?p ?o " +
-                        "}",
-                        customerNT, timestamp, startNT, endNT);
-                tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.SPARQL, queryString);
-            } else {
-                queryString = String.format(
-                        "(select (?s ?p ?o)" +
-                        "(:use-planner nil)" +
-                        "(q- ?s !%s (? !%s !%s) !%s)" +
-                        "(q- ?s ?p ?o !%s))",
-                        timestamp, startNT, endNT, customerNT, customerNT);
-                tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
-            }
-            
+	    queryString = String.format(
+		    "select ?s ?p ?o " +
+		    "from %s " +
+		    "where { " +
+		    "  ?s %s ?date . " +
+		    "  filter ( ( ?date >= %s ) && ( ?date <= %s ) ) " +
+		    "  ?s ?p ?o " +
+		    "}",
+		    customerNT, timestamp, startNT, endNT);
+	    tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.SPARQL, queryString);
+
             // Actually pull the full results to the client, then just count them
             TupleQueryResult result = null;
             int count = 0;
@@ -895,9 +888,75 @@ public class Events extends Closer {
             }
             
             return count;
+
+	}
+
+	private int prologQuery(AGRepositoryConnection conn, ValueFactory vf, boolean trace) {
+            // Pick a random customerdom
+            String customerNT = NTriplesUtil.toNTriplesString(new RandomCustomer().makeValue());
+            
+            // Pick a random date range
+            GregorianCalendar start, end;
+            start = FullDateRange.getRandom();
+            end = FullDateRange.getRandom();
+            
+            if (start.after(end)) {
+                GregorianCalendar swap = end;
+                end = start;
+                start = swap;
+            }
+            
+            String startNT, endNT;
+            startNT = NTriplesUtil.toNTriplesString(CalendarToValue(start));
+            endNT = NTriplesUtil.toNTriplesString(CalendarToValue(end));
+            
+            String queryString;
+            TupleQuery tupleQuery;
+
+	    queryString = String.format(
+		    "(select (?s ?p ?o)" +
+		    "(:use-planner nil)" +
+		    "(q- ?s !%s (? !%s !%s) !%s)" +
+		    "(q- ?s ?p ?o !%s))",
+		    timestamp, startNT, endNT, customerNT, customerNT);
+	    tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
+
+            // Actually pull the full results to the client, then just count them
+            TupleQueryResult result = null;
+            int count = 0;
+            try {
+                if (Defaults.VERBOSE > 0 && trace) {
+                    trace("query: %s", queryString);
+                }
+                result = tupleQuery.evaluate();
+                count = count(result);
+                // test sparql and prolog return same results:
+                //				Set<Stmt> stmts = Stmt.statementSet(result);
+                //				count = stmts.size();
+                //				AGAbstractTest.assertSetsEqual(queryString, stmts,
+                //						Stmt.statementSet(tupleQuery2.evaluate()));
+            } catch (Exception e) {
+    			errors++;
+                trace("Error executing query:\n%s\n", queryString);
+                e.printStackTrace();
+                count = -1;
+            } finally {
+                Events.this.close(result);
+            }
+            
+            return count;
+	}
+
+        private int randomQuery(AGRepositoryConnection conn, ValueFactory vf, boolean trace) {
+
+		if(this.language == AGQueryLanguage.PROLOG) {
+			return prologQuery(conn, vf, trace);
+		} else {
+			return sparqlQuery(conn, vf, trace);
+		} 
         }
         
-        private int count(TupleQueryResult result) throws Exception {
+	private int count(TupleQueryResult result) throws Exception {
             int count = 0;
             while (result.hasNext()) {
                 result.next();
@@ -1325,21 +1384,26 @@ public class Events extends Closer {
 		trace("Phase 0 Begin: Launching child query workers.");
 
                 ExecutorService executor = Executors.newFixedThreadPool(Defaults.QUERY_WORKERS);
-                List<Callable<Object>> queriers = new ArrayList<Callable<Object>>(Defaults.QUERY_WORKERS);
+                List<Callable<Object>> sparqlQueriers = new ArrayList<Callable<Object>>(Defaults.QUERY_WORKERS);
+                List<Callable<Object>> prologQueriers = new ArrayList<Callable<Object>>(Defaults.QUERY_WORKERS);
                 for (int task = 0; task < Defaults.QUERY_WORKERS; task++) {
-                    queriers.add(new Querier(task, Defaults.QUERY_TIME*60, FullDateRange));
+		    sparqlQueriers.add(new Querier(task, Defaults.QUERY_TIME*60, FullDateRange,
+						   AGQueryLanguage.SPARQL));
+                    prologQueriers.add(new Querier(task, Defaults.QUERY_TIME*60, FullDateRange,
+						   AGQueryLanguage.PROLOG));
                 }
                 end = System.currentTimeMillis();
                 seconds = (end - start) / 1000.0;
 		trace("Phase 0 End: Initial query_workers took " + seconds + " seconds.");
-                trace("Phase 4 Begin: Perform customer/date range queries with %d processes for %d minutes.",
+                trace("Phase 4 Begin: Perform SPARQL queries with %d processes for %d minutes.",
                         Defaults.QUERY_WORKERS, Defaults.QUERY_TIME);
                 Monitor.start(4);
                 int queries = 0;
                 long triples = 0;
                 start = System.currentTimeMillis();
+		// sparql first, then prolog second
                 try {
-                    List<Future<Object>> fs = executor.invokeAll(queriers);
+                    List<Future<Object>> fs = executor.invokeAll(sparqlQueriers);
                     for (Future<Object> f : fs) {
                         QueryResult queryResult = (QueryResult) f.get();
                         queries += queryResult.queries;
@@ -1359,13 +1423,45 @@ public class Events extends Closer {
 		      "%d triples/query).", triples, queries, logtime(seconds),
 		      logtime(triples/seconds), logtime(queries/seconds), triples/queries);
                 Monitor.stop(4, conn);
+
+                closeAll(sparqlQueriers);
+
+                trace("Phase 5 Begin: Perform PROLOG queries with %d processes for %d minutes.",
+                        Defaults.QUERY_WORKERS, Defaults.QUERY_TIME);
+                Monitor.start(5);
+                queries = 0;
+                triples = 0;
+                start = System.currentTimeMillis();
+		// sparql first, then prolog second
+                try {
+                    List<Future<Object>> fs = executor.invokeAll(prologQueriers);
+                    for (Future<Object> f : fs) {
+                        QueryResult queryResult = (QueryResult) f.get();
+                        queries += queryResult.queries;
+                        triples += queryResult.triples;
+                    }
+                } catch (InterruptedException e) {
+        			errors++;
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+        			errors++;
+                    e.printStackTrace();
+                }
+                end = System.currentTimeMillis();
+                seconds = (end - start) / 1000.0;
+                trace("Phase 5 End: %d total triples returned over %d queries in " +
+		      "%.1f seconds (%.2f triples/second, %.2f queries/second, " +
+		      "%d triples/query).", triples, queries, logtime(seconds),
+		      logtime(triples/seconds), logtime(queries/seconds), triples/queries);
+                Monitor.stop(5, conn);
+
                 executor.shutdown();
-                closeAll(queriers);
+                closeAll(prologQueriers);
             }
         }
         
         /////////////////////////////////////////////////////////////////////// PHASE 5
-        if (Defaults.PHASE <= 5 && Defaults.DELETE_WORKERS > 0) {
+        if (Defaults.PHASE <= 6 && Defaults.DELETE_WORKERS > 0) {
             long triplesStart = conn.size();
 	    long start = System.currentTimeMillis(), end;
 	    double seconds;
@@ -1381,8 +1477,8 @@ public class Events extends Closer {
 	    end = System.currentTimeMillis();
 	    seconds = (end - start) / 1000.0;
 	    trace("Phase 0 End: Initial delete_workers took " + seconds + " seconds.");
-            trace("Phase 5 Begin: Shrink store by 1 month.");
-            Monitor.start(5);
+            trace("Phase 6 Begin: Shrink store by 1 month.");
+            Monitor.start(6);
             start = System.currentTimeMillis();
             invokeAndGetAll(executor, tasks);
             end = System.currentTimeMillis();
@@ -1391,14 +1487,14 @@ public class Events extends Closer {
             long triplesEnd = conn.size();
             long triples = triplesEnd - triplesStart;
             seconds = (end - start) / 1000.0;
-            trace("Phase 5 End: %d total triples deleted in %.1f seconds " +
+            trace("Phase 6 End: %d total triples deleted in %.1f seconds " +
 		  "(%.2f triples/second). Store contains %d triples.", triples,
 		  logtime(seconds), logtime(triples/seconds), triplesEnd);
-            Monitor.stop(5, conn);
+            Monitor.stop(6, conn);
         }
         
-        if (Defaults.PHASE <= 6 && Defaults.MIXED_RUNS != 0) {
-            Monitor.start(6);
+        if (Defaults.PHASE <= 7 && Defaults.MIXED_RUNS != 0) {
+            Monitor.start(7);
             RandomDate smallCommitsRange = SmallCommitsRange;
             RandomDate fullDateRange = FullDateRange;
             RandomDate deleteRangeOne = DeleteRangeOne;
@@ -1422,7 +1518,7 @@ public class Events extends Closer {
                     tasks.add(new Loader(task, Defaults.SIZE/10, 1, smallCommitsRange));
                 }
                 for (int task = 0; task < Defaults.QUERY_WORKERS; task++) {
-                    tasks.add(new Querier(task, Defaults.QUERY_TIME*60, fullDateRange));
+			tasks.add(new Querier(task, Defaults.QUERY_TIME*60, fullDateRange, AGQueryLanguage.SPARQL));
                 }
                 if (Defaults.DELETE_WORKERS > 0) {
                     tasks.add(new Deleter(deleteRangeOne));
@@ -1466,7 +1562,7 @@ public class Events extends Closer {
                 closeAll(tasks);
             }
             executor.shutdown();
-            Monitor.stop(6, conn);
+            Monitor.stop(7, conn);
         }
         
         /////////////////////////////////////////////////////////////////////// END
