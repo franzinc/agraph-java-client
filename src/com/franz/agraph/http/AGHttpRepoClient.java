@@ -224,6 +224,7 @@ public class AGHttpRepoClient implements Closeable {
 			AGResponseHandler handler = new AGResponseHandler("");
 			try {
 				getHTTPClient().post(url, headers, params.toArray(new NameValuePair[params.size()]), null, handler);
+				usingDedicatedSession = true;
 			} catch (RDFParseException e) {
 				// bug.
 				throw new RuntimeException(e);
