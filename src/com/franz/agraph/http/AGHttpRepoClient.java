@@ -1739,7 +1739,7 @@ public class AGHttpRepoClient implements Closeable {
 	 */
 	public String callStoredProcEncoded(String functionName, String moduleName, String argsEncoded)
 	throws RepositoryException {
-		String url = AGProtocol.getStoredProcLocation(repoRoot)+"/"+functionName;
+		String url = AGProtocol.getStoredProcLocation(getRoot())+"/"+functionName;
 		Header[] headers = { new Header("x-scripts", moduleName) };
 		NameValuePair[] params = { new NameValuePair("spargstr", argsEncoded) };
 		AGResponseHandler handler = new AGResponseHandler("");
