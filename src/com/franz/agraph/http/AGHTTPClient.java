@@ -80,9 +80,10 @@ implements Closeable {
 		    mManager = new MultiThreadedHttpConnectionManager();
 		    manager = mManager;
 		    
-			// Allow 20 concurrent connections to the same host (default is 2)
+			// Allow "unlimited" concurrent connections to the same host (default is 2)
 			HttpConnectionManagerParams params = new HttpConnectionManagerParams();
-			params.setDefaultMaxConnectionsPerHost(20);
+			params.setDefaultMaxConnectionsPerHost(Integer.MAX_VALUE);
+			params.setMaxTotalConnections(Integer.MAX_VALUE);
 			manager.setParams(params);
 		}
 		httpClient = new HttpClient(manager);
