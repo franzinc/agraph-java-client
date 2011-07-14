@@ -280,6 +280,27 @@ public class ServerCodeTests extends AGAbstractTest {
     	//Assert.assertNotNull("add-a-triple", sp.addATriple(vf.createURI("http://test.com/s"), vf.createURI("http://test.com/p"), vf.createURI("http://test.com/p")));
     }
     
+    @Test
+    public void storedProcs_rollbackAfterException_spr38315() throws Exception {
+    	SProcTest sp = new SProcTest(conn);
+    	conn.setAutoCommit(false);
+    	long count = conn.size();
+    	try {
+    		// add a triple
+    		Assert.assertNotNull("add-a-triple-int", sp.addATripleInt(1));
+    		Assert.assertEquals("expected a change in triple count", count+1, conn.size());
+    		assertEqualsDeep("get-a-triple-int", Stmt.stmts(new Stmt(vf.createURI("http://test.com/add-a-triple-int"),
+    			vf.createURI("http://test.com/p"), vf.createLiteral(1))),
+    			Stmt.stmts( new Stmt(sp.getATripleInt(1))));
+    		// this should throw an AGCustomStoredProcException
+    		sp.bestBeNull("foo");
+    		Assert.fail("expected an exception.");
+    	} catch (AGCustomStoredProcException e) {
+    		conn.rollback();
+    	}
+    	Assert.assertEquals("expected no change in triple count", count, conn.size());
+    }
+    
     // rfe10256: support loadInitFile param
     
     /**
