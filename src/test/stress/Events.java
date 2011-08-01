@@ -55,16 +55,17 @@ import org.openrdf.query.TupleQueryResultHandlerException;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.rio.ntriples.NTriplesUtil;
 
-import test.Closer;
-
+import com.franz.agraph.pool.AGConnPool;
+import com.franz.agraph.pool.AGConnPoolJndiFactory;
+import com.franz.agraph.pool.AGConnPropFactory;
 import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGQueryLanguage;
-import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
 import com.franz.agraph.repository.AGStreamTupleQuery;
 import com.franz.agraph.repository.AGTupleQuery;
 import com.franz.util.Closeable;
+import com.franz.util.Closer;
 import com.franz.util.Util;
 
 public class Events extends Closer {
@@ -355,18 +356,31 @@ public class Events extends Closer {
         formatter.format(format, values);
         System.out.println(sb.toString());
     }
-
-    public AGRepositoryConnection connect() throws RepositoryException {
-        AGServer server = closeLater( new AGServer(findServerUrl(), username(), password()) );
-        AGCatalog cat = server.getCatalog(Defaults.CATALOG);
-        AGRepository repo = closeLater( cat.createRepository(Defaults.REPOSITORY) );
-        repo.initialize();
-        AGRepositoryConnection conn = closeLater( repo.getConnection() );
-        // Force an auto-committing non-shared backend 
-        conn.setAutoCommit(false);
-        conn.setAutoCommit(true);
-        trace("Dedicated backend: " + conn.getHttpRepoClient().getRoot());
-        return conn;
+    
+	private AGConnPool pool;
+	
+	public AGRepositoryConnection connect() throws RepositoryException {
+		if (pool == null) {
+			pool = closeLater( new AGConnPoolJndiFactory().createPool(
+					test.Util.toMap(test.Util.toStrings(new Object[] {
+							AGConnPropFactory.Prop.URL, findServerUrl(),
+							AGConnPropFactory.Prop.USERNAME, username(),
+							AGConnPropFactory.Prop.PASSWORD, password(),
+							AGConnPropFactory.Prop.CATALOG, Defaults.CATALOG,
+							AGConnPropFactory.Prop.REPOSITORY, Defaults.REPOSITORY,
+							AGConnPropFactory.Prop.SESSION, AGConnPropFactory.Session.DEDICATED
+					})),
+					test.Util.toMap(test.Util.toStrings(new Object[] {
+							AGConnPoolJndiFactory.PoolProp.MAX_ACTIVE, 30,
+							AGConnPoolJndiFactory.PoolProp.MAX_WAIT, TimeUnit.MINUTES.toMillis(1),
+							AGConnPoolJndiFactory.PoolProp.MAX_IDLE, 40,
+							AGConnPoolJndiFactory.PoolProp.MIN_IDLE, 20
+					}))));
+			//pool.delegate.setTimeBetweenEvictionRunsMillis(TimeUnit.MINUTES.toMillis(30));
+			//pool.delegate.setNumTestsPerEvictionRun(-2);
+			//pool.delegate.setTestWhileIdle(true);
+		}
+		return closeLater(pool.borrowConnection());
     }
 
     private static class ThreadVars {
@@ -969,7 +983,7 @@ public class Events extends Closer {
 		@Override
 		public void close() {
 			Events.this.close(conn);
-		}
+	}
     }
     
     class Deleter implements Callable<Object>, Closeable {
@@ -1191,7 +1205,7 @@ public class Events extends Closer {
     		// exit with error
     		throw new Exception("Errors during execution: " + events.errors);
     	}
-		System.exit(0);
+        System.exit(0);
     }
     
     public void run(String[] args) throws Exception {

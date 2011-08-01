@@ -52,6 +52,8 @@
         <path location="${lib}/jena-2.6.2/wstx-asl-3.2.9.jar"/>
         <path location="${lib}/jena-2.6.2/xercesImpl-2.7.1.jar"/>
         <path location="${lib}/commons-cli-1.2.jar"/>
+        <path location="${lib}/commons-pool-1.5.5.jar"/>
+        <path location="${lib}/servlet-api-2.5.jar"/>
     </path>
     
     <target name="init">
@@ -172,7 +174,7 @@
                  noindex="false"
                  nonavbar="false"
                  notree="false"
-                 packagenames="com.franz.agraph.jena,com.franz.agraph.repository,com.franz.openrdf.rio.nquads,com.franz.util"
+                 packagenames="com.franz.agraph.jena,com.franz.agraph.repository,com.franz.openrdf.rio.nquads,com.franz.util,com.franz.agraph.pool"
                  source="1.6"
                  sourcepath="src"
                  splitindex="true"
@@ -433,6 +435,18 @@
         <artifact:install file="lib/sesame-2.3.2/openrdf-sesame-2.3.2-onejar.jar">
             <pom refid="sesame"/>
         </artifact:install>
+    </target>
+	
+    <target name="test-war"
+            depends="compile"
+            description="builds agraph-test.war">
+        <war destfile="target/agraph-test.war"
+             webxml="src/test/web/web.xml">
+            <classes dir="classes" includes="**/*"/>
+            <lib dir="lib" includes="*.jar" excludes="servlet-api-2.5.jar"/>
+            <lib dir="lib/sesame-2.3.2" includes="*.jar"/>
+            <lib dir="lib/logging" includes="*.jar"/>
+        </war>
     </target>
 
 </project>
