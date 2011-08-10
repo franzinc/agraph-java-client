@@ -63,13 +63,14 @@ public class Util {
         return null;
     }
     
-    public static CloseableIteration close(CloseableIteration o) {
+    public static <Elem extends Object, Exc extends Exception>
+    CloseableIteration<Elem, Exc> close(CloseableIteration<Elem, Exc> o) {
         if (o != null) {
             try {
                 o.close();
             } catch (Exception e) {
-				if (logger.isWarnEnabled())
-					logger.warn("ignoring error with close:" + e);
+                if (logger.isWarnEnabled())
+                    logger.warn("ignoring error with close:" + e);
             }
         }
         return null;
@@ -80,8 +81,8 @@ public class Util {
             try {
                 o.close();
             } catch (Exception e) {
-				if (logger.isWarnEnabled())
-					logger.warn("ignoring error with close:" + e);
+                if (logger.isWarnEnabled())
+                    logger.warn("ignoring error with close:" + e);
             }
         }
         return null;

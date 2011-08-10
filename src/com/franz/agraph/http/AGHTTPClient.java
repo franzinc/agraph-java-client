@@ -86,6 +86,7 @@ implements Closeable {
 			manager.setParams(params);
 		}
 		httpClient = new HttpClient(manager);
+		logger.debug("connect: " + serverURL + " " + httpClient + " " + manager);
 	}
 
 	public String getServerURL() {
@@ -383,6 +384,7 @@ implements Closeable {
 
     @Override
     public void close() {
+        logger.debug("close: " + serverURL + " " + mManager);
         Util.close(this.mManager);
     }
 
