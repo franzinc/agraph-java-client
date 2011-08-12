@@ -18,8 +18,11 @@ import org.openrdf.model.Value;
 import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.rio.ntriples.NTriplesUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.franz.agraph.http.AGHTTPClient;
+import com.franz.agraph.http.AGHttpRepoClient;
 import com.hp.hpl.jena.graph.Node;
 
 /**
@@ -35,6 +38,8 @@ public class AGValueFactory extends ValueFactoryImpl {
 	private String[] blankNodeIds;
 	private int index = -1;
 	
+	public String PREFIX_FOR_EXTERNAL_BNODES = "urn:x-bnode:";
+
 	public AGValueFactory(AGRepository repository) {
 		super();
 		this.repository = repository;
@@ -83,6 +88,21 @@ public class AGValueFactory extends ValueFactoryImpl {
 		return id.substring(2);   // strip off leading '_:'; 
 	}
 	
+	/**
+	 * Returns a new blank node with the given id.
+	 * 
+	 * Consider using createBNode() instead to get an AG-allocated id,
+	 * it is safer (avoids unintended blank node conflicts) and can be
+	 * stored more efficiently.
+	 * 
+	 * If id is null or empty, returns a unique BNode with AG-allocated
+	 * id; otherwise, returns a BNode with the given (a.k.a. "external")
+	 * id (careful to avoid blank node conflicts).  See the javadoc for 
+	 * allowing external blank nodes for more discussion.
+	 *    
+	 * @see AGHttpRepoClient#setAllowExternalBlankNodeIds(boolean)
+	 * @see AGRepositoryConnection#getHttpRepoClient()
+	 */
 	@Override
 	public BNode createBNode(String nodeID) {
 		if (nodeID == null || "".equals(nodeID))
@@ -90,6 +110,17 @@ public class AGValueFactory extends ValueFactoryImpl {
 		return super.createBNode(nodeID);
 	}
 
+	/**
+	 * Returns a new blank node.
+	 * 
+	 * If this value factory is for an AGRepository, returns a new BNode
+	 * with an AG-allocated id; otherwise, returns a new BNode with an 
+	 * "external" id (using ValueFactoryImpl).  See also the javadoc for 
+	 * allowing external blank nodes for more discussion.
+	 *    
+	 * @see AGHttpRepoClient#setAllowExternalBlankNodeIds(boolean)
+	 * @see AGRepositoryConnection#getHttpRepoClient()
+	 */
 	@Override
 	public BNode createBNode() {
 		if (repository instanceof AGRepository) {
@@ -112,7 +143,8 @@ public class AGValueFactory extends ValueFactoryImpl {
 		} else if (node.isURI()) {
 			val = createURI(node.getURI());
 		} else if (node.isBlank()) {
-			val = createBNode(node.getBlankNodeLabel());
+			String id = node.getBlankNodeLabel();
+			val = createBNode(id); 
 		} else if (node.isLiteral()) {
 			String lang = node.getLiteralLanguage();
 			if (node.getLiteralDatatypeURI()!=null) {
@@ -130,6 +162,40 @@ public class AGValueFactory extends ValueFactoryImpl {
 		return val;
 	}
 
+	/**
+	 * Return true iff id looks like an AG blank node id.
+	 * 
+	 * AG blank node ids currently have the following form:
+	 * 
+	 * bF010696Fx1
+	 * 
+	 * The printing is _:b[store ID in hex]x[blank node number].
+	 * There is nothing sacrosanct about this but it is unlikely
+	 * to change.
+	 *  
+	 * @param id the string to be tested
+	 * @return true iff id looks like an AG blank node id
+	 */
+	public boolean isAGBlankNodeId(String id) {
+		boolean startsWithB = id.startsWith("b");
+		if (!startsWithB) return false;
+		// store id's are currently 8 chars
+		boolean storeIdThenX = id.length()>9 ? id.charAt(9)=='x' : false;
+		if (!storeIdThenX) return false;
+		boolean endsWithNumber;
+		try {
+			Long.parseLong(id.substring(10));
+			endsWithNumber = true;
+		} catch (NumberFormatException e) {
+			endsWithNumber = false;
+		}
+		return endsWithNumber;
+	}
+
+	public boolean isURIForExternalBlankNode(Value v) {
+		return v.stringValue().startsWith(PREFIX_FOR_EXTERNAL_BNODES);
+	}
+	
 	public Resource asResource(Node node) {
 		Resource res;
 		if (node==null || node==Node.ANY) {
@@ -137,7 +203,7 @@ public class AGValueFactory extends ValueFactoryImpl {
 		} else if (node.isURI()) {
 			res = createURI(node.getURI());
 		} else if (node.isBlank()) {
-			res = createBNode(node.getBlankNodeLabel());
+			res = createBNode(node.getBlankNodeLabel()); 
 		} else {
 			throw new IllegalArgumentException("Cannot convert Node to Resource: " + node);
 		}

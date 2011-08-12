@@ -19,9 +19,15 @@ import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
+import com.hp.hpl.jena.db.impl.DBReifier;
 import com.hp.hpl.jena.graph.Graph;
 import com.hp.hpl.jena.graph.GraphMaker;
+import com.hp.hpl.jena.graph.Node;
+import com.hp.hpl.jena.graph.Reifier;
+import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.graph.test.AbstractTestReifier;
+import com.hp.hpl.jena.graph.test.NodeCreateUtils;
+import com.hp.hpl.jena.shared.AlreadyReifiedException;
 import com.hp.hpl.jena.shared.ReificationStyle;
 
 public class AGReifierTest extends AbstractTestReifier {
@@ -97,6 +103,7 @@ public class AGReifierTest extends AbstractTestReifier {
 
 	@Override
 	public Graph getGraph() {
+		GraphMaker maker = new AGGraphMaker(conn,ReificationStyle.Standard);
 		Graph graph = maker.createGraph("http://named" + graphId);
 		graphId++;
 		return graph;
@@ -111,4 +118,36 @@ public class AGReifierTest extends AbstractTestReifier {
 		return graph;
 	}
 
+	/**
+	 * Override as AG doesn't test for reification clash.
+	 * 
+	 * @see com.hp.hpl.jena.graph.test.AbstractTestReifier#testReificationClash(java.lang.String)
+	 */
+	@Override
+	protected void testReificationClash( String clashingStatement )
+    {
+    }
+	
+	/**
+	 * Override as AG doesn't allow UUID's as blank node id's 
+	 */
+    public void testRetrieveTriplesByNode()
+    {
+    Graph G = getGraph();
+    Reifier R = G.getReifier();
+    Node N = Node.createAnon(), M = Node.createAnon();
+    N = R.reifyAs( N, triple( "x R y" ) );
+    assertEquals( "gets correct triple", triple( "x R y" ), R.getTriple( N ) );
+    M = R.reifyAs( M, triple( "p S q" ) );
+    assertDiffer( "the anon nodes must be distinct", N, M );
+    assertEquals( "gets correct triple", triple( "p S q" ), R.getTriple( M ) );
+/* */
+    assertTrue( "node is known bound", R.hasTriple( M ) );
+    assertTrue( "node is known bound", R.hasTriple( N ) );
+    assertFalse( "node is known unbound", R.hasTriple( Node.createURI( "any:thing" ) ) );
+/* */
+//  Graph GR = R.getReifiedTriples();
+//  assertTrue( "reified triples", getGraphWith( "x R y; p S q" ).isIsomorphicWith(GR) );
+//  assertTrue( "untouched graph", getGraph().isIsomorphicWith(G) );
+    }
 }

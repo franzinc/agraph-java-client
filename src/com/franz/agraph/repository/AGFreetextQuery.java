@@ -76,7 +76,7 @@ public class AGFreetextQuery {
 			RDFHandlerException {
 		try {
 			conn.getHttpRepoClient().evalFreetextQuery(pattern, expression, index, sorted, limit, offset, 
-						new AGRDFHandler(conn.getHttpRepoClient().getPreferredRDFFormat(), handler, conn.getValueFactory()));
+						new AGRDFHandler(conn.getHttpRepoClient().getPreferredRDFFormat(), handler, conn.getValueFactory(),conn.getHttpRepoClient().getAllowExternalBlankNodeIds()));
 		} catch (RepositoryException e) {
 			throw new QueryEvaluationException(e);
 		}

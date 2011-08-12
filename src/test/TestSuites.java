@@ -73,7 +73,8 @@ public class TestSuites {
         AGGraphQueryTests.class,
         QueryLimitOffsetTests.class,
         UntypedLiteralMatchingTest.class,
-        AGConnPoolSessionTest.class
+        AGConnPoolSessionTest.class,
+        BlankNodeTests.class
     })
     public static class Prepush {}
     
