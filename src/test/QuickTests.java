@@ -81,6 +81,7 @@ public class QuickTests extends AGAbstractTest {
     	URI property = vf.createURI("http://lumas#hasId");
     	BNode node = vf.createBNode("newId");
     	
+    	conn.getHttpRepoClient().setAllowExternalBlankNodeIds(true);
     	conn.add(orderedCollection, property, node);
     	
     	RepositoryResult<Statement> result = closeLater( conn.getStatements(null, null, null, false));

@@ -261,6 +261,8 @@ public class AGGraph extends GraphBase implements Graph, Closeable {
 	protected Reifier constructReifier() {
 		if (!style.intercepts() && !style.conceals()) {
 			return new SimpleReifier( this, new EmptyReifierTripleMap(), new EmptyReifierFragmentsMap(), style );
+		} else if (style == ReificationStyle.Standard){
+			return new AGReifier( this );
 		} else {
 			return new SimpleReifier( this, style );
 		}

@@ -181,6 +181,10 @@ implements RepositoryConnection, Closeable {
 		return repository;
 	}
 
+	/**
+	 * Returns the lower level HTTP/Storage layer for this connection.
+	 * 
+	 */
 	public AGHttpRepoClient getHttpRepoClient() {
 		return repoclient;
 	}
@@ -236,21 +240,21 @@ implements RepositoryConnection, Closeable {
 		JSONArray rows = new JSONArray();
 		if (contexts.length==0) {
 			JSONArray row = new JSONArray().put(
-				NTriplesUtil.toNTriplesString(st.getSubject())).put(
-				NTriplesUtil.toNTriplesString(st.getPredicate())).put(
-				NTriplesUtil.toNTriplesString(st.getObject()));
+					encodeValueForStorageJSON(st.getSubject())).put(
+							encodeValueForStorageJSON(st.getPredicate())).put(
+									encodeValueForStorageJSON(st.getObject()));
 			if (st.getContext() != null) {
-				row.put(NTriplesUtil.toNTriplesString(st.getContext()));
+				row.put(encodeValueForStorageJSON(st.getContext()));
 			}
 			rows.put(row);
 		} else {
 			for (Resource c: contexts) {
 				JSONArray row = new JSONArray().put(
-						NTriplesUtil.toNTriplesString(st.getSubject())).put(
-								NTriplesUtil.toNTriplesString(st.getPredicate())).put(
-										NTriplesUtil.toNTriplesString(st.getObject()));
+						encodeValueForStorageJSON(st.getSubject())).put(
+								encodeValueForStorageJSON(st.getPredicate())).put(
+										encodeValueForStorageJSON(st.getObject()));
 				if (c != null) {
-					row.put(NTriplesUtil.toNTriplesString(c));
+					row.put(encodeValueForStorageJSON(c));
 				}
 				rows.put(row);
 			}
@@ -258,6 +262,10 @@ implements RepositoryConnection, Closeable {
 		return rows;
 	}
 
+	private String encodeValueForStorageJSON(Value v) {
+		return NTriplesUtil.toNTriplesString(repoclient.getStorableValue(v,vf));
+	}
+	
 	@Override
 	protected void addInputStreamOrReader(Object inputStreamOrReader,
 			String baseURI, RDFFormat dataFormat, Resource... contexts)
@@ -1017,7 +1025,7 @@ implements RepositoryConnection, Closeable {
 			float ymax, int limit, boolean infer) throws RepositoryException {
 		StatementCollector collector = new StatementCollector();
 		AGResponseHandler handler = new AGRDFHandler(getHttpRepoClient().getPreferredRDFFormat(),
-				collector, getValueFactory());
+				collector, getValueFactory(),getHttpRepoClient().getAllowExternalBlankNodeIds());
 		getHttpRepoClient().getGeoBox(NTriplesUtil.toNTriplesString(type),
 		                              NTriplesUtil.toNTriplesString(predicate),
 		                              xmin, xmax, ymin, ymax, limit, infer, handler);
@@ -1029,7 +1037,7 @@ implements RepositoryConnection, Closeable {
 			int limit, boolean infer) throws RepositoryException {
 		StatementCollector collector = new StatementCollector();
 		AGResponseHandler handler = new AGRDFHandler(getHttpRepoClient().getPreferredRDFFormat(),
-				collector, getValueFactory());
+				collector, getValueFactory(),getHttpRepoClient().getAllowExternalBlankNodeIds());
 		getHttpRepoClient().getGeoCircle(NTriplesUtil.toNTriplesString(type),
 		                                 NTriplesUtil.toNTriplesString(predicate),
 		                                 x, y, radius, limit, infer, handler);
@@ -1041,7 +1049,7 @@ implements RepositoryConnection, Closeable {
 			String unit, int limit, boolean infer) throws RepositoryException {
 		StatementCollector collector = new StatementCollector();
 		AGResponseHandler handler = new AGRDFHandler(getHttpRepoClient().getPreferredRDFFormat(),
-				collector, getValueFactory());
+				collector, getValueFactory(),getHttpRepoClient().getAllowExternalBlankNodeIds());
 		getHttpRepoClient().getGeoHaversine(NTriplesUtil.toNTriplesString(type),
 		                                    NTriplesUtil.toNTriplesString(predicate),
 		                                    lat, lon, radius, unit, limit, infer, handler);
@@ -1052,7 +1060,7 @@ implements RepositoryConnection, Closeable {
 			URI predicate, URI polygon, int limit, boolean infer) throws RepositoryException {
 		StatementCollector collector = new StatementCollector();
 		AGResponseHandler handler = new AGRDFHandler(getHttpRepoClient().getPreferredRDFFormat(),
-				collector, getValueFactory());
+				collector, getValueFactory(),getHttpRepoClient().getAllowExternalBlankNodeIds());
 		getHttpRepoClient().getGeoPolygon(NTriplesUtil.toNTriplesString(type), NTriplesUtil.toNTriplesString(predicate), NTriplesUtil.toNTriplesString(polygon), limit, infer, handler);
 		return createRepositoryResult(collector.getStatements());
 	}

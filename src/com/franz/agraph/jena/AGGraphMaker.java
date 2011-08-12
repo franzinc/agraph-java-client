@@ -42,12 +42,14 @@ public class AGGraphMaker implements GraphMaker, Closeable {
     protected Map<String, AGGraph> created = CollectionFactory.createHashedMap();
 
     public AGGraphMaker(AGRepositoryConnection conn) {
-		this.conn = conn;
-		this.style = ReificationStyle.Minimal;
+    	this(conn,ReificationStyle.Minimal);
 	}
 
     public AGGraphMaker(AGRepositoryConnection conn, ReificationStyle style) {
     	this.conn = conn;
+    	// It's common enough for Jena applications to use ResourceFactory to 
+    	// create new blank nodes, so experimentally enable this by default
+    	conn.getHttpRepoClient().setAllowExternalBlankNodeIds(true);
     	this.style = style;
     }
     

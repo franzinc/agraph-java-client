@@ -37,10 +37,10 @@ import org.openrdf.OpenRDFException;
 import org.openrdf.OpenRDFUtil;
 import org.openrdf.http.protocol.Protocol;
 import org.openrdf.http.protocol.UnauthorizedException;
+import org.openrdf.model.BNode;
 import org.openrdf.model.Resource;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.URIImpl;
 import org.openrdf.query.Binding;
 import org.openrdf.query.Dataset;
@@ -51,7 +51,6 @@ import org.openrdf.query.TupleQueryResultHandlerException;
 import org.openrdf.query.impl.TupleQueryResultBuilder;
 import org.openrdf.query.resultio.BooleanQueryResultFormat;
 import org.openrdf.query.resultio.TupleQueryResultFormat;
-import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFHandler;
@@ -67,12 +66,17 @@ import com.franz.agraph.http.handler.AGRDFHandler;
 import com.franz.agraph.http.handler.AGResponseHandler;
 import com.franz.agraph.http.handler.AGStringHandler;
 import com.franz.agraph.http.handler.AGTQRHandler;
+import com.franz.agraph.repository.AGAbstractRepository;
 import com.franz.agraph.repository.AGCustomStoredProcException;
 import com.franz.agraph.repository.AGQuery;
 import com.franz.agraph.repository.AGRDFFormat;
+import com.franz.agraph.repository.AGValueFactory;
 import com.franz.util.Closeable;
+import com.hp.hpl.jena.rdf.model.AnonId;
 
 /**
+ * The HTTP layer for interacting with AllegroGraph.
+ * 
  * TODO: rename this class.
  */
 public class AGHttpRepoClient implements Closeable {
@@ -118,12 +122,14 @@ public class AGHttpRepoClient implements Closeable {
 	private RDFFormat preferredRDFFormat = getDefaultRDFFormat();
 
 	private AGHTTPClient client;
-	private Repository repo;
+	private AGAbstractRepository repo;
 
 	public ConcurrentLinkedQueue<String> savedQueryDeleteQueue;
 
+	private boolean allowExternalBlankNodeIds = false;
+	
 
-    public AGHttpRepoClient(Repository repo, AGHTTPClient client, String repoRoot, String sessionRoot) {
+    public AGHttpRepoClient(AGAbstractRepository repo, AGHTTPClient client, String repoRoot, String sessionRoot) {
 		this.repo = repo;
 		this.sessionRoot = sessionRoot;
 		this.repoRoot = repoRoot;
@@ -137,7 +143,7 @@ public class AGHttpRepoClient implements Closeable {
 		else throw new RepositoryException("This session-only connection has been closed. Re-open a new one to start using it again.");
 	}
 
-	public ValueFactory getValueFactory() {
+	public AGValueFactory getValueFactory() {
 		return repo.getValueFactory();
 	}
 
@@ -312,8 +318,11 @@ public class AGHttpRepoClient implements Closeable {
 		Header[] headers = { new Header(ACCEPT_PARAM_NAME,
 				getPreferredRDFFormat().getDefaultMIMEType()) };
 
+		
+		AGValueFactory vf = getValueFactory();
 		List<NameValuePair> params = new ArrayList<NameValuePair>(5);
 		if (subj != null) {
+			subj = getStorableResource(subj,vf);
 			params.add(new NameValuePair(Protocol.SUBJECT_PARAM_NAME, Protocol
 					.encodeValue(subj)));
 		}
@@ -322,12 +331,14 @@ public class AGHttpRepoClient implements Closeable {
 					Protocol.encodeValue(pred)));
 		}
 		if (obj != null) {
+			obj = getStorableValue(obj,vf);
 			params.add(new NameValuePair(Protocol.OBJECT_PARAM_NAME, Protocol
 					.encodeValue(obj)));
 		}
-		for (String encodedContext : Protocol.encodeContexts(contexts)) {
+		for (Resource ctx : contexts) {
+			ctx = getStorableResource(ctx,vf);
 			params.add(new NameValuePair(Protocol.CONTEXT_PARAM_NAME,
-					encodedContext));
+					Protocol.encodeContext(ctx)));
 		}
 		params.add(new NameValuePair(Protocol.INCLUDE_INFERRED_PARAM_NAME,
 				includeInferred));
@@ -338,7 +349,7 @@ public class AGHttpRepoClient implements Closeable {
 					headers,
 					params.toArray(new NameValuePair[params.size()]),
 					new AGRDFHandler(getPreferredRDFFormat(), handler,
-							getValueFactory()));
+							getValueFactory(),getAllowExternalBlankNodeIds()));
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
@@ -361,7 +372,7 @@ public class AGHttpRepoClient implements Closeable {
 					uri,
 					headers,
 					params.toArray(new NameValuePair[params.size()]),
-					new AGRDFHandler(getPreferredRDFFormat(),handler,getValueFactory()));
+					new AGRDFHandler(getPreferredRDFFormat(),handler,getValueFactory(),getAllowExternalBlankNodeIds()));
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
@@ -718,7 +729,7 @@ public class AGHttpRepoClient implements Closeable {
 					url,
 					headers,
 					new NameValuePair[0],
-					new AGTQRHandler(getPreferredTQRFormat(), handler, getValueFactory()));
+					new AGTQRHandler(getPreferredTQRFormat(), handler, getValueFactory(),getAllowExternalBlankNodeIds()));
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
@@ -766,7 +777,7 @@ public class AGHttpRepoClient implements Closeable {
 					url,
 					headers,
 					new NameValuePair[0],
-					new AGTQRHandler(getPreferredTQRFormat(), handler, getValueFactory()));
+					new AGTQRHandler(getPreferredTQRFormat(), handler, getValueFactory(),getAllowExternalBlankNodeIds()));
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
@@ -1874,4 +1885,202 @@ public class AGHttpRepoClient implements Closeable {
 			throw new RepositoryException(e);
 		}
 	}
+	
+	/**
+	 * Enables/Disables an option to support external blank nodes (experimental).
+	 * <p>
+	 * Disabled by default.  Enable it from an AGRepositoryConnection using:
+	 * <p>
+	 * conn.getHttpRepoClient().setAllowExternalBlankNodeIds(true);
+	 * <p>
+	 * An external blank node is a blank node whose id is not generated
+	 * by AllegroGraph.  Applications should normally request new blank 
+	 * nodes from AllegroGraph [via the AGValueFactory#createBNode()
+	 * method in the Sesame api, or via the AGModel#createResource() 
+	 * method in the Jena adapter]; this helps to avoid unintended 
+	 * blank node id collisions (particularly in a multi-user setting)
+	 * and enables blank nodes to be stored more efficiently, etc.
+	 * <p>
+	 * Previously, for applications that did use an external blank node id 
+	 * [such as via AGValueFactory#createBNode("ex") in Sesame, or in Jena via
+	 * AGModel#createResource(AnonId.create("ex"))] or an external blank 
+	 * node factory [such as ValueFactoryImpl#createBNode() in Sesame or
+	 * ResourceFactory#createResource() in Jena], there were some issues 
+	 * that arose.  When the application tried to add a statement such 
+	 * as [_:ex p a] over HTTP, the AllegroGraph server allocates a new 
+	 * blank node id to use in place of the external blank node id _:ex, 
+	 * so that the actual statement stored is something like 
+	 * [_:bF010696Fx1 p a].  
+	 * <p>
+	 * There are 2 issues with this:
+	 * <p>
+	 * 1) adding a second statement such as [_:ex q b] in a subsequent
+	 *    request will result in another new bnode id being allocated, 
+	 *    so that the statement stored might be [_:bF010696Fx2 q b], 
+	 *    and the link between the two statements (that exists client
+	 *    side via blank node _:ex) is now lost.
+	 * <p>
+	 * 2) trying to get the statement [_:ex p a] will fail, because the
+	 *    actual statement stored is [_:bF010696Fx1 p a].
+	 * <p>
+	 * Note that these issues arise with external blank node ids because 
+	 * the server does not know their scope, and by default assumes that 
+	 * the scope is limited to the HTTP request in order to avoid blank
+	 * node conflicts.  When AG-allocated blank node ids are used instead, 
+	 * the two issues above do not arise (they are stored as is, and they 
+	 * will be found as expected with a get).  In short, AG-allocated blank
+	 * nodes round-trip, external blank nodes do not.  
+	 * <p>
+	 * One workaround for this is to have applications declare that they 
+	 * want external blank nodes to round-trip.  An external blank node 
+	 * can exist for the life of an application, and that life can exceed
+	 * the life an AllegroGraph server instance, so adding a statement
+	 * with an external blank node will need to persist the external blank
+	 * node's id somehow.  AllegroGraph doesn't currently allow storing blank 
+	 * nodes with an arbitrary external id, so this workaround converts them 
+	 * to URI's (of the form "urn:x-bnode:id" by default) for storage, and 
+	 * recovers the blank nodes with correct ids when the values are retrieved
+	 * in queries, so that applications continue to transparently deal with 
+	 * BNodes and see the expected behavior w.r.t. issues 1) and 2) above.
+	 * <p>
+	 * When enabling the workaround described here, the application must
+	 * take responsibility for using an external blank node factory that
+	 * avoids blank node conflicts, and must also be willing to incur the 
+	 * additional costs of storing external blank nodes as URIs.  When the
+	 * workaround is disabled (allow=false, the default), the application
+	 * must avoid using external blank nodes with AG (using AG-allocated
+	 * blank nodes instead); using external blank node ids when they are
+	 * not allowed will result in an explanatory exception (as opposed to
+	 * quietly exhibiting the two problems described above).
+	 * <p>
+	 * This method and approach are experimental and subject to change.
+	 * <p>
+	 * @param allow true enables a workaround to support external bnodes
+	 * @see #getAllowExternalBlankNodeIds()
+	 * @see AGValueFactory#isAGBlankNodeId(String)
+	 */
+	public void setAllowExternalBlankNodeIds(boolean allow) {
+		allowExternalBlankNodeIds = allow;
+	}
+	
+	/**
+	 * @return true iff this HTTP/Storage layer allows external blank node ids.
+	 * @see #setAllowExternalBlankNodeIds(boolean)
+	 * @see AGValueFactory#isAGBlankNodeId(String)
+	 */
+	public boolean getAllowExternalBlankNodeIds() {
+		return allowExternalBlankNodeIds;
+	}
+	
+	/**
+	 * Returns a storable Resource for the given Resource.
+	 * 
+	 * The intent is that the returned resource can be stored in an
+	 * AG repository, will round-trip if added to and retrieved from
+	 * the repository, and that the given Resource can be cheaply 
+	 * recreated from the returned resource.  
+	 * 
+	 * This method simply returns the original resource when it is a
+	 * URI or a BNode with an AG generated blank node id (these can be
+	 * stored and will round-trip).  For external BNodes (with an id 
+	 * that does not look like it was generated by AG), a URI of the 
+	 * form "urn:x-bnode:id" is returned when the connection allows 
+	 * external blank nodes; otherwise, an IllegalArgumentException is
+	 * thrown explaining the need to either avoid external blank nodes
+	 * or enable the workaround for external blank nodes.
+	 * 
+	 * This method is intended for use within the AG client library,
+	 * not for use by applications.
+	 * 
+	 * @param r a resource
+	 * @return a storable resource for the given resource
+	 * @see #getApplicationResource(Resource)
+	 * @see #setAllowExternalBlankNodeIds(boolean)
+	 */
+	public Resource getStorableResource(Resource r, AGValueFactory vf) {
+		Resource storable = r;
+		if (r instanceof BNode && !vf.isAGBlankNodeId(r.stringValue())) {
+			if (allowExternalBlankNodeIds) {
+				storable = vf.createURI(vf.PREFIX_FOR_EXTERNAL_BNODES + r.stringValue());
+			} else {
+				throw new IllegalArgumentException("Cannot store external blank node " + r + " in AllegroGraph with the current settings. Please see javadoc for AGHttpRepoClient#setAllowExternalBlankNodeIds(boolean) for more details and options.");
+			}
+		}
+		return storable;
+	}
+	
+	/**
+	 * Returns a storable Value for the given Value.
+	 * 
+	 * The intent is that the returned value can be stored in an
+	 * AG repository, will round-trip if added to and retrieved from
+	 * the repository, and that the given Value can be cheaply 
+	 * recreated from the returned value.  
+	 * 
+	 * This method simply returns the original value when it is a URI,
+	 * Literal, or BNode with AG generated blank node id (these can be
+	 * stored and will round-trip).  For external BNodes (with an id 
+	 * that does not look like it was generated by AG), a URI of the 
+	 * form "urn:x-bnode:id" is returned when the connection allows 
+	 * external blank nodes; otherwise, an IllegalArgumentException is
+	 * thrown explaining the need to either avoid external blank nodes
+	 * or enable the workaround for external blank nodes.
+	 * 
+	 * This method is intended for use within the AG client library,
+	 * not for use by applications.
+	 * 
+	 * @param v a value
+	 * @return a storable value for the given value
+	 * @see #getApplicationValue(Value)
+	 * @see #setAllowExternalBlankNodeIds(boolean)
+	 */
+	public Value getStorableValue(Value v, AGValueFactory vf) {
+		Value storable = v;
+		if (v instanceof BNode && !vf.isAGBlankNodeId(v.stringValue())) {
+			if (allowExternalBlankNodeIds) {
+				storable = vf.createURI(vf.PREFIX_FOR_EXTERNAL_BNODES + v.stringValue());
+			} else {
+				throw new IllegalArgumentException("Cannot store external blank node " + v + " in AllegroGraph with the current settings. Please see javadoc for AGHttpRepoClient#setAllowExternalBlankNodeIds(boolean) for more details and options.");
+			}
+		}
+		return storable;
+	}
+	
+	/**
+	 * Returns the application Resource for a given stored resource.
+	 * 
+	 * This method is intended for use within the AG client library,
+	 * not for use by applications.
+	 * 
+	 * @param stored a stored resource
+	 * @return the application resource
+	 * @see #getStorableResource(Resource)
+	 */
+	public static Resource getApplicationResource(Resource stored, AGValueFactory vf) {
+		Resource app = stored;
+		if (stored instanceof URI && vf.isURIForExternalBlankNode(stored)) {
+			app = vf.createBNode(stored.stringValue().substring(vf.PREFIX_FOR_EXTERNAL_BNODES.length()));
+		}
+		return app;
+	}
+	
+	/**
+	 * Returns the application Value for a given stored value.
+	 *  
+	 * This method is intended for use within the AG client library,
+	 * not for use by applications.
+	 * 
+	 * @param stored a stored value
+	 * @return the application value
+	 * @see #getStorableValue(Value)
+	 */
+	public static Value getApplicationValue(Value stored, AGValueFactory vf) {
+		Value app = stored;
+		if (stored instanceof URI && vf.isURIForExternalBlankNode(stored)) {
+			app = vf.createBNode(stored.stringValue().substring(vf.PREFIX_FOR_EXTERNAL_BNODES.length()));
+		}
+		return app;
+	}
+	
+
 }
