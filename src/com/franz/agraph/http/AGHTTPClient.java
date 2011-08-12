@@ -38,18 +38,16 @@ import org.openrdf.http.protocol.UnauthorizedException;
 import org.openrdf.query.TupleQueryResult;
 import org.openrdf.query.impl.TupleQueryResultBuilder;
 import org.openrdf.query.resultio.TupleQueryResultFormat;
-import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.rio.RDFParseException;
 import org.openrdf.rio.UnsupportedRDFormatException;
-import org.openrdf.sail.memory.MemoryStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.franz.agraph.http.handler.AGResponseHandler;
 import com.franz.agraph.http.handler.AGStringHandler;
 import com.franz.agraph.http.handler.AGTQRHandler;
+import com.franz.agraph.repository.AGValueFactory;
 import com.franz.util.Closeable;
 import com.franz.util.Util;
 
@@ -329,10 +327,9 @@ implements Closeable {
 	public TupleQueryResult getTupleQueryResult(String url) throws RepositoryException {
 		Header[] headers = { new Header(ACCEPT_PARAM_NAME, TupleQueryResultFormat.SPARQL.getDefaultMIMEType()) };
 		NameValuePair[] params = new NameValuePair[0];
-		Repository repo = new SailRepository( new MemoryStore() );
-		repo.initialize();
 		TupleQueryResultBuilder builder = new TupleQueryResultBuilder();
-		AGTQRHandler handler = new AGTQRHandler(TupleQueryResultFormat.SPARQL,builder,repo.getValueFactory());
+		// TODO: avoid using AGValueFactory(null)
+		AGTQRHandler handler = new AGTQRHandler(TupleQueryResultFormat.SPARQL,builder,new AGValueFactory(null),false);
 		try {
 			get(url, headers, params, handler);
 		} catch (IOException e) {

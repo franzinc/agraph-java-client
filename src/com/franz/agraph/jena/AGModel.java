@@ -16,7 +16,9 @@ import org.openrdf.repository.RepositoryException;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFParseException;
 
+import com.franz.agraph.http.AGHttpRepoClient;
 import com.franz.agraph.repository.AGRDFFormat;
+import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGValueFactory;
 import com.franz.util.Closeable;
 import com.hp.hpl.jena.graph.Triple;
@@ -75,11 +77,37 @@ public class AGModel extends ModelCom implements Model, Closeable {
 		return this;
 	}
 	
+	/**
+	 * Returns a new blank node with an AG-allocated id.
+	 * 
+	 * See also the javadoc for allowing external blank nodes for more discussion.
+	 *    
+	 * @see AGHttpRepoClient#setAllowExternalBlankNodeIds(boolean)
+	 * @see AGRepositoryConnection#getHttpRepoClient()
+	 */
 	@Override
 	public Resource createResource() {
 		AGValueFactory vf = getGraph().getConnection().getValueFactory();
 		BNode blank = vf.createBNode();
 		return createResource(new AnonId(blank.stringValue()));
+	}
+	
+	/**
+	 * Returns a new blank node with the given (a.k.a "external") id.
+	 * 
+	 * Consider using createResource() instead to get an AG-allocated
+	 * blank node id, as it is safer (avoids unintended blank node 
+	 * conflicts) and can be stored more efficiently in AllegroGraph.
+	 * 
+	 * See also the javadoc for allowing external blank nodes for more 
+	 * discussion.
+	 *    
+	 * @see AGHttpRepoClient#setAllowExternalBlankNodeIds(boolean)
+	 * @see AGRepositoryConnection#getHttpRepoClient()
+	 */
+	@Override
+	public Resource createResource(AnonId id) {
+		return super.createResource(id);
 	}
 	
 
