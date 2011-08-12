@@ -20,7 +20,6 @@ import javax.xml.stream.XMLStreamReader;
 
 import org.apache.commons.httpclient.HttpMethod;
 import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.TupleQueryResult;
@@ -31,6 +30,9 @@ import org.slf4j.LoggerFactory;
 
 import com.franz.agraph.http.AGHttpException;
 import com.franz.util.Closer;
+import com.franz.agraph.http.AGHttpRepoClient;
+import com.franz.agraph.repository.AGValueFactory;
+import com.franz.util.Util;
 
 /**
  * Similar to {@link org.openrdf.query.resultio.sparqlxml.SPARQLResultsXMLParser}
@@ -46,11 +48,11 @@ public class AGTQRStreamer extends AGResponseHandler {
 	
 	final Logger log = LoggerFactory.getLogger(this.getClass());
 
-	private final ValueFactory vf;
+	private final AGValueFactory vf;
 	private XMLStreamReader xml;
 	private HttpMethod method;
 
-	public AGTQRStreamer(TupleQueryResultFormat format, ValueFactory vf) {
+	public AGTQRStreamer(TupleQueryResultFormat format, AGValueFactory vf) {
 		super(format.getDefaultMIMEType());
 		this.vf = vf;
 	}
@@ -186,7 +188,7 @@ public class AGTQRStreamer extends AGResponseHandler {
 								next.addBinding(bindingName, value);
 							}
 							else if ("uri".equals(name)) {
-								next.addBinding(bindingName, vf.createURI(xml.getElementText()));
+								next.addBinding(bindingName, AGHttpRepoClient.getApplicationResource(vf.createURI(xml.getElementText()),vf));
 							}
 							else if ("bnode".equals(name)) {
 								next.addBinding(bindingName, vf.createBNode(xml.getElementText()));

@@ -12,7 +12,9 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.commons.httpclient.HttpMethod;
-import org.openrdf.model.ValueFactory;
+import org.openrdf.model.Resource;
+import org.openrdf.model.Statement;
+import org.openrdf.model.Value;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFHandler;
 import org.openrdf.rio.RDFHandlerException;
@@ -21,17 +23,23 @@ import org.openrdf.rio.RDFParser;
 import org.openrdf.rio.Rio;
 
 import com.franz.agraph.http.AGHttpException;
+import com.franz.agraph.http.AGHttpRepoClient;
+import com.franz.agraph.repository.AGValueFactory;
 
 public class AGRDFHandler extends AGResponseHandler {
 
 	private final RDFFormat format;
 	private final RDFHandler rdfhandler;
-	private final ValueFactory vf;
+	private final AGValueFactory vf;
 	
-	public AGRDFHandler(RDFFormat format, RDFHandler rdfhandler, ValueFactory vf) {
+	public AGRDFHandler(RDFFormat format, RDFHandler rdfhandler, AGValueFactory vf, boolean recoverExternalBNodes) {
 		super(format.getDefaultMIMEType());
 		this.format = format;
-		this.rdfhandler = rdfhandler;
+		if (recoverExternalBNodes) {
+			this.rdfhandler = recoverBNodesRDFHandler(rdfhandler);
+		} else {
+			this.rdfhandler = rdfhandler;
+		}
 		this.vf = vf;
 	}
 
@@ -54,4 +62,39 @@ public class AGRDFHandler extends AGResponseHandler {
 		}
 	}
 	
+	private RDFHandler recoverBNodesRDFHandler(final RDFHandler handler) {
+		return new RDFHandler(){
+
+			@Override
+			public void startRDF() throws RDFHandlerException {
+				handler.startRDF();
+			}
+
+			@Override
+			public void endRDF() throws RDFHandlerException {
+				handler.endRDF();
+			}
+
+			@Override
+			public void handleNamespace(String prefix, String uri)
+					throws RDFHandlerException {
+				handler.handleNamespace(prefix, uri);
+			}
+
+			@Override
+			public void handleStatement(Statement st)
+					throws RDFHandlerException {
+				Resource s = AGHttpRepoClient.getApplicationResource(st.getSubject(),vf);
+				Value o = AGHttpRepoClient.getApplicationValue(st.getObject(),vf);
+				Resource c = AGHttpRepoClient.getApplicationResource(st.getContext(),vf);
+				st = vf.createStatement(s,st.getPredicate(),o,c);
+				handler.handleStatement(st);
+			}
+
+			@Override
+			public void handleComment(String comment)
+					throws RDFHandlerException {
+				handler.handleComment(comment);
+			}};
+	}
 }

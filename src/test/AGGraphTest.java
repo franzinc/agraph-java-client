@@ -106,8 +106,8 @@ public class AGGraphTest extends AbstractTestGraph {
 
 	
 	@Override
-	public void testRemoveSPO() {
-		super.testRemoveSPO();
+	public void testRemoveAll() {
+		super.testRemoveAll();
 	}
 	
 	@Override
