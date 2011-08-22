@@ -49,6 +49,8 @@ import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.query.BindingSet;
+import org.openrdf.query.QueryLanguage;
+import org.openrdf.query.TupleQuery;
 import org.openrdf.query.TupleQueryResult;
 import org.openrdf.query.TupleQueryResultHandler;
 import org.openrdf.query.TupleQueryResultHandlerException;
@@ -117,6 +119,8 @@ public class Events extends Closer {
         static String PASSWORD = password();
         
         static boolean MONITOR = true;
+
+	static boolean BULKMODE = false;
         
         public enum LOGT {
             ALL, ELAPSED, NOTIME;
@@ -275,6 +279,10 @@ public class Events extends Closer {
                     .withArgName("STREAM").hasArg()
                     .withDescription("Stream results. One of: " + Arrays.asList(STREAM.values()) + ". [default=" + stream + "]")
                     .create());
+            options.addOption(OptionBuilder.withLongOpt("bulkmode")
+                    .withArgName("true|false").hasArg()
+                    .withDescription("Use repository bulk mode. [default=" + BULKMODE + "]")
+                    .create());
             
             cmd = new PosixParser().parse(options, args);
             if (cmd.hasOption("help")) {
@@ -316,6 +324,7 @@ public class Events extends Closer {
             MONITOR = cmdVal("monitor", MONITOR);
             LOG = cmdVal("log", LOG);
             stream = cmdVal("stream", stream);
+	    BULKMODE = cmdVal("bulkmode", BULKMODE);
             
             if (cmd.hasOption("seed")) {
                 long seed = Long.parseLong(cmd.getOptionValue("seed"));
@@ -813,16 +822,18 @@ public class Events extends Closer {
         private int id;
         private String timestamp;
         private final RandomDate dateMaker;
+	private final QueryLanguage language;
         AGRepositoryConnection conn;
         
-        public Querier(int theId, int theSecondsToRun, RandomDate dateMaker) throws Exception {
+        public Querier(int theId, int theSecondsToRun, RandomDate dateMaker, QueryLanguage lang) throws Exception {
             id = theId;
             secondsToRun = theSecondsToRun;
             this.dateMaker = dateMaker;
+	    language = lang;
             conn = connect();
         }
         
-        private long randomQuery(AGRepositoryConnection conn, ValueFactory vf, boolean trace) {
+	private long sparqlQuery(AGRepositoryConnection conn, ValueFactory vf, boolean trace) {
             // Pick a random customer
             String customerNT = NTriplesUtil.toNTriplesString(new RandomCustomer().makeValue());
             
@@ -843,28 +854,81 @@ public class Events extends Closer {
             
             String queryString;
             AGTupleQuery tupleQuery;
-            if (Defaults.hasOption("sparql")) {
-                queryString = String.format(
-                        "select ?s ?p ?o " +
-                        "from %s " +
-                        "where { " +
-                        "  ?s %s ?date . " +
-                        "  filter ( ( ?date >= %s ) && ( ?date <= %s ) ) " +
-                        "  ?s ?p ?o " +
-                        "}",
-                        customerNT, timestamp, startNT, endNT);
-                tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.SPARQL, queryString);
-            } else {
-                queryString = String.format(
-                        "(select (?s ?p ?o)" +
-                        "(:use-planner nil)" +
-                        "(q- ?s !%s (? !%s !%s) !%s)" +
-                        "(q- ?s ?p ?o !%s))",
-                        timestamp, startNT, endNT, customerNT, customerNT);
-                tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
-            }
+	    queryString = String.format(
+		    "select ?s ?p ?o " +
+		    "from %s " +
+		    "where { " +
+		    "  ?s %s ?date . " +
+		    "  filter ( ( ?date >= %s ) && ( ?date <= %s ) ) " +
+		    "  ?s ?p ?o " +
+		    "}",
+		    customerNT, timestamp, startNT, endNT);
+	    tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.SPARQL, queryString);
             tupleQuery = streamQuery(tupleQuery);
+
+            // Actually pull the full results to the client, then just count them
+            TupleQueryResult result = null;
+            long count = 0;
+            try {
+                if (Defaults.VERBOSE > 0 && trace) {
+                    trace("query: %s", queryString);
+                }
+                if (Defaults.stream == Defaults.STREAM.HAND || Defaults.stream == Defaults.STREAM.PULH) {
+                	CountingHandler handler = new CountingHandler();
+                    tupleQuery.evaluate(handler);
+                    count = handler.count;
+                } else {
+                    result = tupleQuery.evaluate();
+                    count = count(result);
+                }
+		// test sparql and prolog return same results:
+                //				Set<Stmt> stmts = Stmt.statementSet(result);
+                //				count = stmts.size();
+                //				AGAbstractTest.assertSetsEqual(queryString, stmts,
+                //						Stmt.statementSet(tupleQuery2.evaluate()));
+            } catch (Exception e) {
+    			errors++;
+                trace("Error executing query:\n%s\n", queryString);
+                e.printStackTrace();
+                count = -1;
+            } finally {
+                Events.this.close(result);
+            }
             
+            return count;
+	}
+
+	private long prologQuery(AGRepositoryConnection conn, ValueFactory vf, boolean trace) {
+            // Pick a random customer
+            String customerNT = NTriplesUtil.toNTriplesString(new RandomCustomer().makeValue());
+            
+            // Pick a random date range
+            GregorianCalendar start, end;
+            start = FullDateRange.getRandom();
+            end = FullDateRange.getRandom();
+            
+            if (start.after(end)) {
+                GregorianCalendar swap = end;
+                end = start;
+                start = swap;
+            }
+            
+            String startNT, endNT;
+            startNT = NTriplesUtil.toNTriplesString(CalendarToValue(start));
+            endNT = NTriplesUtil.toNTriplesString(CalendarToValue(end));
+            
+            String queryString;
+            AGTupleQuery tupleQuery;
+
+	    queryString = String.format(
+		    "(select (?s ?p ?o)" +
+		    "(:use-planner nil)" +
+		    "(q- ?s !%s (? !%s !%s) !%s)" +
+		    "(q- ?s ?p ?o !%s))",
+		    timestamp, startNT, endNT, customerNT, customerNT);
+	    tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
+            tupleQuery = streamQuery(tupleQuery);
+
             // Actually pull the full results to the client, then just count them
             TupleQueryResult result = null;
             long count = 0;
@@ -895,10 +959,19 @@ public class Events extends Closer {
             }
             
             return count;
+	}
+
+        private long randomQuery(AGRepositoryConnection conn, ValueFactory vf, boolean trace) {
+
+		if(this.language == AGQueryLanguage.PROLOG) {
+			return prologQuery(conn, vf, trace);
+		} else {
+			return sparqlQuery(conn, vf, trace);
+		} 
         }
         
         class CountingHandler implements TupleQueryResultHandler {
-            long count = 0;
+		long count = 0;
 			public void startQueryResult(List<String> bindingNames) throws TupleQueryResultHandlerException {
 			}
 			public void handleSolution(BindingSet bindingSet) throws TupleQueryResultHandlerException {
@@ -908,8 +981,8 @@ public class Events extends Closer {
 			}
 		}
 
-		private int count(TupleQueryResult result) throws Exception {
-            int count = 0;
+	private int count(TupleQueryResult result) throws Exception {
+	    int count = 0;
             while (result.hasNext()) {
                 result.next();
                 count++;
@@ -1123,6 +1196,29 @@ public class Events extends Closer {
         }
     }
 
+    class Pinger implements Runnable {
+
+	    private AGRepositoryConnection conn;
+
+	    public Pinger(AGRepositoryConnection c) {
+		    conn = c;
+	    }
+
+	    public void run() {
+		while (true) {
+		    try {
+			trace("pinger running for " + conn.getHttpRepoClient().getRoot());
+			conn.ping();
+			Thread.sleep(Math.round(conn.getSessionLifetime() * 1000 /2));
+		    } catch (InterruptedException e) {
+			    trace("Exception encountered in pinger: %s", e.toString());
+		    } catch (RepositoryException e) {
+			    trace("Exception encountered in pinger: %s", e.toString());
+		    }
+		}
+	    }
+    }
+
     public static class Monitor {
 
         private static void printOutput(Process p) throws IOException {
@@ -1135,11 +1231,11 @@ public class Events extends Closer {
             input.close();
         }
         
-        static public void start(String phase) {
+        static public void start(int phase) {
             if (Defaults.MONITOR) {
                 try {
                     String[] commands = 
-			new String[]{"src/test/stress/monitor.sh", "start", phase,
+			new String[]{"src/test/stress/monitor.sh", "start", "phase " + phase,
 				     Defaults.CATALOG, Defaults.REPOSITORY};
                     Process p = Runtime.getRuntime().exec(commands);
                     printOutput(p);
@@ -1150,7 +1246,7 @@ public class Events extends Closer {
             }
         }
         
-        static public void stop() {
+	static public void stop(int phase, AGRepositoryConnection c) {
             if (Defaults.MONITOR) {
                 try {
                     String[] commands = new String[]{"src/test/stress/monitor.sh", "end",
@@ -1158,9 +1254,25 @@ public class Events extends Closer {
                     Process p = Runtime.getRuntime().exec(commands);
                     printOutput(p);
                     trace("./monitor.sh was stopped.");
+		    // use http api for starting checkpoint and merge.
+		    if (phase < 4) {
+			AGRepository repo = c.getRepository().getValueFactory().getRepository();
+
+			trace("Phase 0 Begin: Forced Merge");
+			c.optimizeIndices(true, 1);
+			repo.ensureDBIdle();
+			trace("Phase 0 End: Forced Merge");
+			trace("Phase 0 Begin: Forced Checkpoint");
+			repo.forceCheckpoint();
+			trace("Phase 0 End: Forced Checkpoint");
+		    }
                 } catch (IOException e) {
                     trace("./monitor.sh was not stopped.");
-                }
+		} catch (RepositoryException e) {
+		    trace("error in Monitor.stop()");
+		    e.printStackTrace();
+		    System.exit(-1);
+		}
             }
         }
 
@@ -1205,6 +1317,10 @@ public class Events extends Closer {
             trace("SUPERSEDING %s %s:%s.", Defaults.URL, Defaults.CATALOG, Defaults.REPOSITORY);
         }
         
+	long initStart = System.currentTimeMillis(), initEnd;
+	double initSeconds;
+	trace("Phase 0 Begin: " + (Defaults.hasOption("open") ? "opening " : "renewing ") +
+	      Defaults.CATALOG + ":" + Defaults.REPOSITORY);
         AGServer server = new AGServer(Defaults.URL, Defaults.USERNAME, Defaults.PASSWORD);
         AGCatalog catalog = server.getCatalog(Defaults.CATALOG);
         if (false == Defaults.hasOption("open")) {
@@ -1213,7 +1329,17 @@ public class Events extends Closer {
         server.close();
         
         AGRepositoryConnection conn = connect();
+	initEnd = System.currentTimeMillis();
+	initSeconds = (initEnd - initStart) / 1000;
+	trace("Phase 0 End: Initial " + (Defaults.hasOption("open") ? "opening" : "renewing") +
+	      " took " + initSeconds + " seconds.");
+
+	// thread needed to send pings to conn in case any phase exceeds the session lifetime.
+	Thread ping = new Thread(new Pinger(conn));
+	ping.start();
+
         ThreadVars.valueFactory.set(conn.getValueFactory());
+	conn.getRepository().getValueFactory().getRepository().setBulkMode(Defaults.BULKMODE);
         
         AllEvents.initialize();
         
@@ -1232,12 +1358,18 @@ public class Events extends Closer {
             
             /////////////////////////////////////////////////////////////////////// PHASE 1
             if (Defaults.PHASE <= 1) {
+		start = System.currentTimeMillis();
+		trace("Phase 0 Begin: Launching child load workers.");
                 List<Callable<Object>> tasks = new ArrayList<Callable<Object>>(Defaults.LOAD_WORKERS);
             	for (int task = 0; task < Defaults.LOAD_WORKERS; task++) {
             		tasks.add(new Loader(task, Defaults.SIZE / 10, 1, BaselineRange));
             	}
+		end = System.currentTimeMillis();
+		seconds = (end - start) / 1000;
+		trace("Phase 0 End: Initial load_workers took " + seconds + " seconds.");
+		
                 trace("Phase 1 Begin: Baseline %d triple commits.", Defaults.EVENT_SIZE);
-                Monitor.start("phase-1");
+                Monitor.start(1);
                 start = System.currentTimeMillis();
                 invokeAndGetAll(executor, tasks);
                 end = System.currentTimeMillis();
@@ -1249,8 +1381,10 @@ public class Events extends Closer {
                 		"Store contains %d triples.", triples, logtime(seconds),
                 		logtime(triples/seconds),
                 		logtime(triples/Defaults.EVENT_SIZE/seconds), triplesEnd);
-                Monitor.stop(); // sync phase after phase-1 complete.
+
                 closeAll(tasks);
+                Monitor.stop(1, conn); 
+
             }
             
             /////////////////////////////////////////////////////////////////////// PHASE 2
@@ -1261,7 +1395,7 @@ public class Events extends Closer {
                     tasks.add(new Loader(task, (Defaults.SIZE/10)*9, Defaults.BULK_EVENTS, BulkRange));
                 }
                 trace("Phase 2 Begin: Grow store by about %d triples.", (Defaults.SIZE*9/10));
-                Monitor.start("phase-2");
+                Monitor.start(2);
                 start = System.currentTimeMillis();
                 invokeAndGetAll(executor, tasks);
                 end = System.currentTimeMillis();
@@ -1272,8 +1406,10 @@ public class Events extends Closer {
                 		"(%.2f triples/second, %.2f commits/second). " +
                 		"Store contains %d triples.", triples, seconds, triples/seconds,
                 		triples/Defaults.BULK_EVENTS/Defaults.EVENT_SIZE/seconds, triplesEnd);
-                Monitor.stop();
+
                 closeAll(tasks);
+                Monitor.stop(2, conn);
+
             }
             
             /////////////////////////////////////////////////////////////////////// PHASE 3
@@ -1284,10 +1420,11 @@ public class Events extends Closer {
                     tasks.add(task, new Loader(task, Defaults.SIZE/10, 1, SmallCommitsRange));
                 }
                 trace("Phase 3 Begin: Perform %d triple commits.", Defaults.EVENT_SIZE);
-                Monitor.start("phase-3");
+                Monitor.start(3);
                 start = System.currentTimeMillis();
                 invokeAndGetAll(executor, tasks);
                 end = System.currentTimeMillis();
+		trace("p3: trying to get repo size on conn " + conn.getHttpRepoClient().getRoot());
                 triplesEnd = conn.size();
                 triples = triplesEnd - triplesStart;
                 seconds = (end - start) / 1000.0;
@@ -1295,29 +1432,43 @@ public class Events extends Closer {
                 		"(%.2f triples/second, %.2f commits/second). " +
                 		"Store contains %d triples.", triples, seconds, triples/seconds,
                 		triples/Defaults.EVENT_SIZE/seconds, triplesEnd);
-                Monitor.stop();
+
                 executor.shutdown();
                 closeAll(tasks);
+                Monitor.stop(3, conn);
+
             }
         }
         
         /////////////////////////////////////////////////////////////////////// PHASE 4
         if (Defaults.PHASE <= 4) {
             if (Defaults.QUERY_WORKERS > 0 && Defaults.PHASE > 0) {
+		long start = System.currentTimeMillis(), end;
+		double seconds;
+
+		trace("Phase 0 Begin: Launching child query workers.");
+
                 ExecutorService executor = Executors.newFixedThreadPool(Defaults.QUERY_WORKERS);
-                
-                List<Callable<Object>> queriers = new ArrayList<Callable<Object>>(Defaults.QUERY_WORKERS);
+                List<Callable<Object>> sparqlQueriers = new ArrayList<Callable<Object>>(Defaults.QUERY_WORKERS);
+                List<Callable<Object>> prologQueriers = new ArrayList<Callable<Object>>(Defaults.QUERY_WORKERS);
                 for (int task = 0; task < Defaults.QUERY_WORKERS; task++) {
-                    queriers.add(new Querier(task, Defaults.QUERY_TIME*60, FullDateRange));
+		    sparqlQueriers.add(new Querier(task, Defaults.QUERY_TIME*60, FullDateRange,
+						   AGQueryLanguage.SPARQL));
+                    prologQueriers.add(new Querier(task, Defaults.QUERY_TIME*60, FullDateRange,
+						   AGQueryLanguage.PROLOG));
                 }
-                trace("Phase 4 Begin: Perform customer/date range queries with %d processes for %d minutes.",
+                end = System.currentTimeMillis();
+                seconds = (end - start) / 1000.0;
+		trace("Phase 0 End: Initial query_workers took " + seconds + " seconds.");
+                trace("Phase 4 Begin: Perform SPARQL queries with %d processes for %d minutes.",
                         Defaults.QUERY_WORKERS, Defaults.QUERY_TIME);
-                Monitor.start("phase-4");
+                Monitor.start(4);
                 int queries = 0;
                 long triples = 0;
-                long start = System.currentTimeMillis();
+                start = System.currentTimeMillis();
+		// sparql first, then prolog second
                 try {
-                    List<Future<Object>> fs = executor.invokeAll(queriers);
+                    List<Future<Object>> fs = executor.invokeAll(sparqlQueriers);
                     for (Future<Object> f : fs) {
                         QueryResult queryResult = (QueryResult) f.get();
                         queries += queryResult.queries;
@@ -1330,46 +1481,86 @@ public class Events extends Closer {
         			errors++;
                     e.printStackTrace();
                 }
-                long end = System.currentTimeMillis();
-                double seconds = (end - start) / 1000.0;
+                end = System.currentTimeMillis();
+                seconds = (end - start) / 1000.0;
                 trace("Phase 4 End: %d total triples returned over %d queries in " +
 		      "%.1f seconds (%.2f triples/second, %.2f queries/second, " +
 		      "%d triples/query) MemUsed %d.", triples, queries, logtime(seconds),
 		      logtime(triples/seconds), logtime(queries/seconds), triples/queries,
 		      ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getUsed());
-                Monitor.stop();
+                Monitor.stop(4, conn);
+
+                closeAll(sparqlQueriers);
+
+                trace("Phase 5 Begin: Perform PROLOG queries with %d processes for %d minutes.",
+                        Defaults.QUERY_WORKERS, Defaults.QUERY_TIME);
+                Monitor.start(5);
+                queries = 0;
+                triples = 0;
+                start = System.currentTimeMillis();
+		// sparql first, then prolog second
+                try {
+                    List<Future<Object>> fs = executor.invokeAll(prologQueriers);
+                    for (Future<Object> f : fs) {
+                        QueryResult queryResult = (QueryResult) f.get();
+                        queries += queryResult.queries;
+                        triples += queryResult.triples;
+                    }
+                } catch (InterruptedException e) {
+        			errors++;
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+        			errors++;
+                    e.printStackTrace();
+                }
+                end = System.currentTimeMillis();
+                seconds = (end - start) / 1000.0;
+                trace("Phase 5 End: %d total triples returned over %d queries in " +
+		      "%.1f seconds (%.2f triples/second, %.2f queries/second, " +
+		      "%d triples/query).", triples, queries, logtime(seconds),
+		      logtime(triples/seconds), logtime(queries/seconds), triples/queries);
+                Monitor.stop(5, conn);
+
                 executor.shutdown();
-                closeAll(queriers);
+                closeAll(prologQueriers);
             }
         }
         
         /////////////////////////////////////////////////////////////////////// PHASE 5
-        if (Defaults.PHASE <= 5 && Defaults.DELETE_WORKERS > 0) {
+        if (Defaults.PHASE <= 6 && Defaults.DELETE_WORKERS > 0) {
             long triplesStart = conn.size();
+	    long start = System.currentTimeMillis(), end;
+	    double seconds;
+
+	    trace("Phase 0 Begin: Launching child delete workers.");
+
             ExecutorService executor = Executors.newFixedThreadPool(2);
             List<Callable<Object>> tasks = new ArrayList<Callable<Object>>(2);
             tasks.add(new Deleter(DeleteRangeOne));
             if (Defaults.DELETE_WORKERS > 1) {
                 tasks.add(new Deleter(DeleteRangeTwo));
             }
-            trace("Phase 5 Begin: Shrink store by 1 month.");
-            Monitor.start("phase-5");
-            long start = System.currentTimeMillis();
+	    end = System.currentTimeMillis();
+	    seconds = (end - start) / 1000.0;
+	    trace("Phase 0 End: Initial delete_workers took " + seconds + " seconds.");
+            trace("Phase 6 Begin: Shrink store by 1 month.");
+            Monitor.start(6);
+            start = System.currentTimeMillis();
             invokeAndGetAll(executor, tasks);
-            long end = System.currentTimeMillis();
+            end = System.currentTimeMillis();
             closeAll(tasks);
             executor.shutdown();
             long triplesEnd = conn.size();
             long triples = triplesEnd - triplesStart;
-            double seconds = (end - start) / 1000.0;
-            trace("Phase 5 End: %d total triples deleted in %.1f seconds " +
+            seconds = (end - start) / 1000.0;
+            trace("Phase 6 End: %d total triples deleted in %.1f seconds " +
 		  "(%.2f triples/second). Store contains %d triples.", triples,
 		  logtime(seconds), logtime(triples/seconds), triplesEnd);
-            Monitor.stop();
+            Monitor.stop(6, conn);
         }
         
-        if (Defaults.PHASE <= 6 && Defaults.MIXED_RUNS != 0) {
-            Monitor.start("phase-6");
+        if (Defaults.PHASE <= 7 && Defaults.MIXED_RUNS != 0) {
+            Monitor.start(7);
             RandomDate smallCommitsRange = SmallCommitsRange;
             RandomDate fullDateRange = FullDateRange;
             RandomDate deleteRangeOne = DeleteRangeOne;
@@ -1393,7 +1584,7 @@ public class Events extends Closer {
                     tasks.add(new Loader(task, Defaults.SIZE/10, 1, smallCommitsRange));
                 }
                 for (int task = 0; task < Defaults.QUERY_WORKERS; task++) {
-                    tasks.add(new Querier(task, Defaults.QUERY_TIME*60, fullDateRange));
+			tasks.add(new Querier(task, Defaults.QUERY_TIME*60, fullDateRange, AGQueryLanguage.SPARQL));
                 }
                 if (Defaults.DELETE_WORKERS > 0) {
                     tasks.add(new Deleter(deleteRangeOne));
@@ -1437,7 +1628,7 @@ public class Events extends Closer {
                 closeAll(tasks);
             }
             executor.shutdown();
-            Monitor.stop();
+            Monitor.stop(7, conn);
         }
         
         /////////////////////////////////////////////////////////////////////// END
