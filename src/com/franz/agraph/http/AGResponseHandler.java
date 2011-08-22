@@ -240,6 +240,9 @@ public class AGResponseHandler implements AGResponseHandlerInf {
 
 	protected static InputStream getInputStream(HttpMethod method) throws IOException {
 		InputStream is = method.getResponseBodyAsStream();
+		if (is==null) {
+			throw new IOException("Response input stream not available; this could indicate a server problem.  Please check server logs."); 
+		}
 		Header h = method.getResponseHeader("Content-Encoding");
 		if (h!=null && h.getValue().equals("gzip")) {
 			is = new GZIPInputStream(is);
