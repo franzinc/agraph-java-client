@@ -2166,6 +2166,22 @@ public class TutorialExamples {
         println("Number of results: " + count);
         result.close();
         
+        println("\nBidirectional paths connecting Valjean to Bossuet using associates (should be two).");
+        queryString = "(select (?pathid ?node)" +
+                   "(bidirectional-search-paths !lm:character11 !lm:character64 associates ?path)" +
+                   // make a ?pathid for ?path here, must be an RDF value
+                   "(lisp ?pathid (new-blank-node))" +
+                   "(member ?node ?path))";
+        tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
+        result = tupleQuery.evaluate();        
+        while (result.hasNext()) {
+        	BindingSet bindingSet = result.next();
+        	Value p = bindingSet.getValue("pathid");
+        	Value n = bindingSet.getValue("node");
+        	println("Path " + p + ": " + n);
+        }
+        result.close();
+        
         println("\nNodal degree of Valjean (should be seven).");
         queryString = "(select (?degree)" +
           "(nodal-degree !lm:character11 associates ?degree))";
