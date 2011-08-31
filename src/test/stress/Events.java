@@ -1235,7 +1235,7 @@ public class Events extends Closer {
             if (Defaults.MONITOR) {
                 try {
                     String[] commands = 
-			new String[]{"src/test/stress/monitor.sh", "start", "phase " + phase,
+			new String[]{"src/test/stress/monitor.sh", "start", "phase-" + phase,
 				     Defaults.CATALOG, Defaults.REPOSITORY};
                     Process p = Runtime.getRuntime().exec(commands);
                     printOutput(p);
@@ -1250,7 +1250,8 @@ public class Events extends Closer {
             if (Defaults.MONITOR) {
                 try {
                     String[] commands = new String[]{"src/test/stress/monitor.sh", "end",
-						     "0", Defaults.CATALOG, Defaults.REPOSITORY};
+						     "phase-" + phase, Defaults.CATALOG,
+						     Defaults.REPOSITORY};
                     Process p = Runtime.getRuntime().exec(commands);
                     printOutput(p);
                     trace("./monitor.sh was stopped.");
