@@ -8,6 +8,8 @@
 
 package com.franz.agraph.jena;
 
+import java.util.Iterator;
+
 import org.openrdf.query.GraphQueryResult;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.QueryLanguage;
@@ -34,6 +36,7 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 
 	private final AGQuery query;
 	private final AGModel model;
+	private QuerySolution binding;
 	
 	public AGQueryExecution(AGQuery query, AGModel model) {
 		this.query = query;
@@ -59,6 +62,13 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 		bq.setIncludeInferred(model.getGraph() instanceof AGInfGraph);
 		bq.setEntailmentRegime(model.getGraph().getEntailmentRegime());
 		bq.setCheckVariables(query.isCheckVariables());
+		if (binding!=null) {
+			Iterator<String> vars = binding.varNames();
+			while (vars.hasNext()) {
+				String var = vars.next();
+				bq.setBinding(var, model.getGraph().vf.asValue(binding.get(var).asNode()));
+			}
+		}
 		boolean result;
 		try {
 			bq.setDataset(model.getGraph().getDataset());
@@ -85,6 +95,13 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 		gq.setCheckVariables(query.isCheckVariables());
 		gq.setLimit(query.getLimit());
 		gq.setOffset(query.getOffset());
+		if (binding!=null) {
+			Iterator<String> vars = binding.varNames();
+			while (vars.hasNext()) {
+				String var = vars.next();
+				gq.setBinding(var, model.getGraph().vf.asValue(binding.get(var).asNode()));
+			}
+		}
 		GraphQueryResult result;
 		try {
 			gq.setDataset(model.getGraph().getDataset());
@@ -124,6 +141,13 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 		tq.setCheckVariables(query.isCheckVariables());
 		tq.setLimit(query.getLimit());
 		tq.setOffset(query.getOffset());
+		if (binding!=null) {
+			Iterator<String> vars = binding.varNames();
+			while (vars.hasNext()) {
+				String var = vars.next();
+				tq.setBinding(var, model.getGraph().vf.asValue(binding.get(var).asNode()));
+			}
+		}
 		TupleQueryResult result;
 		try {
 			tq.setDataset(model.getGraph().getDataset());
@@ -142,6 +166,13 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 		tq.setLimit(query.getLimit());
 		tq.setOffset(query.getOffset());
 		tq.setDataset(model.getGraph().getDataset());
+		if (binding!=null) {
+			Iterator<String> vars = binding.varNames();
+			while (vars.hasNext()) {
+				String var = vars.next();
+				tq.setBinding(var, model.getGraph().vf.asValue(binding.get(var).asNode()));
+			}
+		}
 		long count;
 		try {
 			count = tq.count();
@@ -162,6 +193,13 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 		gq.setLimit(query.getLimit());
 		gq.setOffset(query.getOffset());
 		gq.setDataset(model.getGraph().getDataset());
+		if (binding!=null) {
+			Iterator<String> vars = binding.varNames();
+			while (vars.hasNext()) {
+				String var = vars.next();
+				gq.setBinding(var, model.getGraph().vf.asValue(binding.get(var).asNode()));
+			}
+		}
 		long count;
 		try {
 			count = gq.count();
@@ -188,7 +226,7 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 
 	@Override
 	public void setInitialBinding(QuerySolution binding) {
-		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+		binding = this.binding;
 	}
 
 }

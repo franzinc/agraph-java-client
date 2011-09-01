@@ -8,6 +8,8 @@
 
 package com.franz.agraph.jena;
 
+import com.hp.hpl.jena.query.QuerySolution;
+
 
 /**
  * 
@@ -20,4 +22,10 @@ public class AGQueryExecutionFactory {
 		return new AGQueryExecution(query,model);
 	}
 
+	public static AGQueryExecution create(AGQuery query, AGModel model, QuerySolution initialBinding) {
+		AGQueryExecution qexec = new AGQueryExecution(query,model);
+		qexec.setInitialBinding(initialBinding);
+		return qexec;
+	}
+	
 }
