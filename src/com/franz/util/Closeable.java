@@ -16,11 +16,11 @@ package com.franz.util;
  * checked exception.
  */
 public interface Closeable {
-
+	
 	/**
 	 * Releases system resources associated with the object.
 	 * @see java.io.Closeable#close()
 	 */
-    void close() throws Exception;
-    
+	void close() throws Exception;
+	
 }
