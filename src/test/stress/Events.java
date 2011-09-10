@@ -87,6 +87,8 @@ public class Events extends Closer {
         
         // Time to run queries in minutes
         static private int QUERY_TIME = 10;
+	// When non-zero perform QUERY_SIZE queries in query phases
+	static private int QUERY_SIZE = 0;
         
         // Size of the Events
         static private int EVENT_SIZE = 50;
@@ -215,6 +217,10 @@ public class Events extends Closer {
                     .withArgName("MINUTES").hasArg()
                     .withDescription("time limit for query phase [default=" + QUERY_TIME + "]")
                     .create("t"));
+            options.addOption(OptionBuilder.withLongOpt("query-size")
+                    .withArgName("QUERY_SIZE").hasArg()
+                    .withDescription("Total QUERY_EVENTS to perform in each query phase [default=" + QUERY_SIZE + "]")
+                    .create());
             options.addOption(OptionBuilder.withLongOpt("event")
                     .withArgName("INTEGER").hasArg()
                     .withDescription("each event will contain number of triples [default=" + EVENT_SIZE + "]")
@@ -309,6 +315,7 @@ public class Events extends Closer {
             STATUS = cmdVal("status", STATUS);
             SIZE = Math.max(1000, test.Util.fromHumanInt( cmdVal("size", "" + SIZE) ));
             QUERY_TIME = cmdVal("time", QUERY_TIME);
+            QUERY_SIZE = cmdVal("query-size", QUERY_SIZE);
             EVENT_SIZE = cmdVal("event", EVENT_SIZE);
             BULK_EVENTS = cmdVal("bulk", BULK_EVENTS);
             VERBOSE = cmdVal("verbose", VERBOSE, 1);
@@ -1022,7 +1029,12 @@ public class Events extends Closer {
                     subcount = count;
                     
                     seconds = (end.getTimeInMillis() - startTime.getTimeInMillis()) / 1000.0;
-                    if (seconds > secondsToRun) {
+		    // stop after secondsToRun only if Defaults.QUERY_SIZE == 0
+		    // or if we've performed Defaults.QUERY_SIZE / Defaults.QUERY_WORKERS
+		    // queries.
+                    if ((Defaults.QUERY_SIZE == 0 && seconds > secondsToRun) ||
+			(Defaults.QUERY_SIZE > 0 && 
+			 queries >= Defaults.QUERY_SIZE / Defaults.QUERY_WORKERS)) {
                         break;
                     }
                 }
@@ -1457,8 +1469,10 @@ public class Events extends Closer {
                 end = System.currentTimeMillis();
                 seconds = (end - start) / 1000.0;
 		trace("Phase 0 End: Initial query_workers took " + seconds + " seconds.");
-                trace("Phase 4 Begin: Perform SPARQL queries with %d processes for %d minutes.",
-                        Defaults.QUERY_WORKERS, Defaults.QUERY_TIME);
+                trace("Phase 4 Begin: Perform SPARQL queries with %d processes for %d %s.",
+		      Defaults.QUERY_WORKERS,
+		      Defaults.QUERY_SIZE == 0 ? Defaults.QUERY_TIME : Defaults.QUERY_SIZE,
+		      Defaults.QUERY_SIZE == 0 ? "minutes" : "queries");
                 Monitor.start(4);
                 int queries = 0;
                 long triples = 0;
@@ -1489,8 +1503,10 @@ public class Events extends Closer {
 
                 closeAll(sparqlQueriers);
 
-                trace("Phase 5 Begin: Perform PROLOG queries with %d processes for %d minutes.",
-                        Defaults.QUERY_WORKERS, Defaults.QUERY_TIME);
+                trace("Phase 5 Begin: Perform SPARQL queries with %d processes for %d %s.",
+		      Defaults.QUERY_WORKERS,
+		      Defaults.QUERY_SIZE == 0 ? Defaults.QUERY_TIME : Defaults.QUERY_SIZE,
+		      Defaults.QUERY_SIZE == 0 ? "minutes" : "queries");
                 Monitor.start(5);
                 queries = 0;
                 triples = 0;
