@@ -26,13 +26,6 @@ public class ReifiedStatementTest extends AGAbstractTest {
 	@Test
 	public void test1() throws Exception {
 
-		AGServer server = new AGServer(findServerUrl(), username(), password());
-		AGCatalog catalog = server.getRootCatalog();
-		catalog.deleteRepository("foo");
-		AGRepository myRepository = catalog.createRepository("foo");
-		myRepository.initialize();
-		AGRepositoryConnection conn = myRepository.getConnection();
-
 		AGGraphMaker maker = new AGGraphMaker(conn, ReificationStyle.Standard);
 
 		AGGraph graph = maker.getGraph();
@@ -92,13 +85,6 @@ public class ReifiedStatementTest extends AGAbstractTest {
 
 	@Test
 	public void test2() throws Exception {
-
-		AGServer server = new AGServer(findServerUrl(), username(), password());
-		AGCatalog catalog = server.getRootCatalog();
-		catalog.deleteRepository("foo");
-		AGRepository myRepository = catalog.createRepository("foo");
-		myRepository.initialize();
-		AGRepositoryConnection conn = myRepository.getConnection();
 
 		AGGraphMaker maker = new AGGraphMaker(conn,ReificationStyle.Standard);
 

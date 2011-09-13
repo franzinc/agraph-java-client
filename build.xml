@@ -412,6 +412,7 @@
         <run-java tasknamex="AGModelTest        " classname="org.junit.runner.JUnitCore" arg="test.AGModelTest"/>
         <run-java tasknamex="AGPrefixMappingTest" classname="org.junit.runner.JUnitCore" arg="test.AGPrefixMappingTest"/>
         <run-java tasknamex="AGResultSetTest    " classname="org.junit.runner.JUnitCore" arg="test.AGResultSetTest"/>
+        <run-java tasknamex="AGReifierTest      " classname="org.junit.runner.JUnitCore" arg="test.AGReifierTest"/>
     </target>
     
     <target name="mvn-install"

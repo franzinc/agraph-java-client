@@ -108,7 +108,6 @@ public class AGAbstractTest extends Closer {
             cat = server.getCatalog(CATALOG_ID);
             repoId = "javatest";
 			cat.deleteRepository(repoId);
-			cat.deleteRepository(repoId);
 
 	        // test connection once
 	        ping();
