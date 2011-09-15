@@ -287,7 +287,7 @@ public class AGHttpRepoClient implements Closeable {
 
 	private void closeSession(String sessionRoot) throws IOException,
 			RepositoryException, UnauthorizedException {
-		if (sessionRoot != null) {
+		if (sessionRoot != null && !getHTTPClient().isClosed()) {
 			String url = AGProtocol.getSessionCloseLocation(sessionRoot);
 			Header[] headers = new Header[0];
 			NameValuePair[] params = new NameValuePair[0];
@@ -943,7 +943,7 @@ public class AGHttpRepoClient implements Closeable {
 		}
 	}
 	
-	public void close() throws RepositoryException {
+	public synchronized void close() throws RepositoryException {
 		if (sessionRoot != null) {
 			try {
 				closeSession(sessionRoot);

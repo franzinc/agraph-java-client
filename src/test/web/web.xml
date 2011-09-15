@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+   version="2.5"> 
+
+    <description>
+      Example use of AllegroGraph in a web context.
+    </description>
+    <display-name>agraph-java-client web example</display-name>
+
+    <servlet>
+        <servlet-name>agraph-test</servlet-name>
+        <servlet-class>test.web.AGTestServlet</servlet-class>
+    </servlet>
+    
+    <servlet-mapping>
+        <servlet-name>agraph-test</servlet-name>
+        <url-pattern>/agraph-test</url-pattern>
+    </servlet-mapping>
+
+    <resource-env-ref>
+        <description>AllegroGraph connection pool</description>
+        <resource-env-ref-name>connection-pool/agraph</resource-env-ref-name>
+        <resource-env-ref-type>com.franz.agraph.pool.AGConnPool</resource-env-ref-type>
+    </resource-env-ref>
+    
+    <listener>
+        <listener-class></listener-class>
+    </listener>
+    
+</web-app>
