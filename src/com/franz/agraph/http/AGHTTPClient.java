@@ -6,9 +6,6 @@
 ** http://www.eclipse.org/legal/epl-v10.html
 ******************************************************************************/
 
-/**
- * 
- */
 package com.franz.agraph.http;
 
 import static com.franz.agraph.http.AGProtocol.AMOUNT_PARAM_NAME;
@@ -67,7 +64,7 @@ implements Closeable {
 	private final HttpClient httpClient;
 
 	private AuthScope authScope;
-	final Logger logger = LoggerFactory.getLogger(this.getClass());
+	private static final Logger logger = LoggerFactory.getLogger(AGHTTPClient.class);
 	
 	private MultiThreadedHttpConnectionManager mManager = null;
 
@@ -90,6 +87,7 @@ implements Closeable {
 			manager.setParams(params);
 		}
 		httpClient = new HttpClient(manager);
+		logger.debug("connect: " + serverURL + " " + httpClient + " " + manager);
 	}
 
 	public String getServerURL() {
@@ -389,7 +387,12 @@ implements Closeable {
 
     @Override
     public void close() {
-        Util.close(this.mManager);
+        logger.debug("close: " + serverURL + " " + mManager);
+        mManager = Util.close(mManager);
+    }
+    
+    boolean isClosed() {
+    	return mManager == null;
     }
 
 	public String[] generateURIs(String repositoryURL, String namespace,
