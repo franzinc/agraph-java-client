@@ -71,7 +71,7 @@ public class AGBulkUpdateHandler extends SimpleBulkUpdateHandler implements
 	@Override
 	public void removeAll() {
 		try {
-			graph.getConnection().clear(graph.getGraphContext());
+			graph.getConnection().clear(graph.getGraphContexts());
 			notifyRemoveAll(); 
 		} catch (RepositoryException e) {
 			throw new RuntimeException(e);
