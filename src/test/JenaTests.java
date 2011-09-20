@@ -16,6 +16,7 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.openrdf.model.URI;
 import org.openrdf.repository.RepositoryException;
 
 import com.franz.agraph.jena.AGGraph;
@@ -373,4 +374,42 @@ public class JenaTests extends AGAbstractTest {
     	Assert.assertTrue("size of m", m.size()==4);
     }
     
+    @Test
+    @Category(TestSuites.Prepush.class)
+    public void jenaDeleteQuads() throws Exception {
+    	AGGraphMaker maker = closeLater( new AGGraphMaker(conn));
+    	AGGraph unionGraph = closeLater( maker.getUnionOfAllGraphs());
+    	AGModel model = closeLater( new AGModel(unionGraph));
+    	
+    	// add quads somehow (here via the sesame api)
+    	URI s = conn.getValueFactory().createURI("http://s");
+    	URI p = conn.getValueFactory().createURI("http://p");
+    	URI o = conn.getValueFactory().createURI("http://o");
+    	URI g = conn.getValueFactory().createURI("http://g");
+    	conn.add(s, p, o, g);
+    	conn.add(g, p, o); // has the default "unnamed" graph
+    	Assert.assertEquals("unexpected model size", 2, model.size());
+    	
+    	// remove quads having subject http://g via Jena
+    	Resource r = model.createResource("http://g");
+    	model.removeAll(r, null, null);
+    	Assert.assertEquals("unexpected model size", 1, model.size());
+    	
+    	// remove quads having graph http://g via Jena
+    	AGGraph metadataGraph = closeLater(maker.createGraph("http://g"));
+    	AGModel metadataModel = closeLater( new AGModel(metadataGraph));
+    	Assert.assertEquals("unexpected metamodel size", 1, metadataModel.size());
+    	metadataModel.removeAll();
+    	Assert.assertEquals("unexpected metamodel size", 0, metadataModel.size());
+    	Assert.assertEquals("unexpected model size", 0, model.size());
+    	
+    	// add some quads again
+    	conn.add(s, p, o, g);
+    	conn.add(g, p, o); // has the default "unnamed" graph
+    	Assert.assertEquals("unexpected model size", 2, model.size());
+    	
+    	// test that removeAll works for models backed by union graphs
+    	model.removeAll();
+    	Assert.assertEquals("unexpected model size", 0, model.size());
+    }
 }
