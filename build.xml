@@ -277,7 +277,7 @@
     </target>
     
     <target name="test-bigger"
-            depends="clean, test-dist, test-prepush, test-stress-events, test-stress"
+            depends="clean, test-dist, prepush, test-stress-events, test-stress"
             description="run bigger tests, takes about 10 minutes">
     </target>
     
