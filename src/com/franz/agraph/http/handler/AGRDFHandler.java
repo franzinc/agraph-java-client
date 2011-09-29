@@ -48,9 +48,9 @@ public class AGRDFHandler extends AGResponseHandler {
 			parser.setRDFHandler(rdfhandler);
 			parser.parse(response, method.getURI().getURI());
 		} catch (RDFParseException e) {
-			throw new AGHttpException(e.getLocalizedMessage());
+			throw new AGHttpException(e);
 		} catch (RDFHandlerException e) {
-			throw new AGHttpException(e.getLocalizedMessage());
+			throw new AGHttpException(e);
 		}
 	}
 	

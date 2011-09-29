@@ -39,7 +39,7 @@ public class AGBQRHandler extends AGResponseHandler {
 			BooleanQueryResultParser parser = QueryResultIO.createParser(format);
 			result = parser.parse(response);
 		} catch (QueryResultParseException e) {
-			throw new AGHttpException(e.getLocalizedMessage());
+			throw new AGHttpException(e);
 		}
 	}
 	
