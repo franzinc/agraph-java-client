@@ -36,7 +36,7 @@ public class AGJSONHandler extends AGResponseHandler {
 		try {
 			result = new JSONObject(streamToString(response));
 		} catch (JSONException e) {
-			throw new AGHttpException(e.getLocalizedMessage());
+			throw new AGHttpException(e);
 		}
 	}
 	

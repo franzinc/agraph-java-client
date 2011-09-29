@@ -13,78 +13,30 @@ import info.aduna.iteration.CloseableIteration;
 import javax.xml.stream.XMLStreamReader;
 
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-/**
- * Close functions for various object types.
- * These close functions are null safe and will catch Exception
- * and call log.warn instead of throwing.
- */
 public class Util {
-
-	final static Logger logger = LoggerFactory.getLogger(Util.class);
-
+	
 	public static <CloseableType extends Closeable>
-    CloseableType close(CloseableType o) {
-        if (o != null) {
-            try {
-                o.close();
-            } catch (Exception e) {
-				if (logger.isWarnEnabled())
-					logger.warn("ignoring error with close:" + e);
-            }
-        }
-        return null;
-    }
-    
-    public static <CloseableType extends java.io.Closeable>
-    CloseableType close(CloseableType o) {
-        if (o != null) {
-            try {
-                o.close();
-            } catch (Exception e) {
-				if (logger.isWarnEnabled())
-					logger.warn("ignoring error with close:" + e);
-            }
-        }
-        return null;
-    }
-
-    public static MultiThreadedHttpConnectionManager close(MultiThreadedHttpConnectionManager o) {
-        if (o != null) {
-            try {
-                o.shutdown();
-            } catch (Exception e) {
-				if (logger.isWarnEnabled())
-					logger.warn("ignoring error with close:" + e);
-            }
-        }
-        return null;
-    }
-    
-    public static CloseableIteration close(CloseableIteration o) {
-        if (o != null) {
-            try {
-                o.close();
-            } catch (Exception e) {
-				if (logger.isWarnEnabled())
-					logger.warn("ignoring error with close:" + e);
-            }
-        }
-        return null;
-    }
-
-    public static XMLStreamReader close(XMLStreamReader o) {
-        if (o != null) {
-            try {
-                o.close();
-            } catch (Exception e) {
-				if (logger.isWarnEnabled())
-					logger.warn("ignoring error with close:" + e);
-            }
-        }
-        return null;
-    }
-
+	CloseableType close(CloseableType o) {
+		return Closer.Close(o);
+	}
+	
+	public static <CloseableType extends java.io.Closeable>
+	CloseableType close(CloseableType o) {
+		return Closer.Close(o);
+	}
+	
+	public static MultiThreadedHttpConnectionManager close(MultiThreadedHttpConnectionManager o) {
+		return Closer.Close(o);
+	}
+	
+	public static <Elem extends Object, Exc extends Exception>
+	CloseableIteration<Elem, Exc> close(CloseableIteration<Elem, Exc> o) {
+		return Closer.Close(o);
+	}
+	
+	public static XMLStreamReader close(XMLStreamReader o) {
+		return Closer.Close(o);
+	}
+	
 }

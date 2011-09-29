@@ -10,9 +10,6 @@ package com.franz.agraph.http;
 
 public class AGHttpException extends Exception {
 	
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -2608901334300829491L;
 	
 	private final AGErrorInfo errorInfo;
@@ -25,6 +22,15 @@ public class AGHttpException extends Exception {
 	public AGHttpException(String message) {
 		super(message);
 		errorInfo = new AGErrorInfo(message);
+	}
+
+	public AGHttpException(String message, Throwable cause) {
+		super(message, cause);
+		errorInfo = new AGErrorInfo(message);
+	}
+
+	public AGHttpException(Throwable cause) {
+		this(cause.getMessage(), cause);
 	}
 
 	public AGErrorInfo getErrorInfo() {

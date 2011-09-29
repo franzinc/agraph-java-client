@@ -77,7 +77,7 @@ public class AGTQRStreamer extends AGResponseHandler {
 		try {
 			xml = xmlInputFactory.createXMLStreamReader(AGResponseHandler.getInputStream(method));
 		} catch (XMLStreamException e) {
-			throw new AGHttpException(e.getMessage());
+			throw new AGHttpException(e);
 		} 
 	}
 	
