@@ -36,7 +36,7 @@ public class AGLongHandler extends AGResponseHandler {
 			result = Long.parseLong(str);
 		} catch (NumberFormatException e) {
 			throw new AGHttpException(
-					"Server responded with invalid long value: " + e.getLocalizedMessage());
+					"Server responded with invalid long value: " + e.getLocalizedMessage(), e);
 		}
 	}
 	

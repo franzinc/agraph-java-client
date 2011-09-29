@@ -47,9 +47,9 @@ public class AGTQRHandler extends AGResponseHandler {
 			parser.setTupleQueryResultHandler(tqrhandler);
 			parser.parse(response);
 		} catch (QueryResultParseException e) {
-			throw new AGHttpException(e.getLocalizedMessage());
+			throw new AGHttpException(e);
 		} catch (TupleQueryResultHandlerException e) {
-			throw new AGHttpException(e.getLocalizedMessage());
+			throw new AGHttpException(e);
 		}
 	}
 	

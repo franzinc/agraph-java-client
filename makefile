@@ -73,6 +73,7 @@ endif
 	cp agraph.jar $(DIST)/lib/agraph-$(VERSION).jar
 	cp agraph-src.jar $(DIST)/lib/agraph-$(VERSION)-src.jar
 	cp lib/json.jar $(DIST)/lib/json.jar
+	cp lib/commons-pool-1.5.6.jar $(DIST)/lib/commons-pool-1.5.6.jar
 	mkdir -p $(DIST)/lib/logging
 	cp lib/logging/*.jar $(DIST)/lib/logging
 	mkdir -p $(DIST)/lib/sesame-2.3.2
