@@ -68,7 +68,8 @@ public class TestSuites {
         NQuadsTests.class,
         AGGraphQueryTests.class,
         QueryLimitOffsetTests.class,
-        UntypedLiteralMatchingTest.class
+        UntypedLiteralMatchingTest.class,
+        MappingsTests.class
     })
     public static class Prepush {}
     

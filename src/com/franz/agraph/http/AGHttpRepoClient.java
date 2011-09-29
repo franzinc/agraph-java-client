@@ -1194,7 +1194,12 @@ public class AGHttpRepoClient implements Closeable {
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
-		return handler.getResult().split("\n");
+		String result = handler.getResult();
+		if (result.equals("")) {
+			return new String[0];
+		} else {
+			return result.split("\n");
+		}
 	}
 
 	public void registerDatatypeMapping(URI datatype, URI primitiveType)
@@ -1234,7 +1239,7 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	public String[] getDatatypeMappings() throws RepositoryException {
-		String url = AGProtocol.getPredicateMappingLocation(getRoot());
+		String url = AGProtocol.getDatatypeMappingLocation(getRoot());
 		Header[] headers = new Header[0];
 		NameValuePair[] params = new NameValuePair[0];
 		AGStringHandler handler = new AGStringHandler();
@@ -1245,11 +1250,23 @@ public class AGHttpRepoClient implements Closeable {
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
-		return handler.getResult().split("\n");
+		String result = handler.getResult();
+		if (result.equals("")) {
+			return new String[0];
+		} else {
+			return result.split("\n");
+		}
 	}
 
 	public void clearMappings() throws RepositoryException {
+		clearMappings(false);
+	}
+
+	public void clearMappings(boolean includeAutoEncodedPrimitiveTypes) throws RepositoryException {
 		String url = AGProtocol.getMappingLocation(getRoot());
+		if (includeAutoEncodedPrimitiveTypes) {
+			url = url+"/all";
+		}
 		Header[] headers = {};
 		NameValuePair[] params = {};
 		try {
@@ -1260,7 +1277,7 @@ public class AGHttpRepoClient implements Closeable {
 			throw new RepositoryException(e);
 		}
 	}
-
+	
 	public void addRules(String rules) throws RepositoryException {
 		try {
 			InputStream rulestream = new ByteArrayInputStream(rules
