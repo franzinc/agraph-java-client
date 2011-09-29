@@ -41,6 +41,7 @@ import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
 import com.franz.agraph.repository.AGValueFactory;
+import com.franz.util.Closer;
 
 public class AGAbstractTest extends Closer {
 
