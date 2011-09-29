@@ -826,7 +826,10 @@ implements RepositoryConnection, Closeable {
 	}
 
 	/**
-	 * Deletes all predicate and datatype mappings for this connection.
+	 * Deletes all user-defined predicate and datatype mappings for this connection, 
+	 * and reestablishes the automatic mappings for primitive datatypes.  
+	 * 
+	 * This is equivalent to clearMappings(false).
 	 * 
 	 * <p>See <a href="#mapping">mapping overview</a> and
 	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#delete-all-mapping"
@@ -839,6 +842,26 @@ implements RepositoryConnection, Closeable {
 		getHttpRepoClient().clearMappings();
 	}
 
+	/**
+	 * Deletes all predicate and user-defined datatype mappings for this connection.
+	 * <p>  
+	 * When includeAutoEncodedPrimitiveTypes is true, also deletes the automatic 
+	 * mappings for primitive datatypes; this is rarely what you want to do, as it
+	 * will cause range queries to perform much less efficiently than when encodings 
+	 * are used; this option can be useful for ensuring literal forms are preserved 
+	 * in the store (there can be precision loss when encoding some literals).
+	 * 
+	 * <p>See <a href="#mapping">mapping overview</a> and
+	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#delete-all-mapping"
+	 * target="_top">DELETE all mapping</a> for more details.</p>
+	 * 
+	 * @see #getDatatypeMappings()
+	 * @see #getPredicateMappings()
+	 */
+	public void clearMappings(boolean includeAutoEncodedPrimitiveTypes) throws RepositoryException {
+		getHttpRepoClient().clearMappings(includeAutoEncodedPrimitiveTypes);
+	}
+	
 	/**
 	 * Adds Prolog rules to be used on this connection.
 	 * 

@@ -74,7 +74,8 @@ public class TestSuites {
         QueryLimitOffsetTests.class,
         UntypedLiteralMatchingTest.class,
         AGConnPoolSessionTest.class,
-        BlankNodeTests.class
+        BlankNodeTests.class,
+        MappingsTests.class
     })
     public static class Prepush {}
     
