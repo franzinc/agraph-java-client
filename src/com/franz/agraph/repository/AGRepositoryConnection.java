@@ -169,6 +169,13 @@ implements RepositoryConnection, Closeable {
 		setStreamResults("true".equals(System.getProperty("com.franz.agraph.repository.AGRepositoryConnection.streamResults")));
 		vf = new AGValueFactory(repository.wrapped, this);
 	}
+	
+	@Override
+	public String toString() {
+		return "{" + super.toString()
+		+ " " + repoclient
+		+ "}";
+	}
 
 	/*
 	 * @Override protected void finalize() throws Throwable { try { if

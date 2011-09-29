@@ -1,0 +1,113 @@
+/******************************************************************************
+** Copyright (c) 2008-2011 Franz Inc.
+** All rights reserved. This program and the accompanying materials
+** are made available under the terms of the Eclipse Public License v1.0
+** which accompanies this distribution, and is available at
+** http://www.eclipse.org/legal/epl-v10.html
+******************************************************************************/
+
+package com.franz.agraph.pool;
+
+import org.apache.commons.pool.impl.GenericKeyedObjectPool.Config;
+import org.apache.commons.pool.impl.GenericObjectPool;
+
+import com.franz.agraph.repository.AGRepositoryConnection;
+
+/**
+ * Property names for {@link AGPoolConfig}.
+ * 
+ * Property names to open a {@link AGRepositoryConnection}.
+ * 
+ * <p>TODO: {@link AGRepositoryConnection#setSessionLoadInitFile(boolean)}</p>
+ * <p>TODO: {@link AGRepositoryConnection#addSessionLoadScript(String)}</p>
+ * 
+ * Many of these properties are specified and used by {@link GenericObjectPool}.
+ * 
+ * @see GenericObjectPool
+ * @see Config
+ */
+public enum AGPoolProp {
+	
+	/**
+	 * When the pool is created, this many connections will be
+	 * initialized, then returned to the pool.
+	 * @see AGPoolConfig#initialSize
+	 */
+	initialSize,
+	
+	/**
+	 * When the pool is created, if this is true (default is false),
+	 * a hook will be registered to close the pool.
+	 * Connections will be closed whether idle or not.
+	 * 
+	 * <p>When the pool is closed, from outside of the hook, the
+	 * hook will be {@link Runtime#removeShutdownHook(Thread) removed}
+	 * so it is not leaked in the list of hooks.</p>
+	 * 
+	 * @see AGPoolConfig#shutdownHook
+	 * @see Runtime#addShutdownHook(Thread)
+	 */
+	shutdownHook,
+	
+	/**
+	 * @see GenericObjectPool#setMinIdle(int)
+	 */
+	
+	minIdle,
+	/**
+	 * @see GenericObjectPool#setMaxIdle(int)
+	 */
+	
+	maxIdle,
+	/**
+	 * @see GenericObjectPool#setMaxActive(int)
+	 */
+	maxActive,
+	
+	/**
+	 * @see GenericObjectPool#setMaxWait(long)
+	 */
+	maxWait,
+	
+	/**
+	 * Ping - Important, because sessions may timeout while idle in the pool.
+	 * @see AGRepositoryConnection#ping()
+	 * @see GenericObjectPool#setTestOnBorrow(boolean)
+	 */
+	testOnBorrow,
+	
+	/**
+	 * Ping.
+	 * @see AGRepositoryConnection#ping()
+	 * @see GenericObjectPool#setTestOnReturn(boolean)
+	 */
+	testOnReturn,
+	
+	/**
+	 * @see GenericObjectPool#setTimeBetweenEvictionRunsMillis(long)
+	 */
+	timeBetweenEvictionRunsMillis,
+	
+	/**
+	 * @see GenericObjectPool#setMinEvictableIdleTimeMillis(long)
+	 */
+	minEvictableIdleTimeMillis,
+	
+	/**
+	 * @see GenericObjectPool#setTestWhileIdle(boolean)
+	 */
+	testWhileIdle,
+	
+	/**
+	 * @see GenericObjectPool#setSoftMinEvictableIdleTimeMillis(long)
+	 */
+	softMinEvictableIdleTimeMillis,
+	
+	/**
+	 * @see GenericObjectPool#setNumTestsPerEvictionRun(int)
+	 */
+	numTestsPerEvictionRun,
+	
+	// TODO whenExhaustedAction
+	
+}
