@@ -1,0 +1,8 @@
+Verified+1: Kevin Layer <layer@franz.com>
+Code-Review+1: Gary Warren King <gwking@franz.com>
+Code-Review+2: John O'Rourke <jor@franz.com>
+Submitted-by: Kevin Layer <layer@franz.com>
+Submitted-at: Mon, 17 Oct 2011 13:03:41 -0700
+Reviewed-on: https://gerrit.franz.com:9080/1360
+Project: agraph-java-client
+Branch: refs/heads/v4.4
