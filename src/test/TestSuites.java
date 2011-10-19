@@ -42,7 +42,8 @@ public class TestSuites {
         AGRepositoryConnectionTests.class,
         JenaTests.class,
         StreamingTest.class,
-        ServerCodeTests.class
+        ServerCodeTests.class,
+        SpinTest.class
     })
     public static class Temp {}
     
@@ -69,7 +70,8 @@ public class TestSuites {
         NQuadsTests.class,
         AGGraphQueryTests.class,
         QueryLimitOffsetTests.class,
-        UntypedLiteralMatchingTest.class
+        UntypedLiteralMatchingTest.class,
+        SpinTest.class
     })
     public static class Prepush {}
     

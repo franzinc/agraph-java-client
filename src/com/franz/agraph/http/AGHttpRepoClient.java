@@ -31,6 +31,7 @@ import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.apache.commons.httpclient.util.URIUtil;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.openrdf.OpenRDFUtil;
@@ -1876,4 +1877,66 @@ public class AGHttpRepoClient implements Closeable {
 			throw new RepositoryException(e);
 		}
 	}
+
+	private String getSpinX(String x, String uri) throws Exception {
+    	return getHTTPClient().getString(getRoot() + "/spin/" + x + "/" + URIUtil.encodeAll(uri));
+	}
+	
+	private void putSpinX(String x, String uri, String sparqlQuery, String[] arguments) throws Exception {
+		NameValuePair[] params = new NameValuePair[(arguments == null ? 0 : arguments.length) + 1];
+		params[0] = new NameValuePair("query", sparqlQuery);
+		for (int i = 0; arguments != null && i < arguments.length; i++) {
+			params[i+1] = new NameValuePair("arguments", arguments[i]);
+		}
+		getHTTPClient().put(getRoot() + "/spin/" + x + "/" + URIUtil.encodeAll(uri), null, params, null);
+	}
+
+	private void deleteSpinX(String x, String uri) throws Exception {
+		getHTTPClient().delete(getRoot() + "/spin/" + x + "/" + URIUtil.encodeAll(uri), null, null);
+	}
+
+	public String getSpinFunction(String uri) throws Exception {
+		return getSpinX("function", uri);
+	}
+	
+	public void putSpinFunction(String uri, String sparqlQuery, String[] arguments) throws Exception {
+		putSpinX("function", uri, sparqlQuery, arguments);
+	}
+
+	public void deleteSpinFunction(String uri) throws Exception {
+		deleteSpinX("function", uri);
+	}
+
+	public void deleteHardSpinFunction(String uri) throws Exception {
+		try {
+			deleteSpinFunction(uri);
+		} catch (Exception e) {
+			if (! e.getMessage().contains(uri + " is not a registered SPIN function")) {
+				throw e;
+			}
+		}
+	}
+
+	public String getSpinMagicProperty(String uri) throws Exception {
+		return getSpinX("magicproperty", uri);
+	}
+	
+	public void putSpinMagicProperty(String uri, String sparqlQuery, String[] arguments) throws Exception {
+		putSpinX("magicproperty", uri, sparqlQuery, arguments);
+	}
+
+	public void deleteSpinMagicProperty(String uri) throws Exception {
+		deleteSpinX("magicproperty", uri);
+	}
+
+	public void deleteHardSpinMagicProperty(String uri) throws Exception {
+		try {
+			deleteSpinMagicProperty(uri);
+		} catch (Exception e) {
+			if (! e.getMessage().contains(uri + " is not a registered SPIN magic property")) {
+				throw e;
+			}
+		}
+	}
+
 }
