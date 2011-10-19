@@ -15,13 +15,14 @@ public class AGHttpException extends Exception {
 	private final AGErrorInfo errorInfo;
 	
 	AGHttpException(AGErrorInfo errorInfo) {
-	    super(errorInfo.getErrorMessage());
+	    super(errorInfo.getErrorMessage(), errorInfo);
 		this.errorInfo = errorInfo;
 	}
 	
 	public AGHttpException(String message) {
 		super(message);
 		errorInfo = new AGErrorInfo(message);
+		initCause(errorInfo);
 	}
 
 	public AGHttpException(String message, Throwable cause) {

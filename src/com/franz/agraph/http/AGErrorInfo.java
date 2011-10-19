@@ -8,19 +8,23 @@
 
 package com.franz.agraph.http;
 
-public class AGErrorInfo {
+public class AGErrorInfo extends Exception {
+
+	private static final long serialVersionUID = -7109531872359055983L;
 
 	private AGErrorType errorType;
 
-	private String errMSg;
+	public AGErrorInfo(String errMsg, Throwable cause) {
+		super(errMsg, cause);
+		assert errMsg != null : "errMsg must not be null";
+	}
 
 	public AGErrorInfo(String errMsg) {
-		assert errMsg != null : "errMsg must not be null";
-		this.errMSg = errMsg;
+		this(errMsg, null);
 	}
 
 	public AGErrorInfo(AGErrorType errorType, String errMsg) {
-		this(errMsg);
+		this(errMsg, null);
 		this.errorType = errorType;
 	}
 
@@ -29,7 +33,7 @@ public class AGErrorInfo {
 	}
 
 	public String getErrorMessage() {
-		return errMSg;
+		return getMessage();
 	}
 
 	@Override
@@ -38,11 +42,11 @@ public class AGErrorInfo {
 			StringBuilder sb = new StringBuilder(64);
 			sb.append(errorType);
 			sb.append(": ");
-			sb.append(errMSg);
+			sb.append(getMessage());
 			return sb.toString();
 		}
 		else {
-			return errMSg;
+			return getMessage();
 		}
 	}
 

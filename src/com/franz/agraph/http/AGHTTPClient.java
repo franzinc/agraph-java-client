@@ -87,7 +87,9 @@ implements Closeable {
 			manager.setParams(params);
 		}
 		httpClient = new HttpClient(manager);
-		logger.debug("connect: " + serverURL + " " + httpClient + " " + manager);
+		if (logger.isDebugEnabled()) {
+			logger.debug("connect: " + serverURL + " " + httpClient + " " + manager);
+		}
 	}
 
 	@Override
@@ -128,13 +130,12 @@ implements Closeable {
 			} else if (!HttpClientUtil.is2xx(httpCode)) {
 				AGErrorInfo errInfo = getErrorInfo(post);
 				if (errInfo.getErrorType() == AGErrorType.MALFORMED_DATA) {
-					throw new RDFParseException(errInfo.getErrorMessage());
+					throw new RDFParseException(errInfo);
 				} else if (errInfo.getErrorType() == AGErrorType.UNSUPPORTED_FILE_FORMAT) {
-					throw new UnsupportedRDFormatException(errInfo
-							.getErrorMessage());
+					throw new UnsupportedRDFormatException(errInfo.getErrorMessage(), errInfo);
 				} else {
 					throw new RepositoryException("POST failed " + url + ": "
-							+ errInfo + " (" + httpCode + ")");
+							+ errInfo + " (" + httpCode + ")", errInfo);
 				}
 			}
 		} catch (AGHttpException e) {
@@ -163,8 +164,7 @@ implements Closeable {
 			} else if (httpCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
 				throw new UnauthorizedException();
 			} else if (!HttpClientUtil.is2xx(httpCode)) {
-				AGErrorInfo errInfo = getErrorInfo(get);
-				throw new AGHttpException(errInfo);
+				throw new AGHttpException(getErrorInfo(get));
 			}
 		} finally {
 			if (handler == null || handler.releaseConnection()) {
@@ -192,7 +192,7 @@ implements Closeable {
 			} else if (!HttpClientUtil.is2xx(httpCode)) {
 				AGErrorInfo errInfo = getErrorInfo(delete);
 				throw new RepositoryException("DELETE failed " + url + ": "
-						+ errInfo + " (" + httpCode + ")");
+						+ errInfo + " (" + httpCode + ")", errInfo);
 			}
 		} finally {
 			releaseConnection(delete);
@@ -231,19 +231,15 @@ implements Closeable {
 	 *-------------------------*/
 
 	protected AGErrorInfo getErrorInfo(HttpMethod method) {
-		AGErrorInfo errorInfo;
 		try {
 			// TODO: check the case where the server supplies
 			// no error message
 			AGStringHandler handler = new AGStringHandler();
 			handler.handleResponse(method);
-			errorInfo = AGErrorInfo.parse(handler.getResult());
-			logger.warn("Server reports problem: {}", errorInfo.getErrorMessage());
+			return AGErrorInfo.parse(handler.getResult());
 		} catch (Exception e) {
-			logger.warn("Unable to retrieve error info from server");
-			errorInfo = new AGErrorInfo("Unable to retrieve error info from server");
+			return new AGErrorInfo("Unable to retrieve error info from server", e);
 		}
-		return errorInfo;
 	}
 
 	/**
@@ -257,9 +253,7 @@ implements Closeable {
 	public void setUsernameAndPassword(String username, String password) {
 
 		if (username != null && password != null) {
-			logger.debug(
-					"Setting username '{}' and password for server at {}.",
-					username, serverURL);
+			logger.debug("Setting username '{}' and password for server at {}.", username, serverURL);
 			try {
 				URL server = new URL(serverURL);
 				authScope = new AuthScope(server.getHost(), AuthScope.ANY_PORT);
@@ -267,10 +261,7 @@ implements Closeable {
 						new UsernamePasswordCredentials(username, password));
 				httpClient.getParams().setAuthenticationPreemptive(true);
 			} catch (MalformedURLException e) {
-				logger
-						.warn(
-								"Unable to set username and password for malformed URL {}",
-								serverURL);
+				logger.warn("Unable to set username and password for malformed URL " + serverURL, e);
 			}
 		} else {
 			authScope = null;

@@ -229,7 +229,7 @@ public class AGHttpRepoClient implements Closeable {
 	 * Gets the RDFFormat to use in making requests that return
 	 * RDF statements.
 	 * 
-	 * Defaults to the format returned by {@link getDefaultRDFFormat()}
+	 * Defaults to the format returned by {@link #getDefaultRDFFormat()}
 	 * 
 	 * @return an RDFFormat, either NQUADS or TRIX
 	 */
@@ -242,7 +242,7 @@ public class AGHttpRepoClient implements Closeable {
 	 * RDF statements; the format should support contexts.
 	 * 
 	 * AGRDFFormat.NQUADS and RDFFormat.TRIX are currently supported.
-	 * Defaults to the format returned by {@link getDefaultRDFFormat()}
+	 * Defaults to the format returned by {@link #getDefaultRDFFormat()}
 	 * 
 	 */
 	public void setPreferredRDFFormat(RDFFormat preferredRDFFormat) {
