@@ -423,6 +423,10 @@ public class AGProtocol extends Protocol {
 	 */
 	public static final String CHECK_VARIABLES = "checkVariables";
 	
+	public static final String SESSION_DOC = "Consult the Server Installation document for correct settings for SessionPorts: "
+		+ "http://www.franz.com/agraph/support/documentation/current/server-installation.html#sessionport"
+		+ ". Or the session may have been idle for its lifetime setting and been collected - see AGRepositoryConnection.setSessionLifetime()";
+	
 	/**
 	 * Location of the root catalog service
 	 */

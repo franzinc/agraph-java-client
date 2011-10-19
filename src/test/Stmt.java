@@ -8,7 +8,6 @@
 
 package test;
 
-import static test.Util.close;
 import static test.Util.get;
 
 import java.util.ArrayList;
@@ -28,6 +27,8 @@ import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryResult;
 import org.openrdf.query.TupleQueryResult;
 import org.openrdf.repository.RepositoryResult;
+
+import com.franz.util.Closer;
 
 /**
  * A simple implementation of Statement used for testing.
@@ -78,7 +79,7 @@ public class Stmt implements Statement {
             }
             return ret;
         } finally {
-            close(results);
+        	Closer.Close(results);
         }
     }
     
@@ -99,7 +100,7 @@ public class Stmt implements Statement {
             }
             return ret;
         } finally {
-            close(results);
+        	Closer.Close(results);
         }
     }
     
@@ -113,7 +114,7 @@ public class Stmt implements Statement {
             }
             return ret;
         } finally {
-            close(result);
+        	Closer.Close(result);
         }
     }
 

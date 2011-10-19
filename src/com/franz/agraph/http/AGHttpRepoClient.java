@@ -33,7 +33,6 @@ import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.openrdf.OpenRDFException;
 import org.openrdf.OpenRDFUtil;
 import org.openrdf.http.protocol.Protocol;
 import org.openrdf.http.protocol.UnauthorizedException;
@@ -288,14 +287,13 @@ public class AGHttpRepoClient implements Closeable {
 			} catch (IOException e) {
 				throw new RepositoryException(e);
 			}
+			sessionRoot = handler.getResult();
 			if (logger.isDebugEnabled())
 				logger.debug("openSession: {}", sessionRoot);
-			sessionRoot = handler.getResult();
 		}
 	}
 
-	private void closeSession(String sessionRoot) throws IOException,
-			RepositoryException, UnauthorizedException {
+	private void closeSession(String sessionRoot) throws RepositoryException {
 		if (sessionRoot != null && !getHTTPClient().isClosed()) {
 			String url = AGProtocol.getSessionCloseLocation(sessionRoot);
 			Header[] headers = new Header[0];
@@ -304,6 +302,8 @@ public class AGHttpRepoClient implements Closeable {
 				getHTTPClient().post(url, headers, params, null, null);
 				if (logger.isDebugEnabled())
 					logger.debug("closeSession: {}", url);
+			} catch (IOException e) {
+				throw handleSessionConnectionError(e, url);
 			} catch (RDFParseException e) {
 				// bug.
 				throw new RuntimeException(e);
@@ -459,14 +459,12 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	private RepositoryException handleSessionConnectionError(IOException e, String url) throws RepositoryException {
-		if (e instanceof java.net.ConnectException) {
+		if (e instanceof java.net.ConnectException && e.getMessage().equals("Connection refused")) {
 			// To test this exception, setup remote server and only open port to
 			// the main port, not the SessionPorts and run TutorialTest.example6()
-			return new RepositoryException("Session port connection failure. Consult the Server Installation document for correct settings for SessionPorts. Url: " + url
-					+ ". Documentation: http://www.franz.com/agraph/support/documentation/v4/server-installation.html#sessionport", e);
+			return new RepositoryException("Failed connecting to AGraph session port with URL: " + url + ". " + AGProtocol.SESSION_DOC, e);
 		} else {
-			return new RepositoryException("Possible session port connection failure. Consult the Server Installation document for correct settings for SessionPorts. Url: " + url
-					+ ". Documentation: http://www.franz.com/agraph/support/documentation/v4/server-installation.html#sessionport", e);
+			return new RepositoryException("Possible session port connection failure with URL: " + url + ". " + AGProtocol.SESSION_DOC, e);
 		}
 	}
 
@@ -954,12 +952,8 @@ public class AGHttpRepoClient implements Closeable {
 	
 	public synchronized void close() throws RepositoryException {
 		if (sessionRoot != null) {
-			try {
-				closeSession(sessionRoot);
-				sessionRoot = null;
-			} catch (IOException e) {
-				throw new RepositoryException(e);
-			}
+			closeSession(sessionRoot);
+			sessionRoot = null;
 		}
 	}
 
@@ -1601,7 +1595,6 @@ public class AGHttpRepoClient implements Closeable {
 	 *   
 	 * @param listValid true yields all valid types, false yields active types. 
 	 * @return list of indices, never null
-	 * @throws OpenRDFException
 	 */
 	public List<String> listIndices(boolean listValid) throws RepositoryException {
 		String url = AGProtocol.getIndicesURL(getRoot());

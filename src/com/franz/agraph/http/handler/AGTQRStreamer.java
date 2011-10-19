@@ -30,7 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.franz.agraph.http.AGHttpException;
-import com.franz.util.Util;
+import com.franz.util.Closer;
 
 /**
  * Similar to {@link org.openrdf.query.resultio.sparqlxml.SPARQLResultsXMLParser}
@@ -244,8 +244,8 @@ public class AGTQRStreamer extends AGResponseHandler {
 			if ( ! closed) {
 				closed = true;
 				try {
-					Util.close(xml);
-					Util.close(method.getResponseBodyAsStream());
+					Closer.Close(xml);
+					Closer.Close(method.getResponseBodyAsStream());
 					method.releaseConnection();
 				} catch (Exception e) {
 					log.warn("I/O error closing resources", e);

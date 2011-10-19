@@ -28,7 +28,6 @@ import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.util.Closeable;
 import com.franz.util.Closer;
-import com.franz.util.Util;
 
 /**
  * Pooling for {@link AGRepositoryConnection}s.
@@ -37,7 +36,7 @@ import com.franz.util.Util;
  * 
  * <p><code><pre>
  * 	AGConnPool pool = AGConnPool.create(
- * 		AGConnProp.serverUrl, "http://localhost:10035/",
+ * 		AGConnProp.serverUrl, "http://localhost:10035",
  * 		AGConnProp.username, "test",
  * 		AGConnProp.password, "xyzzy",
  * 		AGConnProp.catalog, "/",
@@ -57,16 +56,10 @@ import com.franz.util.Util;
  * </pre></code></p>
  * 
  * <p>This pool delegates the pooling implementation to another
- * pool (usually {@link GenericObjectPool}),
- * adding {@link #borrowConnection()}, which also wraps
- * the {@link AGRepositoryConnection} so that {@link Closeable#close()}
- * will call {@link #returnObject(Object)} instead of actually closing.</p>
- * 
- * <p>Warning: Since the objects {@link #borrowConnection() borrowed}
- * from this class are wrapped, you can not use them directly with
- * the delegate pool.
- * The delegate pool should only be used for its pooling
- * implementation and configuration.
+ * pool (a {@link GenericObjectPool}).
+ * When {@link AGRepositoryConnection Connections} are {@link #borrowObject() borrowed},
+ * they are wrapped so that {@link Closeable#close()}
+ * will call {@link #returnObject(Object)} instead of actually closing.
  * </p>
  * 
  * <p>Closing the connection pool is important because server sessions will
@@ -86,17 +79,15 @@ import com.franz.util.Util;
  * This is different from {@link GenericObjectPool#close()}.
  * </p>
  * 
- * @param <ObjectPoolType>
- * 
  * @since v4.3.3
  */
-public class AGConnPool <ObjectPoolType extends ObjectPool>
+public class AGConnPool
 extends Closer
 implements ObjectPool, Closeable {
 
 	private static final Logger log = LoggerFactory.getLogger(AGConnPool.class);
 
-	private final ObjectPoolType delegate;
+	private final ObjectPool delegate;
 	
 	private final AGConnFactory factory;
 
@@ -124,6 +115,44 @@ implements ObjectPool, Closeable {
 		}
 	}
 	
+	/**
+	 * 
+	 */
+	class ClosingFactory implements PoolableObjectFactory {
+
+		private final PoolableObjectFactory delegate;
+		
+		ClosingFactory(PoolableObjectFactory delegate) {
+			this.delegate = delegate;
+		}
+		
+		@Override
+		public void activateObject(Object object) throws Exception {
+			delegate.activateObject(unwrap(object));
+		}
+
+		@Override
+		public void destroyObject(Object object) throws Exception {
+			delegate.destroyObject(unwrap(object));
+		}
+
+		@Override
+		public Object makeObject() throws Exception {
+			return new AGRepositoryConnectionPooled((AGRepositoryConnection) delegate.makeObject());
+		}
+
+		@Override
+		public void passivateObject(Object object) throws Exception {
+			delegate.passivateObject(unwrap(object));
+		}
+
+		@Override
+		public boolean validateObject(Object object) {
+			return delegate.validateObject(unwrap(object));
+		}
+		
+	}
+	
 	private static class ShutdownHookCloser extends Thread implements Closeable {
 		
 		private static final Logger log = LoggerFactory.getLogger(ShutdownHookCloser.class);
@@ -139,7 +168,7 @@ implements ObjectPool, Closeable {
 			log.info("closing " + closer);
 			// remove this before closing, because removeShutdownHook will throw if inside of run
 			closer.remove(this);
-			Util.close(closer);
+			Closer.Close(closer);
 			log.debug("closed " + closer);
 		}
 
@@ -156,15 +185,15 @@ implements ObjectPool, Closeable {
 	/**
 	 * @see #create(Object...)
 	 */
-	public AGConnPool(ObjectPoolType delegate, AGConnFactory factory, AGPoolConfig config) {
-		this.delegate = delegate;
+	private AGConnPool(AGConnFactory factory, AGPoolConfig poolConfig) {
+		this.delegate = new GenericObjectPool(new ClosingFactory(factory));
 		closeLater(delegate);
 		this.factory = factory;
 
-		if (config.initialSize > 0) {
-			List<AGRepositoryConnection> conns = new ArrayList<AGRepositoryConnection>(config.initialSize);
+		if (poolConfig.initialSize > 0) {
+			List<AGRepositoryConnection> conns = new ArrayList<AGRepositoryConnection>(poolConfig.initialSize);
 			try {
-				for (int i = 0; i < config.initialSize; i++) {
+				for (int i = 0; i < poolConfig.initialSize; i++) {
 					conns.add(borrowConnection());
 				}
 			} catch (RepositoryException e) {
@@ -173,21 +202,20 @@ implements ObjectPool, Closeable {
 			// return them to the pool
 			closeAll(conns);
 		}
-		if (config.shutdownHook) {
+		if (poolConfig.shutdownHook) {
 			Runtime.getRuntime().addShutdownHook( closeLater( new ShutdownHookCloser(this)));
 		}
 	}
-	
+
 	/**
 	 * A {@link GenericObjectPool} is used.
 	 */
-	public static AGConnPool create(AGConnFactory fact, AGPoolConfig poolConfig) {
-		return new AGConnPool<GenericObjectPool>(new GenericObjectPool(fact, poolConfig), fact, poolConfig);
+	public static AGConnPool create(AGConnFactory factory, AGPoolConfig poolConfig) {
+		return new AGConnPool(factory, poolConfig);
 	}
 
 	/**
 	 * Create a pool from configuration properties.
-	 * A {@link GenericObjectPool} is used.
 	 * @param connProps keys are {@link AGConnProp}
 	 * @param poolProps keys are {@link AGPoolProp}
 	 */
@@ -200,7 +228,6 @@ implements ObjectPool, Closeable {
 		
 	/**
 	 * Create a pool from configuration properties.
-	 * A {@link GenericObjectPool} is used.
 	 * @param keyValuePairs alternating key/value pairs where keys are {@link AGConnProp} and {@link AGPoolProp}
 	 */
 	public static AGConnPool create(Object...keyValuePairs) throws RepositoryException {
@@ -233,7 +260,7 @@ implements ObjectPool, Closeable {
 	
 	public AGRepositoryConnection borrowConnection() throws RepositoryException {
 		try {
-			return new AGRepositoryConnectionPooled((AGRepositoryConnection) delegate.borrowObject());
+			return (AGRepositoryConnection) delegate.borrowObject();
 		} catch (Exception e) {
 			throw new RepositoryException(e);
 		}
@@ -256,15 +283,15 @@ implements ObjectPool, Closeable {
 	
 	@Override
 	public void invalidateObject(Object obj) throws Exception {
-		delegate.invalidateObject(unwrap(obj));
+		delegate.invalidateObject(obj);
 	}
 	
 	@Override
 	public void returnObject(Object obj) throws Exception {
-		delegate.returnObject(unwrap(obj));
+		delegate.returnObject(obj);
 	}
 	
-	public Object unwrap(Object obj) {
+	public static Object unwrap(Object obj) {
 		if (obj instanceof AGConnPool.AGRepositoryConnectionPooled) {
 			return ((AGConnPool.AGRepositoryConnectionPooled)obj).conn;
 		} else {

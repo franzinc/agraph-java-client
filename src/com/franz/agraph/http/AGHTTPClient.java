@@ -51,7 +51,7 @@ import com.franz.agraph.http.handler.AGResponseHandler;
 import com.franz.agraph.http.handler.AGStringHandler;
 import com.franz.agraph.http.handler.AGTQRHandler;
 import com.franz.util.Closeable;
-import com.franz.util.Util;
+import com.franz.util.Closer;
 
 /**
  * TODO: another pass over this class for response and error handling
@@ -396,7 +396,7 @@ implements Closeable {
     @Override
     public void close() {
         logger.debug("close: " + serverURL + " " + mManager);
-        mManager = Util.close(mManager);
+        mManager = Closer.Close(mManager);
     }
     
     boolean isClosed() {

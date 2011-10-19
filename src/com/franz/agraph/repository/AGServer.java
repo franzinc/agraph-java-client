@@ -20,7 +20,7 @@ import com.franz.agraph.http.AGHTTPClient;
 import com.franz.agraph.http.AGHttpException;
 import com.franz.agraph.http.AGProtocol;
 import com.franz.util.Closeable;
-import com.franz.util.Util;
+import com.franz.util.Closer;
 
 /**
  * The starting point for interacting with an
@@ -178,7 +178,7 @@ public class AGServer implements Closeable {
 	 */
     @Override
     public void close() {
-        Util.close(httpClient);
+        Closer.Close(httpClient);
     }
 	
 }
