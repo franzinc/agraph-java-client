@@ -9,7 +9,6 @@
 package com.franz.agraph.repository;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.NameValuePair;
@@ -199,8 +198,6 @@ public class AGRepository implements AGAbstractRepository, Closeable {
 			} else {
 				getHTTPClient().delete(url, headers, data);
 			}
-		} catch (IOException e) {
-			throw new RepositoryException(e);
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
@@ -242,8 +239,6 @@ public class AGRepository implements AGAbstractRepository, Closeable {
 			} else {
 				throw new IllegalArgumentException("Illegal mode: " + mode + "(must be one of: false, true, spo).");
 			}
-		} catch (IOException e) {
-			throw new RepositoryException(e);
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
@@ -274,9 +269,6 @@ public class AGRepository implements AGAbstractRepository, Closeable {
 		NameValuePair[] data = {};
 		try {
 		    getHTTPClient().post(url,hdr,data,null,null);
-
-		} catch (IOException e) {
-			throw new RepositoryException(e);
 		} catch (RDFParseException e) {
 			throw new RepositoryException(e);
 		}
@@ -292,8 +284,6 @@ public class AGRepository implements AGAbstractRepository, Closeable {
 		NameValuePair[] data = {};
 		try {
 		    getHTTPClient().post(url,hdr,data,null,null);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
 		} catch (RDFParseException e) {
 			throw new RepositoryException(e);
 		}

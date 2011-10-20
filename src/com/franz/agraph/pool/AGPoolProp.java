@@ -70,16 +70,17 @@ public enum AGPoolProp {
 	maxWait,
 	
 	/**
-	 * Ping - Important, because sessions may timeout while idle in the pool.
-	 * @see AGRepositoryConnection#ping()
+	 * Calls {@link AGRepositoryConnection#size(org.openrdf.model.Resource...)}
+	 * - Important, because sessions may timeout while idle in the pool.
 	 * @see GenericObjectPool#setTestOnBorrow(boolean)
+	 * @see AGConnFactory#validateObject(Object)
 	 */
 	testOnBorrow,
 	
 	/**
-	 * Ping.
-	 * @see AGRepositoryConnection#ping()
+	 * Calls {@link AGRepositoryConnection#size(org.openrdf.model.Resource...)}.
 	 * @see GenericObjectPool#setTestOnReturn(boolean)
+	 * @see AGConnFactory#validateObject(Object)
 	 */
 	testOnReturn,
 	

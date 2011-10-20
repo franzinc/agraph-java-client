@@ -64,7 +64,6 @@ import com.franz.agraph.repository.AGStreamTupleQuery;
 import com.franz.agraph.repository.AGTupleQuery;
 import com.franz.util.Closeable;
 import com.franz.util.Closer;
-import com.franz.util.Util;
 
 public class Events extends Closer {
     
@@ -1307,7 +1306,7 @@ public class Events extends Closer {
     		e.printStackTrace();
     		System.exit(-1);
     	} finally {
-    		Util.close(events);
+    		Closer.Close(events);
     	}
     	if (events.errors > 0) {
     		// exit with error

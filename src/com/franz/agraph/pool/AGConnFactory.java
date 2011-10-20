@@ -17,6 +17,7 @@ import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
+import com.franz.util.Closeable;
 import com.franz.util.Closer;
 
 /**
@@ -44,7 +45,7 @@ implements PoolableObjectFactory {
 		return makeConnection();
 	}
 	
-	protected AGRepositoryConnection makeConnection() throws RepositoryException {
+	protected AGRepositoryConnection makeConnection() throws Exception {
 		AGServer server = closeLater( new AGServer(props.serverUrl, props.username, props.password) );
 		AGCatalog cat;
 		if (props.catalog != null) {
@@ -53,7 +54,12 @@ implements PoolableObjectFactory {
 			cat = server.getRootCatalog();
 		}
 		
-		AGRepository repo = closeLater( cat.createRepository(props.repository) );
+		final AGRepository repo;
+		if (!cat.hasRepository(props.repository)) {
+			repo = closeLater( createRepo(cat));
+		} else {
+			repo = closeLater( new AGRepository(cat, props.repository));
+		}
 		repo.initialize();
 		
 		AGRepositoryConnection conn = closeLater( new AGRepositoryConnectionCloseup(this, closeLater( repo.getConnection())));
@@ -64,6 +70,18 @@ implements PoolableObjectFactory {
 		return conn;
 	}
 	
+	/**
+	 * Synchronized and re-checks hasRepository so multiple
+	 * do not try to create the repo at the same time.
+	 */
+	private synchronized AGRepository createRepo(AGCatalog cat) throws Exception {
+		if (!cat.hasRepository(props.repository)) {
+			return cat.createRepository(props.repository, true);
+		} else {
+			return new AGRepository(cat, props.repository);
+		}
+	}
+
 	protected void activateConnection(AGRepositoryConnection conn) throws RepositoryException {
 		switch (props.session) {
 		case SHARED:
@@ -112,15 +130,32 @@ implements PoolableObjectFactory {
 		}
 	}
 	
+	/**
+	 * Calls {@link AGRepositoryConnection#size(org.openrdf.model.Resource...)}.
+	 */
 	@Override
 	public boolean validateObject(Object obj) {
 		AGRepositoryConnection conn = (AGRepositoryConnection) obj;
 		try {
-			conn.ping();
+			// ping only checks the network is up
+			// size also ensures the repo exists
+			conn.size();
 			return true;
-		} catch (RepositoryException e) {
+		} catch (Exception e) {
+			log.debug("validateObject " + obj, e);
 			return false;
 		}
+	}
+
+	@Override
+	public <Obj extends Object> Obj handleCloseException(Obj o, Throwable e) {
+		if (e.getCause() instanceof java.net.ConnectException && e.getCause().getMessage().equals("Connection refused")) {
+			// squelch this (debug instead of warn) because it's common that the session has timed out
+			log.debug("ignoring error with close (probably session timeout): " + o, e);
+		} else {
+			log.warn("ignoring error with close: " + o, e);
+		}
+		return o;
 	}
 	
 	/**
@@ -128,7 +163,7 @@ implements PoolableObjectFactory {
 	 */
 	class AGRepositoryConnectionCloseup extends AGRepositoryConnection {
 		
-		final AGRepositoryConnection conn;
+		private final AGRepositoryConnection conn;
 		private final Closer closer;
 		
 		public AGRepositoryConnectionCloseup(Closer closer, AGRepositoryConnection conn) {
@@ -142,12 +177,11 @@ implements PoolableObjectFactory {
 		 */
 		@Override
 		public void close() throws RepositoryException {
-			try {
-				super.close();
-			} catch (Exception e) {
-				// it is likely the session has timed out, so only log to debug
-				logger.debug("ignoring error with close", e);
-			}
+			closer.close(new Closeable() {
+				public void close() throws Exception {
+					AGRepositoryConnectionCloseup.super.close();
+				}
+			});
 			closer.close(conn);
 			closer.close(conn.getRepository());
 			closer.close(conn.getRepository().getCatalog().getServer());

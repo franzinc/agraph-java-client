@@ -23,13 +23,13 @@ import org.slf4j.LoggerFactory;
 import com.hp.hpl.jena.rdf.model.Model;
 
 /**
- * Extend this class to add easy ability to safely close various resources.
- * 
- * <p>TODO: track lastUsed and add method to removeAbandoned (beyond a timeout)</p>
+ * Use or extend this class to add easy ability to safely close various resources.
  * 
  * <p>Also, static Close functions for various object types.
  * These close functions are null safe and will catch Exception
  * and call log.warn instead of throwing.</p>
+ * 
+ * <p>TODO: track lastUsed and add method to removeAbandoned (beyond a timeout)</p>
  * 
  * @since v4.3.3
  */
@@ -49,10 +49,15 @@ public class Closer implements Closeable {
 	}
 
 	/**
-	 * Remove from {@link #closeLater(Object)}.
+	 * Remove object from collection so close will not be called later.
+	 * @see #closeLater(Object)
 	 */
 	public boolean remove(Object o) {
-		return toClose.remove(o);
+		boolean removed = false;
+		while (toClose.remove(o)) {
+			removed = true;
+		}
+		return removed;
 	}
 	
 	/**
@@ -76,122 +81,174 @@ public class Closer implements Closeable {
 		return null;
 	}
 	
+	@Override
+	public String toString() {
+		return "{" + super.toString()
+		+ " toClose=" + toClose.size()
+		+ "}";
+	}
+
 	/**
 	 * Close an object immediately, will not be closed "later".
 	 */
 	public <Obj extends Object>
 	Obj close(Obj o) {
-		o = Close(o);
-		while (toClose.remove(o)) {
+		if (o instanceof Closeable) {
+			return (Obj) close((Closeable)o);
+		} else if (o instanceof java.io.Closeable) {
+			return (Obj) close((java.io.Closeable)o);
+		} else if (o instanceof CloseableIteration) {
+			return (Obj) close((CloseableIteration)o);
+		} else if (o instanceof XMLStreamReader) {
+			return (Obj) close((XMLStreamReader)o);
+		} else if (o instanceof MultiThreadedHttpConnectionManager) {
+			return (Obj) close((MultiThreadedHttpConnectionManager)o);
+		} else if (o instanceof Model) {
+			return (Obj) close((Model)o);
+		} else {
+			return closeReflection(o);
 		}
-		return o;
-	}
-	
-	@Override
-	public String toString() {
-		return "{" + super.toString()
-		+ " openObjects=" + toClose.size()
-		+ "}";
 	}
 
-	public static <Obj extends Object>
-	Obj Close(Obj o) {
-		if (o instanceof Closeable) {
-			return (Obj) Close((Closeable)o);
-		} else if (o instanceof java.io.Closeable) {
-			return (Obj) Close((java.io.Closeable)o);
-		} else if (o instanceof CloseableIteration) {
-			return (Obj) Close((CloseableIteration)o);
-		} else if (o instanceof XMLStreamReader) {
-			return (Obj) Close((XMLStreamReader)o);
-		} else if (o instanceof MultiThreadedHttpConnectionManager) {
-			return (Obj) Close((MultiThreadedHttpConnectionManager)o);
-		} else if (o instanceof Model) {
-			return (Obj) Close((Model)o);
-		} else if (o != null) {
-			try {
-				o.getClass().getMethod("close").invoke(o);
-			} catch (Exception e) {
-				log.warn("ignoring error with close", e);
-				return o;
-			}
-		}
-		return null;
+	/**
+	 * Subclass may override, default behavior is to log.warn and return the object.
+	 * @return 
+	 */
+	public <Obj extends Object>
+	Obj handleCloseException(Obj o, Throwable e) {
+		log.warn("ignoring error with close: " + o, e);
+		return o;
 	}
-	
-	public static <CloseableType extends Closeable>
-	CloseableType Close(CloseableType o) {
+
+	public <CloseableType extends Closeable>
+	CloseableType close(CloseableType o) {
 		if (o != null) {
 			try {
 				o.close();
 			} catch (Exception e) {
-				log.warn("ignoring error with close", e);
-				return o;
+				return handleCloseException(o, e);
+			} finally {
+				remove(o);
 			}
 		}
 		return null;
 	}
 	
-	public static <CloseableType extends java.io.Closeable>
-	CloseableType Close(CloseableType o) {
+	public <CloseableType extends java.io.Closeable>
+	CloseableType close(CloseableType o) {
 		if (o != null) {
 			try {
 				o.close();
 			} catch (Exception e) {
-				log.warn("ignoring error with close", e);
-				return o;
+				return handleCloseException(o, e);
+			} finally {
+				remove(o);
 			}
 		}
 		return null;
 	}
 	
-	public static MultiThreadedHttpConnectionManager Close(MultiThreadedHttpConnectionManager o) {
+	public MultiThreadedHttpConnectionManager close(MultiThreadedHttpConnectionManager o) {
 		if (o != null) {
 			try {
 				o.shutdown();
 			} catch (Exception e) {
-				log.warn("ignoring error with close", e);
-				return o;
+				return handleCloseException(o, e);
+			} finally {
+				remove(o);
 			}
 		}
 		return null;
+	}
+	
+	public <Elem extends Object, Exc extends Exception>
+	CloseableIteration<Elem, Exc> close(CloseableIteration<Elem, Exc> o) {
+		if (o != null) {
+			try {
+				o.close();
+			} catch (Exception e) {
+				return handleCloseException(o, e);
+			} finally {
+				remove(o);
+			}
+		}
+		return null;
+	}
+	
+	public XMLStreamReader close(XMLStreamReader o) {
+		if (o != null) {
+			try {
+				o.close();
+			} catch (Exception e) {
+				return handleCloseException(o, e);
+			} finally {
+				remove(o);
+			}
+		}
+		return null;
+	}
+	
+	public Model close(Model o) {
+		if (o != null) {
+			try {
+				o.close();
+			} catch (Exception e) {
+				return handleCloseException(o, e);
+			} finally {
+				remove(o);
+			}
+		}
+		return null;
+	}
+
+	public <Obj extends Object>
+	Obj closeReflection(Obj o) {
+		if (o != null) {
+			try {
+				o.getClass().getMethod("close").invoke(o);
+			} catch (Exception e) {
+				return handleCloseException(o, e);
+			} finally {
+				remove(o);
+			}
+		}
+		return null;
+	}
+	
+	// Static methods for convenience
+	
+	private static final Closer singleton = new Closer();
+	
+	public static <CloseableType extends Closeable>
+	CloseableType Close(CloseableType o) {
+		return singleton.close(o);
+	}
+	
+	public static <CloseableType extends java.io.Closeable>
+	CloseableType Close(CloseableType o) {
+		return singleton.close(o);
+	}
+	
+	public static MultiThreadedHttpConnectionManager Close(MultiThreadedHttpConnectionManager o) {
+		return singleton.close(o);
 	}
 	
 	public static <Elem extends Object, Exc extends Exception>
 	CloseableIteration<Elem, Exc> Close(CloseableIteration<Elem, Exc> o) {
-		if (o != null) {
-			try {
-				o.close();
-			} catch (Exception e) {
-				log.warn("ignoring error with close", e);
-				return o;
-			}
-		}
-		return null;
+		return singleton.close(o);
 	}
 	
 	public static XMLStreamReader Close(XMLStreamReader o) {
-		if (o != null) {
-			try {
-				o.close();
-			} catch (Exception e) {
-				log.warn("ignoring error with close", e);
-				return o;
-			}
-		}
-		return null;
+		return singleton.close(o);
 	}
 	
 	public static Model Close(Model o) {
-		if (o != null) {
-			try {
-				o.close();
-			} catch (Exception e) {
-				log.warn("ignoring error with close", e);
-				return o;
-			}
-		}
-		return null;
+		return singleton.close(o);
 	}
 	
+	public static <Obj extends Object>
+	Obj Close(Obj o) {
+		return singleton.close(o);
+	}
+
 }

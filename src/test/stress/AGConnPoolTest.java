@@ -8,6 +8,8 @@
 
 package test.stress;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -16,17 +18,19 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import test.AGAbstractTest;
+import test.TestSuites;
 
 import com.franz.agraph.pool.AGConnPool;
 import com.franz.agraph.pool.AGConnProp;
 import com.franz.agraph.pool.AGPoolProp;
 import com.franz.agraph.repository.AGRepositoryConnection;
-import com.franz.util.Util;
+import com.franz.util.Closer;
 
 public class AGConnPoolTest {
 
@@ -60,33 +64,41 @@ public class AGConnPoolTest {
     @After
     public void closePool() {
     	log.info("closing " + pool);
-    	AGConnPool closed = Util.close(pool);
+    	AGConnPool closed = Closer.Close(pool);
     	log.info("closed " + pool);
     	pool = closed;
     }
 
     @Test
+    @Category(TestSuites.Stress.class)
     public void openAG() throws Exception {
         int activeConnections = pool.getNumActive();
         ExecutorService exec = Executors.newFixedThreadPool(NUM);
+        final List<Throwable> errors = new ArrayList<Throwable>();
         for (int i = 0; i < NUM; i++) {
 			exec.execute(new Runnable() {
 				public void run() {
 					try {
 						AGRepositoryConnection conn = pool.borrowConnection();
 						try {
-							conn.ping();
+							conn.size();
 						} finally {
 							conn.close();
 						}
 					} catch (Throwable e) {
-						log.error(this.toString(), e);
+						errors.add(e);
 					}
 				}
 			});
 		}
         exec.awaitTermination(30, TimeUnit.SECONDS);
         Assert.assertEquals(pool.toString(), activeConnections, pool.getNumActive());
+        if (!errors.isEmpty()) {
+        	for (Throwable e : errors) {
+				log.error("error", e);
+			}
+        	Assert.fail("see log for details: " + errors.toString());
+        }
     }
 
 }

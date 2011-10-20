@@ -22,7 +22,6 @@ import java.net.URL;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpConnectionManager;
-import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.NameValuePair;
@@ -51,7 +50,7 @@ import com.franz.agraph.http.handler.AGResponseHandler;
 import com.franz.agraph.http.handler.AGStringHandler;
 import com.franz.agraph.http.handler.AGTQRHandler;
 import com.franz.util.Closeable;
-import com.franz.util.Util;
+import com.franz.util.Closer;
 
 /**
  * TODO: another pass over this class for response and error handling
@@ -106,9 +105,19 @@ implements Closeable {
 		return httpClient;
 	}
 
+	private RepositoryException handleIOException(IOException e, String url) {
+		if (e instanceof java.net.ConnectException && e.getMessage().equals("Connection refused")) {
+			// To test this exception, setup remote server and only open port to
+			// the main port, not the SessionPorts and run TutorialTest.example6()
+			return new RepositoryException("Failed connecting to AGraph session port with URL: " + url + ". " + AGProtocol.SESSION_DOC, e);
+		} else {
+			return new RepositoryException(e.getMessage() + " with URL: " + url, e);
+		}
+	}
+
 	public void post(String url, Header[] headers, NameValuePair[] params,
-			RequestEntity requestEntity, AGResponseHandler handler) throws HttpException, IOException,
-			RepositoryException, RDFParseException {
+			RequestEntity requestEntity, AGResponseHandler handler)
+	throws RepositoryException, RDFParseException {
 		PostMethod post = new PostMethod(url);
 		setDoAuthentication(post);
 		for (Header header : headers) {
@@ -139,6 +148,8 @@ implements Closeable {
 			}
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
+		} catch (IOException e) {
+			throw handleIOException(e, url);
 		} finally {
 			if (handler == null || handler.releaseConnection()) {
 				releaseConnection(post);
@@ -147,7 +158,7 @@ implements Closeable {
 	}
 
 	public void get(String url, Header[] headers, NameValuePair[] params,
-			AGResponseHandler handler) throws IOException, RepositoryException,
+			AGResponseHandler handler) throws RepositoryException,
 			AGHttpException {
 		GetMethod get = new GetMethod(url);
 		setDoAuthentication(get);
@@ -163,9 +174,10 @@ implements Closeable {
 			} else if (httpCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
 				throw new UnauthorizedException();
 			} else if (!HttpClientUtil.is2xx(httpCode)) {
-				AGErrorInfo errInfo = getErrorInfo(get);
-				throw new AGHttpException(errInfo);
+				throw new AGHttpException(getErrorInfo(get));
 			}
+		} catch (IOException e) {
+			throw handleIOException(e, url);
 		} finally {
 			if (handler == null || handler.releaseConnection()) {
 				releaseConnection(get);
@@ -174,7 +186,7 @@ implements Closeable {
 	}
 
 	public void delete(String url, Header[] headers, NameValuePair[] params)
-			throws HttpException, IOException, RepositoryException {
+			throws RepositoryException {
 		DeleteMethod delete = new DeleteMethod(url);
 		setDoAuthentication(delete);
 		if (headers != null) {
@@ -194,12 +206,14 @@ implements Closeable {
 				throw new RepositoryException("DELETE failed " + url + ": "
 						+ errInfo + " (" + httpCode + ")");
 			}
+		} catch (IOException e) {
+			throw handleIOException(e, url);
 		} finally {
 			releaseConnection(delete);
 		}
 	}
 
-	public void put(String url, Header[] headers, NameValuePair[] params, RequestEntity requestEntity) throws IOException, AGHttpException, UnauthorizedException {
+	public void put(String url, Header[] headers, NameValuePair[] params, RequestEntity requestEntity) throws AGHttpException, RepositoryException {
 		PutMethod put = new PutMethod(url);
 		setDoAuthentication(put);
 		if (headers != null) {
@@ -221,6 +235,8 @@ implements Closeable {
 				AGErrorInfo errInfo = getErrorInfo(put);
 				throw new AGHttpException(errInfo);
 			}
+		} catch (IOException e) {
+			throw handleIOException(e, url);
 		} finally {
 			releaseConnection(put);
 		}
@@ -335,8 +351,6 @@ implements Closeable {
 		AGTQRHandler handler = new AGTQRHandler(TupleQueryResultFormat.SPARQL,builder,repo.getValueFactory());
 		try {
 			get(url, headers, params, handler);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
@@ -368,8 +382,6 @@ implements Closeable {
 			get(url, headers, data, handler);
 		} catch (RepositoryException e) {
 			throw new AGHttpException(e);
-		} catch (IOException e) {
-			throw new AGHttpException(e);
 		}
 		return handler.getResult();
 	}
@@ -385,18 +397,17 @@ implements Closeable {
 		AGStringHandler handler = new AGStringHandler();
 		try {
 			post(url, headers, data, null, handler);
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
-		} catch (RDFParseException e) {}
+		} catch (RDFParseException e) {
+			// TODO: why is this ignored?
+			logger.debug("ignore", e);
+		}
 		return handler.getResult();
 	}
 
     @Override
     public void close() {
         logger.debug("close: " + serverURL + " " + mManager);
-        mManager = Util.close(mManager);
+        mManager = Closer.Close(mManager);
     }
     
     boolean isClosed() {
