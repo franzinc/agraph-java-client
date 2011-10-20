@@ -283,19 +283,14 @@ public class AGHttpRepoClient implements Closeable {
 			} catch (RDFParseException e) {
 				// bug.
 				throw new RuntimeException(e);
-			} catch (HttpException e) {
-				throw new RepositoryException(e);
-			} catch (IOException e) {
-				throw new RepositoryException(e);
 			}
+			sessionRoot = handler.getResult();
 			if (logger.isDebugEnabled())
 				logger.debug("openSession: {}", sessionRoot);
-			sessionRoot = handler.getResult();
 		}
 	}
 
-	private void closeSession(String sessionRoot) throws IOException,
-			RepositoryException, UnauthorizedException {
+	private void closeSession(String sessionRoot) throws RepositoryException {
 		if (sessionRoot != null && !getHTTPClient().isClosed()) {
 			String url = AGProtocol.getSessionCloseLocation(sessionRoot);
 			Header[] headers = new Header[0];
@@ -430,14 +425,8 @@ public class AGHttpRepoClient implements Closeable {
 			params.add(new NameValuePair(Protocol.CONTEXT_PARAM_NAME,
 					encodedContext));
 		}
-		try {
-			getHTTPClient().delete(url, headers,
-					params.toArray(new NameValuePair[params.size()]));
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().delete(url, headers,
+				params.toArray(new NameValuePair[params.size()]));
 	}
 
 	public void setAutoCommit(boolean autoCommit) throws RepositoryException {
@@ -449,24 +438,8 @@ public class AGHttpRepoClient implements Closeable {
 		try {
 			getHTTPClient().post(url, headers, params, null, null);
 			this.autoCommit = autoCommit; // TODO: let the server track this?
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
 		} catch (RDFParseException e) {
 			throw new RepositoryException(e);
-		} catch (IOException e) {
-			throw handleSessionConnectionError(e, url);
-		}
-	}
-
-	private RepositoryException handleSessionConnectionError(IOException e, String url) throws RepositoryException {
-		if (e instanceof java.net.ConnectException) {
-			// To test this exception, setup remote server and only open port to
-			// the main port, not the SessionPorts and run TutorialTest.example6()
-			return new RepositoryException("Session port connection failure. Consult the Server Installation document for correct settings for SessionPorts. Url: " + url
-					+ ". Documentation: http://www.franz.com/agraph/support/documentation/v4/server-installation.html#sessionport", e);
-		} else {
-			return new RepositoryException("Possible session port connection failure. Consult the Server Installation document for correct settings for SessionPorts. Url: " + url
-					+ ". Documentation: http://www.franz.com/agraph/support/documentation/v4/server-installation.html#sessionport", e);
 		}
 	}
 
@@ -513,13 +486,9 @@ public class AGHttpRepoClient implements Closeable {
 		try {
 			getHTTPClient().post(url, headers, new NameValuePair[0],
 					(RequestEntity) null, null);
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
 		} catch (RDFParseException e) {
 			// bug.
 			throw new RuntimeException(e);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
 		}
 	}
 
@@ -529,26 +498,16 @@ public class AGHttpRepoClient implements Closeable {
 		try {
 			getHTTPClient().post(url, headers, new NameValuePair[0],
 					(RequestEntity) null, null);
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
 		} catch (RDFParseException e) {
 			// bug.
 			throw new RuntimeException(e);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
 		}
 	}
 
 	public void clearNamespaces() throws RepositoryException {
 		String url = Protocol.getNamespacesLocation(getRoot());
 		Header[] headers = {};
-		try {
-			getHTTPClient().delete(url, headers, new NameValuePair[0]);
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().delete(url, headers, new NameValuePair[0]);
 	}
 
 	public void upload(final Reader contents, String baseURI,
@@ -660,7 +619,7 @@ public class AGHttpRepoClient implements Closeable {
 
 	public void upload(String url, RequestEntity reqEntity, String baseURI,
 			boolean overwrite, String serverSideFile, URI serverSideURL,
-			RDFFormat dataFormat, Resource... contexts) throws IOException,
+			RDFFormat dataFormat, Resource... contexts) throws
 			RDFParseException, RepositoryException, UnauthorizedException {
 		OpenRDFUtil.verifyContextNotNull(contexts);
 		List<Header> headers = new ArrayList<Header>(1);
@@ -808,8 +767,6 @@ public class AGHttpRepoClient implements Closeable {
 					new StringRequestEntity(name, "text/plain", "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
 			throw new RepositoryException(e);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
@@ -819,13 +776,7 @@ public class AGHttpRepoClient implements Closeable {
 		String url = Protocol.getNamespacePrefixLocation(getRoot(),
 				prefix);
 		Header[] headers = {};
-		try {
-			getHTTPClient().delete(url, headers, new NameValuePair[0]);
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().delete(url, headers, new NameValuePair[0]);
 	}
 
 	public void query(AGQuery q, boolean analyzeOnly, AGResponseHandler handler) throws HttpException,
@@ -943,23 +894,13 @@ public class AGHttpRepoClient implements Closeable {
 		String url = AGProtocol.getSavedQueryLocation(getRoot(), queryName);
 		Header[] headers = {};
 		NameValuePair[] params = {};
-		try {
-			getHTTPClient().delete(url, headers, params);
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().delete(url, headers, params);
 	}
 	
 	public synchronized void close() throws RepositoryException {
 		if (sessionRoot != null) {
-			try {
-				closeSession(sessionRoot);
-				sessionRoot = null;
-			} catch (IOException e) {
-				throw new RepositoryException(e);
-			}
+			closeSession(sessionRoot);
+			sessionRoot = null;
 		}
 	}
 
@@ -1014,11 +955,7 @@ public class AGHttpRepoClient implements Closeable {
 		}
 		try {
 			getHTTPClient().put(url, new Header[0], params.toArray(new NameValuePair[params.size()]), null);
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
 		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
 			throw new RepositoryException(e);
 		}
 	}
@@ -1033,13 +970,7 @@ public class AGHttpRepoClient implements Closeable {
 		String url = AGProtocol.getFreetextIndexLocation(getRoot(), index);
 		Header[] headers = {};
 		NameValuePair[] params = {};
-		try {
-			getHTTPClient().delete(url, headers, params);
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().delete(url, headers, params);
 	}
 	
 	/**
@@ -1063,8 +994,6 @@ public class AGHttpRepoClient implements Closeable {
 		AGStringHandler handler = new AGStringHandler();
 		try {
 			getHTTPClient().get(url, new Header[0], new NameValuePair[0], handler);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
@@ -1081,8 +1010,6 @@ public class AGHttpRepoClient implements Closeable {
 		try {
 			getHTTPClient().get(url, new Header[0], new NameValuePair[0],
 					handler);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
@@ -1095,8 +1022,6 @@ public class AGHttpRepoClient implements Closeable {
 		AGStringHandler handler = new AGStringHandler();
 		try {
 			getHTTPClient().get(url, new Header[0], new NameValuePair[0], handler);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
@@ -1135,11 +1060,7 @@ public class AGHttpRepoClient implements Closeable {
 			getHTTPClient().post(url, headers.toArray(new Header[headers.size()]),
 					queryParams.toArray(new NameValuePair[queryParams.size()]),
 					null, handler);
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
 		} catch (RDFParseException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
 			throw new RepositoryException(e);
 		}
 		
@@ -1157,11 +1078,7 @@ public class AGHttpRepoClient implements Closeable {
 						primtype_nt) };
 		try {
 			getHTTPClient().post(url, headers, params, null, null);
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
 		} catch (RDFParseException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
 			throw new RepositoryException(e);
 		}
 	}
@@ -1173,13 +1090,7 @@ public class AGHttpRepoClient implements Closeable {
 		Header[] headers = {};
 		NameValuePair[] params = { new NameValuePair(
 				AGProtocol.FTI_PREDICATE_PARAM_NAME, pred_nt) };
-		try {
-			getHTTPClient().delete(url, headers, params);
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().delete(url, headers, params);
 	}
 
 	public String[] getPredicateMappings() throws RepositoryException {
@@ -1189,8 +1100,6 @@ public class AGHttpRepoClient implements Closeable {
 		AGStringHandler handler = new AGStringHandler();
 		try {
 			getHTTPClient().get(url, headers, params, handler);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
@@ -1209,11 +1118,7 @@ public class AGHttpRepoClient implements Closeable {
 						primtype_nt) };
 		try {
 			getHTTPClient().post(url, headers, params, null, null);
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
 		} catch (RDFParseException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
 			throw new RepositoryException(e);
 		}
 	}
@@ -1224,13 +1129,7 @@ public class AGHttpRepoClient implements Closeable {
 		Header[] headers = {};
 		NameValuePair[] params = { new NameValuePair(
 				AGProtocol.TYPE_PARAM_NAME, datatype_nt) };
-		try {
-			getHTTPClient().delete(url, headers, params);
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().delete(url, headers, params);
 	}
 
 	public String[] getDatatypeMappings() throws RepositoryException {
@@ -1240,8 +1139,6 @@ public class AGHttpRepoClient implements Closeable {
 		AGStringHandler handler = new AGStringHandler();
 		try {
 			getHTTPClient().get(url, headers, params, handler);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
@@ -1252,13 +1149,7 @@ public class AGHttpRepoClient implements Closeable {
 		String url = AGProtocol.getMappingLocation(getRoot());
 		Header[] headers = {};
 		NameValuePair[] params = {};
-		try {
-			getHTTPClient().delete(url, headers, params);
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().delete(url, headers, params);
 	}
 
 	public void addRules(String rules) throws RepositoryException {
@@ -1280,12 +1171,8 @@ public class AGHttpRepoClient implements Closeable {
 			RequestEntity entity = new InputStreamRequestEntity(rulestream, -1,
 					null);
 			getHTTPClient().post(url, headers, params, entity, null);
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
 		} catch (RDFParseException e) {
 			throw new RepositoryException(e);
-		} catch (IOException e) {
-			throw handleSessionConnectionError(e, url);
 		}
 	}
 
@@ -1310,8 +1197,6 @@ public class AGHttpRepoClient implements Closeable {
 			RequestEntity entity = new InputStreamRequestEntity(stream, -1,
 					null);
 			getHTTPClient().post(url, headers, params, entity, handler);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
 		} catch (RDFParseException e) {
 			throw new RepositoryException(e);
 		}
@@ -1324,10 +1209,6 @@ public class AGHttpRepoClient implements Closeable {
 			Header[] headers = {};
 			try {
 				getHTTPClient().get(url, headers, new NameValuePair[0], null);
-			} catch (HttpException e) {
-				throw new RepositoryException(e);
-			} catch (IOException e) {
-				throw new RepositoryException(e);
 			} catch (AGHttpException e) {
 				throw new RepositoryException(e);
 			}
@@ -1340,10 +1221,6 @@ public class AGHttpRepoClient implements Closeable {
 		AGStringHandler handler = new AGStringHandler();
 		try {
 			getHTTPClient().get(url, headers, new NameValuePair[0], handler);
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
@@ -1364,11 +1241,7 @@ public class AGHttpRepoClient implements Closeable {
 		AGStringHandler handler = new AGStringHandler();
 		try {
 			getHTTPClient().post(url, headers, params, null, handler);
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
 		} catch (RDFParseException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
 			throw new RepositoryException(e);
 		}
 		return handler.getResult();
@@ -1389,11 +1262,7 @@ public class AGHttpRepoClient implements Closeable {
 		AGStringHandler handler = new AGStringHandler();
 		try {
 			getHTTPClient().post(url, headers, params, null, handler);
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
 		} catch (RDFParseException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
 			throw new RepositoryException(e);
 		}
 		return handler.getResult();
@@ -1412,10 +1281,6 @@ public class AGHttpRepoClient implements Closeable {
 		}
 		try {
 			getHTTPClient().put(url, headers, params.toArray(new NameValuePair[params.size()]), null);
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
@@ -1445,11 +1310,7 @@ public class AGHttpRepoClient implements Closeable {
 					headers,
 					params.toArray(new NameValuePair[params.size()]),
 					handler);
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
 		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
 			throw new RepositoryException(e);
 		}
 	}
@@ -1477,11 +1338,7 @@ public class AGHttpRepoClient implements Closeable {
 					headers,
 					params.toArray(new NameValuePair[params.size()]),
 					handler);
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
 		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
 			throw new RepositoryException(e);
 		}
 	}
@@ -1508,11 +1365,7 @@ public class AGHttpRepoClient implements Closeable {
 					headers,
 					params.toArray(new NameValuePair[params.size()]),
 					handler);
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
 		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
 			throw new RepositoryException(e);
 		}
 	}
@@ -1537,11 +1390,7 @@ public class AGHttpRepoClient implements Closeable {
 					headers,
 					params.toArray(new NameValuePair[params.size()]),
 					handler);
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
 		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
 			throw new RepositoryException(e);
 		}
 	}
@@ -1565,10 +1414,6 @@ public class AGHttpRepoClient implements Closeable {
 		}
 		try {
 			getHTTPClient().put(url, headers, params.toArray(new NameValuePair[params.size()]), null);
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
-			throw handleSessionConnectionError(e, url);
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		} // TODO: need an RDFParseException for query param?
@@ -1585,10 +1430,6 @@ public class AGHttpRepoClient implements Closeable {
 		params.add(new NameValuePair(AGProtocol.DEPTH_PARAM_NAME, Integer.toString(depth)));
 		try {
 			getHTTPClient().put(url, headers, params.toArray(new NameValuePair[params.size()]), null);
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
@@ -1601,7 +1442,6 @@ public class AGHttpRepoClient implements Closeable {
 	 *   
 	 * @param listValid true yields all valid types, false yields active types. 
 	 * @return list of indices, never null
-	 * @throws OpenRDFException
 	 */
 	public List<String> listIndices(boolean listValid) throws RepositoryException {
 		String url = AGProtocol.getIndicesURL(getRoot());
@@ -1612,8 +1452,6 @@ public class AGHttpRepoClient implements Closeable {
 		AGStringHandler handler = new AGStringHandler();
 		try {
 			getHTTPClient().get(url, headers, data, handler);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
@@ -1634,10 +1472,6 @@ public class AGHttpRepoClient implements Closeable {
 		NameValuePair[] params = {};
 		try {
 			getHTTPClient().put(url, headers, params, null);
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
@@ -1655,13 +1489,7 @@ public class AGHttpRepoClient implements Closeable {
 		String url = AGProtocol.getIndicesURL(getRoot())+"/"+index;
 		Header[] headers = {};
 		NameValuePair[] params = {};
-		try {
-			getHTTPClient().delete(url, headers, params);
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().delete(url, headers, params);
 	}
 	
 	public void registerEncodableNamespace(String namespace, String format)
@@ -1675,11 +1503,7 @@ public class AGHttpRepoClient implements Closeable {
 			getHTTPClient().post(url, headers,
 					params.toArray(new NameValuePair[params.size()]), null,
 					null);
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
 		} catch (RDFParseException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
 			throw new RepositoryException(e);
 		}
 	}
@@ -1690,14 +1514,8 @@ public class AGHttpRepoClient implements Closeable {
 		Header[] headers = {};
 		List<NameValuePair> params = new ArrayList<NameValuePair>(2);
 		params.add(new NameValuePair("prefix", namespace));
-		try {
-			getHTTPClient().delete(url, headers,
-					params.toArray(new NameValuePair[params.size()]));
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().delete(url, headers,
+				params.toArray(new NameValuePair[params.size()]));
 	}
 
 	/**
@@ -1712,10 +1530,6 @@ public class AGHttpRepoClient implements Closeable {
 		NameValuePair[] params = {new NameValuePair("size", Long.toString(size))};
 		try {
 			getHTTPClient().put(url, headers, params, null);
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
@@ -1767,10 +1581,6 @@ public class AGHttpRepoClient implements Closeable {
 		try {
 			getHTTPClient().post(url, headers, params, null, handler);
 			return handler.getResult();
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
 		} catch (RDFParseException e) {
 			throw new RepositoryException(e);
 		}
@@ -1821,8 +1631,6 @@ public class AGHttpRepoClient implements Closeable {
 		AGLongHandler handler = new AGLongHandler();
 		try {
 			getHTTPClient().get(url, headers, data, handler);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
@@ -1838,13 +1646,7 @@ public class AGHttpRepoClient implements Closeable {
 		String url = getRoot()+"/tripleCache";
 		Header[] headers = {};
 		NameValuePair[] params = {};
-		try {
-			getHTTPClient().delete(url, headers, params);
-		} catch (HttpException e) {
-			throw new RepositoryException(e);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
-		}
+		getHTTPClient().delete(url, headers, params);
 	}
 
 	public String[] getBlankNodes(int blankNodeAmount) throws RepositoryException {
@@ -1863,8 +1665,6 @@ public class AGHttpRepoClient implements Closeable {
 
 		try {
 			getHTTPClient().post(url,headers,params,null,null);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
 		} catch (RDFParseException e) {
 			throw new RepositoryException(e);
 		}
@@ -1877,8 +1677,6 @@ public class AGHttpRepoClient implements Closeable {
 
 		try {
 			getHTTPClient().post(url,headers,params,null,null);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
 		} catch (RDFParseException e) {
 			throw new RepositoryException(e);
 		}

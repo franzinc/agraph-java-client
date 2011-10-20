@@ -14,6 +14,10 @@ import javax.xml.stream.XMLStreamReader;
 
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 
+/**
+ * @deprecated in v4.4 use Closer
+ * @see Closer
+ */
 public class Util {
 	
 	public static <CloseableType extends Closeable>

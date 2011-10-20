@@ -125,10 +125,10 @@ public class AGAbstractTest extends Closer {
             try {
                 conn.ping();
             } finally {
-                Util.close(conn);
+            	Closer.Close(conn);
             }
         } finally {
-            Util.close(repo);
+        	Closer.Close(repo);
         }
 	}
 	
@@ -167,7 +167,7 @@ public class AGAbstractTest extends Closer {
     @AfterClass
     public static void tearDownOnce() throws Exception {
         cat = null;
-        server = Util.close(server);
+        server = Closer.Close(server);
     }
 
     AGRepositoryConnection getConnection() throws RepositoryException {
@@ -306,7 +306,7 @@ public class AGAbstractTest extends Closer {
         while (rows.hasNext()) {
             println(rows.next());
         }
-        Util.close(rows);
+        Closer.Close(rows);
     }
 
     public static void printRows(String headerMsg, int limit, CloseableIteration rows) throws Exception {
@@ -317,34 +317,7 @@ public class AGAbstractTest extends Closer {
             count++;
         }
         println("Number of results: " + count);
-        Util.close(rows);
+        Closer.Close(rows);
     }
-
-//    static void close(RepositoryConnection conn) {
-//        try {
-//            conn.close();
-//        } catch (Exception e) {
-//            System.err.println("Error closing repository connection: " + e);
-//            e.printStackTrace();
-//        }
-//    }
-//    
-//    private static List<RepositoryConnection> toClose = new ArrayList<RepositoryConnection>();
-//    
-//    /**
-//     * This is just a quick mechanism to make sure all connections get closed.
-//     */
-//    private static void closeBeforeExit(RepositoryConnection conn) {
-//        toClose.add(conn);
-//    }
-//    
-//    private static void closeAll() {
-//        while (toClose.isEmpty() == false) {
-//            RepositoryConnection conn = toClose.get(0);
-//            close(conn);
-//            while (toClose.remove(conn)) {}
-//        }
-//    }
-//    
 
 }

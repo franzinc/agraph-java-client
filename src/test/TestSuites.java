@@ -14,6 +14,7 @@ import org.junit.experimental.categories.Categories.IncludeCategory;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite.SuiteClasses;
 
+import test.stress.AGConnPoolTest;
 import test.stress.StreamingTest;
 import test.stress.TransactionStressTest;
 
@@ -98,7 +99,8 @@ public class TestSuites {
     @ExcludeCategory(Prepush.class)
     @SuiteClasses( { QuickTests.class,
     	TutorialRunTests.class,
-    	TransactionStressTest.class})
+    	TransactionStressTest.class,
+    	AGConnPoolTest.class})
     public static class Stress implements NonPrepushTest {}
     
 }

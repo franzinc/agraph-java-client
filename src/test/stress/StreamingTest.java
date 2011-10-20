@@ -29,7 +29,7 @@ import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGStreamTupleQuery;
 import com.franz.agraph.repository.AGTupleQuery;
 import com.franz.agraph.repository.AGValueFactory;
-import com.franz.util.Util;
+import com.franz.util.Closer;
 
 /**
  * @since v4.3
@@ -60,8 +60,8 @@ public class StreamingTest extends AGAbstractTest {
     		repoSize = conn.size();
         	if (repoSize < SIZE) {
                     log.info("size of " + repo.getCatalogPrefixedRepositoryID() + " = " + repoSize);
-                    conn = Util.close(conn);
-                    repo = Util.close(repo);
+                    conn = Closer.Close(conn);
+                    repo = Closer.Close(repo);
                     cat = null;
         	} else {
                     vf = repo.getValueFactory();
@@ -155,7 +155,7 @@ public class StreamingTest extends AGAbstractTest {
         				}
         			}
         		} finally {
-        			Util.close(results);
+        			Closer.Close(results);
         		}
         	}
     	} catch (Exception e) {

@@ -22,7 +22,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.zip.GZIPOutputStream;
 
-public class Util extends com.franz.util.Util {
+import com.franz.util.Closer;
+
+public class Util {
     
     public static String get(String[] arr, int i, String defaultVal) {
         if (arr != null && arr.length > i) {
@@ -46,8 +48,8 @@ public class Util extends com.franz.util.Util {
         } catch (IOException e) {
             throw new RuntimeException(file.getAbsolutePath(), e);
         } finally {
-            close(f);
-            close(s);
+        	Closer.Close(f);
+        	Closer.Close(s);
         }
         return list;
     }
@@ -93,8 +95,8 @@ public class Util extends com.franz.util.Util {
             }
             os.flush();
         } finally {
-            close(is);
-            close(os);
+        	Closer.Close(is);
+        	Closer.Close(os);
         }
     }
     
