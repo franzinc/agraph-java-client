@@ -33,7 +33,6 @@ import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.openrdf.OpenRDFException;
 import org.openrdf.OpenRDFUtil;
 import org.openrdf.http.protocol.Protocol;
 import org.openrdf.http.protocol.UnauthorizedException;
@@ -230,7 +229,7 @@ public class AGHttpRepoClient implements Closeable {
 	 * Gets the RDFFormat to use in making requests that return
 	 * RDF statements.
 	 * 
-	 * Defaults to the format returned by {@link getDefaultRDFFormat()}
+	 * Defaults to the format returned by {@link #getDefaultRDFFormat()}
 	 * 
 	 * @return an RDFFormat, either NQUADS or TRIX
 	 */
@@ -243,7 +242,7 @@ public class AGHttpRepoClient implements Closeable {
 	 * RDF statements; the format should support contexts.
 	 * 
 	 * AGRDFFormat.NQUADS and RDFFormat.TRIX are currently supported.
-	 * Defaults to the format returned by {@link getDefaultRDFFormat()}
+	 * Defaults to the format returned by {@link #getDefaultRDFFormat()}
 	 * 
 	 */
 	public void setPreferredRDFFormat(RDFFormat preferredRDFFormat) {
@@ -586,8 +585,6 @@ public class AGHttpRepoClient implements Closeable {
 			throw new RuntimeException(e);
 		} catch (RDFParseException e) {
 			throw new RuntimeException(e);
-		} catch (IOException e) {
-			throw new RepositoryException(e);
 		}
 	}
 

@@ -12,26 +12,17 @@ import java.io.FileInputStream;
 
 import tutorial.JenaTutorialExamples;
 
-import com.franz.agraph.jena.AGGraph;
 import com.franz.agraph.jena.AGGraphMaker;
 import com.franz.agraph.jena.AGInfModel;
 import com.franz.agraph.jena.AGModel;
-import com.franz.agraph.jena.AGQuery;
-import com.franz.agraph.jena.AGQueryExecutionFactory;
-import com.franz.agraph.jena.AGQueryFactory;
 import com.franz.agraph.jena.AGReasoner;
 import com.franz.agraph.repository.AGCatalog;
-import com.franz.agraph.repository.AGQueryLanguage;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
 import com.franz.agraph.repository.AGVirtualRepository;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntModelSpec;
-import com.hp.hpl.jena.query.QueryExecution;
-import com.hp.hpl.jena.query.QuerySolution;
-import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.InfModel;
-import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.RDFNode;
