@@ -14,6 +14,7 @@ import org.junit.experimental.categories.Categories.IncludeCategory;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite.SuiteClasses;
 
+import test.stress.AGConnPoolSessionTest;
 import test.stress.AGConnPoolTest;
 import test.stress.StreamingTest;
 import test.stress.TransactionStressTest;
@@ -42,7 +43,8 @@ public class TestSuites {
         AGRepositoryConnectionTests.class,
         JenaTests.class,
         StreamingTest.class,
-        ServerCodeTests.class
+        ServerCodeTests.class,
+        AGConnPoolSessionTest.class
     })
     public static class Temp {}
     

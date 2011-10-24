@@ -94,7 +94,8 @@ implements PoolableObjectFactory {
 			}
 			break;
 		case DEDICATED:
-			if (!conn.isAutoCommit()) {
+			if (// TODO bug: !conn.getHttpRepoClient().isSession() ||
+					!conn.isAutoCommit()) {
 				conn.setAutoCommit(true);
 				if (log.isDebugEnabled())
 					log.debug("Dedicated backend: " + conn.getHttpRepoClient().getRoot());

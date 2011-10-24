@@ -144,6 +144,10 @@ public class AGHttpRepoClient implements Closeable {
 		else if (repoRoot != null) return repoRoot;
 		else throw new RepositoryException("This session-only connection has been closed. Re-open a new one to start using it again.");
 	}
+	
+	public boolean isSession() {
+		return sessionRoot != null;
+	}
 
 	public ValueFactory getValueFactory() {
 		return repo.getValueFactory();
