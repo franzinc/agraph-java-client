@@ -6,7 +6,7 @@
 ** http://www.eclipse.org/legal/epl-v10.html
 ******************************************************************************/
 
-package test.stress;
+package test.pool;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +32,7 @@ import com.franz.agraph.pool.AGPoolProp;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.util.Closer;
 
-public class AGConnPoolTest {
+public class AGConnPoolClosingTest {
 
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
 

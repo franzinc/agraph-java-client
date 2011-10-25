@@ -64,6 +64,10 @@ public enum AGConnProp {
 		/**
 		 * No dedicated session, and autoCommit is true
 		 * (that is, {@link AGRepositoryConnection#setAutoCommit(boolean)} is not called).
+		 * 
+		 * <p>Warning: if the borrowed connections are changed to
+		 * dedicated or shared, the connections will remain dedicated
+		 * when borrowed again, but autoCommit will be reset to true.</p>
 		 */
 		SHARED,
 		
