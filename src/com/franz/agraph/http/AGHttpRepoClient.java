@@ -1678,4 +1678,86 @@ public class AGHttpRepoClient implements Closeable {
 			throw new RepositoryException(e);
 		}
 	}
+
+	private void putSpinX(String x, String uri, String sparqlQuery, String[] arguments) throws RepositoryException {
+		NameValuePair[] params = new NameValuePair[(arguments == null ? 0 : arguments.length) + 1];
+		params[0] = new NameValuePair(AGProtocol.SPIN_QUERY, sparqlQuery);
+		for (int i = 0; arguments != null && i < arguments.length; i++) {
+			params[i+1] = new NameValuePair(AGProtocol.SPIN_ARGUMENTS, arguments[i]);
+		}
+		try {
+			getHTTPClient().put(AGProtocol.spinURL(getRoot(), x, uri), null, params, null);
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		}
+	}
+
+	public String getSpinFunction(String uri) throws RepositoryException {
+		try {
+			return getHTTPClient().getString(AGProtocol.spinURL(getRoot(), AGProtocol.SPIN_FUNCTION, uri));
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		}
+	}
+	
+	public String listSpinFunctions() throws RepositoryException {
+		try {
+			return getHTTPClient().getString(AGProtocol.spinURL(getRoot(), AGProtocol.SPIN_FUNCTION, null));
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		}
+	}
+	
+	public void putSpinFunction(String uri, String sparqlQuery, String[] arguments) throws RepositoryException {
+		putSpinX(AGProtocol.SPIN_FUNCTION, uri, sparqlQuery, arguments);
+	}
+
+	public void deleteSpinFunction(String uri) throws RepositoryException {
+		getHTTPClient().delete(AGProtocol.spinURL(getRoot(), AGProtocol.SPIN_FUNCTION, uri), null, null);
+	}
+
+	public void deleteHardSpinFunction(String uri) throws RepositoryException {
+		try {
+			deleteSpinFunction(uri);
+		} catch (RepositoryException e) {
+			if (! e.getMessage().contains(uri + " is not a registered SPIN function")) {
+				throw e;
+			}
+		}
+	}
+
+	public String getSpinMagicProperty(String uri) throws RepositoryException {
+		try {
+			return getHTTPClient().getString(AGProtocol.spinURL(getRoot(), AGProtocol.SPIN_MAGICPROPERTY, uri));
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		}
+	}
+	
+	public void putSpinMagicProperty(String uri, String sparqlQuery, String argument) throws RepositoryException {
+		putSpinX(AGProtocol.SPIN_MAGICPROPERTY, uri, sparqlQuery, new String[] {argument});
+	}
+
+	public String listSpinMagicProperties() throws RepositoryException {
+		try {
+			return getHTTPClient().getString(AGProtocol.spinURL(getRoot(), AGProtocol.SPIN_MAGICPROPERTY, null));
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		}
+	}
+	
+	public void deleteSpinMagicProperty(String uri) throws RepositoryException {
+		getHTTPClient().delete(AGProtocol.spinURL(getRoot(), AGProtocol.SPIN_MAGICPROPERTY, uri), null, null);
+	}
+
+	public void deleteHardSpinMagicProperty(String uri) throws RepositoryException {
+		try {
+			deleteSpinMagicProperty(uri);
+		} catch (RepositoryException e) {
+			if (! e.getMessage().contains(uri + " is not a registered SPIN magic property")) {
+				throw e;
+			}
+		}
+	}
+
 }
