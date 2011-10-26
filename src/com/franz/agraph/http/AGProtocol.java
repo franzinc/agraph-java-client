@@ -11,7 +11,10 @@
  */
 package com.franz.agraph.http;
 
+import org.apache.commons.httpclient.URIException;
+import org.apache.commons.httpclient.util.URIUtil;
 import org.openrdf.http.protocol.Protocol;
+import org.openrdf.repository.RepositoryException;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -415,7 +418,13 @@ public class AGProtocol extends Protocol {
 	 * Relative location of the INDICES service.
 	 */
 	public static final String INDICES = "indices";
-	
+
+	public static final String SPIN = "spin",
+	SPIN_MAGICPROPERTY = "magicproperty",
+	SPIN_FUNCTION = "function",
+	SPIN_QUERY = "query",
+	SPIN_ARGUMENTS = "arguments";
+
 	/**
 	 * A boolean that defaults to false, indicating whether an error
 	 * should be raised when a SPARQL query selects variables that
@@ -591,6 +600,18 @@ public class AGProtocol extends Protocol {
 
 	public static String getIndicesURL(String root) {
 		return root + "/" + INDICES;
+	}
+	
+	public static String spinURL(String root, String type, String uri) throws RepositoryException {
+		try {
+			if (uri == null) {
+				return root + "/" + SPIN + "/" + type;
+			} else {
+				return root + "/" + SPIN + "/" + type + "/" + URIUtil.encodeAll(uri);
+			}
+		} catch (URIException e) {
+			throw new RepositoryException(e);
+		}
 	}
 	
 }

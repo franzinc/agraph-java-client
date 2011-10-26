@@ -1447,4 +1447,72 @@ implements RepositoryConnection, Closeable {
 		getHttpRepoClient().optimizeIndices(wait);
 	}
 
+	/**
+	 * 
+	 * @param uri spin function identifier
+	 * @param sparqlQuery spin function query text
+	 * @param arguments name of arguments in the sparqlQuery
+	 * @see #getSpinFunction(String)
+	 * @see #deleteSpinFunction(String)
+	 * @see #putSpinMagicProperty(String, String, String)
+	 */
+	public void putSpinFunction(String uri, String sparqlQuery, String[] arguments) throws RepositoryException {
+		getHttpRepoClient().putSpinFunction(uri, sparqlQuery, arguments);
+	}
+
+	/**
+	 * 
+	 * @param uri spin function identifier
+	 * @return spin function query text
+	 * @see #putSpinFunction(String, String, String[])
+	 * @see #deleteSpinFunction(String)
+	 */
+	public String getSpinFunction(String uri) throws RepositoryException {
+		return getHttpRepoClient().getSpinFunction(uri);
+	}
+
+	/**
+	 * 
+	 * @param uri spin function identifier
+	 * @see #putSpinFunction(String, String, String[])
+	 * @see #getSpinFunction(String)
+	 */
+	public void deleteSpinFunction(String uri) throws RepositoryException {
+		getHttpRepoClient().deleteSpinFunction(uri);
+	}
+
+	/**
+	 * 
+	 * @param uri spin magic property identifier
+	 * @param sparqlQuery
+	 * @param arguments names of arguments to the sparqlQuery must contain the leading question mark
+	 * @see #getSpinMagicProperty(String)
+	 * @see #deleteSpinMagicProperty(String)
+	 * @see #putSpinFunction(String, String, String[])
+	 */
+	public void putSpinMagicProperty(String uri, String sparqlQuery, String[] arguments) throws RepositoryException {
+		getHttpRepoClient().putSpinMagicProperty(uri, sparqlQuery, arguments);
+	}
+
+	/**
+	 * 
+	 * @param uri spin magic property identifier
+	 * @return sparqlQuery
+	 * @see #putSpinMagicProperty(String, String, String[])
+	 * @see #deleteSpinMagicProperty(String)
+	 */
+	public String getSpinMagicProperty(String uri) throws RepositoryException {
+		return getHttpRepoClient().getSpinMagicProperty(uri);
+	}
+
+	/**
+	 * 
+	 * @param uri spin magic property identifier
+	 * @see #putSpinMagicProperty(String, String, String[])
+	 * @see #getSpinMagicProperty(String)
+	 */
+	public void deleteSpinMagicProperty(String uri) throws RepositoryException {
+		getHttpRepoClient().deleteSpinMagicProperty(uri);
+	}
+
 }
