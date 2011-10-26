@@ -958,13 +958,11 @@ implements RepositoryConnection, Closeable {
 
 	/**
 	 * Instructs the server to extend the life of this connection's dedicated
-	 * session, if it is using one. Such connections that are idle for
+	 * session, if it is using one.  Such connections that are idle for its
+	 * session lifetime will be closed by the server.
 	 * 
-	 * 3600
-	 * seconds will be closed by the server.
-	 * 
-	 * <p>See <a href="#sessions">session overview</a> and
-	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#get-ping"
+	 * <p>See <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#sessions">session overview</a> 
+	 * and <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#get-ping"
 	 * target="_top">GET ping</a> for more details.</p>
 	 * 
 	 * @throws RepositoryException
