@@ -151,14 +151,24 @@ public class AGServer implements Closeable {
 	}
 
 	/**
-	 * Used by AllegroGraph Jena implementation.
+	 * Creates a virtual repository with the given store specification. 
+	 * <p>
+	 * The storeSpec parameter is a string using the  
+	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#post-session"
+	 * target="_top">minilanguage for store specification</a> described in the HTTP protocol document 
+	 * (see the store parameter there).
+	 * <p>
+	 * This syntax can be used to create federations, graph-filtered stores, 
+	 * reasoning stores, and compositions thereof. 
+	 * 
+	 * @param storeSpec the store specification 
 	 */
-	public AGVirtualRepository virtualRepository(String spec) {
-		return new AGVirtualRepository(this, spec, null);
+	public AGVirtualRepository virtualRepository(String storeSpec) {
+		return new AGVirtualRepository(this, storeSpec, null);
 	}
 
 	/**
-	 * Create a federated view of multiple repositories.
+	 * Creates a federated view of multiple repositories.
 	 * 
 	 * See <a href="http://www.franz.com/agraph/support/documentation/v4/agraph-introduction.html#intro-federation">Managing
 	 * Massive Data - Federation</a>.

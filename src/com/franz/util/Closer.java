@@ -112,7 +112,6 @@ public class Closer implements Closeable {
 
 	/**
 	 * Subclass may override, default behavior is to log.warn and return the object.
-	 * @return 
 	 */
 	public <Obj extends Object>
 	Obj handleCloseException(Obj o, Throwable e) {
