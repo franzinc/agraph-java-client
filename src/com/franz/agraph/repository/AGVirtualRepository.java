@@ -18,7 +18,16 @@ import com.franz.agraph.http.AGHttpRepoClient;
 import com.franz.util.Closeable;
 
 /**
- * 
+ * A class for virtual repositories, used for working with federations, 
+ * graph-filtered stores, reasoning stores, and compositions thereof. 
+ * <p>
+ * Virtual repositories don't reside on disk (their component stores do); 
+ * they don't have a catalog.
+ * <p> 
+ * Applications normally create a virtual repository via an AGServer instance. 
+ *  
+ * @see AGServer#virtualRepository(String)
+ * @see AGServer#federate(AGAbstractRepository...)
  */
 public class AGVirtualRepository implements AGAbstractRepository, Closeable {
 	private final AGServer server;
@@ -26,6 +35,12 @@ public class AGVirtualRepository implements AGAbstractRepository, Closeable {
 	private final String spec;
 	private final AGValueFactory vf;
 
+	/**
+	 * Applications normally create a virtual repository via an AGServer instance. 
+	 *  
+	 * @see AGServer#virtualRepository(String)
+	 * @see AGServer#federate(AGAbstractRepository...)
+	 */
 	public AGVirtualRepository(AGServer server, String spec, AGRepository wrapped) {
 		this.server = server;
 		this.spec = spec;
@@ -36,9 +51,22 @@ public class AGVirtualRepository implements AGAbstractRepository, Closeable {
 	public AGServer getServer() {
 		return server;
 	}
+	
+	/**
+	 * Virtual repositories don't reside on disk (their component stores do);
+	 * they don't have a catalog.
+	 * 
+	 * @return null
+	 */
 	public AGCatalog getCatalog() {
 		return null;
 	}
+	
+	/**
+	 * Gets the store specification used to create this virtual repository.
+	 * 
+	 * @see AGServer#virtualRepository(String)
+	 */
 	public String getSpec() {
 		return spec;
 	}
