@@ -44,7 +44,8 @@ public class TestSuites {
         JenaTests.class,
         StreamingTest.class,
         ServerCodeTests.class,
-        AGConnPoolSessionTest.class
+        AGConnPoolSessionTest.class,
+        SpinTest.class
     })
     public static class Temp {}
     
