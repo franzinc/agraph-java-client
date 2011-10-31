@@ -826,7 +826,7 @@ public class AGHttpRepoClient implements Closeable {
 		
 		for (int i = 0; i < bindings.length; i++) {
 			String paramName = Protocol.BINDING_PREFIX + bindings[i].getName();
-			String paramValue = Protocol.encodeValue(bindings[i].getValue());
+			String paramValue = Protocol.encodeValue(getStorableValue(bindings[i].getValue(),getValueFactory()));
 			queryParams.add(new NameValuePair(paramName, paramValue));
 		}
 

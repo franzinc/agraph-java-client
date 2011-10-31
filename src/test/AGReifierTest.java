@@ -128,26 +128,4 @@ public class AGReifierTest extends AbstractTestReifier {
     {
     }
 	
-	/**
-	 * Override as AG doesn't allow UUID's as blank node id's 
-	 */
-    public void testRetrieveTriplesByNode()
-    {
-    Graph G = getGraph();
-    Reifier R = G.getReifier();
-    Node N = Node.createAnon(), M = Node.createAnon();
-    N = R.reifyAs( N, triple( "x R y" ) );
-    assertEquals( "gets correct triple", triple( "x R y" ), R.getTriple( N ) );
-    M = R.reifyAs( M, triple( "p S q" ) );
-    assertDiffer( "the anon nodes must be distinct", N, M );
-    assertEquals( "gets correct triple", triple( "p S q" ), R.getTriple( M ) );
-/* */
-    assertTrue( "node is known bound", R.hasTriple( M ) );
-    assertTrue( "node is known bound", R.hasTriple( N ) );
-    assertFalse( "node is known unbound", R.hasTriple( Node.createURI( "any:thing" ) ) );
-/* */
-//  Graph GR = R.getReifiedTriples();
-//  assertTrue( "reified triples", getGraphWith( "x R y; p S q" ).isIsomorphicWith(GR) );
-//  assertTrue( "untouched graph", getGraph().isIsomorphicWith(G) );
-    }
 }
