@@ -111,19 +111,8 @@ public class AGReifier implements Reifier {
 		return graph;
 	}
 
-	/**
-	 * If n is a blank Node created via AnonId, the blank node id
-	 * will not be legal as it contains ':'.  In this case, a new
-	 * unique legal blank node id is obtained (from AG) for use in
-	 * reification, and the blank Node with new id is returned.   
-	 */
 	@Override
 	public Node reifyAs(Node n, Triple t) {
-		if (n.isBlank() && n.getBlankNodeLabel().indexOf(':') > 0) {
-			// TODO consider how to better deal with this situation.
-			// the blank node id is illegal, replace it with a legal one from AG
-			n = AGNodeFactory.asNode(graph.vf.createBNode());
-		}
 		Triple tn = getTriple(n);
 		if (tn!=null && !tn.equals(t)) {
 			// per AbstractTestReifier#testException, only throw an

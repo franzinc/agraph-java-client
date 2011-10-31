@@ -7,6 +7,7 @@ import com.hp.hpl.jena.rdf.model.ReifiedStatement;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.rdf.model.impl.PropertyImpl;
+import com.hp.hpl.jena.rdf.model.impl.ReifiedStatementImpl;
 import com.hp.hpl.jena.rdf.model.impl.ResourceImpl;
 import com.hp.hpl.jena.rdf.model.impl.StatementImpl;
 
@@ -26,16 +27,13 @@ public class AGStatement extends StatementImpl {
 		return (AGModel)super.getModel();
 	}
 	
-	private static long reifiedStatementId = 0;
-    
-	/**
+    /**
     	create a ReifiedStatement corresponding to this Statement
      */
-	@Override
-	public synchronized ReifiedStatement createReifiedStatement() {
-		reifiedStatementId++;
-		return createReifiedStatement("urn:x-agraph:reifiedStatement"+reifiedStatementId); 
-    }
+	public ReifiedStatement createReifiedStatement() {
+		Resource bnode = getModel().createResource();
+		return ReifiedStatementImpl.create( this.getModel(), bnode.asNode(), this ); 
+	}
     
     /**
 	 * create a Statement from the triple _t_ in the enhanced graph _eg_. The
