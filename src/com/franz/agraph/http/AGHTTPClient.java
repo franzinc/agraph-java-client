@@ -143,11 +143,15 @@ implements Closeable {
 			AGResponseHandler handler) throws AGHttpException {
 		GetMethod get = new GetMethod(url);
 		setDoAuthentication(get);
-		for (Header header : headers) {
-			get.addRequestHeader(header);
+		if (headers != null) {
+			for (Header header : headers) {
+				get.addRequestHeader(header);
+			}
 		}
 		get.addRequestHeader("Accept-encoding", "gzip");
-		get.setQueryString(params);
+		if (params != null) {
+			get.setQueryString(params);
+		}
 		try {
 			int httpCode = getHttpClient().executeMethod(get);
 			if (httpCode == HttpURLConnection.HTTP_OK) {

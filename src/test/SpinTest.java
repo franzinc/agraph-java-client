@@ -12,6 +12,7 @@ import static test.Stmt.statementSet;
 import static test.Stmt.stmts;
 
 import java.io.File;
+import java.util.List;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -22,6 +23,10 @@ import org.openrdf.model.URI;
 import org.openrdf.model.vocabulary.XMLSchema;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.rio.RDFFormat;
+
+import com.franz.agraph.repository.AGSpinFunction;
+import com.franz.agraph.repository.AGSpinMagicProperty;
+import com.franz.agraph.repository.AGTupleQuery;
 
 public class SpinTest extends AGAbstractTest {
 
@@ -51,7 +56,7 @@ public class SpinTest extends AGAbstractTest {
     
     @After
     public void cleanup1() throws Exception {
-// TODO broken:    	conn.getHttpRepoClient().deleteHardSpinFunction(ageFn);
+    	conn.getHttpRepoClient().deleteHardSpinFunction(ageFn);
     }
     
     @After
@@ -63,7 +68,7 @@ public class SpinTest extends AGAbstractTest {
      * rfe10988
      */
     @Test
-    @Category(TestSuites.Temp.class)
+    @Category(TestSuites.Prepush.class)
     public void spinFunction() throws Exception {
     	try {
     		Assert.fail( conn.getSpinFunction(ageFn) );
@@ -74,10 +79,12 @@ public class SpinTest extends AGAbstractTest {
     			throw e;
     		}
     	}
+    	conn.getHttpRepoClient().deleteHardSpinMagicProperty(ageFn);
+    	
     	String ageFnSparql = "prefix kennedy: <" + kennedyNamespace + ">\n"
     	+ "prefix xs: <http://www.w3.org/2001/XMLSchema#>\n"
     	+ "select ( (2011 - xs:int(?birthYear)) as ?age ) { ?who kennedy:birth-year ?birthYear . }";
-    	conn.putSpinFunction(ageFn, ageFnSparql, new String[] {"?who"});
+    	conn.putSpinFunction(new AGSpinFunction(ageFn, new String[] {"who"}, ageFnSparql));
     	Assert.assertEquals(ageFnSparql, conn.getSpinFunction(ageFn));
 
     	String queryString = "prefix ex: <" + baseURI + ">\n"
@@ -91,18 +98,65 @@ public class SpinTest extends AGAbstractTest {
     	+ "bind( ex:age( ?person ) as ?age ) .\n"
     	+ "} order by ?age limit 2";
 
+    	AGTupleQuery query = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+    	query.setEngine("set-based");
         assertSetsEqual(stmts(new Stmt[] {new Stmt(null, null, vf.createLiteral("39", XMLSchema.INTEGER)),
         		new Stmt(null, null, vf.createLiteral("43", XMLSchema.INTEGER))}),
-        		statementSet(conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString).evaluate(), null, null, "age"));
+        		statementSet(query.evaluate(), null, null, "age"));
+        
+        List<AGSpinFunction> list = conn.listSpinFunctions();
+        Assert.assertEquals(list.toString(), 1, list.size());
+        AGSpinFunction fn = list.get(0);
+        Assert.assertEquals(list.toString(), ageFnSparql, fn.getQuery());
+        Assert.assertEquals(list.toString(), 1, fn.getArguments().length);
+        Assert.assertEquals(list.toString(), "who", fn.getArguments()[0]);
+    }
+    
+    /**
+     * rfe11117
+     */
+    @Test
+    @Category(TestSuites.Prepush.class)
+    public void listSpinFunctions_0args() throws Exception {
+    	String ageFnSparql = "prefix kennedy: <" + kennedyNamespace + ">\n"
+    	+ "prefix xs: <http://www.w3.org/2001/XMLSchema#>\n"
+    	+ "select ( (2011 - xs:int(?birthYear)) as ?age ) { ?who kennedy:birth-year ?birthYear . }";
+    	conn.putSpinFunction(new AGSpinFunction(ageFn, null, ageFnSparql));
+    	Assert.assertEquals(ageFnSparql, conn.getSpinFunction(ageFn));
+    	
+        List<AGSpinFunction> list = conn.listSpinFunctions();
+        Assert.assertEquals(list.toString(), 1, list.size());
+        AGSpinFunction fn = list.get(0);
+        Assert.assertEquals(list.toString(), ageFnSparql, fn.getQuery());
+        Assert.assertEquals(list.toString(), 0, fn.getArguments().length);
+    }
 
-    	// TODO MH: Assert.assertEquals("TODO", conn.getHttpRepoClient().listSpinFunctions());
-}
+    /**
+     * rfe11117
+     */
+    @Test
+    @Category(TestSuites.Prepush.class)
+    public void listSpinFunctions_2args() throws Exception {
+    	String ageFnSparql = "prefix kennedy: <" + kennedyNamespace + ">\n"
+    	+ "prefix xs: <http://www.w3.org/2001/XMLSchema#>\n"
+    	+ "select ( (2011 - xs:int(?birthYear)) as ?age ) { ?who kennedy:birth-year ?birthYear . }";
+    	conn.putSpinFunction(new AGSpinFunction(ageFn, new String[] {"who", "extra"}, ageFnSparql));
+    	Assert.assertEquals(ageFnSparql, conn.getSpinFunction(ageFn));
+    	
+        List<AGSpinFunction> list = conn.listSpinFunctions();
+        Assert.assertEquals(list.toString(), 1, list.size());
+        AGSpinFunction fn = list.get(0);
+        Assert.assertEquals(list.toString(), ageFnSparql, fn.getQuery());
+        Assert.assertEquals(list.toString(), 2, fn.getArguments().length);
+        Assert.assertEquals(list.toString(), "who", fn.getArguments()[0]);
+        Assert.assertEquals(list.toString(), "extra", fn.getArguments()[1]);
+    }
 
     /**
      * rfe10988
      */
     @Test
-    @Category(TestSuites.Temp.class)
+    @Category(TestSuites.Prepush.class)
     public void spinMagicProperty() throws Exception {
     	try {
     		Assert.fail( conn.getSpinMagicProperty(parentsMP) );
@@ -117,12 +171,12 @@ public class SpinTest extends AGAbstractTest {
     	
     	String parentsFnSparql = "prefix kennedy: <" + kennedyNamespace+ ">\n"
     	+ "select ?parent { ?parent kennedy:has-child ?child . }";
-    	conn.putSpinMagicProperty(parentsMP, parentsFnSparql, new String[] {"?child"});
+    	conn.putSpinMagicProperty(new AGSpinMagicProperty(parentsMP, new String[] {"?child"}, parentsFnSparql));
     	Assert.assertEquals(parentsFnSparql, conn.getSpinMagicProperty(parentsMP));
 
-    	String queryString = "prefix ex: <" + baseURI + ">\n"
-    	+ "prefix kennedy: <" + kennedyNamespace + ">\n"
-    	+ "select ?person ?parentFirst {\n"
+    	String prefixes = "prefix ex: <" + baseURI + ">\n"
+    	+ "prefix kennedy: <" + kennedyNamespace + ">\n";
+    	String queryString = "select ?person ?parentFirst {\n"
     	+ "?person kennedy:first-name 'Joseph' .\n"
 //    	+ "?person kennedy:birth-year '1915'^^<" + XMLSchema.INT + "> .\n"
     	+ "?person kennedy:birth-year '1915' .\n"
@@ -131,13 +185,19 @@ public class SpinTest extends AGAbstractTest {
     	+ "?parent kennedy:first-name ?parentFirst .\n"
     	+ "}";
     	
+    	AGTupleQuery query = conn.prepareTupleQuery(QueryLanguage.SPARQL, prefixes + queryString);
+    	query.setEngine("set-based");
         assertSetsEqual(stmts(new Stmt[] {new Stmt(null, null, vf.createLiteral("Joseph")),
         		new Stmt(null, null, vf.createLiteral("Rose"))}),
-                statementSet(conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString).evaluate(),
+                statementSet(query.evaluate(),
                 		null, null, "parentFirst"));
 
-        String props = conn.getHttpRepoClient().listSpinMagicProperties();
-    	Assert.assertTrue(props, props.contains(parentsFnSparql));
+        List<AGSpinMagicProperty> list = conn.listSpinMagicProperties();
+        Assert.assertEquals(list.toString(), 1, list.size());
+        AGSpinMagicProperty fn = list.get(0);
+        Assert.assertEquals(list.toString(), parentsFnSparql, fn.getQuery());
+        Assert.assertEquals(list.toString(), 1, fn.getArguments().length);
+        Assert.assertEquals(list.toString(), "?child", fn.getArguments()[0]);
     }
 
 }

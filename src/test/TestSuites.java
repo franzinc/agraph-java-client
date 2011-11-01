@@ -74,7 +74,8 @@ public class TestSuites {
         UntypedLiteralMatchingTest.class,
         AGConnPoolSessionTest.class,
         BlankNodeTests.class,
-        MappingsTests.class
+        MappingsTests.class,
+        SpinTest.class
     })
     public static class Prepush {}
     
