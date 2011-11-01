@@ -69,6 +69,8 @@ import com.franz.agraph.repository.AGAbstractRepository;
 import com.franz.agraph.repository.AGCustomStoredProcException;
 import com.franz.agraph.repository.AGQuery;
 import com.franz.agraph.repository.AGRDFFormat;
+import com.franz.agraph.repository.AGSpinFunction;
+import com.franz.agraph.repository.AGSpinMagicProperty;
 import com.franz.agraph.repository.AGValueFactory;
 import com.franz.util.Closeable;
 
@@ -846,6 +848,9 @@ public class AGHttpRepoClient implements Closeable {
 			if (planner != null) {
 				queryParams.add(new NameValuePair(AGProtocol.PLANNER_PARAM_NAME,
 					planner));
+			}
+			if (q.getEngine() != null) {
+				queryParams.add(new NameValuePair("engine", q.getEngine()));
 			}
 			
 			if (sessionRoot!=null && save!=null) {
@@ -1689,19 +1694,25 @@ public class AGHttpRepoClient implements Closeable {
 		}
 	}
 
-	private void putSpinX(String x, String uri, String sparqlQuery, String[] arguments) throws RepositoryException {
-		NameValuePair[] params = new NameValuePair[(arguments == null ? 0 : arguments.length) + 1];
-		params[0] = new NameValuePair(AGProtocol.SPIN_QUERY, sparqlQuery);
-		for (int i = 0; arguments != null && i < arguments.length; i++) {
-			params[i+1] = new NameValuePair(AGProtocol.SPIN_ARGUMENTS, arguments[i]);
+	/**
+	 * @since v4.4
+	 */
+	private void putSpinX(String x, AGSpinFunction fn) throws RepositoryException {
+		NameValuePair[] params = new NameValuePair[(fn.getArguments() == null ? 0 : fn.getArguments().length) + 1];
+		params[0] = new NameValuePair(AGProtocol.SPIN_QUERY, fn.getQuery());
+		for (int i = 0; fn.getArguments() != null && i < fn.getArguments().length; i++) {
+			params[i+1] = new NameValuePair(AGProtocol.SPIN_ARGUMENTS, fn.getArguments()[i]);
 		}
 		try {
-			getHTTPClient().put(AGProtocol.spinURL(getRoot(), x, uri), null, params, null);
+			getHTTPClient().put(AGProtocol.spinURL(getRoot(), x, fn.getUri()), null, params, null);
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
 	}
 
+	/**
+	 * @since v4.4
+	 */
 	public String getSpinFunction(String uri) throws RepositoryException {
 		try {
 			return getHTTPClient().getString(AGProtocol.spinURL(getRoot(), AGProtocol.SPIN_FUNCTION, uri));
@@ -1711,24 +1722,29 @@ public class AGHttpRepoClient implements Closeable {
 	}
 	
 	/**
-	 * TODO MH: refactor to return a list
+	 * @since v4.4
 	 */
-	public String listSpinFunctions() throws RepositoryException {
-		try {
-			return getHTTPClient().getString(AGProtocol.spinURL(getRoot(), AGProtocol.SPIN_FUNCTION, "*"));
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		}
+	public TupleQueryResult listSpinFunctions() throws RepositoryException {
+		return getHTTPClient().getTupleQueryResult(AGProtocol.spinURL(getRoot(), AGProtocol.SPIN_FUNCTION, null));
 	}
 	
-	public void putSpinFunction(String uri, String sparqlQuery, String[] arguments) throws RepositoryException {
-		putSpinX(AGProtocol.SPIN_FUNCTION, uri, sparqlQuery, arguments);
+	/**
+	 * @since v4.4
+	 */
+	public void putSpinFunction(AGSpinFunction fn) throws RepositoryException {
+		putSpinX(AGProtocol.SPIN_FUNCTION, fn);
 	}
 
+	/**
+	 * @since v4.4
+	 */
 	public void deleteSpinFunction(String uri) throws RepositoryException {
 		getHTTPClient().delete(AGProtocol.spinURL(getRoot(), AGProtocol.SPIN_FUNCTION, uri), null, null);
 	}
 
+	/**
+	 * @since v4.4
+	 */
 	public void deleteHardSpinFunction(String uri) throws RepositoryException {
 		try {
 			deleteSpinFunction(uri);
@@ -1739,6 +1755,9 @@ public class AGHttpRepoClient implements Closeable {
 		}
 	}
 
+	/**
+	 * @since v4.4
+	 */
 	public String getSpinMagicProperty(String uri) throws RepositoryException {
 		try {
 			return getHTTPClient().getString(AGProtocol.spinURL(getRoot(), AGProtocol.SPIN_MAGICPROPERTY, uri));
@@ -1747,25 +1766,30 @@ public class AGHttpRepoClient implements Closeable {
 		}
 	}
 	
-	public void putSpinMagicProperty(String uri, String sparqlQuery, String[] arguments) throws RepositoryException {
-		putSpinX(AGProtocol.SPIN_MAGICPROPERTY, uri, sparqlQuery, arguments);
+	/**
+	 * @since v4.4
+	 */
+	public TupleQueryResult listSpinMagicProperties() throws RepositoryException {
+		return getHTTPClient().getTupleQueryResult(AGProtocol.spinURL(getRoot(), AGProtocol.SPIN_MAGICPROPERTY, null));
+	}
+	
+	/**
+	 * @since v4.4
+	 */
+	public void putSpinMagicProperty(AGSpinMagicProperty fn) throws RepositoryException {
+		putSpinX(AGProtocol.SPIN_MAGICPROPERTY, fn);
 	}
 
 	/**
-	 * TODO MH: refactor to return a list
+	 * @since v4.4
 	 */
-	public String listSpinMagicProperties() throws RepositoryException {
-		try {
-			return getHTTPClient().getString(AGProtocol.spinURL(getRoot(), AGProtocol.SPIN_MAGICPROPERTY, "*"));
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		}
-	}
-	
 	public void deleteSpinMagicProperty(String uri) throws RepositoryException {
 		getHTTPClient().delete(AGProtocol.spinURL(getRoot(), AGProtocol.SPIN_MAGICPROPERTY, uri), null, null);
 	}
 
+	/**
+	 * @since v4.4
+	 */
 	public void deleteHardSpinMagicProperty(String uri) throws RepositoryException {
 		try {
 			deleteSpinMagicProperty(uri);
@@ -1848,6 +1872,7 @@ public class AGHttpRepoClient implements Closeable {
 	 * @param allow true enables a workaround to support external bnodes
 	 * @see #getAllowExternalBlankNodeIds()
 	 * @see AGValueFactory#isAGBlankNodeId(String)
+	 * @since v4.4
 	 */
 	public void setAllowExternalBlankNodeIds(boolean allow) {
 		allowExternalBlankNodeIds = allow;
@@ -1857,6 +1882,7 @@ public class AGHttpRepoClient implements Closeable {
 	 * @return true iff this HTTP/Storage layer allows external blank node ids.
 	 * @see #setAllowExternalBlankNodeIds(boolean)
 	 * @see AGValueFactory#isAGBlankNodeId(String)
+	 * @since v4.4
 	 */
 	public boolean getAllowExternalBlankNodeIds() {
 		return allowExternalBlankNodeIds;
@@ -1884,8 +1910,9 @@ public class AGHttpRepoClient implements Closeable {
 	 * 
 	 * @param r a resource
 	 * @return a storable resource for the given resource
-	 * @see #getApplicationResource(Resource)
+	 * @see #getApplicationResource(Resource, AGValueFactory)
 	 * @see #setAllowExternalBlankNodeIds(boolean)
+	 * @since v4.4
 	 */
 	public Resource getStorableResource(Resource r, AGValueFactory vf) {
 		Resource storable = r;
@@ -1921,8 +1948,9 @@ public class AGHttpRepoClient implements Closeable {
 	 * 
 	 * @param v a value
 	 * @return a storable value for the given value
-	 * @see #getApplicationValue(Value)
+	 * @see #getApplicationValue(Value, AGValueFactory)
 	 * @see #setAllowExternalBlankNodeIds(boolean)
+	 * @since v4.4
 	 */
 	public Value getStorableValue(Value v, AGValueFactory vf) {
 		Value storable = v;
@@ -1944,7 +1972,8 @@ public class AGHttpRepoClient implements Closeable {
 	 * 
 	 * @param stored a stored resource
 	 * @return the application resource
-	 * @see #getStorableResource(Resource)
+	 * @see #getStorableResource(Resource, AGValueFactory)
+	 * @since v4.4
 	 */
 	public static Resource getApplicationResource(Resource stored, AGValueFactory vf) {
 		Resource app = stored;
@@ -1962,7 +1991,8 @@ public class AGHttpRepoClient implements Closeable {
 	 * 
 	 * @param stored a stored value
 	 * @return the application value
-	 * @see #getStorableValue(Value)
+	 * @see #getStorableValue(Value, AGValueFactory)
+	 * @since v4.4
 	 */
 	public static Value getApplicationValue(Value stored, AGValueFactory vf) {
 		Value app = stored;
