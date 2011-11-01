@@ -66,6 +66,8 @@ public abstract class AGQuery extends AbstractQuery {
 	
 	protected String planner;
 	
+	private String engine;
+	
 	protected String saveName = null;
 	
 	protected boolean prepared = false;
@@ -158,6 +160,22 @@ public abstract class AGQuery extends AbstractQuery {
 	 */
 	public void setPlanner(String planner) {
 		this.planner = planner;
+	}
+	
+	/**
+	 * @deprecated internal use only
+	 */
+	public String getEngine() {
+		return engine;
+	}
+	
+	/**
+	 * This method is not for general use - configure server agraph.cfg QueryEngine instead.
+	 * @see #getEngine()
+	 * @deprecated internal use only
+	 */
+	public void setEngine(String engine) {
+		this.engine = engine;
 	}
 	
 	/**

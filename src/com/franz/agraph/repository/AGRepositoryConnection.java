@@ -51,6 +51,7 @@ import com.franz.agraph.http.AGHttpRepoClient;
 import com.franz.agraph.http.handler.AGRDFHandler;
 import com.franz.agraph.http.handler.AGResponseHandler;
 import com.franz.util.Closeable;
+import com.franz.util.Closer;
 
 /**
  * Implements the <a href="http://www.openrdf.org/">Sesame</a>
@@ -1456,69 +1457,81 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * 
 	 * @param uri spin function identifier
-	 * @param sparqlQuery spin function query text
-	 * @param arguments name of arguments in the sparqlQuery
-	 * @see #getSpinFunction(String)
-	 * @see #deleteSpinFunction(String)
-	 * @see #putSpinMagicProperty(String, String, String)
-	 */
-	public void putSpinFunction(String uri, String sparqlQuery, String[] arguments) throws RepositoryException {
-		getHttpRepoClient().putSpinFunction(uri, sparqlQuery, arguments);
-	}
-
-	/**
-	 * 
-	 * @param uri spin function identifier
 	 * @return spin function query text
-	 * @see #putSpinFunction(String, String, String[])
+	 * @see #putSpinFunction(AGSpinFunction)
 	 * @see #deleteSpinFunction(String)
 	 */
-	public String getSpinFunction(String uri) throws RepositoryException {
+	public String getSpinFunction(String uri) throws OpenRDFException {
 		return getHttpRepoClient().getSpinFunction(uri);
 	}
+	
+	public List<AGSpinFunction> listSpinFunctions() throws OpenRDFException {
+        TupleQueryResult list = getHttpRepoClient().listSpinFunctions();
+		try {
+			List<AGSpinFunction> result = new ArrayList<AGSpinFunction>();
+			while (list.hasNext()) {
+				BindingSet bindings = list.next();
+				Value uri = bindings.getValue("uri");
+				Value query = bindings.getValue("query");
+				Value arguments = bindings.getValue("arguments");
+				// TODO MH: multiple args
+				result.add(new AGSpinFunction(uri.stringValue(), new String[] {arguments.stringValue()}, query.stringValue()));
+			}
+			return result;
+		} finally {
+			Closer.Close(list);
+		}
+	}
+
+	/**
+	 * 
+	 * @see #getSpinFunction(String)
+	 * @see #deleteSpinFunction(String)
+	 * @see #putSpinMagicProperty(AGSpinMagicProperty)
+	 */
+	public void putSpinFunction(AGSpinFunction fn) throws OpenRDFException {
+		getHttpRepoClient().putSpinFunction(fn);
+	}
 
 	/**
 	 * 
 	 * @param uri spin function identifier
-	 * @see #putSpinFunction(String, String, String[])
+	 * @see #putSpinFunction(AGSpinFunction)
 	 * @see #getSpinFunction(String)
 	 */
-	public void deleteSpinFunction(String uri) throws RepositoryException {
+	public void deleteSpinFunction(String uri) throws OpenRDFException {
 		getHttpRepoClient().deleteSpinFunction(uri);
 	}
 
 	/**
 	 * 
 	 * @param uri spin magic property identifier
-	 * @param sparqlQuery
-	 * @param arguments names of arguments to the sparqlQuery must contain the leading question mark
-	 * @see #getSpinMagicProperty(String)
-	 * @see #deleteSpinMagicProperty(String)
-	 * @see #putSpinFunction(String, String, String[])
-	 */
-	public void putSpinMagicProperty(String uri, String sparqlQuery, String[] arguments) throws RepositoryException {
-		getHttpRepoClient().putSpinMagicProperty(uri, sparqlQuery, arguments);
-	}
-
-	/**
-	 * 
-	 * @param uri spin magic property identifier
 	 * @return sparqlQuery
-	 * @see #putSpinMagicProperty(String, String, String[])
+	 * @see #putSpinMagicProperty(AGSpinMagicProperty)
 	 * @see #deleteSpinMagicProperty(String)
 	 */
-	public String getSpinMagicProperty(String uri) throws RepositoryException {
+	public String getSpinMagicProperty(String uri) throws OpenRDFException {
 		return getHttpRepoClient().getSpinMagicProperty(uri);
 	}
 
 	/**
 	 * 
 	 * @param uri spin magic property identifier
-	 * @see #putSpinMagicProperty(String, String, String[])
+	 * @see #putSpinMagicProperty(AGSpinMagicProperty)
 	 * @see #getSpinMagicProperty(String)
 	 */
-	public void deleteSpinMagicProperty(String uri) throws RepositoryException {
+	public void deleteSpinMagicProperty(String uri) throws OpenRDFException {
 		getHttpRepoClient().deleteSpinMagicProperty(uri);
+	}
+
+	/**
+	 * 
+	 * @see #getSpinMagicProperty(String)
+	 * @see #deleteSpinMagicProperty(String)
+	 * @see #putSpinFunction(AGSpinFunction)
+	 */
+	public void putSpinMagicProperty(AGSpinMagicProperty fn) throws OpenRDFException {
+		getHttpRepoClient().putSpinMagicProperty(fn);
 	}
 
 }
