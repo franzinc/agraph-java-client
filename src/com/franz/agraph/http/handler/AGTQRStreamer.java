@@ -28,11 +28,10 @@ import org.openrdf.query.resultio.TupleQueryResultFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.franz.util.Closer;
 import com.franz.agraph.http.AGHttpRepoClient;
-import com.franz.agraph.repository.AGValueFactory;
 import com.franz.agraph.http.exception.AGHttpException;
-import com.franz.util.Util;
+import com.franz.agraph.repository.AGValueFactory;
+import com.franz.util.Closer;
 
 /**
  * Similar to {@link org.openrdf.query.resultio.sparqlxml.SPARQLResultsXMLParser}
