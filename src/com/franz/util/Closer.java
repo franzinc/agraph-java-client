@@ -11,8 +11,9 @@ package com.franz.util;
 import info.aduna.iteration.CloseableIteration;
 
 import java.util.Collection;
-import java.util.Deque;
+import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 
 import javax.xml.stream.XMLStreamReader;
 
@@ -37,14 +38,14 @@ public class Closer implements Closeable {
 	
 	private final static Logger log = LoggerFactory.getLogger(Closer.class);
 	
-	private final Deque toClose = new LinkedList();
+	private final List toClose = Collections.synchronizedList(new LinkedList());
 	
 	/**
 	 * Add a resource to be closed with {@link #close()}.
 	 */
 	public <Obj extends Object>
 	Obj closeLater(Obj o) {
-		toClose.push(o);
+		toClose.add(0, o);
 		return o;
 	}
 
@@ -66,8 +67,12 @@ public class Closer implements Closeable {
 	 */
 	@Override
 	public void close() {
-		while (toClose.isEmpty() == false) {
-			close( toClose.pop() );
+		try {
+			while (toClose.isEmpty() == false) {
+				close( toClose.get(0) );
+			}
+		} catch (IndexOutOfBoundsException e) {
+			// ignore, the list must be empty
 		}
 	}
 	

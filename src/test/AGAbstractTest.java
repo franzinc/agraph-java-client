@@ -115,6 +115,16 @@ public class AGAbstractTest extends Closer {
 			throw new RuntimeException("server url: " + url, e);
 		}
     }
+    
+    public static void deleteRepository(String catalog, String repo) throws RepositoryException {
+    	AGServer server = new AGServer(findServerUrl(), username(), password());
+    	try {
+            AGCatalog cat = server.getCatalog(catalog);
+    		cat.deleteRepository(repo);
+    	} finally {
+    		Closer.Close(server);
+    	}
+    }
 
 	private static void ping() throws RepositoryException {
 		AGRepository repo = cat.createRepository(repoId);

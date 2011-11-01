@@ -11,8 +11,10 @@ package test.pool;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -49,16 +51,30 @@ public class AGConnPoolSessionTest extends Closer {
     	close();
     }
 
+	private void assertSuccess(List<Future<Boolean>> errors, long timeout, TimeUnit unit) throws Exception {
+		boolean fail = false;
+		for (Future<Boolean> f : errors) {
+			Boolean e = f.get(timeout, unit);
+			if (!e) {
+				fail = true;
+			}
+		}
+		if (fail) {
+			throw new RuntimeException("See log for details.");
+		}
+	}
+	
     @Test
     @Category(TestSuites.Prepush.class)
     public void testPlain() throws Exception {
         AGServer server = closeLater( new AGServer(AGAbstractTest.findServerUrl(), AGAbstractTest.username(), AGAbstractTest.password()));
         AGCatalog catalog = server.getCatalog("/");
-        AGRepository repo = closeLater( catalog.createRepository("AGConnPoolSessionTest.testPlain"));
+        AGRepository repo = closeLater( catalog.createRepository("pool.testPlain"));
         AGRepositoryConnection conn = closeLater( repo.getConnection());
         Assert.assertTrue(conn.toString(), conn.getHttpRepoClient().getRoot().contains(AGAbstractTest.findServerUrl()));
         Assert.assertEquals(0, conn.size());
         conn.deleteDatatypeMapping(XMLSchema.DOUBLE);
+        conn.setSessionLifetime(60);
         conn.setAutoCommit(true);
         conn.deleteDatatypeMapping(XMLSchema.FLOAT);
         Assert.assertEquals(0, conn.size());
@@ -72,9 +88,10 @@ public class AGConnPoolSessionTest extends Closer {
     			AGConnProp.username, AGAbstractTest.username(),
     			AGConnProp.password, AGAbstractTest.password(),
 				AGConnProp.catalog, "/",
-				AGConnProp.repository, "AGConnPoolSessionTest.testPoolDedicated",
+				AGConnProp.repository, "pool.testPoolDedicated",
 				AGConnProp.session, AGConnProp.Session.DEDICATED,
-                AGConnProp.sessionLifetime, TimeUnit.MINUTES.toSeconds(5),
+                AGConnProp.sessionLifetime, TimeUnit.MINUTES.toSeconds(1),
+                AGPoolProp.shutdownHook, true,
                 AGPoolProp.testOnBorrow, true,
                 AGPoolProp.maxWait, TimeUnit.SECONDS.toMillis(30)
 		));
@@ -94,9 +111,9 @@ public class AGConnPoolSessionTest extends Closer {
     			AGConnProp.username, AGAbstractTest.username(),
     			AGConnProp.password, AGAbstractTest.password(),
 				AGConnProp.catalog, "/",
-				AGConnProp.repository, "AGConnPoolSessionTest.testPoolTx",
+				AGConnProp.repository, "pool.testPoolTx",
 				AGConnProp.session, AGConnProp.Session.TX,
-                AGConnProp.sessionLifetime, TimeUnit.MINUTES.toSeconds(5),
+                AGConnProp.sessionLifetime, TimeUnit.MINUTES.toSeconds(1),
                 AGPoolProp.testOnBorrow, true,
                 AGPoolProp.maxWait, TimeUnit.SECONDS.toMillis(30)
 		));
@@ -123,9 +140,10 @@ public class AGConnPoolSessionTest extends Closer {
     			AGConnProp.username, AGAbstractTest.username(),
     			AGConnProp.password, AGAbstractTest.password(),
     			AGConnProp.catalog, "/",
-    			AGConnProp.repository, "AGConnPoolSessionTest.deleteDatatypeMapping",
+    			AGConnProp.repository, "pool.deleteDatatypeMapping",
     			AGConnProp.session, AGConnProp.Session.SHARED,
     			AGConnProp.sessionLifetime, TimeUnit.MINUTES.toSeconds(1),
+                AGPoolProp.shutdownHook, true,
     			AGPoolProp.testOnBorrow, true,
     			AGPoolProp.maxWait, TimeUnit.SECONDS.toMillis(30)
     	));
@@ -179,4 +197,115 @@ public class AGConnPoolSessionTest extends Closer {
     	}
     }
     
+    @Test
+    @Category(TestSuites.Stress.class)
+    public void maxActive() throws Exception {
+    	final int seconds = 5;
+    	final int clients = 4;
+    	final AGConnPool pool = closeLater( AGConnPool.create(
+    			AGConnProp.serverUrl, AGAbstractTest.findServerUrl(),
+    			AGConnProp.username, AGAbstractTest.username(),
+    			AGConnProp.password, AGAbstractTest.password(),
+				AGConnProp.catalog, "/",
+				AGConnProp.repository, "pool.maxActive",
+				AGConnProp.session, AGConnProp.Session.DEDICATED,
+				AGConnProp.sessionLifetime, seconds * clients * 2,
+				AGConnProp.httpSocketTimeout, TimeUnit.SECONDS.toMillis(seconds * clients),
+                AGPoolProp.shutdownHook, true,
+                AGPoolProp.testOnBorrow, true,
+				AGPoolProp.maxActive, 2,
+				AGPoolProp.maxWait, TimeUnit.SECONDS.toMillis((seconds * clients) + 10),
+				AGPoolProp.maxIdle, 8
+		));
+        ExecutorService exec = Executors.newFixedThreadPool(clients);
+    	List<Future<Boolean>> errors = new ArrayList<Future<Boolean>>(clients);
+        final AtomicLong idx = new AtomicLong(0);
+        for (int i = 0; i < clients; i++) {
+        	errors.add( exec.submit( new Callable<Boolean>() {
+				@Override
+				public Boolean call() throws Exception {
+					try {
+						long id = idx.incrementAndGet();
+						log.debug(id + " start");
+						AGRepositoryConnection conn = pool.borrowConnection();
+						try {
+							log.debug(id + " open");
+							conn.size();
+							Thread.sleep(TimeUnit.SECONDS.toMillis(seconds));
+							conn.size();
+						} finally {
+							conn.close();
+							log.debug(id + " close");
+						}
+						return true;
+					} catch (Throwable e) {
+						log.error("error " + this, e);
+						return false;
+					}
+				}
+			}));
+		}
+        assertSuccess(errors,  seconds * clients * 2, TimeUnit.SECONDS);
+    }
+
+    @Test
+    @Category(TestSuites.Stress.class)
+    public void fast() throws Exception {
+    	final int seconds = 35;
+    	final int clients = 8;
+    	AGAbstractTest.deleteRepository("/", "pool.fast");
+    	final AGConnPool pool = closeLater( AGConnPool.create(
+    			AGConnProp.serverUrl, AGAbstractTest.findServerUrl(),
+    			AGConnProp.username, AGAbstractTest.username(),
+    			AGConnProp.password, AGAbstractTest.password(),
+				AGConnProp.catalog, "/",
+				AGConnProp.repository, "pool.fast",
+				AGConnProp.session, AGConnProp.Session.DEDICATED,
+				AGConnProp.sessionLifetime, seconds * clients * 2,
+				AGConnProp.httpSocketTimeout, TimeUnit.SECONDS.toMillis(seconds * clients),
+                AGPoolProp.shutdownHook, true,
+                AGPoolProp.testOnBorrow, true,
+				AGPoolProp.maxActive, 2,
+				AGPoolProp.maxWait, TimeUnit.SECONDS.toMillis(seconds + 10),
+				AGPoolProp.maxIdle, 8
+		));
+        final AtomicLong idx = new AtomicLong(0);
+        final AtomicLong count = new AtomicLong(0);
+        ExecutorService exec = Executors.newFixedThreadPool(clients);
+    	List<Future<Boolean>> errors = new ArrayList<Future<Boolean>>(clients);
+        for (int i = 0; i < clients; i++) {
+        	errors.add( exec.submit(new Callable<Boolean>() {
+        		@Override
+				public Boolean call() throws Exception {
+					try {
+						long id = idx.incrementAndGet();
+						int myCount = 0;
+						log.debug(id + " start");
+						long duration = TimeUnit.SECONDS.toNanos(seconds);
+						long start = System.nanoTime();
+						while (System.nanoTime()-start < duration) {
+							AGRepositoryConnection conn = pool.borrowConnection();
+							try {
+								//log.debug(id + " open");
+								myCount++;
+								count.incrementAndGet();
+								conn.size();
+							} finally {
+								conn.close();
+								//log.debug(id + " close");
+							}
+						}
+						log.debug(id + " finished " + myCount);
+						return true;
+					} catch (Throwable e) {
+						log.error("error " + this, e);
+						return false;
+					}
+				}
+			}));
+		}
+        assertSuccess(errors,  seconds * clients * 2, TimeUnit.SECONDS);
+        log.info("count=" + count);
+    }
+
 }

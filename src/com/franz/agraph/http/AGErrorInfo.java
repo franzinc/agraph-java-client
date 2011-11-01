@@ -40,6 +40,8 @@ public class AGErrorInfo extends Exception {
 	public String toString() {
 		if (errorType != null) {
 			StringBuilder sb = new StringBuilder(64);
+			sb.append(getClass().getName());
+			sb.append(": ");
 			sb.append(errorType);
 			sb.append(": ");
 			sb.append(getMessage());

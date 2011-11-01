@@ -56,6 +56,13 @@ public class AGServer implements Closeable {
 		rootCatalog = new AGCatalog(this,AGCatalog.ROOT_CATALOG);
 	}
 	
+	public AGServer(String username, String password, AGHTTPClient httpClient) {
+		this.serverURL = httpClient.getServerURL();
+		this.httpClient = httpClient; 
+		this.httpClient.setUsernameAndPassword(username, password);
+		rootCatalog = new AGCatalog(this,AGCatalog.ROOT_CATALOG);
+	}
+	
 	/**
 	 * Returns the URL of this AllegroGraph server.
 	 * 

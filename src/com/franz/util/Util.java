@@ -15,30 +15,49 @@ import javax.xml.stream.XMLStreamReader;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 
 /**
- * @deprecated in v4.4 use Closer
  * @see Closer
  */
 public class Util {
 	
+	/**
+	 * @deprecated in v4.4 use Closer
+	 * @see Closer
+	 */
 	public static <CloseableType extends Closeable>
 	CloseableType close(CloseableType o) {
 		return Closer.Close(o);
 	}
 	
+	/**
+	 * @deprecated in v4.4 use Closer
+	 * @see Closer
+	 */
 	public static <CloseableType extends java.io.Closeable>
 	CloseableType close(CloseableType o) {
 		return Closer.Close(o);
 	}
 	
+	/**
+	 * @deprecated in v4.4 use Closer
+	 * @see Closer
+	 */
 	public static MultiThreadedHttpConnectionManager close(MultiThreadedHttpConnectionManager o) {
 		return Closer.Close(o);
 	}
 	
+	/**
+	 * @deprecated in v4.4 use Closer
+	 * @see Closer
+	 */
 	public static <Elem extends Object, Exc extends Exception>
 	CloseableIteration<Elem, Exc> close(CloseableIteration<Elem, Exc> o) {
 		return Closer.Close(o);
 	}
 	
+	/**
+	 * @deprecated in v4.4 use Closer
+	 * @see Closer
+	 */
 	public static XMLStreamReader close(XMLStreamReader o) {
 		return Closer.Close(o);
 	}

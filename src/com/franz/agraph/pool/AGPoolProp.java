@@ -52,19 +52,26 @@ public enum AGPoolProp {
 	/**
 	 * @see GenericObjectPool#setMinIdle(int)
 	 */
-	
 	minIdle,
+	
 	/**
 	 * @see GenericObjectPool#setMaxIdle(int)
 	 */
-	
 	maxIdle,
+	
 	/**
+	 * Max number of connections that can be allocated by the pool.
+	 * If multiple clients (or different pools), are using the same
+	 * AllegroGraph Server, this value should be set to something
+	 * less than the SessionPorts.
+	 * See <a href="http://www.franz.com/agraph/support/documentation/current/server-installation.html#sessionport"
+	 * target="_top">Session Port Setup</a>.
 	 * @see GenericObjectPool#setMaxActive(int)
 	 */
 	maxActive,
 	
 	/**
+	 * milliseconds to wait to borrow before throwing {@link java.util.NoSuchElementException}
 	 * @see GenericObjectPool#setMaxWait(long)
 	 */
 	maxWait,
