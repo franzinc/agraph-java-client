@@ -43,6 +43,8 @@ import com.franz.util.Closer;
  * 		AGConnProp.repository, "my_repo",
  * 		AGConnProp.session, AGConnProp.Session.DEDICATED,
  * 		AGPoolProp.shutdownHook, true,
+ * 		AGPoolProp.maxActive, 10,
+ * 		AGPoolProp.testOnBorrow, true,
  * 		AGPoolProp.initialSize, 2);
  * 	AGRepositoryConnection conn = pool.borrowConnection();
  * 	try {
@@ -317,7 +319,14 @@ implements ObjectPool, Closeable {
 			addObject();
 		}
 	}
-	
+
+	@Override
+	public void close() {
+		if (log.isDebugEnabled()) log.debug("close " + this);
+		close(delegate);
+		super.close();
+	}
+
 	protected void finalize() throws Throwable {
 		if (getNumActive() > 0) {
 			close();

@@ -47,14 +47,15 @@ public class AGConnPoolClosingTest {
 				AGConnProp.serverUrl, AGAbstractTest.findServerUrl(),
 				AGConnProp.username, AGAbstractTest.username(),
 				AGConnProp.password, AGAbstractTest.password(),
-				AGConnProp.catalog, AGAbstractTest.CATALOG_ID,
-				AGConnProp.repository, "javatest",
+				AGConnProp.catalog, "/",
+				AGConnProp.repository, "test.pool.AGConnPoolClosingTest",
 				AGConnProp.session, AGConnProp.Session.DEDICATED,
+				AGConnProp.sessionLifetime, TimeUnit.SECONDS.toMillis(15),
 				AGPoolProp.shutdownHook, true,
-				AGPoolProp.initialSize, 2
-				// AGPoolProp.maxActive, 5,
-				// AGPoolProp.maxWait, TimeUnit.MINUTES.toMillis(5),
-				// AGPoolProp.maxIdle, 2,
+				AGPoolProp.initialSize, 2,
+				AGPoolProp.maxActive, 6,
+				AGPoolProp.maxWait, TimeUnit.SECONDS.toMillis(45),
+				AGPoolProp.maxIdle, 8
 				// AGPoolProp.minIdle, 2,
 				// AGPoolProp.timeBetweenEvictionRunsMillis, TimeUnit.MINUTES.toMillis(5),
 				// AGPoolProp.testWhileIdle, true
@@ -82,6 +83,8 @@ public class AGConnPoolClosingTest {
 						AGRepositoryConnection conn = pool.borrowConnection();
 						try {
 							conn.size();
+							Thread.sleep(TimeUnit.SECONDS.toMillis(20));
+							conn.size();
 						} finally {
 							conn.close();
 						}
@@ -91,7 +94,7 @@ public class AGConnPoolClosingTest {
 				}
 			});
 		}
-        exec.awaitTermination(30, TimeUnit.SECONDS);
+        exec.awaitTermination(120, TimeUnit.SECONDS);
         Assert.assertEquals(pool.toString(), activeConnections, pool.getNumActive());
         if (!errors.isEmpty()) {
         	for (Throwable e : errors) {

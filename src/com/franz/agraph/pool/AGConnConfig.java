@@ -17,41 +17,72 @@ import com.franz.agraph.pool.AGConnProp.Session;
  */
 public class AGConnConfig {
 	
+	
+	/**
+	 * @see AGConnProp#serverUrl
+	 */
 	public final String serverUrl;
+	
+	/**
+	 * @see AGConnProp#username
+	 */
 	public final String username;
+	
+	/**
+	 * @see AGConnProp#password
+	 */
 	public final String password;
+	
+	/**
+	 * @see AGConnProp#catalog
+	 */
 	public final String catalog;
+	
+	/**
+	 * @see AGConnProp#repository
+	 */
 	public final String repository;
+	
+	/**
+	 * @see AGConnProp#session
+	 */
 	public final Session session;
+	
+	/**
+	 * @see AGConnProp#sessionLifetime
+	 */
 	public final Integer sessionLifetime;
 	
+	/**
+	 * @see AGConnProp#httpSocketTimeout
+	 * @since v4.4
+	 */
+	public final Integer httpSocketTimeout;
+	
 	public AGConnConfig(Map<AGConnProp, String> props) {
-		if (props.containsKey(AGConnProp.serverUrl)) {
-			serverUrl = props.get(AGConnProp.serverUrl);
-		} else {
-			throw new IllegalArgumentException("Property required for AGConn: " + AGConnProp.serverUrl);
-		}
-		if (props.containsKey(AGConnProp.username)) {
-			username = props.get(AGConnProp.username);
-		} else {
-			throw new IllegalArgumentException("Property required for AGConn: " + AGConnProp.username);
-		}
-		if (props.containsKey(AGConnProp.password)) {
-			password = props.get(AGConnProp.password);
-		} else {
-			throw new IllegalArgumentException("Property required for AGConn: " + AGConnProp.password);
-		}
+		serverUrl = getStringRequired(props, AGConnProp.serverUrl);
+		username = getStringRequired(props, AGConnProp.username);
+		password = getStringRequired(props, AGConnProp.password);
 		catalog = props.get(AGConnProp.catalog);
-		if (props.containsKey(AGConnProp.repository)) {
-			repository = props.get(AGConnProp.repository);
-		} else {
-			throw new IllegalArgumentException("Property required for AGConn: " + AGConnProp.repository);
-		}
+		repository = getStringRequired(props, AGConnProp.repository);
 		session = Session.valueOfCaseInsensitive(props.get(AGConnProp.session), Session.SHARED);
-		if (props.containsKey(AGConnProp.sessionLifetime)) {
-			sessionLifetime = Integer.parseInt( props.get(AGConnProp.sessionLifetime));
+		sessionLifetime = getInt(props, AGConnProp.sessionLifetime);
+		httpSocketTimeout = getInt(props, AGConnProp.httpSocketTimeout);
+	}
+	
+	private Integer getInt(Map<AGConnProp, String> props, AGConnProp prop) {
+		if (props.containsKey(prop)) {
+			return Integer.parseInt( props.get(prop));
 		} else {
-			sessionLifetime = null;
+			return null;
+		}
+	}
+	
+	private String getStringRequired(Map<AGConnProp, String> props, AGConnProp prop) {
+		if (props.containsKey(prop)) {
+			return props.get(prop);
+		} else {
+			throw new IllegalArgumentException("Property required for AGConn: " + prop);
 		}
 	}
 	

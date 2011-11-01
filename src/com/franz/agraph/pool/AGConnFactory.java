@@ -8,11 +8,15 @@
 
 package com.franz.agraph.pool;
 
+import org.apache.commons.httpclient.HttpConnectionManager;
+import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
+import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 import org.apache.commons.pool.PoolableObjectFactory;
 import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.franz.agraph.http.AGHTTPClient;
 import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
@@ -46,7 +50,18 @@ implements PoolableObjectFactory {
 	}
 	
 	protected AGRepositoryConnection makeConnection() throws Exception {
-		AGServer server = closeLater( new AGServer(props.serverUrl, props.username, props.password) );
+		HttpConnectionManagerParams params = new HttpConnectionManagerParams();
+		params.setDefaultMaxConnectionsPerHost(Integer.MAX_VALUE);
+		params.setMaxTotalConnections(Integer.MAX_VALUE);
+		//params.setConnectionTimeout((int) TimeUnit.SECONDS.toMillis(10));
+		if (props.httpSocketTimeout != null) {
+			params.setSoTimeout(props.httpSocketTimeout);
+		}
+		
+		HttpConnectionManager manager = closeLater( new MultiThreadedHttpConnectionManager());
+		manager.setParams(params);
+		AGHTTPClient httpClient = new AGHTTPClient(props.serverUrl, manager);
+		AGServer server = closeLater( new AGServer(props.username, props.password, httpClient) );
 		AGCatalog cat;
 		if (props.catalog != null) {
 			cat = server.getCatalog(props.catalog);
@@ -66,7 +81,7 @@ implements PoolableObjectFactory {
 		if (props.sessionLifetime != null) {
 			conn.setSessionLifetime(props.sessionLifetime);
 		}
-		activateConnection(conn);
+		activateObject(conn);
 		return conn;
 	}
 	
@@ -109,7 +124,7 @@ implements PoolableObjectFactory {
 			break;
 		}
 	}
-	
+
 	@Override
 	public void activateObject(Object obj) throws Exception {
 		activateConnection( (AGRepositoryConnection) obj);

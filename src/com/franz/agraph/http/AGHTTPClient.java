@@ -18,6 +18,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
@@ -320,6 +321,7 @@ implements Closeable {
 
 	public void putRepository(String repositoryURL) throws IOException,
 			RepositoryException, UnauthorizedException, AGHttpException {
+		if (logger.isDebugEnabled()) logger.debug("putRepository: " + repositoryURL);
 		Header[] headers = new Header[0];
 		NameValuePair[] params = { new NameValuePair(OVERRIDE_PARAM_NAME, "false") };
 		put(repositoryURL,headers,params,null);

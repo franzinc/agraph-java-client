@@ -8,6 +8,9 @@
 
 package com.franz.agraph.pool;
 
+import org.apache.commons.httpclient.params.HttpConnectionParams;
+import org.apache.commons.httpclient.params.HttpMethodParams;
+
 import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
@@ -36,7 +39,7 @@ public enum AGConnProp {
 	password,
 	
 	/**
-	 * Catalog name or no value for {@link AGServer#getRootCatalog()}
+	 * Catalog name - "/" or no value for {@link AGServer#getRootCatalog()}.
 	 * @see AGServer#getCatalog(String)
 	 */
 	catalog,
@@ -52,9 +55,23 @@ public enum AGConnProp {
 	session,
 	
 	/**
+	 * Sets the 'lifetime' (in seconds) for a dedicated session.
+	 * Seconds a session can be idle before being collected.
 	 * @see AGRepositoryConnection#setSessionLifetime(int)
 	 */
-	sessionLifetime;
+	sessionLifetime,
+	
+	/**
+	 * Socket timeout (SO_TIMEOUT) in milliseconds to be used when executing the method.
+	 * A timeout value of zero is interpreted as an infinite timeout.
+	 * 
+	 * <p>WARNING: this may break long queries.</p>
+	 * 
+	 * @see HttpConnectionParams#setSoTimeout(int)
+	 * @see HttpMethodParams#SO_TIMEOUT
+	 * @since v4.4
+	 */
+	httpSocketTimeout;
 
 	/**
 	 * Property values for {@link AGConnProp#session}.
