@@ -57,7 +57,6 @@ public class TestSuites {
         RDFTransactionTest.class,
         JenaTests.class,
         BulkModeTests.class,
-        DeleteDuplicatesModeTests.class,
         IndexManagementTests.class,
         EncodableNamespaceTests.class,
         FederationTests.class,

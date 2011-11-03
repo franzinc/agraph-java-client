@@ -220,49 +220,6 @@ public class AGRepository implements AGAbstractRepository, Closeable {
 		}
 	}
 	
-	/**
-	 * Sets the repository's deleteDuplicates mode (defaults to "false").
-	 * 
-	 * The deleteDuplicates mode must be one of: "false" (do not delete
-	 * duplicates), "true" (delete duplicate quads), or "spo" (delete
-	 * duplicate triples, ignoring graph).
-	 *  
-	 * @param mode a String indicating the mode. 
-	 * @see #getDeleteDuplicatesMode()
-	 */
-	public void setDeleteDuplicatesMode(String mode) throws RepositoryException {
-		String url = repositoryURL + "/deleteDuplicates";
-		Header[] headers = new Header[0];
-		try {
-			if (mode.equalsIgnoreCase("false") ||
-					mode.equalsIgnoreCase("true") ||
-					mode.equalsIgnoreCase("spo")) {
-				NameValuePair[] data = {new NameValuePair("type",mode)};
-				getHTTPClient().put(url,headers,data,null);
-			} else {
-				throw new IllegalArgumentException("Illegal mode: " + mode + "(must be one of: false, true, spo).");
-			}
-		} catch (IOException e) {
-			throw new RepositoryException(e);
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		}
-	}
-	
-	/**
-	 * Returns the repository's deleteDuplicates mode.
-	 *  
-	 * @return a String indicating the deleteDuplicates mode.
-	 * @see #setDeleteDuplicatesMode(String)
-	 */
-	public String getDeleteDuplicatesMode() throws RepositoryException {
-		try {
-			return getHTTPClient().getString(repositoryURL+"/deleteDuplicates");
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
-		}
-	}
-
     /**
      * Forces a checkpoint for this repository. 
      * 
