@@ -20,8 +20,8 @@ import com.franz.agraph.repository.AGRepositoryConnection;
 
 public class SessionLifetimeTests extends AGAbstractTest {
 
-	public static int connLife = 5; 
-	public static int conn2Life = 10; 
+	public static int connLife = 10; 
+	public static int conn2Life = 5; 
 	public static int conn3Life = 30; 
     @Test
     @Category(TestSuites.Prepush.class)
@@ -44,17 +44,23 @@ public class SessionLifetimeTests extends AGAbstractTest {
 		
 		conn.setAutoCommit(false);
 		conn2.setAutoCommit(false);
-		Thread.sleep((connLife+2)*1000);
+		Thread.sleep((conn2Life+2)*1000);
 		try {
-			conn.size();
-			Assert.fail("expected session to expire");
+			conn2.size();
+			Assert.fail("expected conn2 session to expire");
 		} catch (RepositoryException e) {
 		}
-		conn2.ping(); // extends the life of conn2's session
-		Thread.sleep((conn2Life-connLife)*1000);
-		conn2.size(); // fails if ping doesn't work
-		conn2.close();
+		conn.ping(); // extends the life of conn's session
+		Thread.sleep((connLife-conn2Life)*1000);
+		conn.size(); // fails if ping doesn't work
+		try {
+			conn2.close();
+			Assert.fail("closing expired conn2 session should throw an exception");
+		} catch (RepositoryException e) {
+			// TODO: want a more specific exception here?
+		}
 		conn3.close();
+		// conn is closed in test tearDown
     }
 
 }
