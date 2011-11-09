@@ -366,6 +366,105 @@ public class JenaTests extends AGAbstractTest {
     
     @Test
     @Category(TestSuites.Prepush.class)
+    public void testIsEmpty() throws Exception {
+    	AGGraphMaker maker = closeLater( new AGGraphMaker(conn));
+    	AGGraph gd = closeLater( maker.getGraph());
+    	AGGraph g1 = closeLater( maker.createGraph("http://example.org/g1"));
+    	AGGraph g2 = closeLater( maker.createGraph("http://example.org/g2"));
+    	AGGraph g3 = closeLater( maker.createGraph("http://example.org/g3"));
+    	AGGraph gAll = closeLater( maker.getUnionOfAllGraphs());
+    	AGGraph gd12 = closeLater( maker.createUnion(gd, g1, g2));
+    	AGGraph gd23 = closeLater( maker.createUnion(gd, g2, g3));
+    	AGGraph g123 = closeLater( maker.createUnion(g1, g2, g3));
+    	
+    	AGModel md = closeLater( new AGModel(gd));
+    	AGModel m1 = closeLater( new AGModel(g1));
+    	AGModel m2 = closeLater( new AGModel(g2));
+    	AGModel m3 = closeLater( new AGModel(g3));
+    	AGModel mAll = closeLater( new AGModel(gAll));
+    	AGModel md12 = closeLater( new AGModel(gd12));
+    	AGModel md23 = closeLater( new AGModel(gd23));
+    	AGModel m123 = closeLater( new AGModel(g123));
+    	
+    	AGReasoner reasoner = AGReasoner.RDFS_PLUS_PLUS;
+    	AGInfModel infAll = closeLater( new AGInfModel(reasoner, mAll));
+    	AGInfModel infd = closeLater( new AGInfModel(reasoner, md)); 
+    	AGInfModel inf1 = closeLater( new AGInfModel(reasoner, m1)); 
+    	AGInfModel infd12 = closeLater( new AGInfModel(reasoner, md12));
+    	reasoner = AGReasoner.RESTRICTION;
+    	AGInfModel infd23 = closeLater( new AGInfModel(reasoner, md23));
+    	AGInfModel inf123 = closeLater( new AGInfModel(reasoner, m123));
+
+    	Resource a = md.createResource("http://a");
+    	Resource b = md.createResource("http://b");
+    	Resource c = md.createResource("http://c");
+    	Resource d = md.createResource("http://d");
+    	Property p = md.createProperty("http://p");
+    	
+    	Assert.assertTrue("md", md.isEmpty());
+    	Assert.assertTrue("m1", m1.isEmpty());
+    	Assert.assertTrue("m2", m2.isEmpty());
+    	Assert.assertTrue("m3", m3.isEmpty());
+    	Assert.assertTrue("mAll", mAll.isEmpty());
+    	Assert.assertTrue("infd", infd.isEmpty());
+    	md.add(p,RDF.type, OWL.TransitiveProperty);
+    	Assert.assertFalse("md empty?", md.isEmpty());
+    	Assert.assertFalse("infd", infd.isEmpty());
+    	Assert.assertFalse("mAll empty?", mAll.isEmpty());
+    	Assert.assertFalse("md12 empty?", md12.size()==4);
+    	Assert.assertFalse("md23 empty?", md23.size()==3);
+    	Assert.assertTrue("m1", m1.isEmpty());
+    	Assert.assertTrue("inf1", inf1.isEmpty());
+    	Assert.assertTrue("m2", m2.isEmpty());
+    	Assert.assertTrue("m3", m3.isEmpty());
+    	Assert.assertTrue("m123", m123.isEmpty());
+    	m1.add(a,p,b);
+    	Assert.assertFalse("md empty?", md.isEmpty());
+    	Assert.assertFalse("mAll empty?", mAll.isEmpty());
+    	Assert.assertFalse("md12 empty?", md12.isEmpty());
+    	Assert.assertFalse("md23 empty?", md23.isEmpty());
+    	Assert.assertFalse("m1 empty?", m1.isEmpty());
+    	Assert.assertTrue("m2", m2.isEmpty());
+    	Assert.assertTrue("m3", m3.isEmpty());
+    	Assert.assertFalse("m123 empty?", m123.isEmpty());
+    	m2.add(b,p,c);
+    	Assert.assertFalse("md empty?", md.isEmpty());
+    	Assert.assertFalse("mAll empty?", mAll.isEmpty());
+    	Assert.assertFalse("md12 empty?", md12.isEmpty());
+    	Assert.assertFalse("md23 empty?", md23.isEmpty());
+    	Assert.assertFalse("m1 empty?", m1.isEmpty());
+    	Assert.assertFalse("m2 empty?", m2.isEmpty());
+    	Assert.assertTrue("m3", m3.isEmpty());
+    	Assert.assertFalse("m123 empty?", m123.isEmpty());
+    	m3.add(c,p,d);
+    	Assert.assertFalse("md empty?", md.isEmpty());
+    	Assert.assertFalse("mAll empty?", mAll.isEmpty());
+    	Assert.assertFalse("md12 empty?", md12.isEmpty());
+    	Assert.assertFalse("md23 empty?", md23.isEmpty());
+    	Assert.assertFalse("m1 empty?", m1.isEmpty());
+    	Assert.assertFalse("m2 empty?", m2.isEmpty());
+    	Assert.assertFalse("m3 empty?", m3.isEmpty());
+    	Assert.assertFalse("m123 empty?", m123.isEmpty());
+    	
+    	Assert.assertFalse("infAll empty?", infAll.isEmpty());
+    	Assert.assertFalse("infd empty?", infd.isEmpty());
+    	Assert.assertFalse("inf1 empty?", inf1.isEmpty());
+    	Assert.assertFalse("infd12 empty?", infd12.isEmpty());
+    	Assert.assertFalse("infd23 empty?", infd23.isEmpty());
+    	Assert.assertFalse("inf123 empty?", inf123.isEmpty());
+    	
+    	m1.remove(a,p,b);
+    	Assert.assertFalse("infAll empty?", infAll.isEmpty());
+    	Assert.assertFalse("infd empty?", infd.isEmpty());
+    	Assert.assertTrue("inf1 empty?", inf1.isEmpty());
+    	Assert.assertFalse("infd12 empty?", infd12.isEmpty());
+    	Assert.assertFalse("infd23 empty?", infd23.isEmpty());
+    	Assert.assertFalse("inf123 empty?", inf123.isEmpty());
+    	
+    }
+    
+    @Test
+    @Category(TestSuites.Prepush.class)
     public void jenaReadTurtle() throws Exception {
     	AGGraphMaker maker = closeLater( new AGGraphMaker(conn));
     	AGGraph g = closeLater( maker.getGraph());
