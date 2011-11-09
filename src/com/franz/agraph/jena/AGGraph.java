@@ -15,6 +15,8 @@ import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.query.Dataset;
+import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.impl.DatasetImpl;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
@@ -22,6 +24,7 @@ import org.openrdf.rio.RDFHandlerException;
 import org.openrdf.rio.helpers.StatementCollector;
 
 import com.franz.agraph.http.exception.AGHttpException;
+import com.franz.agraph.repository.AGBooleanQuery;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGValueFactory;
 import com.franz.util.Closeable;
@@ -255,6 +258,25 @@ public class AGGraph extends GraphBase implements Graph, Closeable {
 		return size;
 	}
 	
+    /**
+     * Answer true iff this graph contains no triples.  
+     * 
+     * Implemented using a SPARQL ASK for any triple in the graph's
+     * dataset; on large databases this is faster than determining
+     * whether the graph's size is zero.
+     */
+	@Override
+	public boolean isEmpty() {
+		String queryString = "ask {?s ?p ?o}";
+		AGBooleanQuery bq = conn.prepareBooleanQuery(QueryLanguage.SPARQL, queryString);
+		bq.setDataset(getDataset());
+		try {
+			return !bq.evaluate();
+		} catch (QueryEvaluationException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	@Override
 	protected Reifier constructReifier() {
 		if (!style.intercepts() && !style.conceals()) {
