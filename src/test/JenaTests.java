@@ -214,11 +214,11 @@ public class JenaTests extends AGAbstractTest {
         Property has = model.createProperty("http://example.org/ontology/has");
         model.add(blankNode, has, dave);
         
-        model.write(closeLater( new FileOutputStream( File.createTempFile("agraph-java-test", "txt"))));
+        model.write(closeLater( new FileOutputStream( AGAbstractTest.createTempFile("JenaTest-", ".txt"))));
         
         graph = closeLater( maker.getGraph());
         model = closeLater( new AGModel(graph));
-        model.write(closeLater( new FileOutputStream( File.createTempFile("agraph-java-test", "txt"))));
+        model.write(closeLater( new FileOutputStream( AGAbstractTest.createTempFile("JenaTest-", ".txt"))));
     }
 
     @Test

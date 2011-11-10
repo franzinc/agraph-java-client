@@ -99,6 +99,31 @@ public class AGAbstractTest extends Closer {
     public static String password() {
         return or(System.getenv("AGRAPH_PASSWORD"), "xyzzy");
     }
+
+    private static File tempDir;
+    
+    public static File tempDir() {
+    	if (tempDir == null) {
+        	File target = new File("target");
+        	if (!target.canWrite()) {
+        		throw new RuntimeException("unable to read/write dir: " + target.getAbsolutePath());
+        	}
+        	File test = new File(target, "test-out");
+        	if (!test.isDirectory()) {
+        		test.mkdir();
+        	}
+        	if (!test.canWrite()) {
+        		throw new RuntimeException("unable to read/write dir: " + test.getAbsolutePath());
+        	}
+        	tempDir = test;
+    	}
+    	return tempDir;
+    }
+    
+    public static File createTempFile(String prefix, String suffix) {
+    	File dir = tempDir();
+    	return new File(dir, prefix + System.currentTimeMillis() + suffix);
+    }
     
     @BeforeClass
     public static void setUpOnce() {
