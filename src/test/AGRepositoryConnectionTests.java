@@ -86,7 +86,7 @@ public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
     @Test
 	public void testAddGzipInputStreamNTriples() throws Exception {
 		// add file default-graph.nt.gz to repository, no context
-	    File gz = File.createTempFile("default-graph.nt", ".gz");
+	    File gz = AGAbstractTest.createTempFile("default-graph.nt-", ".gz");
 	    File nt = new File(TEST_DIR_PREFIX + "default-graph.nt");
 	    Util.gzip(nt, gz);
 		InputStream defaultGraph = new FileInputStream(gz);

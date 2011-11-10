@@ -1178,7 +1178,7 @@ public class TutorialExamples {
         RepositoryConnection conn = example6();
         Repository myRepository = conn.getRepository();
         URI context = myRepository.getValueFactory().createURI("http://example.org#vcards");
-        String outputFile = TEMPORARY_DIRECTORY + "temp.nt";
+        String outputFile = TEMPORARY_DIRECTORY + "TutorialExamples.example8.nt";
         // outputFile = null;
         if (outputFile == null) {
             println("\nWriting n-triples to Standard Out instead of to a file");
@@ -1188,7 +1188,7 @@ public class TutorialExamples {
         OutputStream output = (outputFile != null) ? new FileOutputStream(outputFile) : System.out;
         NTriplesWriter ntriplesWriter = new NTriplesWriter(output);
         conn.export(ntriplesWriter, context);
-        String outputFile2 =  TEMPORARY_DIRECTORY + "temp.rdf";
+        String outputFile2 =  TEMPORARY_DIRECTORY + "TutorialExamples.example8.rdf";
         // outputFile2 = null;
         if (outputFile2 == null) {
             println("\nWriting RDF to Standard Out instead of to a file");
