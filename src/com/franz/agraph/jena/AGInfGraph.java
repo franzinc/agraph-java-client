@@ -59,9 +59,23 @@ public class AGInfGraph extends AGGraph implements InfGraph {
 		} else {
 			// for this common case of reasoning over the whole store,
 			// no need to create a reasoning, graph-filtered store
+			infRepo = null;
 		}
 	}
 
+	@Override 
+	public void close() {
+		if (infRepo!=null) {
+			try {
+				conn.close();
+				infRepo.close();
+			} catch (RepositoryException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		super.close();
+	}
+	
 	@Override
 	Dataset getDataset() {
 		// use the whole underlying repository, it is designed to
