@@ -248,7 +248,7 @@ public class TutorialTests extends AGAbstractTest {
         example6();
         URI context = repo.getValueFactory().createURI("http://example.org#vcards");
         {
-            File outputFile = File.createTempFile("agraph-test", ".nt");
+            File outputFile = AGAbstractTest.createTempFile(getClass().getSimpleName(), ".nt");
             println("Writing n-triples to: " + outputFile.getCanonicalPath());
             OutputStream out = new FileOutputStream(outputFile);
             NTriplesWriter ntriplesWriter = new NTriplesWriter(out);
@@ -258,7 +258,7 @@ public class TutorialTests extends AGAbstractTest {
             outputFile.delete(); // delete if success
         }
         {
-            File outputFile = File.createTempFile("agraph-test", ".rdf");
+            File outputFile = AGAbstractTest.createTempFile(getClass().getSimpleName(), ".rdf");
             println("Writing RDF to: " + outputFile);
             OutputStream out = new FileOutputStream(outputFile);
             RDFXMLWriter rdfxmlfWriter = new RDFXMLWriter(out);
@@ -276,7 +276,7 @@ public class TutorialTests extends AGAbstractTest {
     @Test
     public void example9() throws Exception {    
         example6();
-        File f = File.createTempFile("agraph-test", ".rdf");
+        File f = AGAbstractTest.createTempFile(getClass().getSimpleName(), ".rdf");
         FileWriter out = new FileWriter(f);
         println("export to " + f.getCanonicalFile());
         conn.exportStatements(null, RDF.TYPE, null, false, new RDFXMLWriter(out));

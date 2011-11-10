@@ -11,6 +11,7 @@ package test;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import tutorial.JenaTutorialExamples;
 import tutorial.TutorialExamples;
 
 public class TutorialRunTests {
@@ -20,15 +21,17 @@ public class TutorialRunTests {
     public void sesameTutorial() throws Exception {
     	TutorialExamples.SERVER_URL = AGAbstractTest.findServerUrl();
     	TutorialExamples.CATALOG_ID = AGAbstractTest.CATALOG_ID;
+    	TutorialExamples.TEMPORARY_DIRECTORY = AGAbstractTest.tempDir().getAbsolutePath() + "/";
     	TutorialExamples.main(new String[] {"all"});
     }
     
     @Test
     @Category(TestSuites.Stress.class)
     public void jenaTutorial() throws Exception {
-    	TutorialExamples.SERVER_URL = AGAbstractTest.findServerUrl();
-    	TutorialExamples.CATALOG_ID = AGAbstractTest.CATALOG_ID;
-    	TutorialExamples.main(new String[] {"all"});
+    	JenaTutorialExamples.SERVER_URL = AGAbstractTest.findServerUrl();
+    	JenaTutorialExamples.CATALOG_ID = AGAbstractTest.CATALOG_ID;
+    	JenaTutorialExamples.TEMPORARY_DIRECTORY = AGAbstractTest.tempDir().getAbsolutePath() + "/";
+    	JenaTutorialExamples.main(new String[] {"all"});
     }
     
 }

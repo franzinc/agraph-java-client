@@ -437,7 +437,7 @@ public class JenaTutorialExamples {
 		AGGraphMaker maker = example6();
 		AGModel model = new AGModel(maker.getGraph());
 		//AGModel model_vcards = new AGModel(maker.openGraph("http://example.org#vcards"));
-		String outputFile = TEMPORARY_DIRECTORY + "temp.nt";
+		String outputFile = TEMPORARY_DIRECTORY + "JenaTutorialExamples.example8.nt";
 		// outputFile = null;
 		if (outputFile == null) {
 			println("\nWriting n-triples to Standard Out instead of to a file");
@@ -448,7 +448,7 @@ public class JenaTutorialExamples {
 				outputFile) : System.out;
 		model.write(output, "N-TRIPLE");
 		output.close();
-		String outputFile2 = TEMPORARY_DIRECTORY + "temp.rdf";
+		String outputFile2 = TEMPORARY_DIRECTORY + "JenaTutorialExamples.example8.rdf";
 		// outputFile2 = null;
 		if (outputFile2 == null) {
 			println("\nWriting RDF to Standard Out instead of to a file");
