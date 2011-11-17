@@ -19,6 +19,17 @@ import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.rio.ntriples.NTriplesUtil;
 
+/**
+ * The class of freetext index configurations.
+ * <p>
+ * An index configuration can be customized and then used to create a new freetext index.
+ * <p>
+ * See documentation for 
+ * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
+ * <p>
+ * @see #newInstance()
+ * @see AGRepositoryConnection#createFreetextIndex(String, AGFreetextIndexConfig)
+ */
 public class AGFreetextIndexConfig {
 
 	public static final String PREDICATES = "predicates";
@@ -29,6 +40,9 @@ public class AGFreetextIndexConfig {
 	public static final String MINIMUM_WORD_SIZE = "minimumWordSize";
 	public static final String STOP_WORDS = "stopWords";
 	public static final String WORD_FILTERS = "wordFilters";
+	public static final String INNER_CHARS = "innerChars";
+	public static final String BORDER_CHARS = "borderChars";
+	public static final String TOKENIZER = "tokenizer";
 	
 	private static final ValueFactory vf = new ValueFactoryImpl(); 
 
@@ -40,7 +54,21 @@ public class AGFreetextIndexConfig {
 	private int minimumWordSize;
 	private List<String> stopWords;
 	private List<String> wordFilters;
+	private List<String> innerChars;
+	private List<String> borderChars;
+	private String tokenizer;
 
+	/**
+	 * Returns a new instance having the default index configuration.
+	 * <p>
+	 * The index configuration can be customized and then used
+	 * to create a new freetext index.
+	 * <p>
+	 * See documentation for 
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
+	 * 
+	 * @see AGRepositoryConnection#createFreetextIndex(String, AGFreetextIndexConfig)
+	 */
 	public static AGFreetextIndexConfig newInstance() {
 		return new AGFreetextIndexConfig();
 	}
@@ -55,6 +83,9 @@ public class AGFreetextIndexConfig {
 		minimumWordSize = 3;
 		stopWords = new ArrayList<String>();
 		wordFilters = new ArrayList<String>();
+		innerChars = new ArrayList<String>();
+		borderChars = new ArrayList<String>();
+		tokenizer = "default";
 	}
 	
 	AGFreetextIndexConfig(JSONObject config) {
@@ -66,6 +97,9 @@ public class AGFreetextIndexConfig {
 		minimumWordSize = config.optInt(MINIMUM_WORD_SIZE);
 		stopWords = getJSONArrayAsListString(config, STOP_WORDS);
 		wordFilters = getJSONArrayAsListString(config, WORD_FILTERS);
+		innerChars = getJSONArrayAsListString(config, INNER_CHARS);
+		borderChars = getJSONArrayAsListString(config, BORDER_CHARS);
+		tokenizer = config.optString(TOKENIZER);
 	}
 	
 	private boolean initIndexLiterals(JSONObject config) {
@@ -93,49 +127,121 @@ public class AGFreetextIndexConfig {
 		return predList;
 	}
 	
+	/**
+	 * See documentation for 
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
+	 */
 	public List<URI> getPredicates() {
 		return predicates;
 	}
 	
+	/**
+	 * See documentation for 
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
+	 */
 	public boolean getIndexLiterals() {
 		return indexLiterals;
 	}
 	
+	/**
+	 * See documentation for 
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
+	 */
 	public void setIndexLiterals(boolean bool) {
 		indexLiterals = bool;
 	}
 	
+	/**
+	 * See documentation for 
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
+	 */
 	public List<String> getIndexLiteralTypes() {
 		return indexLiteralTypes;
 	}
 	
+	/**
+	 * See documentation for 
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
+	 */
 	public String getIndexResources() {
 		return indexResources;
 	}
 	
+	/**
+	 * See documentation for 
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
+	 */
 	public void setIndexResources(String str) {
 		//TODO: validity check
 		indexResources = str;
 	}
 	
+	/**
+	 * See documentation for 
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
+	 */
 	public List<String> getIndexFields() {
 		return indexFields;
 	}
 	
+	/**
+	 * See documentation for 
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
+	 */
 	public int getMinimumWordSize() {
 		return minimumWordSize;
 	}
 	
+	/**
+	 * See documentation for 
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
+	 */
 	public void setMinimumWordSize(int size) {
 		minimumWordSize = size;
 	}
 	
+	/**
+	 * See documentation for 
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
+	 */
 	public List<String> getStopWords() {
 		return stopWords;
 	}
 	
+	/**
+	 * See documentation for 
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
+	 */
 	public List<String> getWordFilters() {
 		return wordFilters;
+	}
+	
+	public List<String> getInnerChars() {
+		return innerChars;
+	}
+	
+	/**
+	 * See documentation for 
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
+	 */
+	public List<String> getBorderChars() {
+		return borderChars;
+	}
+	
+	/**
+	 * See documentation for 
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
+	 */
+	public String getTokenizer() {
+		return tokenizer;
+	}
+	
+	/**
+	 * See documentation for 
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
+	 */
+	public void setTokenizer(String tokenizerName) {
+		tokenizer = tokenizerName;
 	}
 	
 	private List<String> getJSONArrayAsListString(JSONObject config, String key) {
@@ -159,6 +265,9 @@ public class AGFreetextIndexConfig {
 		sb.append(", minimumWordSize: ").append(minimumWordSize);
 		sb.append(", stopWords: ").append(stopWords.size());
 		sb.append(", wordFilters: ").append(wordFilters);
+		sb.append(", innerChars: ").append(innerChars);
+		sb.append(", borderChars: ").append(borderChars);
+		sb.append(", tokenizer: ").append(tokenizer);
 		sb.append(">");
 		return sb.toString();
 	}

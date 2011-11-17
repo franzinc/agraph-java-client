@@ -639,21 +639,30 @@ implements RepositoryConnection, Closeable {
 
 	/**
 	 * Creates a freetext index with the given name and configuration.
+	 * <p>
+	 * See documentation for 
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
+	 * 
+	 * @see AGFreetextIndexConfig#newInstance()
+	 * @param indexName the index name to create
+	 * @param config the index configuration
 	 */
-	public void createFreetextIndex(String name, AGFreetextIndexConfig config)
+	public void createFreetextIndex(String indexName, AGFreetextIndexConfig config)
 	throws RepositoryException {
 		List<String> predicates = new ArrayList<String>();
 		for (URI uri: config.getPredicates()) {
 			predicates.add(NTriplesUtil.toNTriplesString(uri));
 		}
-		getHttpRepoClient().createFreetextIndex(name, predicates, config.getIndexLiterals(), config.getIndexLiteralTypes(), config.getIndexResources(), config.getIndexFields(), config.getMinimumWordSize(), config.getStopWords(), config.getWordFilters());
+		getHttpRepoClient().createFreetextIndex(indexName, predicates, config.getIndexLiterals(), config.getIndexLiteralTypes(), config.getIndexResources(), config.getIndexFields(), config.getMinimumWordSize(), config.getStopWords(), config.getWordFilters(), config.getInnerChars(), config.getBorderChars(), config.getTokenizer());
 	}
 	
 	/**
 	 * Deletes the freetext index of the specified name.
+	 * 
+	 * @see #createFreetextIndex(String, AGFreetextIndexConfig)
 	 */
-	public void deleteFreetextIndex(String name) throws RepositoryException {
-		getHttpRepoClient().deleteFreetextIndex(name);
+	public void deleteFreetextIndex(String indexName) throws RepositoryException {
+		getHttpRepoClient().deleteFreetextIndex(indexName);
 	}
 	
 	/**
@@ -684,8 +693,8 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * Gets the configuration of the specified free text index.
 	 */
-	public AGFreetextIndexConfig getFreetextIndexConfig(String index) throws RepositoryException {
-		return new AGFreetextIndexConfig(getHttpRepoClient().getFreetextIndexConfiguration(index));
+	public AGFreetextIndexConfig getFreetextIndexConfig(String indexName) throws RepositoryException {
+		return new AGFreetextIndexConfig(getHttpRepoClient().getFreetextIndexConfiguration(indexName));
 	}
 	
 	/**

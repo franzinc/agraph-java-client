@@ -76,7 +76,8 @@ public class TestSuites {
         BlankNodeTests.class,
         MappingsTests.class,
         DynamicCatalogTests.class,
-        SpinTest.class
+        SpinTest.class,
+        FreetextTests.class
     })
     public static class Prepush {}
     
