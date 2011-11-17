@@ -864,9 +864,9 @@ public class AGHttpRepoClient implements Closeable {
 	 * Creates a new freetext index with the given parameters.  
 	 * 
 	 * See documentation here:
-	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#put-freetext-index">put-freetext-index</a>
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">put-freetext-index</a>
 	 */
-	public void createFreetextIndex(String name, List<String> predicates, boolean indexLiterals, List<String> indexLiteralTypes, String indexResources, List<String> indexFields, int minimumWordSize, List<String> stopWords, List<String> wordFilters)
+	public void createFreetextIndex(String name, List<String> predicates, boolean indexLiterals, List<String> indexLiteralTypes, String indexResources, List<String> indexFields, int minimumWordSize, List<String> stopWords, List<String> wordFilters, List<String> innerChars, List<String> borderChars, String tokenizer)
 	throws AGHttpException {
 		String url = AGProtocol.getFreetextIndexLocation(getRoot(), name);
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
@@ -908,6 +908,19 @@ public class AGHttpRepoClient implements Closeable {
 			for (String filter : wordFilters) {
 				params.add(new NameValuePair("wordFilter", filter));
 			}
+		}
+		if (innerChars != null) {
+			for (String inner : innerChars) {
+				params.add(new NameValuePair("innerChars", inner));
+			}
+		}
+		if (borderChars != null) {
+			for (String border : borderChars) {
+				params.add(new NameValuePair("borderChars", border));
+			}
+		}
+		if (tokenizer != "default") {
+			params.add(new NameValuePair("tokenizer", tokenizer));
 		}
 		getHTTPClient().put(url, new Header[0], params.toArray(new NameValuePair[params.size()]), null);
 	}
