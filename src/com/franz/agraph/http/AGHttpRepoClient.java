@@ -863,8 +863,8 @@ public class AGHttpRepoClient implements Closeable {
 	/**
 	 * Creates a new freetext index with the given parameters.  
 	 * 
-	 * See documentation here:
-	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">put-freetext-index</a>
+	 * See also the protocol documentation for
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
 	 */
 	public void createFreetextIndex(String name, List<String> predicates, boolean indexLiterals, List<String> indexLiteralTypes, String indexResources, List<String> indexFields, int minimumWordSize, List<String> stopWords, List<String> wordFilters, List<String> innerChars, List<String> borderChars, String tokenizer)
 	throws AGHttpException {
@@ -1530,6 +1530,33 @@ public class AGHttpRepoClient implements Closeable {
 		return getHTTPClient().getBlankNodes(getRoot(), blankNodeAmount);
 	}
 
+	/**
+	 * Deletes all duplicates from the store.
+	 * <p>
+	 * The comparisonMode determines what will be deemed a "duplicate".
+	 * <p>  
+	 * If comparisonMode is "spog", quad parts (s,p,o,g) will all be 
+	 * compared when looking for duplicates.
+	 * <p>
+	 * If comparisonMode is "spo", only the (s,p,o) parts will be 
+	 * compared; the same triple in different graphs will thus be deemed
+	 * duplicates.
+	 * <p>
+	 * See also the protocol documentation for
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#delete-statements-duplicates">deleting duplicates</a>
+	 * @param comparisonMode determines what is a duplicate 
+	 * @throws AGHttpException
+	 */
+	public void deleteDuplicates(String comparisonMode) throws AGHttpException {
+		String url = Protocol.getStatementsLocation(getRoot()) + "/duplicates";
+		Header[] headers = {};
+		List<NameValuePair> params = new ArrayList<NameValuePair>(2);
+		if (comparisonMode!=null) {
+			params.add(new NameValuePair("mode", comparisonMode));
+		}
+		getHTTPClient().delete(url,headers,params.toArray(new NameValuePair[params.size()]));
+	}
+	
 	public void optimizeIndices(Boolean wait, int level) throws AGHttpException {
 		String url = repoRoot + "/indices/optimize";
 		Header[] headers = {};
