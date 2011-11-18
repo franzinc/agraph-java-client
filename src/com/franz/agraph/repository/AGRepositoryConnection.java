@@ -1591,4 +1591,25 @@ implements RepositoryConnection, Closeable {
 		getHttpRepoClient().putSpinMagicProperty(fn);
 	}
 
+	/**
+	 * Deletes all duplicates from the store.
+	 * <p>
+	 * The comparisonMode determines what will be deemed a "duplicate".
+	 * <p>  
+	 * If comparisonMode is "spog", quad parts (s,p,o,g) will all be 
+	 * compared when looking for duplicates.
+	 * <p>
+	 * If comparisonMode is "spo", only the (s,p,o) parts will be 
+	 * compared; the same triple in different graphs will thus be deemed
+	 * duplicates.
+	 * <p>
+	 * See also the protocol documentation for
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#delete-statements-duplicates">deleting duplicates</a>
+	 * @param comparisonMode determines what is a duplicate 
+	 * @throws AGHttpException
+	 */
+	public void deleteDuplicates(String comparisonMode) throws RepositoryException {
+		getHttpRepoClient().deleteDuplicates(comparisonMode);
+	}
+	
 }
