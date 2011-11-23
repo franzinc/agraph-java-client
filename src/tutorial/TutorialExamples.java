@@ -57,7 +57,7 @@ import com.franz.agraph.repository.AGValueFactory;
 public class TutorialExamples {
 
     public static String SERVER_URL = "http://localhost:10035";
-    public static String CATALOG_ID = "java-catalog";
+    public static String CATALOG_ID = "java-tutorial";
     public static String REPOSITORY_ID = "javatutorial";
     public static String USERNAME = "test";
     public static String PASSWORD = "xyzzy";
@@ -1506,7 +1506,7 @@ public class TutorialExamples {
 	
 	
 	/**
-     * Ask, Construct, and Describe queries
+     * Ask, Construct, Describe, and Update queries
      */ 
     public static void example13 () throws Exception {
         AGRepositoryConnection conn = example6();
@@ -1567,6 +1567,33 @@ public class TutorialExamples {
             println(gresult.next());
         }
         gresult.close();
+        
+        // SPARQL UPDATE queries
+        queryString = "PREFIX dc: <http://purl.org/dc/elements/1.1/> \n"
+        	+ "INSERT DATA { GRAPH <http://example/bookStore> { <http://example/book1>  dc:title  \"Fundamentals of Compiler Desing\" } }";
+        println("\nPerforming SPARQL UPDATE query:\n" + queryString);
+        conn.prepareBooleanQuery(QueryLanguage.SPARQL, queryString).evaluate(); 
+        queryString = "PREFIX dc: <http://purl.org/dc/elements/1.1/> \n"
+        	+ "ASK { GRAPH <http://example/bookStore> { <http://example/book1>  dc:title  \"Fundamentals of Compiler Desing\" } }";
+        println("\nPerforming query:\n" + queryString);
+        println("Result: " + conn.prepareBooleanQuery(QueryLanguage.SPARQL, queryString).evaluate()); 
+        
+        queryString = "PREFIX dc: <http://purl.org/dc/elements/1.1/> \n"
+        	+ "DELETE DATA { GRAPH <http://example/bookStore> { <http://example/book1>  dc:title  \"Fundamentals of Compiler Desing\" } } ; \n"
+        	+ "\n"
+        	+ "PREFIX dc: <http://purl.org/dc/elements/1.1/> \n"
+        	+ "INSERT DATA { GRAPH <http://example/bookStore> { <http://example/book1>  dc:title  \"Fundamentals of Compiler Design\" } }";
+
+        println("\nPerforming a sequence of SPARQL UPDATE queries in one request (to correct the title):\n" + queryString);
+        conn.prepareBooleanQuery(QueryLanguage.SPARQL, queryString).evaluate();
+        queryString = "PREFIX dc: <http://purl.org/dc/elements/1.1/> \n"
+        	+ "ASK { GRAPH <http://example/bookStore> { <http://example/book1>  dc:title  \"Fundamentals of Compiler Desing\" } }";
+        println("\nPerforming query:\n" + queryString);
+        println("Result: " + conn.prepareBooleanQuery(QueryLanguage.SPARQL, queryString).evaluate()); 
+        queryString = "PREFIX dc: <http://purl.org/dc/elements/1.1/> \n"
+        	+ "ASK { GRAPH <http://example/bookStore> { <http://example/book1>  dc:title  \"Fundamentals of Compiler Design\" } }";
+        println("\nPerforming query:\n" + queryString);
+        println("Result: " + conn.prepareBooleanQuery(QueryLanguage.SPARQL, queryString).evaluate()); 
     }
 
 

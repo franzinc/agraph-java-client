@@ -78,7 +78,8 @@ public class TestSuites {
         DynamicCatalogTests.class,
         SpinTest.class,
         FreetextTests.class,
-        DeleteDuplicatesTests.class
+        DeleteDuplicatesTests.class,
+        SparqlUpdateTests.class
     })
     public static class Prepush {}
     
