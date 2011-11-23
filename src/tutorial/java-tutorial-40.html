@@ -40,7 +40,7 @@ creating, querying and maintaining RDF data, and for managing the stored triples
     </ul></td>
     <td width="295"><ul>
       <li><a href="#Free Text Search">Free Text Search</a></li>
-      <li><a href="#Ask, Describe, and Construct Queries">Select, Ask, Describe, and Construct Queries</a></li>
+      <li><a href="#Ask, Describe, Construct and Update Queries">Ask, Describe, Construct, and Update Queries</a></li>
       <li><a href="#Parametric Queries">Parametric Queries</a></li>
       <li><a href="#Range Matches">Range Matches</a></li>
       <li><a href="#Federated Repositories">Federated Repositories</a></li>  
@@ -1177,7 +1177,7 @@ some form of "keyword search" with their queries. For example, a user might want
 <p>This query returns two triples, but they are not quite the same as before:</p>
 <pre class="output">Substring match for 'lic'.<br>[s=http://example.org/people/alice1;p=http://example.org/people/fullname;o=&quot;Alice B. Toklas&quot;]<br>[s=http://example.org/people/book1;p=http://example.org/people/title;o=&quot;Alice in Wonderland&quot;]</pre>
 <p>As you can see, the regex match found &quot;lic&quot; in &quot;Alice in Wonderland,&quot; which was not a registered free-text predicate. It made this match by doing a string comparison against every object value in the triple store. Even though you can streamline the SPARQL query considerably by writing more restrictive patterns, this is still inherently less efficient than using the indexed approach. </p>
-<h2 id="Ask, Describe, and Construct Queries">Select, Ask, Describe, and Construct Queries (example13())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
+<h2 id="Ask, Describe, Construct and Update Queries">Ask, Describe, Construct, and Update Queries (example13())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>SPARQL provides alternatives to the standard SELECT query. Example example13() exercises these alternatives to show how AllegroGraph Server handles them. </p>
 
 <ul>
@@ -1185,6 +1185,7 @@ some form of "keyword search" with their queries. For example, a user might want
   <li>ASK: Returns a boolean indicating whether a query matches or not. </li>
   <li>CONSTRUCT: Returns triples constructed by substituting variables in a set of triple templates. </li>
   <li>DESCRIBE: Returns all of the triples of a matching resource. </li>
+  <li>Update: Evaluates <a href="http://www.w3.org/TR/sparql11-update/">SPARQL Update</a> queries to modify the repository. </li>
 </ul>
 <p>The example begins by borrowing a connection object from example6(). This connects to a repository that contains vcard and Kennedy data. We'll need to register a Kennedy namespace to make the queries easier to read. 
 <pre class="input">    public static void example13 () throws Exception {<br>        RepositoryConnection conn = example6();<br>        conn.setNamespace(&quot;kdy&quot;, &quot;http://www.franz.com/simple#&quot;);</pre>
@@ -1216,6 +1217,18 @@ ASK: Is there anyone named Alice? false</pre>
 <p>The output of this loop is lengthy, because the Kennedy resources have many triples. One block of triples looked like this, showing the new has-grandchild triples: </p>
 <pre class="output">(http://www.franz.com/simple#person1, http://www.franz.com/simple#has-grandchild, http://www.franz.com/simple#person20)<br>(http://www.franz.com/simple#person1, http://www.franz.com/simple#has-grandchild, http://www.franz.com/simple#person22)<br>(http://www.franz.com/simple#person1, http://www.franz.com/simple#has-grandchild, http://www.franz.com/simple#person24)<br>(http://www.franz.com/simple#person1, http://www.franz.com/simple#has-grandchild, http://www.franz.com/simple#person25)<br>(http://www.franz.com/simple#person1, http://www.franz.com/simple#has-grandchild, http://www.franz.com/simple#person26)<br>
 </pre>
+<p><a href="http://www.w3.org/TR/sparql11-update/">SPARQL Update</a> queries can also be evaluated to modify the repository.  A SPARQL Update query can be evaluated (for side effect) using a BooleanQuery as follows:</p>
+<pre class="input">
+        queryString = "PREFIX dc: <http://purl.org/dc/elements/1.1/> \n"
+        	+ "DELETE DATA { GRAPH <http://example/bookStore> { <http://example/book1>  dc:title  \"Fundamentals of Compiler Desing\" } } ; \n"
+        	+ "\n"
+        	+ "PREFIX dc: <http://purl.org/dc/elements/1.1/> \n"
+        	+ "INSERT DATA { GRAPH <http://example/bookStore> { <http://example/book1>  dc:title  \"Fundamentals of Compiler Design\" } }";
+
+        println("\nPerforming a sequence of SPARQL UPDATE queries in one request (to correct the title):\n" + queryString);
+        conn.prepareBooleanQuery(QueryLanguage.SPARQL, queryString).evaluate();
+</pre>
+  
 <h2 id="Parametric Queries">Parametric Queries (example14())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
  <p>The Java Sesame API to AllegroGraph Server lets you set up a <strong>parameteric</strong> query and then set the values of some query parameters prior to evaluation; this approach is stylistically cleaner and can be more efficient than building up custom query strings for each of the different bindings.  There's also a potential performance benefit to parsing/compiling a query only once during query preparation, rather than during each query evaluation; while parsing/compilation overhead is often neglible, we recommend adopting the style in this example in order to make the most of any future improvements in query preparation.</p>
  <p>In <strong>example14()</strong> we set up resources for Alice and Bob, and then prepare a parametric SPARQL query to retrieve the triples.  Evaluating this query would normally find all four triples, but by binding the subject value ahead of time, we can retrieve the &quot;Alice&quot; triples separately from the &quot;Bob&quot; triples.</p>
