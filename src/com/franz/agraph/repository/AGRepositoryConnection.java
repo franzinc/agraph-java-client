@@ -1632,4 +1632,16 @@ implements RepositoryConnection, Closeable {
 		getHttpRepoClient().deleteDuplicates(comparisonMode);
 	}
 	
+	/**
+	 * Sets the AG user for X-Masquerade-As-User requests.
+	 * 
+	 * For AG superusers only.  This allows AG superusers to run requests as
+	 * another user in a dedicated session.
+	 *  
+	 * @param user the user for X-Masquerade-As-User requests.
+	 */
+	public void setMasqueradeAsUser(String user) throws RepositoryException {
+		repoclient.setMasqueradeAsUser(user);
+	}
+	
 }
