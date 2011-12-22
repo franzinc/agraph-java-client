@@ -59,11 +59,13 @@ import com.franz.util.Closer;
 public class AGHTTPClient
 implements Closeable {
     
+	private static final Logger logger = LoggerFactory.getLogger(AGHTTPClient.class);
+	
 	private final String serverURL;
 	private final HttpClient httpClient;
 
 	private AuthScope authScope;
-	private static final Logger logger = LoggerFactory.getLogger(AGHTTPClient.class);
+	private String masqueradeAsUser;
 	
 	private boolean isClosed = false;
 
@@ -282,12 +284,27 @@ implements Closeable {
 		}
 	}
 
+	/**
+	 * Sets the AG user for X-Masquerade-As-User requests.
+	 * 
+	 * For AG superusers only.  This allows AG superusers to run requests as
+	 * another user in a dedicated session.
+	 *  
+	 * @param user the user for X-Masquerade-As-User requests.
+	 */
+	public void setMasqueradeAsUser(String user) throws AGHttpException {
+		masqueradeAsUser = user;
+	}
+	
 	protected final void setDoAuthentication(HttpMethod method) {
 		if (authScope != null
 				&& httpClient.getState().getCredentials(authScope) != null) {
 			method.setDoAuthentication(true);
 		} else {
 			method.setDoAuthentication(false);
+		}
+		if (masqueradeAsUser != null) {
+			method.addRequestHeader(new Header("x-masquerade-as-user", masqueradeAsUser));
 		}
 		// TODO probably doesn't belong here, need another method that
 		// HttpMethod objects pass through.

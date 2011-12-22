@@ -48,6 +48,7 @@ import org.openrdf.query.TupleQueryResultHandlerException;
 import org.openrdf.query.impl.TupleQueryResultBuilder;
 import org.openrdf.query.resultio.BooleanQueryResultFormat;
 import org.openrdf.query.resultio.TupleQueryResultFormat;
+import org.openrdf.repository.RepositoryException;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFHandler;
 import org.openrdf.rio.RDFHandlerException;
@@ -1715,7 +1716,7 @@ public class AGHttpRepoClient implements Closeable {
 	 * One workaround for this is to have applications declare that they 
 	 * want external blank nodes to round-trip.  An external blank node 
 	 * can exist for the life of an application, and that life can exceed
-	 * the life an AllegroGraph server instance, so adding a statement
+	 * the life of an AllegroGraph server instance, so adding a statement
 	 * with an external blank node will need to persist the external blank
 	 * node's id somehow.  AllegroGraph doesn't currently allow storing blank 
 	 * nodes with an arbitrary external id, so this workaround converts them 
@@ -1867,6 +1868,20 @@ public class AGHttpRepoClient implements Closeable {
 			app = vf.createBNode(stored.stringValue().substring(vf.PREFIX_FOR_EXTERNAL_BNODES.length()));
 		}
 		return app;
+	}
+	
+	/**
+	 * Sets the AG user for X-Masquerade-As-User requests.
+	 * 
+	 * For AG superusers only.  This allows AG superusers to run requests as
+	 * another user in a dedicated session.
+	 * 
+	 *  
+	 * @param user the user for X-Masquerade-As-User requests.
+	 */
+	public void setMasqueradeAsUser(String user) throws RepositoryException {
+		useDedicatedSession(autoCommit);
+		getHTTPClient().setMasqueradeAsUser(user);
 	}
 	
 }
