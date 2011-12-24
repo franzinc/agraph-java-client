@@ -1569,23 +1569,23 @@ public class TutorialExamples {
         gresult.close();
         
         // SPARQL UPDATE queries
-        queryString = "PREFIX dc: <http://purl.org/dc/elements/1.1/> \n"
+        String updateString = "PREFIX dc: <http://purl.org/dc/elements/1.1/> \n"
         	+ "INSERT DATA { GRAPH <http://example/bookStore> { <http://example/book1>  dc:title  \"Fundamentals of Compiler Desing\" } }";
-        println("\nPerforming SPARQL UPDATE query:\n" + queryString);
-        conn.prepareBooleanQuery(QueryLanguage.SPARQL, queryString).evaluate(); 
+        println("\nPerforming SPARQL Update:\n" + updateString);
+        conn.prepareUpdate(QueryLanguage.SPARQL, updateString).execute(); 
         queryString = "PREFIX dc: <http://purl.org/dc/elements/1.1/> \n"
         	+ "ASK { GRAPH <http://example/bookStore> { <http://example/book1>  dc:title  \"Fundamentals of Compiler Desing\" } }";
         println("\nPerforming query:\n" + queryString);
         println("Result: " + conn.prepareBooleanQuery(QueryLanguage.SPARQL, queryString).evaluate()); 
         
-        queryString = "PREFIX dc: <http://purl.org/dc/elements/1.1/> \n"
+        updateString = "PREFIX dc: <http://purl.org/dc/elements/1.1/> \n"
         	+ "DELETE DATA { GRAPH <http://example/bookStore> { <http://example/book1>  dc:title  \"Fundamentals of Compiler Desing\" } } ; \n"
         	+ "\n"
         	+ "PREFIX dc: <http://purl.org/dc/elements/1.1/> \n"
         	+ "INSERT DATA { GRAPH <http://example/bookStore> { <http://example/book1>  dc:title  \"Fundamentals of Compiler Design\" } }";
 
-        println("\nPerforming a sequence of SPARQL UPDATE queries in one request (to correct the title):\n" + queryString);
-        conn.prepareBooleanQuery(QueryLanguage.SPARQL, queryString).evaluate();
+        println("\nPerforming a sequence of SPARQL Updates in one request (to correct the title):\n" + updateString);
+        conn.prepareUpdate(QueryLanguage.SPARQL, updateString).execute();
         queryString = "PREFIX dc: <http://purl.org/dc/elements/1.1/> \n"
         	+ "ASK { GRAPH <http://example/bookStore> { <http://example/book1>  dc:title  \"Fundamentals of Compiler Desing\" } }";
         println("\nPerforming query:\n" + queryString);

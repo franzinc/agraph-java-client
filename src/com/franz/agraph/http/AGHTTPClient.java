@@ -11,7 +11,7 @@ package com.franz.agraph.http;
 import static com.franz.agraph.http.AGProtocol.AMOUNT_PARAM_NAME;
 import static com.franz.agraph.http.AGProtocol.OVERRIDE_PARAM_NAME;
 import static org.openrdf.http.protocol.Protocol.ACCEPT_PARAM_NAME;
-import info.aduna.net.http.HttpClientUtil;
+//import info.aduna.net.http.HttpClientUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -125,7 +125,7 @@ implements Closeable {
 				if (handler!=null) handler.handleResponse(post);
 			} else if (httpCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
 				throw new AGHttpException(new UnauthorizedException());
-			} else if (!HttpClientUtil.is2xx(httpCode)) {
+			} else if (!is2xx(httpCode)) {
 				AGErrorHandler errHandler = new AGErrorHandler();
 				errHandler.handleResponse(post);
 				throw errHandler.getResult();
@@ -141,6 +141,16 @@ implements Closeable {
 		}
 	}
 
+	/**
+	* Checks whether the specified status code is in the 2xx-range, indicating a
+	* successfull request.
+	*
+	* @return <tt>true</tt> if the status code is in the 2xx range.
+	*/
+	private boolean is2xx(int statusCode) {
+		return statusCode >= 200 && statusCode < 300;
+	}
+	
 	public void get(String url, Header[] headers, NameValuePair[] params,
 			AGResponseHandler handler) throws AGHttpException {
 		GetMethod get = new GetMethod(url);
@@ -160,7 +170,7 @@ implements Closeable {
 				if (handler!=null) handler.handleResponse(get);
 			} else if (httpCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
 				throw new AGHttpException(new UnauthorizedException());
-			} else if (!HttpClientUtil.is2xx(httpCode)) {
+			} else if (!is2xx(httpCode)) {
 				AGErrorHandler errHandler = new AGErrorHandler();
 				errHandler.handleResponse(get);
 				throw errHandler.getResult();
@@ -192,7 +202,7 @@ implements Closeable {
 			int httpCode = getHttpClient().executeMethod(delete);
 			if (httpCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
 				throw new AGHttpException(new UnauthorizedException());
-			} else if (!HttpClientUtil.is2xx(httpCode)) {
+			} else if (!is2xx(httpCode)) {
 				AGErrorHandler errHandler = new AGErrorHandler();
 				errHandler.handleResponse(delete);
 				throw errHandler.getResult();
@@ -224,7 +234,7 @@ implements Closeable {
 			int httpCode = getHttpClient().executeMethod(put);
 			if (httpCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
 				throw new AGHttpException(new UnauthorizedException());
-			} else if (!HttpClientUtil.is2xx(httpCode)) {
+			} else if (!is2xx(httpCode)) {
 				AGErrorHandler errHandler = new AGErrorHandler();
 				errHandler.handleResponse(put);
 				throw errHandler.getResult();
