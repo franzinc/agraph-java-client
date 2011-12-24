@@ -12,3 +12,7 @@ DIST
 temp.*
 tmp
 /target/
+JenaTutorialExamples.*.nt
+JenaTutorialExamples.*.rdf
+TutorialExamples.*.nt
+TutorialExamples.*.rdf

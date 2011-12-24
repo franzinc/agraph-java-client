@@ -36,6 +36,7 @@ import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.TupleQueryResult;
+import org.openrdf.query.Update;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
@@ -620,6 +621,25 @@ implements RepositoryConnection, Closeable {
 		return q;
 	}
 
+	@Override
+	public Update prepareUpdate(QueryLanguage ql,
+			String queryString, String baseURI) {
+		// TODO: consider having the server parse and process the query,
+		// throw MalformedQueryException, etc.
+		AGUpdate u = new AGUpdate(this, ql, queryString, baseURI);
+		u.prepare();
+		return u;
+	}
+	
+	@Override
+	public Update prepareUpdate(QueryLanguage ql, String queryString) {
+		// TODO: consider having the server parse and process the query,
+		// throw MalformedQueryException, etc.
+		AGUpdate u = new AGUpdate(this, ql, queryString, null);
+		u.prepare();
+		return u;
+	}
+	
 	public void removeNamespace(String prefix) throws RepositoryException {
 		getHttpRepoClient().removeNamespacePrefix(prefix);
 	}

@@ -1217,18 +1217,22 @@ ASK: Is there anyone named Alice? false</pre>
 <p>The output of this loop is lengthy, because the Kennedy resources have many triples. One block of triples looked like this, showing the new has-grandchild triples: </p>
 <pre class="output">(http://www.franz.com/simple#person1, http://www.franz.com/simple#has-grandchild, http://www.franz.com/simple#person20)<br>(http://www.franz.com/simple#person1, http://www.franz.com/simple#has-grandchild, http://www.franz.com/simple#person22)<br>(http://www.franz.com/simple#person1, http://www.franz.com/simple#has-grandchild, http://www.franz.com/simple#person24)<br>(http://www.franz.com/simple#person1, http://www.franz.com/simple#has-grandchild, http://www.franz.com/simple#person25)<br>(http://www.franz.com/simple#person1, http://www.franz.com/simple#has-grandchild, http://www.franz.com/simple#person26)<br>
 </pre>
-<p><a href="http://www.w3.org/TR/sparql11-update/">SPARQL Update</a> queries can also be evaluated to modify the repository.  A SPARQL Update query can be evaluated (for side effect) using a BooleanQuery as follows:</p>
+<p><a href="http://www.w3.org/TR/sparql11-update/">SPARQL Update</a> queries can also be evaluated to modify the repository.  A SPARQL Update can be executed as follows:</p>
 <pre class="input">
-        queryString = "PREFIX dc: <http://purl.org/dc/elements/1.1/> \n"
+        updateString = "PREFIX dc: <http://purl.org/dc/elements/1.1/> \n"
         	+ "DELETE DATA { GRAPH <http://example/bookStore> { <http://example/book1>  dc:title  \"Fundamentals of Compiler Desing\" } } ; \n"
         	+ "\n"
         	+ "PREFIX dc: <http://purl.org/dc/elements/1.1/> \n"
         	+ "INSERT DATA { GRAPH <http://example/bookStore> { <http://example/book1>  dc:title  \"Fundamentals of Compiler Design\" } }";
 
-        println("\nPerforming a sequence of SPARQL UPDATE queries in one request (to correct the title):\n" + queryString);
-        conn.prepareBooleanQuery(QueryLanguage.SPARQL, queryString).evaluate();
+        println("\nPerforming a sequence of SPARQL Updates in one request (to correct the title):\n" + queryString);
+        conn.prepareUpdate(QueryLanguage.SPARQL, updateString).execute();
 </pre>
-  
+In previous versions of Sesame that do not support Update, AG also allows SPARQL Updates to be evaluated using a BooleanQuery (for side effect, ignoring the result) as follows:
+<pre class="input">
+        conn.prepareBooleanQuery(QueryLanguage.SPARQL, updateString).evaluate();
+</pre>
+ 
 <h2 id="Parametric Queries">Parametric Queries (example14())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
  <p>The Java Sesame API to AllegroGraph Server lets you set up a <strong>parameteric</strong> query and then set the values of some query parameters prior to evaluation; this approach is stylistically cleaner and can be more efficient than building up custom query strings for each of the different bindings.  There's also a potential performance benefit to parsing/compiling a query only once during query preparation, rather than during each query evaluation; while parsing/compilation overhead is often neglible, we recommend adopting the style in this example in order to make the most of any future improvements in query preparation.</p>
  <p>In <strong>example14()</strong> we set up resources for Alice and Bob, and then prepare a parametric SPARQL query to retrieve the triples.  Evaluating this query would normally find all four triples, but by binding the subject value ahead of time, we can retrieve the &quot;Alice&quot; triples separately from the &quot;Bob&quot; triples.</p>
