@@ -39,9 +39,9 @@
         <path location="${lib}/logging/commons-logging-1.1.1.jar"/>
         <path location="${lib}/logging/slf4j-api-1.6.1.jar"/>
         <path location="${lib}/logging/slf4j-jcl-1.6.1.jar"/>
-        <path location="${lib}/sesame-2.3.2/commons-codec-1.3.jar"/>
-        <path location="${lib}/sesame-2.3.2/commons-httpclient-3.1.jar"/>
-        <path location="${lib}/sesame-2.3.2/openrdf-sesame-2.3.2-onejar.jar"/>
+        <path location="${lib}/sesame-2.6.2/commons-codec-1.3.jar"/>
+        <path location="${lib}/sesame-2.6.2/commons-httpclient-3.1.jar"/>
+        <path location="${lib}/sesame-2.6.2/openrdf-sesame-2.6.2-onejar.jar"/>
         <path location="${lib}/jena-2.6.2/arq-2.8.1.jar"/>
         <path location="${lib}/jena-2.6.2/icu4j-3.4.4.jar"/>
         <path location="${lib}/jena-2.6.2/iri-0.7.jar"/>
@@ -183,7 +183,7 @@
                  classpathref="classpath">
             <link href="http://download.oracle.com/javase/6/docs/api/" offline="true" packagelistLoc="lib/java"/>
             <link href="http://openjena.org/javadoc/" offline="true" packagelistloc="lib/jena-2.6.2"/>
-            <link href="http://www.openrdf.org/doc/sesame2/2.3.2/apidocs/" offline="true" packagelistloc="lib/sesame-2.3.2"/>
+            <link href="http://www.openrdf.org/doc/sesame2/2.6.2/apidocs/" offline="true" packagelistloc="lib/sesame-2.6.2"/>
         </javadoc>
     </target>
     
@@ -433,7 +433,7 @@
             <pom refid="agraph"/>
         </artifact:install>
         <artifact:pom id="sesame" file="pom-sesame.xml" />
-        <artifact:install file="lib/sesame-2.3.2/openrdf-sesame-2.3.2-onejar.jar">
+        <artifact:install file="lib/sesame-2.6.2/openrdf-sesame-2.6.2-onejar.jar">
             <pom refid="sesame"/>
         </artifact:install>
     </target>
@@ -445,7 +445,7 @@
              webxml="src/test/web/web.xml">
             <classes dir="classes" includes="**/*"/>
             <lib dir="lib" includes="*.jar" excludes="servlet-api-2.5.jar"/>
-            <lib dir="lib/sesame-2.3.2" includes="*.jar"/>
+            <lib dir="lib/sesame-2.6.2" includes="*.jar"/>
             <lib dir="lib/logging" includes="*.jar"/>
         </war>
     </target>
