@@ -71,7 +71,7 @@
 (defn with-agraph-test
   [f]
   (with-agraph [server1 *conn-params*
-                cat1 "java-tutorial"
+                cat1 "java-catalog"
                 repo1 {:name "cljtest" :access :renew}
                 rcon1]
     (repo-size rcon1) ;; ensures the connection is really open
@@ -97,7 +97,7 @@
 ;;;; tests
 
 (deftest catalog-scratch
-  (is (some #{"java-tutorial"} (catalogs server))))
+  (is (some #{"java-catalog"} (catalogs server))))
 
 (deftest catalog-scratch-repos
   (is nil? (repositories cat)))

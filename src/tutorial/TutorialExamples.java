@@ -57,7 +57,7 @@ import com.franz.agraph.repository.AGValueFactory;
 public class TutorialExamples {
 
     public static String SERVER_URL = "http://localhost:10035";
-    public static String CATALOG_ID = "java-tutorial";
+    public static String CATALOG_ID = "java-catalog";
     public static String REPOSITORY_ID = "javatutorial";
     public static String USERNAME = "test";
     public static String PASSWORD = "xyzzy";

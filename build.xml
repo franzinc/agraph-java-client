@@ -314,7 +314,7 @@
               failonerror="true">
             <arg value="./events.sh"/>
             <arg value="--catalog"/>
-            <arg value="java-tutorial"/>
+            <arg value="java-catalog"/>
             <arg value="--load"/>
             <arg value="2"/>
             <arg value="--query"/>
