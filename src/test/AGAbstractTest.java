@@ -51,7 +51,7 @@ import com.franz.util.Closer;
 
 public class AGAbstractTest extends Closer {
 
-    static public final String CATALOG_ID = "java-tutorial";
+    static public final String CATALOG_ID = "java-catalog";
 
     public Logger log = LoggerFactory.getLogger(this.getClass());
     
