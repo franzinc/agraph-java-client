@@ -55,7 +55,8 @@ public class TestSuites {
      */
     @RunWith(Categories.class)
     @ExcludeCategory(NonPrepushTest.class)
-    @SuiteClasses( { TutorialTests.class,
+    @SuiteClasses( { UpdateTest.class,
+    	TutorialTests.class,
         QuickTests.class,
         AGRepositoryConnectionTests.class,
         RDFTransactionTest.class,
@@ -78,8 +79,7 @@ public class TestSuites {
         DynamicCatalogTests.class,
         SpinTest.class,
         FreetextTests.class,
-        DeleteDuplicatesTests.class,
-        SparqlUpdateTests.class
+        DeleteDuplicatesTests.class
     })
     public static class Prepush {}
     
