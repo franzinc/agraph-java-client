@@ -98,7 +98,9 @@ public class Closer implements Closeable {
 	 */
 	public <Obj extends Object>
 	Obj close(Obj o) {
-		if (o instanceof Closeable) {
+		if (o == null) {
+			return null;
+		} else if (o instanceof Closeable) {
 			return (Obj) close((Closeable)o);
 		} else if (o instanceof java.io.Closeable) {
 			return (Obj) close((java.io.Closeable)o);
@@ -108,8 +110,6 @@ public class Closer implements Closeable {
 			return (Obj) close((XMLStreamReader)o);
 		} else if (o instanceof MultiThreadedHttpConnectionManager) {
 			return (Obj) close((MultiThreadedHttpConnectionManager)o);
-		} else if (o instanceof Model) {
-			return (Obj) close((Model)o);
 		} else {
 			return closeReflection(o);
 		}
