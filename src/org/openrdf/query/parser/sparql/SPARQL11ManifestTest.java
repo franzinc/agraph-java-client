@@ -43,7 +43,7 @@ public class SPARQL11ManifestTest {
 	static final Logger logger = LoggerFactory.getLogger(SPARQL11ManifestTest.class);
 
 	/** use DAWG SPARQL 1.1 tests located on www.3.org instead of local resources */
-	private static final boolean REMOTE = false;
+	private static final boolean REMOTE = true; //false;
 
 	/** use local copy of DAWG SPARQL 1.1 tests instead of own test suite */
 	private static final boolean LOCAL_DAWG_TESTS = false;

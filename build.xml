@@ -54,6 +54,7 @@
         <path location="${lib}/commons-cli-1.2.jar"/>
         <path location="${lib}/commons-pool-1.5.6.jar"/>
         <path location="${lib}/servlet-api-2.5.jar"/>
+        <path location="${lib}/opencsv-2.3.jar"/>
     </path>
     
     <target name="init">
@@ -404,6 +405,20 @@
         <run-java tasknamex="jena-tutorial" classname="tutorial.JenaTutorialExamples" arg="${example}"/>
     </target>
     
+    <target name="sesame-sparql-compliance-tests"
+            depends="compile"
+            description="Run sesame sparql compliance tests.">
+        <run-java tasknamex="AGSPARQL11QueryTest" classname="org.junit.runner.JUnitCore" arg="org.openrdf.query.parser.sparql.AGSPARQL11QueryTest"/>
+        <run-java tasknamex="SparqlUpdateTests  " classname="org.junit.runner.JUnitCore" arg="test.SparqlUpdateTests"/>
+    </target>
+
+    <target name="sesame-http-sparql-compliance-tests"
+            depends="compile"
+            description="Run sesame compliance tests.">
+        <run-java tasknamex="HTTPSPARQL11QueryTest" classname="org.junit.runner.JUnitCore" arg="org.openrdf.query.parser.sparql.HTTPSPARQL11QueryTest"/>
+        <run-java tasknamex="HTTPSPARQLUpdateTest" classname="org.junit.runner.JUnitCore" arg="test.openrdf.HTTPSPARQLUpdateTest"/>
+    </target>
+
     <target name="jena-compliance-tests"
             depends="compile"
             description="Run jena compliance tests.">
