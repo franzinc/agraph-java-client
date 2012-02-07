@@ -98,6 +98,9 @@ implements PoolableObjectFactory {
 	}
 
 	protected void activateConnection(AGRepositoryConnection conn) throws RepositoryException {
+		// rollback to transaction will catch up to the most recent
+		conn.rollback();
+		
 		switch (props.session) {
 		case SHARED:
 			if (!conn.isAutoCommit()) {
@@ -125,6 +128,11 @@ implements PoolableObjectFactory {
 		}
 	}
 
+	/**
+	 * Calls {@link AGRepositoryConnection#rollback()} and
+	 * resets {@link AGRepositoryConnection#setAutoCommit(boolean)}
+	 * if it has changed.
+	 */
 	@Override
 	public void activateObject(Object obj) throws Exception {
 		activateConnection( (AGRepositoryConnection) obj);
@@ -139,9 +147,8 @@ implements PoolableObjectFactory {
 	public void passivateObject(Object obj) throws Exception {
 		AGRepositoryConnection conn = (AGRepositoryConnection) obj;
 		if (!conn.isAutoCommit() && conn.getRepository().isWritable()) {
+			// rollback to free resources on server
 			conn.rollback();
-			// TODO MH: any reason to do this?
-			//conn.setAutoCommit(true);
 		}
 	}
 	

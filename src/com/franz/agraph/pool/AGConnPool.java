@@ -44,7 +44,6 @@ import com.franz.util.Closer;
  * 		AGConnProp.session, AGConnProp.Session.DEDICATED,
  * 		AGPoolProp.shutdownHook, true,
  * 		AGPoolProp.maxActive, 10,
- * 		AGPoolProp.testOnBorrow, true,
  * 		AGPoolProp.initialSize, 2);
  * 	AGRepositoryConnection conn = pool.borrowConnection();
  * 	try {
