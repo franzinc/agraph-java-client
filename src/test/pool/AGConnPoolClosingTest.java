@@ -10,16 +10,16 @@ package test.pool;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,27 +30,29 @@ import com.franz.agraph.pool.AGConnPool;
 import com.franz.agraph.pool.AGConnProp;
 import com.franz.agraph.pool.AGPoolProp;
 import com.franz.agraph.repository.AGRepositoryConnection;
-import com.franz.util.Closer;
 
-public class AGConnPoolClosingTest {
+public class AGConnPoolClosingTest extends AGAbstractTest {
 
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
 
 	private static final int NUM = 10;
 
-	private AGConnPool pool;
+    @After
+    public void closeAfter() {
+    	close();
+    }
 
-	@Before
-	public void connect() throws RepositoryException {
-		Assert.assertNull(pool);
-		pool = AGConnPool.create(
+    @Test
+    @Category(TestSuites.Stress.class)
+    public void openAG() throws Exception {
+		final AGConnPool pool = closeLater( AGConnPool.create(
 				AGConnProp.serverUrl, AGAbstractTest.findServerUrl(),
 				AGConnProp.username, AGAbstractTest.username(),
 				AGConnProp.password, AGAbstractTest.password(),
 				AGConnProp.catalog, "/",
 				AGConnProp.repository, "test.pool.AGConnPoolClosingTest",
 				AGConnProp.session, AGConnProp.Session.DEDICATED,
-				AGConnProp.sessionLifetime, TimeUnit.SECONDS.toMillis(15),
+				AGConnProp.sessionLifetime, TimeUnit.MINUTES.toSeconds(5),
 				AGPoolProp.shutdownHook, true,
 				AGPoolProp.initialSize, 2,
 				AGPoolProp.maxActive, 6,
@@ -59,20 +61,8 @@ public class AGConnPoolClosingTest {
 				// AGPoolProp.minIdle, 2,
 				// AGPoolProp.timeBetweenEvictionRunsMillis, TimeUnit.MINUTES.toMillis(5),
 				// AGPoolProp.testWhileIdle, true
-		);
-	}
+		));
 		
-    @After
-    public void closePool() {
-    	log.info("closing " + pool);
-    	AGConnPool closed = Closer.Close(pool);
-    	log.info("closed " + pool);
-    	pool = closed;
-    }
-
-    @Test
-    @Category(TestSuites.Stress.class)
-    public void openAG() throws Exception {
         int activeConnections = pool.getNumActive();
         ExecutorService exec = Executors.newFixedThreadPool(NUM);
         final List<Throwable> errors = new ArrayList<Throwable>();
@@ -102,6 +92,18 @@ public class AGConnPoolClosingTest {
 			}
         	Assert.fail("see log for details: " + errors.toString());
         }
+
+        close();
+        Map<String, String> procs = processes();
+        for (Entry<String, String> entry : procs.entrySet()) {
+			if (entry.getValue().contains("test.pool.AGConnPoolClosingTest")
+					&& entry.getValue().contains("session")) {
+				log.error("Session: " + entry);
+				Assert.fail("Session process remaining: " + procs);
+			} else {
+				log.debug("Process: " + entry);
+			}
+		}
     }
 
 }

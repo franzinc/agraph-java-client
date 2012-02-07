@@ -62,6 +62,11 @@ public class AGProtocol extends Protocol {
 	public static final String USER_DATA = "data";
 	
 	/**
+	 * Relative location of the processes service.
+	 */
+	public static final String PROCESSES = "processes";
+	
+	/**
 	 * Relative location of the session service.
 	 */
 	public static final String SESSION = "session";
