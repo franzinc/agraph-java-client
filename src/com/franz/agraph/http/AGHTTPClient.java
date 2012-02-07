@@ -63,8 +63,10 @@ implements Closeable {
 	private AuthScope authScope;
 	private static final Logger logger = LoggerFactory.getLogger(AGHTTPClient.class);
 	
-	private MultiThreadedHttpConnectionManager mManager = null;
+	private boolean isClosed = false;
 
+	private MultiThreadedHttpConnectionManager mManager = null;
+	
 	public AGHTTPClient(String serverURL) {
 		this(serverURL, null);
 	}
@@ -374,10 +376,11 @@ implements Closeable {
     public void close() {
         logger.debug("close: " + serverURL + " " + mManager);
         mManager = Closer.Close(mManager);
+        isClosed = true;
     }
     
     boolean isClosed() {
-    	return mManager == null;
+    	return isClosed;
     }
 
 	public String[] generateURIs(String repositoryURL, String namespace,

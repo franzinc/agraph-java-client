@@ -30,11 +30,17 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.openrdf.model.Statement;
+import org.openrdf.model.Value;
+import org.openrdf.query.BindingSet;
+import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.query.TupleQueryResult;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.franz.agraph.http.AGProtocol;
+import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.repository.AGAbstractRepository;
 import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGRepository;
@@ -125,11 +131,19 @@ public class AGAbstractTest extends Closer {
     	return new File(dir, prefix + System.currentTimeMillis() + suffix);
     }
     
-    @BeforeClass
-    public static void setUpOnce() {
+    public static AGServer newAGServer() {
     	String url = findServerUrl();
         try {
-            server = new AGServer(url, username(), password());
+        	return new AGServer(url, username(), password());
+		} catch (Exception e) {
+			throw new RuntimeException("server url: " + url, e);
+		}
+    }
+    
+    @BeforeClass
+    public static void setUpOnce() {
+        server = newAGServer();
+        try {
             cat = server.getCatalog(CATALOG_ID);
             repoId = "javatest";
 			cat.deleteRepository(repoId);
@@ -137,7 +151,7 @@ public class AGAbstractTest extends Closer {
 	        // test connection once
 	        ping();
 		} catch (Exception e) {
-			throw new RuntimeException("server url: " + url, e);
+			throw new RuntimeException("server url: " + server.getServerURL(), e);
 		}
     }
     
@@ -166,6 +180,25 @@ public class AGAbstractTest extends Closer {
         }
 	}
 	
+	public static Map<String, String> processes() throws AGHttpException {
+		String url = server.getServerURL() + "/" + AGProtocol.PROCESSES;
+		TupleQueryResult results = server.getHTTPClient().getTupleQueryResult(url);
+		Map<String, String> map = new HashMap<String, String>();
+		try {
+			while (results.hasNext()) {
+				BindingSet bindingSet = results.next();
+				Value id = bindingSet.getValue("pid");
+				Value name = bindingSet.getValue("name");
+				map.put(id.stringValue(), name.stringValue());
+			}
+		} catch (QueryEvaluationException e) {
+			throw new AGHttpException(e);
+		} finally {
+			Closer.Close(results);
+		}
+		return map;
+	}
+
 	public void setTestName(String testName) {
 		this.testName = testName;
 		log = LoggerFactory.getLogger(this.getClass().getName() + "." + testName);
