@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -25,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import test.AGAbstractTest;
 import test.TestSuites;
+import test.Util;
 
 import com.franz.agraph.pool.AGConnPool;
 import com.franz.agraph.pool.AGConnProp;
@@ -94,16 +96,21 @@ public class AGConnPoolClosingTest extends AGAbstractTest {
         }
 
         close();
-        Map<String, String> procs = processes();
-        for (Entry<String, String> entry : procs.entrySet()) {
-			if (entry.getValue().contains("test.pool.AGConnPoolClosingTest")
-					&& entry.getValue().contains("session")) {
-				log.error("Session: " + entry);
-				Assert.fail("Session process remaining: " + procs);
-			} else {
-				log.debug("Process: " + entry);
+    	long start = System.nanoTime();
+        Map<String, String> procs = Util.waitFor(TimeUnit.SECONDS.toMillis(1), TimeUnit.SECONDS.toMillis(30),
+        		new Callable<Map<String, String>>() {
+        	public Map<String, String> call() throws Exception {
+        		Map<String, String> procs = processes();
+		        for (Entry<String, String> entry : procs.entrySet()) {
+					if (entry.getValue().contains("test.pool.AGConnPoolClosingTest")
+							&& entry.getValue().contains("session")) {
+						return procs;
+					}
+				}
+		        return null;
 			}
-		}
+		});
+        Assert.assertNull("Session process " + TimeUnit.NANOSECONDS.toSeconds((System.nanoTime() - start)) + " seconds after closing.", procs);
     }
 
 }
