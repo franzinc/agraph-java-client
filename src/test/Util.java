@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.Callable;
 import java.util.zip.GZIPOutputStream;
 
 import com.franz.util.Closer;
@@ -252,6 +253,28 @@ public class Util {
         	}
         }
     	
+    }
+
+    /**
+     * Call fn until it returns null or false.
+     * @return the last value from fn
+     */
+    public static <ReturnType> ReturnType waitFor(long sleep, long maxWait, Callable<ReturnType> fn) throws Exception {
+    	long start = System.nanoTime();
+    	while (true) {
+    		ReturnType ret = fn.call();
+    		if (ret == null || Boolean.FALSE.equals(ret)) {
+    			return ret;
+    		}
+    		try {
+				Thread.sleep(sleep);
+			} catch (InterruptedException e) {
+				continue;
+			}
+			if ((System.nanoTime() - start) < maxWait) {
+				return ret;
+			}
+    	}
     }
 
 }
