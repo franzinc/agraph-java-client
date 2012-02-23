@@ -18,6 +18,8 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
 
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
@@ -367,6 +369,19 @@ implements Closeable {
 		AGStringHandler handler = new AGStringHandler();
 		get(url, headers, data, handler);
 		return handler.getResult();
+	}
+	
+	public String[] getStringArray(String url) throws AGHttpException {
+		String result = getString(url);
+		if (result.equals("")) {
+			return new String[0];
+		} else {
+			return result.split("\n");
+		}
+	}
+	
+	public List<String> getListOfStrings(String url) throws AGHttpException {
+		return Arrays.asList(getStringArray(url));
 	}
 	
 	public String openSession(String spec, boolean autocommit) throws AGHttpException {

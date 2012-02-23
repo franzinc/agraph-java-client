@@ -1,5 +1,5 @@
 /******************************************************************************
-** Copyright (c) 2008-2012 Franz Inc.
+** Copyright (c) 2008-2011 Franz Inc.
 ** All rights reserved. This program and the accompanying materials
 ** are made available under the terms of the Eclipse Public License v1.0
 ** which accompanies this distribution, and is available at
@@ -12,16 +12,16 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.commons.httpclient.HttpMethod;
+import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import com.franz.agraph.http.exception.AGHttpException;
 
-public class AGJSONHandler extends AGResponseHandler {
+public class AGJSONArrayHandler extends AGResponseHandler {
 
-	private JSONObject result;
+	private JSONArray result;
 	
-	public AGJSONHandler() {
+	public AGJSONArrayHandler() {
 		super("application/json");
 	}
 
@@ -35,17 +35,13 @@ public class AGJSONHandler extends AGResponseHandler {
 		try {
 			InputStream response = getInputStream(method);
 			String resp = streamToString(response);
-			// TODO: server sometimes returns the object in a JSONArray
-			if (resp.startsWith("[{") && resp.endsWith("}]")) {
-				resp = resp.substring(1, resp.lastIndexOf("]"));
-			}
-			result = new JSONObject(resp);
+			result = new JSONArray(resp);
 		} catch (JSONException e) {
 			throw new AGHttpException(e);
 		}
 	}
 	
-	public JSONObject getResult() {
+	public JSONArray getResult() {
 		return result;
 	}
 	
