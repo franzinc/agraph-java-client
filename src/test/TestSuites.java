@@ -55,7 +55,8 @@ public class TestSuites {
      */
     @RunWith(Categories.class)
     @ExcludeCategory(NonPrepushTest.class)
-    @SuiteClasses( { TutorialTests.class,
+    @SuiteClasses( { UserManagementTests.class,
+    	TutorialTests.class,
         QuickTests.class,
         AGRepositoryConnectionTests.class,
         RDFTransactionTest.class,

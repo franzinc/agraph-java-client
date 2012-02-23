@@ -1,4 +1,4 @@
-<project name="agraph-java-client" default="build"
+<project name="agraph-java-client" default="build" 
          xmlns:artifact="antlib:org.apache.maven.artifact.ant">
 
     <property environment="env"/>

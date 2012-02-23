@@ -11,7 +11,11 @@ package com.franz.agraph.repository;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.httpclient.Header;
+import org.apache.commons.httpclient.NameValuePair;
+import org.json.JSONArray;
 import org.openrdf.OpenRDFException;
+import org.openrdf.http.protocol.Protocol;
 import org.openrdf.model.Value;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
@@ -20,13 +24,14 @@ import org.openrdf.query.TupleQueryResult;
 import com.franz.agraph.http.AGHTTPClient;
 import com.franz.agraph.http.AGProtocol;
 import com.franz.agraph.http.exception.AGHttpException;
+import com.franz.agraph.http.handler.AGJSONArrayHandler;
 import com.franz.util.Closeable;
 import com.franz.util.Closer;
 
 /**
  * The starting point for interacting with an
  * <a target="_top"
- *    href="http://www.franz.com/agraph/support/documentation/v4/agraph-introduction.html"
+ *    href="http://www.franz.com/agraph/support/documentation/current/agraph-introduction.html"
  *    >AllegroGraph server</a>.
  * 
  * An AGServer {@link #listCatalogs() references} {@link AGCatalog}s,
@@ -34,6 +39,11 @@ import com.franz.util.Closer;
  * {@link AGRepository AGRepositories}, from which
  * {@link AGRepositoryConnection connections} may be obtained,
  * on which data is manipulated and queried.
+ * <p>
+ * AGServer provides methods for <a target="_top"
+ *    href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#header2-223"
+ *    >User (and Role) Management</a>.
+ * <p> 
  * AGServer also provides {@link #federate(AGAbstractRepository...) federated} repositories.
  */
 public class AGServer implements Closeable {
@@ -202,7 +212,7 @@ public class AGServer implements Closeable {
 	 * Creates a virtual repository with the given store specification. 
 	 * <p>
 	 * The storeSpec parameter is a string using the  
-	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#post-session"
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#post-session"
 	 * target="_top">minilanguage for store specification</a> described in the HTTP protocol document 
 	 * (see the store parameter there).
 	 * <p>
@@ -218,7 +228,7 @@ public class AGServer implements Closeable {
 	/**
 	 * Creates a federated view of multiple repositories.
 	 * 
-	 * See <a href="http://www.franz.com/agraph/support/documentation/v4/agraph-introduction.html#intro-federation">Managing
+	 * See <a href="http://www.franz.com/agraph/support/documentation/current/agraph-introduction.html#intro-federation">Managing
 	 * Massive Data - Federation</a>.
 	 * @return a virtual repository that federates queries across multiple physical repositories
 	 */
@@ -239,4 +249,516 @@ public class AGServer implements Closeable {
         Closer.Close(httpClient);
     }
 	
+	/**
+	 * Returns a List of user ids known to this AllegroGraph server.
+	 * 
+	 * @return List of user ids.
+	 * @throws AGHttpException
+	 */
+	public List<String> listUsers() throws AGHttpException {
+		return getHTTPClient().getListOfStrings(serverURL+"/users");
+	}
+	
+	/**
+	 * Adds a user to the server.
+	 * 
+	 * @param user user id to add
+	 * @param password user's password
+	 * @throws AGHttpException
+	 */
+	public void addUser(String user, String password) throws AGHttpException {
+		String url = serverURL+"/users/"+user;
+		Header[] headers = new Header[0];
+		NameValuePair[] params = { new NameValuePair("password", password) };
+		getHTTPClient().put(url, headers, params, null);
+	}
+	
+	/**
+	 * Deletes a user from the server.
+	 * 
+	 * @param user user id to delete
+	 * @throws AGHttpException
+	 */
+	public void deleteUser(String user) throws AGHttpException {
+		String url = serverURL+"/users/"+user;
+		Header[] headers = new Header[0];
+		NameValuePair[] params = new NameValuePair[0];
+		getHTTPClient().delete(url, headers, params);
+	}
+	
+	/**
+	 * Adds to a user's access list for this server.
+	 * <p>
+	 * Access is documented  
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-user-access"
+	 * target="_top">here</a>.
+	 * <p>
+	 * @param user user id
+	 * @param read read access
+	 * @param write write access
+	 * @param catalog catalog id, or "*" (or null) for all catalogs
+	 * @param repository repository id, or "*" (or null) for all repos, in the given catalog(s)
+	 * @throws AGHttpException
+	 */
+	public void addUserAccess(String user, boolean read, boolean write, String catalog, String repository) throws AGHttpException {
+		String url = serverURL+"/users/"+user+"/access";
+		Header[] headers = new Header[0];
+		if (catalog==null) catalog="*";
+		if (repository==null) repository="*";
+		NameValuePair[] params = { 
+   			new NameValuePair("read", Boolean.toString(read)),
+   			new NameValuePair("write", Boolean.toString(write)),
+   			new NameValuePair("catalog", catalog),
+   			new NameValuePair("repository", repository)};
+		getHTTPClient().put(url, headers, params, null);
+	}
+	
+	/**
+	 * Deletes from a user's access list for this server.
+	 * <p>
+	 * Access is documented  
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#delete-user-access"
+	 * target="_top">here</a>.
+	 * <p>
+	 * @param user user id
+	 * @param read read access
+	 * @param write write access
+	 * @param catalog catalog id, or "*" (or null) for all catalogs
+	 * @param repository repository id, or "*" (or null) for all repos, in the given catalog(s)
+	 * @throws AGHttpException
+	 */
+	public void deleteUserAccess(String user, boolean read, boolean write, String catalog, String repository) throws AGHttpException {
+		String url = serverURL+"/users/"+user+"/access";
+		Header[] headers = new Header[0];
+		if (catalog==null) catalog="*";
+		if (repository==null) repository="*";
+		NameValuePair[] params = { 
+   			new NameValuePair("read", Boolean.toString(read)),
+   			new NameValuePair("write", Boolean.toString(write)),
+   			new NameValuePair("catalog", catalog),
+   			new NameValuePair("repository", repository)};
+		getHTTPClient().delete(url, headers, params);
+	}
+	
+	/**
+	 * Returns a user's access list for this server.
+	 * <p>
+	 * Access is documented  
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#get-user-access"
+	 * target="_top">here</a>.
+	 * <p>
+	 * @param user user id
+	 * @throws AGHttpException
+	 */
+	public JSONArray listUserAccess(String user) throws AGHttpException {
+		String url = serverURL+"/users/"+user+"/access";
+		Header[] headers = {new Header(Protocol.ACCEPT_PARAM_NAME,"application/json")};
+		NameValuePair[] params = {}; 
+		AGJSONArrayHandler handler = new AGJSONArrayHandler();
+		getHTTPClient().get(url, headers, params, handler);
+		return handler.getResult();
+	}
+
+	/**
+	 * Adds a security filter for a user.
+	 * 
+	 * @param user user id
+	 * @param type filter type is "allow" or "disallow"
+	 * @param s subject to allow/disallow, in NTriples format
+	 * @param p predicate to allow/disallow, in NTriples format
+	 * @param o object to allow/disallow, in NTriples format
+	 * @param g graph  to allow/disallow, in NTriples format
+	 * @throws AGHttpException
+	 */
+	public void addUserSecurityFilter(String user, String type, String s,
+			String p, String o, String g) throws AGHttpException {
+		String url = serverURL+"/users/"+user+"/security-filters/"+type;
+		Header[] headers = {};
+		List<NameValuePair> params = new ArrayList<NameValuePair>(4);
+		if (s!=null) params.add(new NameValuePair("s", s));
+		if (p!=null) params.add(new NameValuePair("p", p));
+		if (o!=null) params.add(new NameValuePair("o", o));
+		if (g!=null) params.add(new NameValuePair("g", g));
+		getHTTPClient().post(url, headers, params.toArray(new NameValuePair[params.size()]), null, null);
+	}
+
+	/**
+	 * Deletes a security filter for a user.
+	 * 
+	 * @param user user id
+	 * @param type filter type is "allow" or "disallow"
+	 * @param s subject to allow/disallow, in NTriples format
+	 * @param p predicate to allow/disallow, in NTriples format
+	 * @param o object to allow/disallow, in NTriples format
+	 * @param g graph  to allow/disallow, in NTriples format
+	 * @throws AGHttpException
+	 */
+	public void deleteUserSecurityFilter(String user, String type,
+			String s, String p, String o, String g) throws AGHttpException {
+		String url = serverURL+"/users/"+user+"/security-filters/"+type;
+		Header[] headers = {};
+		List<NameValuePair> params = new ArrayList<NameValuePair>(4);
+		if (s!=null) params.add(new NameValuePair("s", s));
+		if (p!=null) params.add(new NameValuePair("p", p));
+		if (o!=null) params.add(new NameValuePair("o", o));
+		if (g!=null) params.add(new NameValuePair("g", g));
+		getHTTPClient().post(url, headers, params.toArray(new NameValuePair[params.size()]), null, null);
+	}
+
+	/**
+	 * Returns a list of security filters of the given type for a user
+	 * 
+	 * @param user user id
+	 * @param type filter type is "allow" or "disallow"
+	 * @throws AGHttpException
+	 */
+	public JSONArray listUserSecurityFilters(String user, String type) throws AGHttpException {
+		String url = serverURL+"/users/"+user+"/security-filters/"+type;
+		Header[] headers = {new Header(Protocol.ACCEPT_PARAM_NAME,"application/json")};
+		NameValuePair[] params = {}; 
+		AGJSONArrayHandler handler = new AGJSONArrayHandler();
+		getHTTPClient().get(url, headers, params, handler);
+		return handler.getResult();
+	}
+	
+	public void changeUserPassword(String user, String password) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	/**
+	 * Returns a user's effective access list for this server.
+	 * <p>
+	 * Includes the access granted to roles that this user has.
+	 * 
+	 * @param user user id
+	 * @throws AGHttpException
+	 */
+	public JSONArray listUserEffectiveAccess(String user) throws AGHttpException {
+		String url = serverURL+"/users/"+user+"/effectiveAccess";
+		Header[] headers = {new Header(Protocol.ACCEPT_PARAM_NAME,"application/json")};
+		NameValuePair[] params = {}; 
+		AGJSONArrayHandler handler = new AGJSONArrayHandler();
+		getHTTPClient().get(url, headers, params, handler);
+		return handler.getResult();
+	}
+
+	/**
+	 * Returns a list of permissions for a user.
+	 * <p>
+	 * Permissions are documented  
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#header2-223"
+	 * target="_top">here</a>.
+	 * <p>
+	 * 
+	 * @param user user id
+	 * @return list of permissions.
+	 * @throws AGHttpException
+	 */
+	public List<String> listUserPermissions(String user) throws AGHttpException {
+		return getHTTPClient().getListOfStrings(serverURL+"/users/"+user+"/permissions");
+	}
+
+	/**
+	 * Returns a list of effective permissions for a user.
+	 * <p>
+	 * Includes the permission granted to roles that this user has.
+	 * <p>
+	 * Permissions are documented  
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#header2-223"
+	 * target="_top">here</a>.
+	 * <p>
+	 * 
+	 * @param user user id
+	 * @return list of permissions.
+	 * @throws AGHttpException
+	 */
+	public List<String> listUserEffectivePermissions(String user) throws AGHttpException {
+		return getHTTPClient().getListOfStrings(serverURL+"/users/"+user+"/effectivePermissions");
+	}
+
+	/**
+	 * Adds to a user's permission list.
+	 * 
+	 * @param user user id
+	 * @param permission "super" or "eval" or "session"
+	 * @throws AGHttpException
+	 */
+	public void addUserPermission(String user, String permission) throws AGHttpException {
+		String url = serverURL+"/users/"+user+"/permissions/"+permission;
+		Header[] headers = new Header[0];
+		NameValuePair[] params = {};
+		getHTTPClient().put(url, headers, params, null);
+	}
+
+	/**
+	 * Deletes from a user's permission list.
+	 * 
+	 * @param user user id
+	 * @param permission "super" or "eval" or "session"
+	 * @throws AGHttpException
+	 */
+	public void deleteUserPermission(String user, String permission) throws AGHttpException {
+		String url = serverURL+"/users/"+user+"/permissions/"+permission;
+		Header[] headers = new Header[0];
+		NameValuePair[] params = {};
+		getHTTPClient().delete(url, headers, params);
+		
+	}
+
+	/**
+	 * Returns a list of roles known to this server.
+	 * 
+	 * @return a list of roles.
+	 * @throws AGHttpException
+	 */
+	public List<String> listRoles() throws AGHttpException {
+		return getHTTPClient().getListOfStrings(serverURL+"/roles");
+	}
+
+	/**
+	 * Adds a role to this server.
+	 * 
+	 * @param role role id
+	 * @throws AGHttpException
+	 */
+	public void addRole(String role) throws AGHttpException {
+		String url = serverURL+"/roles/"+role;
+		Header[] headers = new Header[0];
+		NameValuePair[] params = {};
+		getHTTPClient().put(url, headers, params, null);
+	}
+
+	/**
+	 * Adds to a role's access list for this server.
+	 * <p>
+	 * Access is documented  
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-user-access"
+	 * target="_top">here</a>.
+	 * <p>
+	 * @param role role id
+	 * @param read read access
+	 * @param write write access
+	 * @param catalog catalog id, or "*" (or null) for all catalogs
+	 * @param repository repository id, or "*" (or null) for all repos, in the given catalog(s)
+	 * @throws AGHttpException
+	 */
+	public void addRoleAccess(String role, boolean read, boolean write,
+			String catalog, String repository) throws AGHttpException {
+		String url = serverURL+"/roles/"+role+"/access";
+		Header[] headers = new Header[0];
+		if (catalog==null) catalog="*";
+		if (repository==null) repository="*";
+		NameValuePair[] params = { 
+   			new NameValuePair("read", Boolean.toString(read)),
+   			new NameValuePair("write", Boolean.toString(write)),
+   			new NameValuePair("catalog", catalog),
+   			new NameValuePair("repository", repository)};
+		getHTTPClient().put(url, headers, params, null);
+	}
+
+	/**
+	 * Returns a role's access list for this server.
+	 * <p>
+	 * Access is documented  
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#get-user-access"
+	 * target="_top">here</a>.
+	 * <p>
+	 * @param role role id
+	 * @throws AGHttpException
+	 */
+	public JSONArray listRoleAccess(String role) throws AGHttpException {
+		String url = serverURL+"/roles/"+role+"/access";
+		Header[] headers = {new Header(Protocol.ACCEPT_PARAM_NAME,"application/json")};
+		NameValuePair[] params = {}; 
+		AGJSONArrayHandler handler = new AGJSONArrayHandler();
+		getHTTPClient().get(url, headers, params, handler);
+		return handler.getResult();
+	}
+
+	/**
+	 * Adds a security filter for a role.
+	 * 
+	 * @param role role id
+	 * @param type filter type is "allow" or "disallow"
+	 * @param s subject to allow/disallow, in NTriples format
+	 * @param p predicate to allow/disallow, in NTriples format
+	 * @param o object to allow/disallow, in NTriples format
+	 * @param g graph  to allow/disallow, in NTriples format
+	 * @throws AGHttpException
+	 */
+	public void addRoleSecurityFilter(String role, String type, String s, 
+			String p, String o, String g) throws AGHttpException {
+		String url = serverURL + "/roles/" + role + "/security-filters/" + type;
+		Header[] headers = {};
+		List<NameValuePair> params = new ArrayList<NameValuePair>(4);
+		if (s != null) params.add(new NameValuePair("s", s));
+		if (p != null) params.add(new NameValuePair("p", p));
+		if (o != null) params.add(new NameValuePair("o", o));
+		if (g != null) params.add(new NameValuePair("g", g));
+		getHTTPClient().post(url, headers, params.toArray(new NameValuePair[params.size()]), null, null);
+	}
+
+	/**
+	 * Returns a list of security filters of the given type for a role
+	 * 
+	 * @param role role id
+	 * @param type filter type is "allow" or "disallow"
+	 * @throws AGHttpException
+	 */
+	public JSONArray listRoleSecurityFilters(String role, String type) throws AGHttpException {
+		String url = serverURL+"/roles/"+role+"/security-filters/"+type;
+		Header[] headers = {new Header(Protocol.ACCEPT_PARAM_NAME,"application/json")};
+		NameValuePair[] params = {}; 
+		AGJSONArrayHandler handler = new AGJSONArrayHandler();
+		getHTTPClient().get(url, headers, params, handler);
+		return handler.getResult();
+	}
+
+	/**
+	 * Deletes a security filter for a role.
+	 * 
+	 * @param role role id
+	 * @param type filter type is "allow" or "disallow"
+	 * @param s subject to allow/disallow, in NTriples format
+	 * @param p predicate to allow/disallow, in NTriples format
+	 * @param o object to allow/disallow, in NTriples format
+	 * @param g graph  to allow/disallow, in NTriples format
+	 * @throws AGHttpException
+	 */
+	public void deleteRoleSecurityFilter(String role, String type,
+			String s, String p, String o, String g) throws AGHttpException {
+		String url = serverURL+"/roles/"+role+"/security-filters/"+type;
+		Header[] headers = {};
+		List<NameValuePair> params = new ArrayList<NameValuePair>(4);
+		if (s!=null) params.add(new NameValuePair("s", s));
+		if (p!=null) params.add(new NameValuePair("p", p));
+		if (o!=null) params.add(new NameValuePair("o", o));
+		if (g!=null) params.add(new NameValuePair("g", g));
+		getHTTPClient().delete(url, headers, params.toArray(new NameValuePair[params.size()]));
+	}
+
+	/**
+	 * Returns a list of roles for a user.
+	 * 
+	 * @return a list of roles.
+	 * @throws AGHttpException
+	 */
+	public List<String> listUserRoles(String user) throws AGHttpException {
+		return getHTTPClient().getListOfStrings(serverURL+"/users/"+user+"/roles");
+	}
+	
+	/**
+	 * Adds a role for this user.
+	 * 
+	 * @param user user id
+	 * @param role role id
+	 * @throws AGHttpException
+	 */
+	public void addUserRole(String user, String role) throws AGHttpException {
+		String url = serverURL+"/users/"+user+"/roles/"+role;
+		Header[] headers = {};
+		NameValuePair[] params = {}; 
+		getHTTPClient().put(url, headers, params, null);
+	}
+
+	/**
+	 * Deletes a role for this user.
+	 * 
+	 * @param user user id
+	 * @param role role id
+	 * @throws AGHttpException
+	 */
+	public void deleteUserRole(String user, String role) throws AGHttpException {
+		String url = serverURL+"/users/"+user+"/roles/"+role;
+		Header[] headers = {};
+		NameValuePair[] params = {}; 
+		getHTTPClient().delete(url, headers, params);
+		
+	}
+
+	/**
+	 * Deletes from a role's access list for this server.
+	 * 
+	 * @param role role id
+	 * @param read read access
+	 * @param write write access
+	 * @param catalog catalog id, or "*" (or null) for all catalogs
+	 * @param repository repository id, or "*" (or null) for all repos, in the given catalog(s)
+	 * @throws AGHttpException
+	 */
+	public void deleteRoleAccess(String role, boolean read, boolean write,
+			String catalog, String repository) throws AGHttpException {
+		String url = serverURL+"/roles/"+role+"/access";
+		Header[] headers = new Header[0];
+		if (catalog==null) catalog="*";
+		if (repository==null) repository="*";
+		NameValuePair[] params = { 
+   			new NameValuePair("read", Boolean.toString(read)),
+   			new NameValuePair("write", Boolean.toString(write)),
+   			new NameValuePair("catalog", catalog),
+   			new NameValuePair("repository", repository)};
+		getHTTPClient().delete(url, headers, params);
+	}
+
+	/**
+	 * Deletes a role from this server.
+	 * 
+	 * @param role role id
+	 * @throws AGHttpException
+	 */
+	public void deleteRole(String role) throws AGHttpException {
+		String url = serverURL+"/roles/"+role;
+		Header[] headers = new Header[0];
+		NameValuePair[] params = new NameValuePair[0];
+		getHTTPClient().delete(url, headers, params);
+	}
+
+	
+	/**
+	 * Adds to a role's permission list.
+	 * 
+	 * @param role role id
+	 * @param permission "super" or "eval" or "session"
+	 * @throws AGHttpException
+	 */
+	public void addRolePermission(String role, String permission) throws AGHttpException {
+		String url = serverURL+"/roles/"+role+"/permissions/"+permission;
+		Header[] headers = new Header[0];
+		NameValuePair[] params = {};
+		getHTTPClient().put(url, headers, params, null);
+	}
+
+	/**
+	 * Delete from a role's permission list.
+	 * 
+	 * @param role role id
+	 * @param permission "super" or "eval" or "session"
+	 * @throws AGHttpException
+	 */
+	public void deleteRolePermission(String role, String permission) throws AGHttpException {
+		String url = serverURL+"/roles/"+role+"/permissions/"+permission;
+		Header[] headers = new Header[0];
+		NameValuePair[] params = {};
+		getHTTPClient().delete(url, headers, params);
+		
+	}
+
+	/**
+	 * Returns a list of permissions for a role.
+	 * <p>
+	 * Permissions are documented  
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#header2-223"
+	 * target="_top">here</a>.
+	 * <p>
+	 * 
+	 * @param role role id
+	 * @return list of permissions.
+	 * @throws AGHttpException
+	 */
+	public List<String> listRolePermissions(String role) throws AGHttpException {
+		return getHTTPClient().getListOfStrings(serverURL+"/roles/"+role+"/permissions");
+	}
+
+
 }
