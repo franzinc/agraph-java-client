@@ -34,6 +34,7 @@
     <property name="srcjarfile" location="agraph-src.jar"/>
     
     <path id="classpath">
+        <path location="agraph.jar"/>
         <path location="${lib}/json.jar"/>
         <path location="${lib}/junit-4.8.1.jar"/>
         <path location="${lib}/logging/commons-logging-1.1.1.jar"/>
@@ -69,6 +70,7 @@
         <delete file="${srcjarfile}"/>
         <delete dir="doc"/>
         <delete dir="target"/>
+        <delete dir="tmp"/>
         <delete file="agraph-java-client-test.jar"/>
         <ant dir="clojure" target="clean" inheritall="false"/>
     </target>
@@ -105,6 +107,9 @@
             	<attribute name="Built-At" value="${jar.datestamp}"/>
             	<attribute name="Class-Path" value="${mf.path}"/>
             </manifest>
+        	<service type="org.openrdf.repository.config.RepositoryFactory"> 
+                <provider classname="com.franz.agraph.repository.config.AGRepositoryFactory"/> 
+            </service>
         </jar>
     </target>
     
@@ -174,7 +179,7 @@
                  noindex="false"
                  nonavbar="false"
                  notree="false"
-                 packagenames="com.franz.agraph.jena,com.franz.agraph.repository,com.franz.openrdf.rio.nquads,com.franz.util,com.franz.agraph.pool"
+                 packagenames="com.franz.agraph.jena,com.franz.agraph.repository,com.franz.agraph.repository.config,com.franz.openrdf.rio.nquads,com.franz.util,com.franz.agraph.pool"
                  source="1.6"
                  sourcepath="src"
                  splitindex="true"
