@@ -76,7 +76,7 @@ implements Closeable {
 	}
 
 	public AGHTTPClient(String serverURL, HttpConnectionManager manager) {
-		this.serverURL = serverURL;
+		this.serverURL = serverURL.replaceAll("/$","");
 		if (manager == null) {
 			// Use MultiThreadedHttpConnectionManager to allow concurrent access
 			// on HttpClient

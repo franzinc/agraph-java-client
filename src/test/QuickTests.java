@@ -38,6 +38,7 @@ import test.TestSuites.NonPrepushTest;
 
 import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
+import com.franz.agraph.repository.AGServer;
 
 public class QuickTests extends AGAbstractTest {
 
@@ -173,6 +174,14 @@ public class QuickTests extends AGAbstractTest {
     			throw e;
     		}
     	}
+    }
+    
+    @Test
+    @Category(TestSuites.Prepush.class)
+    public void serverUrlTrailingSlashRemoved() throws Exception {
+    	String serverURL = server.getServerURL();
+    	AGServer server2 = new AGServer(serverURL+"/",username(),password());
+    	Assert.assertEquals(serverURL, server2.getServerURL());
     }
     
 }
