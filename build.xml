@@ -107,8 +107,14 @@
             	<attribute name="Built-At" value="${jar.datestamp}"/>
             	<attribute name="Class-Path" value="${mf.path}"/>
             </manifest>
-        	<service type="org.openrdf.repository.config.RepositoryFactory"> 
+            <service type="org.openrdf.repository.config.RepositoryFactory"> 
                 <provider classname="com.franz.agraph.repository.config.AGRepositoryFactory"/> 
+            </service>
+            <service type="org.openrdf.rio.RDFParserFactory"> 
+                <provider classname="com.franz.openrdf.rio.nquads.NQuadsParserFactory"/> 
+            </service>
+            <service type="org.openrdf.rio.RDFWriterFactory"> 
+                <provider classname="com.franz.openrdf.rio.nquads.NQuadsWriterFactory"/> 
             </service>
         </jar>
     </target>
@@ -172,7 +178,7 @@
                  author="true"
                  doctitle="Franz, Inc. AllegroGraph ${env.version} Javadoc"
                  header="Franz Inc, AllegroGraph"
-                 footer="Copyright &amp;copy; 2008-2011 Franz Inc."
+                 footer="Copyright &amp;copy; 2008-2012 Franz Inc."
                  overview="src/overview.html"
                  nodeprecated="false"
                  nodeprecatedlist="false"
