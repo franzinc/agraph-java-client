@@ -371,11 +371,11 @@
         </copy>
         <mkdir dir="target/test-ws/acjproject"/>
         <untar src="agraph-${env.version}-client-java.tar.gz" compression="gzip" dest="target/test-ws/acjproject"/>
-        <exec executable="./eclipse-build.sh" taskname="eclipse-build.sh"
-              failonerror="false" timeout="80000">
-            <arg value="target/test-ws/"/>
-            <arg value="target/test-ws/acjproject/bin/tutorial/TutorialExamples.class"/>
-        </exec>
+<!--         <exec executable="./eclipse-build.sh" taskname="eclipse-build.sh" -->
+<!--               failonerror="false" timeout="80000"> -->
+<!--             <arg value="target/test-ws/"/> -->
+<!--             <arg value="target/test-ws/acjproject/bin/tutorial/TutorialExamples.class"/> -->
+<!--         </exec> -->
     </target>
     
     <target name="lubm-prolog"
