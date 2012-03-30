@@ -32,9 +32,9 @@
     <property name="build" location="classes"/>
     <property name="jarfile" location="agraph.jar"/>
     <property name="srcjarfile" location="agraph-src.jar"/>
+    <property name="testjarfile" location="agraph-java-client-test.jar"/>
     
     <path id="classpath">
-        <path location="agraph.jar"/>
         <path location="${lib}/json.jar"/>
         <path location="${lib}/junit-4.8.1.jar"/>
         <path location="${lib}/logging/commons-logging-1.1.1.jar"/>
@@ -71,7 +71,7 @@
         <delete dir="doc"/>
         <delete dir="target"/>
         <delete dir="tmp"/>
-        <delete file="agraph-java-client-test.jar"/>
+        <delete file="${testjarfile}"/>
         <ant dir="clojure" target="clean" inheritall="false"/>
     </target>
 
@@ -107,15 +107,7 @@
             	<attribute name="Built-At" value="${jar.datestamp}"/>
             	<attribute name="Class-Path" value="${mf.path}"/>
             </manifest>
-            <service type="org.openrdf.repository.config.RepositoryFactory"> 
-                <provider classname="com.franz.agraph.repository.config.AGRepositoryFactory"/> 
-            </service>
-            <service type="org.openrdf.rio.RDFParserFactory"> 
-                <provider classname="com.franz.openrdf.rio.nquads.NQuadsParserFactory"/> 
-            </service>
-            <service type="org.openrdf.rio.RDFWriterFactory"> 
-                <provider classname="com.franz.openrdf.rio.nquads.NQuadsWriterFactory"/> 
-            </service>
+            <metainf dir="${src}/META-INF" includes="services/**"/>
         </jar>
     </target>
     
@@ -144,8 +136,8 @@
         </jar>
     </target>
     
-    <target name="build" depends="clean, jar"
-            description="clean, and build jar">
+    <target name="build" depends="clean, jar, test-jar"
+            description="clean, and build jar and test jar">
     </target>
     
     <target name="test-jar"
@@ -154,7 +146,7 @@
         <tstamp prefix="jar">
             <format property="datestamp" pattern="yyyy-MM-dd H:mm"/>
         </tstamp>
-        <jar jarfile="agraph-java-client-test.jar">
+        <jar jarfile="${testjarfile}">
             <fileset dir="${build}">
                 <include name="tutorial/**"/>
                 <include name="test/**"/>
@@ -244,8 +236,9 @@
                 <sysproperty key="AGRAPH_ROOT" value="${env.root}"/>
                 <sysproperty key="com.franz.agraph.repository.AGRepositoryConnection.streamResults" value="@{streamResults}"/>
                 <classpath>
+                    <path location="${jarfile}"/>
+                    <path location="${testjarfile}"/>
                     <path refid="classpath"/>
-                    <path location="classes"/>
                 </classpath>
                 <arg value="@{arg}"/>
             </java>
@@ -253,7 +246,7 @@
     </macrodef>
     
     <target name="test-junit"
-            depends="compile"
+            depends="build"
             description="Run unit tests (use -Dcat=Prepush, Broken, or Stress)
 (or use -Dtest=test.stress.TransactionStressTest)">
         <property name="cat" value="Prepush"/>
@@ -275,8 +268,9 @@
             <sysproperty key="AGRAPH_PORT" value="${env.AGRAPH_PORT}"/>
             <sysproperty key="AGRAPH_ROOT" value="${env.root}"/>
             <classpath>
+                <path location="${jarfile}"/>
+                <path location="${testjarfile}"/>
                 <path refid="classpath"/>
-                <path location="classes"/>
             </classpath>
             <formatter type="plain" usefile="no"/>
             <test name="${test}"/>
