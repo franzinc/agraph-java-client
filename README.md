@@ -13,11 +13,11 @@ This [agraph-java-client](http://github.com/franzinc/agraph-java-client) provide
 [AllegroGraph Docs](http://www.franz.com/agraph/support/documentation/v4/)
 
 
-## Prerequisites
+## Server Prerequisites
 
 * [Download AllegroGraph](http://www.franz.com/agraph/downloads/)
   version 4
-  * Requires Linux 64-bit or a Linux VM on Windows or Mac
+  * Requires Linux 64-bit or a Linux VM on Windows or Mac OS X
 * Install AllegroGraph
 * Java version 1.6.0 or higher, and any operating system should work
   with these jars
@@ -149,7 +149,7 @@ build.xml and libs/clojure-1.2.0.jar.
 
 ## License
 
-Copyright (c) 2008-2011 Franz Inc.
+Copyright (c) 2008-2012 Franz Inc.
 All rights reserved. This program and the accompanying materials
 are made available under the terms of the Eclipse Public License v1.0
 which accompanies this distribution, and is available at
