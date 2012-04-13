@@ -10,16 +10,23 @@ package com.franz.agraph.jena;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 import org.openrdf.model.BNode;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.rio.RDFFormat;
+import org.openrdf.rio.RDFHandlerException;
 import org.openrdf.rio.RDFParseException;
+import org.openrdf.rio.RDFWriter;
+import org.openrdf.rio.ntriples.NTriplesWriter;
+import org.openrdf.rio.rdfxml.RDFXMLWriter;
+import org.openrdf.rio.turtle.TurtleWriter;
 
 import com.franz.agraph.http.AGHttpRepoClient;
 import com.franz.agraph.repository.AGRDFFormat;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGValueFactory;
+import com.franz.openrdf.rio.nquads.NQuadsWriter;
 import com.franz.util.Closeable;
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.rdf.model.AnonId;
@@ -72,6 +79,56 @@ public class AGModel extends ModelCom implements Model, Closeable {
 		} catch (RepositoryException e) {
 			throw new RuntimeException(e);
 		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		return this;
+	}
+	
+    /**
+     * <p>Write a serialized representation of this model in a specified language.
+     * </p>
+     * <p>The language in which to write the model is specified by the
+     * <code>lang</code> argument.  Predefined values are "RDF/XML",
+     * "RDF/XML-ABBREV", "N-TRIPLE", "N-QUADS", "TURTLE", (and "TTL") and "N3".  The default value,
+     * represented by <code>null</code>, is "RDF/XML".</p>
+     * @param out The output stream to which the RDF is written
+     * @param lang The output language
+     * @return This model
+     */
+	@Override 
+  	public Model write(OutputStream out, String lang) 
+    {
+		return write(out,lang, "");
+    }
+  	
+    /**
+     * <p>Write a serialized representation of a model in a specified language.
+     * </p>
+     * <p>The language in which to write the model is specified by the
+     * <code>lang</code> argument.  Predefined values are "RDF/XML",
+     * "RDF/XML-ABBREV", "N-TRIPLE", "N-QUADS", "TURTLE", (and "TTL") and "N3".  The default value,
+     * represented by <code>null</code>, is "RDF/XML".</p>
+     * @param out The output stream to which the RDF is written
+     * @param base The base uri to use when writing relative URI's. <code>null</code>
+     * means use only absolute URI's. This is used for relative
+     * URIs that would be resolved against the document retrieval URL.
+     * For some values of <code>lang</code>, this value may be included in the output. 
+     * @param lang The language in which the RDF should be written
+     * @return This model
+     */
+	@Override 
+	public Model write(OutputStream out, String lang, String base) {
+		RDFWriter writer;
+		if (lang.contains("QUADS")) {
+			writer = new NQuadsWriter(out);
+		} else {
+			return super.write(out, lang, base);
+		}
+		try {
+			getGraph().getConnection().exportStatements(null, null, null, false, writer, getGraph().getGraphContexts());
+		} catch (RDFHandlerException e) {
+			throw new RuntimeException(e);
+		} catch (RepositoryException e) {
 			throw new RuntimeException(e);
 		}
 		return this;
