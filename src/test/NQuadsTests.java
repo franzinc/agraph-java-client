@@ -10,6 +10,7 @@ package test;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 
 import junit.framework.Assert;
 
@@ -21,6 +22,7 @@ import com.franz.agraph.jena.AGGraph;
 import com.franz.agraph.jena.AGGraphMaker;
 import com.franz.agraph.jena.AGModel;
 import com.franz.agraph.repository.AGRDFFormat;
+import com.franz.openrdf.rio.nquads.NQuadsWriter;
 
 public class NQuadsTests extends AGAbstractTest {
 
@@ -42,6 +44,11 @@ public class NQuadsTests extends AGAbstractTest {
     	AGGraph graph = closeLater( maker.getUnionOfAllGraphs() );
     	AGModel model = closeLater( new AGModel(graph) );
     	model.read(new FileInputStream("src/test/example.nq"), null, "NQUADS");
+    	Assert.assertEquals("expected size 10", 10, model.size());
+    	model.write(new FileOutputStream("target/exampleModelWrite.nq"),"NQUADS");
+    	model.removeAll();
+    	Assert.assertEquals("expected size 0", 0, model.size());
+    	model.read(new FileInputStream("target/exampleModelWrite.nq"), null, "NQUADS");
     	Assert.assertEquals("expected size 10", 10, model.size());
     }
     
