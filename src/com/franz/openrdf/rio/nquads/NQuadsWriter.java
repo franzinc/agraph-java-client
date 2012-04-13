@@ -135,8 +135,8 @@ public class NQuadsWriter implements RDFWriter {
 
 			// CONTEXT
 			if (context!=null) {
-				writeResource(context);
 				writer.write(" ");
+				writeResource(context);
 			}
 			
 			writer.write(" .");
