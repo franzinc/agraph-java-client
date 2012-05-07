@@ -41,8 +41,8 @@ Supports SPARQL and Prolog queries.
 
 ### OpenRDF/Sesame
 
-[Sesame](http://www.openrdf.org/) 2.6.2,
-([API](http://www.openrdf.org/doc/sesame2/2.6.2/apidocs/))
+[Sesame](http://www.openrdf.org/) 2.6.5,
+([API](http://www.openrdf.org/doc/sesame2/2.6.5/apidocs/))
 
 The primary public package is
 <code>com.franz.agraph.repository</code>.
