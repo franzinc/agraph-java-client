@@ -17,6 +17,8 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -564,13 +566,77 @@ implements RepositoryConnection, Closeable {
 	}
 	
 	/**
-	 * Unsupported method, throws an {@link UnsupportedOperationException}.
+	 * Prepares a {@link AGQuery} for evaluation on this repository. Note
+	 * that the preferred way of preparing queries is to use the more specific
+	 * {@link #prepareTupleQuery(QueryLanguage, String, String)},
+	 * {@link #prepareBooleanQuery(QueryLanguage, String, String)}, or
+	 * {@link #prepareGraphQuery(QueryLanguage, String, String)} methods instead.
+	 * 
+	 * @throws UnsupportedOperationException
+	 *         if the method is not supported for the supplied query language.
+	 * @throws IllegalArgumentException
+	 *         if the query type (Tuple, Graph, Boolean) cannot be determined.
 	 */
-	public AGQuery prepareQuery(QueryLanguage ql, String queryString,
-			String baseURI) {
-		// TODO: consider supporting this
-		throw new UnsupportedOperationException();
+	public AGQuery prepareQuery(QueryLanguage ql, String queryString, String baseURI) {
+		if (QueryLanguage.SPARQL.equals(ql)) {
+			String strippedQuery = stripSparqlQueryString(queryString).toUpperCase();
+			if (strippedQuery.startsWith("SELECT")) {
+				return prepareTupleQuery(ql, queryString, baseURI);
+			}
+			else if (strippedQuery.startsWith("ASK")) {
+				return prepareBooleanQuery(ql, queryString, baseURI);
+			}
+			else if (strippedQuery.startsWith("CONSTRUCT") || strippedQuery.startsWith("DESCRIBE")) {
+				return prepareGraphQuery(ql, queryString, baseURI);
+			} else {
+				throw new IllegalArgumentException("Unable to determine a query type (Tuple, Graph, Boolean) for the query:\n" + queryString);
+			}
+		}
+		else if (AGQueryLanguage.PROLOG.equals(ql)) {
+			return prepareTupleQuery(ql, queryString, baseURI);
+		}
+		else {
+			throw new UnsupportedOperationException("Operation not supported for query language " + ql);
+		}
 	}
+
+	/**
+	 * Removes any SPARQL prefix and base declarations and comments from 
+	 * the supplied SPARQL query string.
+	 * 
+	 * @param queryString
+	 *        a SPARQL query string
+	 * @return a substring of queryString, with prefix and base declarations
+	 *         removed.
+	 */
+	private String stripSparqlQueryString(String queryString) {
+		String normalizedQuery = queryString;
+
+		// strip all prefix declarations
+		Pattern pattern = Pattern.compile("prefix[^:]+:\\s*<[^>]*>\\s*", Pattern.CASE_INSENSITIVE);
+		Matcher matcher = pattern.matcher(queryString);
+		int startIndexCorrection = 0;
+		while (matcher.find()) {
+			normalizedQuery = normalizedQuery.substring(matcher.end() - startIndexCorrection,
+					normalizedQuery.length());
+			startIndexCorrection += (matcher.end() - startIndexCorrection);
+		}
+
+		// strip base declaration (if present)
+		pattern = Pattern.compile("base\\s+<[^>]*>\\s*", Pattern.CASE_INSENSITIVE);
+		matcher = pattern.matcher(normalizedQuery);
+		if (matcher.find()) {
+			normalizedQuery = normalizedQuery.substring(matcher.end(), normalizedQuery.length());
+		}
+
+		// strip any comments
+		pattern = Pattern.compile("\\s*#.*", Pattern.CASE_INSENSITIVE);
+		matcher = pattern.matcher(normalizedQuery);
+		normalizedQuery = matcher.replaceAll("");
+		
+		return normalizedQuery.trim();
+	}
+
 
 	@Override
 	public AGTupleQuery prepareTupleQuery(QueryLanguage ql, String queryString) {

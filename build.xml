@@ -43,6 +43,7 @@
         <path location="${lib}/sesame-2.6.5/commons-codec-1.3.jar"/>
         <path location="${lib}/sesame-2.6.5/commons-httpclient-3.1.jar"/>
         <path location="${lib}/sesame-2.6.5/openrdf-sesame-2.6.5-onejar.jar"/>
+        <path location="${lib}/sesame-2.6.5/sesame-sparql-testsuite-2.6.5.jar"/>
         <path location="${lib}/jena-2.6.2/arq-2.8.1.jar"/>
         <path location="${lib}/jena-2.6.2/icu4j-3.4.4.jar"/>
         <path location="${lib}/jena-2.6.2/iri-0.7.jar"/>
@@ -409,6 +410,12 @@
         <run-java tasknamex="jena-tutorial" classname="tutorial.JenaTutorialExamples" arg="${example}"/>
     </target>
     
+    <target name="sesame-sparql-query-tests"
+            depends="build"
+            description="Run sesame sparql compliance tests.">
+        <run-java tasknamex="sparql-query-tests" classname="org.junit.runner.JUnitCore" arg="test.openrdf.AGSPARQL11QueryTest"/>
+    </target>
+
     <target name="jena-compliance-tests"
             depends="compile"
             description="Run jena compliance tests.">
