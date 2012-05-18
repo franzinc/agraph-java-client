@@ -1,5 +1,5 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Copyright (c) 2008-2011 Franz Inc.
+;; Copyright (c) 2008-2012 Franz Inc.
 ;; All rights reserved. This program and the accompanying materials
 ;; are made available under the terms of the Eclipse Public License v1.0
 ;; which accompanies this distribution, and is available at
@@ -7,7 +7,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (ns com.franz.agraph
-  "Clojure client API to Franz AllegroGraph 4.0.
+  "Clojure client API to Franz AllegroGraph v4.
  This API wraps the agraph-java-client API, which is an extension of the Sesame org.openrdf API.
  Communication with the server is through HTTP REST using JSON.
  Uses the Franz Clojure wrapper of Sesame in com/franz/openrdf.clj."
@@ -19,7 +19,8 @@
            [org.openrdf.model ValueFactory Resource Literal Statement URI]
            [org.openrdf.repository Repository RepositoryConnection]
            [org.openrdf.model.vocabulary RDF XMLSchema]
-           [org.openrdf.query QueryLanguage BindingSet Binding])
+           [org.openrdf.query QueryLanguage BindingSet Binding]
+           [org.openrdf.rio RDFFormat])
   (:use [com.franz util openrdf]))
 
 (alter-meta! *ns* assoc :author "Franz Inc <www.franz.com>, Mike Hinchey <mhinchey@franz.com>")
@@ -31,13 +32,13 @@
 (defmethod name :default [x] (.getName x))
 
 ;; same as the clojure.core fn name
-(defmethod name clojure.lang.Named [#^clojure.lang.Named x] (clojure.core/name x))
+(defmethod name clojure.lang.Named [^clojure.lang.Named x] (clojure.core/name x))
 
-(defmethod name AGRepository [#^AGRepository x] (.getRepositoryID x))
+(defmethod name AGRepository [^AGRepository x] (.getRepositoryID x))
 
-(defmethod name AGCatalog [#^AGCatalog x] (.getCatalogName x))
+(defmethod name AGCatalog [^AGCatalog x] (.getCatalogName x))
 
-(defmethod close AGCatalog [#^AGCatalog obj])
+(defmethod close AGCatalog [^AGCatalog obj])
 
 ;; (defn connect-agraph
 ;;   "returns a connection to AllegroGraph server, for the HTTP REST API"
@@ -48,21 +49,21 @@
 
 (defn catalogs
   "Returns a seq of AGCatalogs objects."
-  [#^AGServer server]
+  [^AGServer server]
   (seq (.listCatalogs server)))
 
 (defn open-catalog
   "Returns an AGCatalog."
   {:tag AGCatalog}
-  [#^AGServer server name]
+  [^AGServer server name]
   (.getCatalog server name))
 
 (defn repositories
   "Returns a seq of AGRepository objects."
-  [#^AGCatalog catalog]
+  [^AGCatalog catalog]
   (seq (.listRepositories catalog)))
 
-;; (def #^{:private true} -access-verbs
+;; (def ^{:private true} -access-verbs
 ;;      {:renew AGRepository/RENEW
 ;;       :create AllegroRepository/CREATE
 ;;       :open AllegroRepository/OPEN
@@ -73,34 +74,34 @@
 
 (defn repository
   "access-verb must be a keyword from the set of access-verbs."
-  ([#^AGCatalog catalog name access-verb]
-     (open (.createRepository catalog #^String name
+  ([^AGCatalog catalog name access-verb]
+     (open (.createRepository catalog ^String name
                               ;; TODO: (-access-verbs access-verb)
                               )))
   ;; TODO: this may be confusing since it doesn't open a repository,
   ;; only gets a reference.
-  ([#^Repository rcon]
+  ([^RepositoryConnection rcon]
      (.getRepository rcon)))
 
 (defn ag-repo-con
-  ([#^AGCatalog catalog repo-name]
+  ([^AGCatalog catalog repo-name]
      (repo-connection (repo-init (repository catalog repo-name nil))))
-  ([#^AGCatalog catalog repo-name rcon-args]
+  ([^AGCatalog catalog repo-name rcon-args]
      (repo-connection (repo-init (repository catalog repo-name nil)) rcon-args)))
 
 (defn repo-federation
   "rcons: may be of type AGRepository or AGRepositoryConnection"
-  [#^AGServer server rcons rcon-args]
+  [^AGServer server rcons rcon-args]
   (-> (.federate server
                  (into-array AGRepository (map #(cond (instance? AGRepository %) %
                                                       (nil? %) nil
-                                                      :else (.getRepository #^AGRepositoryConnection %))
+                                                      :else (.getRepository ^AGRepositoryConnection %))
                                                 rcons)))
       open repo-init (repo-connection rcon-args)))
 
 (defn ag-server
   [url username password]
-  (AGServer. url username password))
+  (AGServer. ^String url ^String username ^String password))
 
 (defn with-agraph-fn
   "catalog, repository, and repository-connection are optional: they are only
@@ -157,9 +158,9 @@ Example: (with-agraph [conn {:host \"localhost\" :port 8080
   
      data:     a File, InputStream, or URL.
      contexts: 0 or more Resource objects"
-  [#^AGRepositoryConnection repos-conn
+  [^AGRepositoryConnection repos-conn
    data
-   #^String baseURI
-   #^RDFFormat dataFormat
+   ^String baseURI
+   ^RDFFormat dataFormat
    & contexts]
   (.add repos-conn data baseURI dataFormat (resource-array contexts)))

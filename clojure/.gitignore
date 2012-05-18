@@ -2,3 +2,6 @@ agraph-clj.jar
 dist
 lib/*.jar
 lib/dev/*.jar
+pom.xml
+.lein-deps-sum
+target/stale/dependencies

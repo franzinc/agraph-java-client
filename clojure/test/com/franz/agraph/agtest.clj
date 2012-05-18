@@ -1,5 +1,5 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Copyright (c) 2008-2011 Franz Inc.
+;; Copyright (c) 2008-2012 Franz Inc.
 ;; All rights reserved. This program and the accompanying materials
 ;; are made available under the terms of the Eclipse Public License v1.0
 ;; which accompanies this distribution, and is available at
@@ -46,7 +46,7 @@
   []
   (binding [*test-out* *out*] (run-tests 'com.franz.agraph.agtest)))
 
-(declare server cat repo rcon vf)
+(declare ^:dynamic server ^:dynamic cat ^:dynamic repo ^:dynamic rcon ^:dynamic vf)
 
 (defn lookup-server-config
   []
@@ -66,7 +66,7 @@
        :username (or (System/getenv "AGRAPH_USER") "test")
        :password (or (System/getenv "AGRAPH_PASSWORD") "xyzzy")})))
 
-(def *conn-params* (lookup-server-config))
+(def ^:dynamic *conn-params* (lookup-server-config))
 
 (defn with-agraph-test
   [f]

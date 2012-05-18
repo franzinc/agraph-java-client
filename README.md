@@ -65,7 +65,7 @@ The primary public package is <code>com.franz.agraph.jena</code>.
 
 ## Clojure
 
-Uses [Clojure](http://clojure.org) 1.2
+Uses [Clojure](http://clojure.org) 1.4
 
 The tutorial included is similar to the Python and Java tutorials.
 The comment section at the top of the file gives instructions to get
@@ -78,7 +78,7 @@ started.
 
 Add to your leiningen project.clj dependencies:
 
-    [com.franz/agraph-clj "4.1"]
+    [com.franz/agraph-clj "4.7"]
 
 See [agraph-clj on clojars](http://clojars.org/com.franz/agraph-clj)
 
@@ -92,11 +92,6 @@ To download dependencies into your lib directory:
 To start a REPL:
 
     lein repl
-
-To start a Slime server REPL, add <code>[swank-clojure "1.2.1"]</code> to
-dev-dependencies, then:
-
-    lein swank
 
 For more help, see
 [Leiningen](http://github.com/technomancy/leiningen/tree/stable).
@@ -142,7 +137,7 @@ line will install all dependencies in agraph-java-client/clojure/lib/.
     lein deps
 
 Alternatively, for Ant users, the Clojure library includes a
-build.xml and libs/clojure-1.2.0.jar.
+build.xml and libs/clojure-1.4.0.jar.
 
     ant build
 

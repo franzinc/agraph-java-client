@@ -1,5 +1,5 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Copyright (c) 2008-2011 Franz Inc.
+;; Copyright (c) 2008-2012 Franz Inc.
 ;; All rights reserved. This program and the accompanying materials
 ;; are made available under the terms of the Eclipse Public License v1.0
 ;; which accompanies this distribution, and is available at
@@ -26,6 +26,7 @@
               (add! rcon [(uri vf "http://example.org/stress/conn")
                           (uri vf "http://example.org/stress/count")
                           (literal vf x)] nil)
+              (is (= 1 (repo-size rcon)))
               (when (mod x 3)
                 (throw (IllegalArgumentException. "goto")))
               ))
@@ -41,6 +42,7 @@
                    (add! rcon [(uri vf "http://example.org/stress/conn")
                                (uri vf "http://example.org/stress/count")
                                (literal vf x)] nil)
+                   (is (= 1 (repo-size rcon)))
                    (when (mod x 20)
                      (throw (IllegalArgumentException. "goto")))
                    (catch IllegalArgumentException e (throw e))
