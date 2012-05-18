@@ -1,5 +1,5 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Copyright (c) 2008-2011 Franz Inc.
+;; Copyright (c) 2008-2012 Franz Inc.
 ;; All rights reserved. This program and the accompanying materials
 ;; are made available under the terms of the Eclipse Public License v1.0
 ;; which accompanies this distribution, and is available at
@@ -25,10 +25,10 @@ May be extended for differently named close methods."
   (when obj (.close obj)))
 
 (defmethod close java.io.Closeable
-  [#^java.io.Closeable obj]
+  [^java.io.Closeable obj]
   (.close obj))
 
-(declare *with-open-stack*)
+(declare ^:dynamic *with-open-stack*)
 
 (defn close-all
   "Not intended to be used other than by with-open2.
@@ -89,12 +89,12 @@ May be extended for differently named close methods."
 (defn read-lines
   "Calls clojure.core/line-seq, but f is a File and (open) is called on the
   reader that is created, so read-lines must be called with a (scope)."
-  [#^java.io.File f]
+  [^java.io.File f]
   (line-seq (open (java.io.BufferedReader. (open (java.io.FileReader. f))))))
 
 (defn write-lines
-  [#^java.io.File f
+  [^java.io.File f
    lines]
   (with-open2 [out (java.io.PrintWriter. (java.io.FileWriter. f))]
     (doseq [ln lines]
-      (.println #^java.io.PrintWriter out ln))))
+      (.println ^java.io.PrintWriter out ln))))
