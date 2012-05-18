@@ -20,35 +20,35 @@ import test.AGAbstractTest;
 import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.repository.AGServer;
 
-public class AGSPARQL11QueryTest extends SPARQLQueryTest {
+public class AGSparqlQueryTest extends SPARQLQueryTest {
 
 	public static Test suite()
 		throws Exception
 	{
 		return test.openrdf.SPARQL11ManifestTest.suite(new Factory() {
 
-			public AGSPARQL11QueryTest createSPARQLQueryTest(String testURI, String name,
+			public AGSparqlQueryTest createSPARQLQueryTest(String testURI, String name,
 					String queryFileURL, String resultFileURL, Dataset dataSet, boolean laxCardinality)
 			{
 				return createSPARQLQueryTest(testURI, name, queryFileURL, resultFileURL, dataSet, laxCardinality, false);
 			}
 			
-			public AGSPARQL11QueryTest createSPARQLQueryTest(String testURI, String name,
+			public AGSparqlQueryTest createSPARQLQueryTest(String testURI, String name,
 					String queryFileURL, String resultFileURL, Dataset dataSet, boolean laxCardinality, boolean checkOrder)
 			{
-				return new AGSPARQL11QueryTest(testURI, name, queryFileURL, resultFileURL, dataSet,
+				return new AGSparqlQueryTest(testURI, name, queryFileURL, resultFileURL, dataSet,
 						laxCardinality, checkOrder);
 			}
 		});
 	}
 
-	protected AGSPARQL11QueryTest(String testURI, String name, String queryFileURL, String resultFileURL,
+	protected AGSparqlQueryTest(String testURI, String name, String queryFileURL, String resultFileURL,
 			Dataset dataSet, boolean laxCardinality)
 	{
 		this(testURI, name, queryFileURL, resultFileURL, dataSet, laxCardinality, false);
 	}
 
-	protected AGSPARQL11QueryTest(String testURI, String name, String queryFileURL, String resultFileURL,
+	protected AGSparqlQueryTest(String testURI, String name, String queryFileURL, String resultFileURL,
 			Dataset dataSet, boolean laxCardinality, boolean checkOrder)
 	{
 		super(testURI, name, queryFileURL, resultFileURL, dataSet, laxCardinality, checkOrder);

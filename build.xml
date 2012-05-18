@@ -410,10 +410,16 @@
         <run-java tasknamex="jena-tutorial" classname="tutorial.JenaTutorialExamples" arg="${example}"/>
     </target>
     
-    <target name="sesame-sparql-query-tests"
+    <target name="sparql-query-tests"
             depends="build"
-            description="Run sesame sparql compliance tests.">
-        <run-java tasknamex="sparql-query-tests" classname="org.junit.runner.JUnitCore" arg="test.openrdf.AGSPARQL11QueryTest"/>
+            description="Run sesame sparql query tests.">
+        <run-java tasknamex="sparql-query-tests" classname="org.junit.runner.JUnitCore" arg="test.openrdf.AGSparqlQueryTest"/>
+    </target>
+
+    <target name="sparql-update-tests"
+            depends="build"
+            description="Run sesame sparql update tests.">
+        <run-java tasknamex="sparql-update-tests" classname="org.junit.runner.JUnitCore" arg="test.openrdf.AGSparqlUpdateTest"/>
     </target>
 
     <target name="jena-compliance-tests"
