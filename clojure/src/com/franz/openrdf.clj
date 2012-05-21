@@ -119,8 +119,10 @@
   repo)
 
 (defn value-factory
-  [^RepositoryConnection rcon]
-  (.getValueFactory rcon))
+  [rcon]
+  (if (instance? RepositoryConnection rcon)
+    (.getValueFactory ^Repository (.getRepository ^RepositoryConnection rcon))
+    (.getValueFactory ^Repository rcon)))
 
 (defn literal
   {:tag Literal}
@@ -141,10 +143,10 @@
 
 (defn resource-array
   "creates a primitive java array of Resource from the seq"
-  ;;{:tag LResource}
-  {:inline (fn [contexts] `^LResource (into-array Resource ~contexts))}
   [resources]
-  (into-array Resource resources))
+  (if (empty? resources)
+    (java.lang.reflect.Array/newInstance Resource 0)
+    (into-array Resource resources)))
 
 (defn add!
   "Add a statement to a repository.

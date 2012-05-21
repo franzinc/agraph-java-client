@@ -35,18 +35,19 @@
   (in-ns 'com.franz.agraph.tutorial)
   
   ;; You may want to set your own connection params:
-  (def *connection-params* {:host "localhost" :port 8080
-                            :username "test" :password "xyzzy"
-                            :catalog "java-catalog"
-                            :repository "cljtutorial"})
-
+  (def ^:dynamic *connection-params*
+    {:host "localhost" :port 10035
+     :username "test" :password "xyzzy"
+     :catalog "java-catalog"
+     :repository "cljtutorial"})
+  
   ;; Optional, for convenience in the REPL:
   (use '[clojure stacktrace])
   (use '[clojure.contrib repl-utils trace])
   
-  ;; Execute the examples: test1-test16
-  (test1)
-  (test-all)
+  ;; Execute the examples: example1-example16 and example26
+  (example1)
+  (example-all)
   )
 
 (ns com.franz.agraph.tutorial
@@ -55,7 +56,7 @@
   (:refer-clojure :exclude (name))
   (:import [com.franz.agraph.repository
             AGCatalog AGQueryLanguage AGRepository
-            AGRepositoryConnection AGServer AGValueFactory]
+            AGRepositoryConnection AGServer AGValueFactory AGFreetextIndexConfig]
            [org.openrdf.model ValueFactory Resource Literal]
            [org.openrdf.model.vocabulary RDF XMLSchema]
            [org.openrdf.query QueryLanguage]
@@ -77,15 +78,16 @@
 ;; (import 'tutorial.TutorialExamples)
 ;; (TutorialExamples/test1)
 
-(defonce *connection-params* {:host "localhost" :port 10035
-                              :username "test" :password "xyzzy"
-                              :catalog "java-catalog"
-                              :repository "javatutorial"})
+(defonce ^:dynamic *connection-params*
+  {:host "localhost" :port 10035
+   :username "test" :password "xyzzy"
+   :catalog "java-catalog"
+   :repository "cljtutorial"})
 
-(def *agraph-java-tutorial-dir* (or (System/getProperty "com.franz.agraph.tutorial.dir")
-                                    (.getCanonicalPath (java.io.File. "../src/tutorial/"))))
+(def agraph-java-tutorial-dir (or (System/getProperty "com.franz.agraph.tutorial.dir")
+                                  (.getCanonicalPath (java.io.File. "../src/tutorial/"))))
 
-(defn test1
+(defn example1
   "lists catalogs and more info about the scratch catalog."
   []
   (with-agraph [server *connection-params*]
@@ -98,14 +100,14 @@
           (println "Repository" (name myRepository) "is up! It contains"
                    (repo-size rcon) "statements."))))))
 
-(defn test2
+(defn example2
   "demonstrates adding and removing triples."
   []
   (with-agraph [con *connection-params*
                 cat (:catalog *connection-params*)
                 repo {:name (:repository *connection-params*) :access :renew}
                 rcon]
-    (let [f (.getValueFactory repo)
+    (let [f (value-factory repo)
           ;; create some resources and literals to make statements out of
           alice (uri f "http://example.org/people/alice")
           bob (uri f "http://example.org/people/bob")
@@ -129,22 +131,22 @@
       (add! rcon bob name bobsName)
       repo)))
 
-(defn test3
-  "demonstrates a SPARQL query using the data from test2"
+(defn example3
+  "demonstrates a SPARQL query using the data from example2"
   []
-  (with-open2 [rcon (repo-connection (test2))]
+  (with-open2 [rcon (repo-connection (example2))]
     (printlns (tuple-query rcon QueryLanguage/SPARQL "SELECT ?s ?p ?o  WHERE {?s ?p ?o .}"
                            nil))))
 
-(defn test4
+(defn example4
   ""
   []
-  (let [repo (test2)]
+  (let [repo (example2)]
     (with-open2 [rcon (repo-connection repo)]
-      (let [alice (uri (.getValueFactory repo) "http://example.org/people/alice")]
+      (let [alice (uri (value-factory repo) "http://example.org/people/alice")]
         (printlns (get-statements rcon alice nil nil nil))))))
 
-(defn test5
+(defn example5
   "Typed Literals"
   []
   (with-agraph [con *connection-params*
@@ -152,7 +154,7 @@
                 repo {:name (:repository *connection-params*) :access :renew}
                 rcon]
     (clear! rcon)
-    (let [f (.getValueFactory rcon)
+    (let [f (value-factory rcon)
           exns "http://example.org/people/"
           alice (uri f "http://example.org/people/alice")
           age (uri f exns "age")
@@ -192,17 +194,17 @@
                                (str "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT ?s ?p ?o WHERE {?s ?p ?o . filter (?o = " obj ")}") nil)))
       )))
 
-(defn test6
+(defn example6
   []
   (with-agraph [con *connection-params*
                 cat (:catalog *connection-params*)
                 repo {:name (:repository *connection-params*) :access :renew}
                 rcon {:namespaces {"vcd" "http://www.w3.org/2001/vcard-rdf/3.0#"}}]
     (clear! rcon)
-    (let [vcards (new File *agraph-java-tutorial-dir* "/java-vcards.rdf")
-          kennedy (new File *agraph-java-tutorial-dir* "/java-kennedy.ntriples")
+    (let [vcards (new File agraph-java-tutorial-dir "/java-vcards.rdf")
+          kennedy (new File agraph-java-tutorial-dir "/java-kennedy.ntriples")
           baseURI "http://example.org/example/local"
-          context (-> repo .getValueFactory (uri "http://example.org#vcards"))]
+          context (-> repo value-factory (uri "http://example.org#vcards"))]
       (add-from! rcon vcards baseURI RDFFormat/RDFXML context)
       (add-from! rcon kennedy baseURI RDFFormat/NTRIPLES nil)
       (println "After loading, repository contains " (repo-size rcon context)
@@ -210,9 +212,9 @@
                (repo-size rcon nil) " kennedy triples in context 'nil'.")
       repo)))
 
-(defn test7
+(defn example7
   []
-  (with-open2 [rcon (repo-connection (test6))]
+  (with-open2 [rcon (repo-connection (example6))]
     (println "Match all and print subjects and contexts:")
     (printlns (get-statements rcon nil nil nil nil))
     
@@ -220,11 +222,11 @@
     (printlns (tuple-query rcon QueryLanguage/SPARQL
                            "SELECT DISTINCT ?s ?c WHERE {graph ?c {?s ?p ?o .} }" nil))))
 
-(defn test8
+(defn example8
   "Writing RDF or NTriples to a file"
   [& [write-to-file?]]
-  (with-open2 [rcon (repo-connection (test6))]
-    (let [contexts (resource-array [(uri (.getValueFactory rcon) "http://example.org#vcards")])]
+  (with-open2 [rcon (repo-connection (example6))]
+    (let [contexts (resource-array [(uri (value-factory rcon) "http://example.org#vcards")])]
       (let [output (if write-to-file? (new FileOutputStream "/tmp/temp.nt") *out*)
             writer (new NTriplesWriter output)]
         (println "Writing NTriples to" output)
@@ -235,20 +237,20 @@
         (println "Writing RDFXML to" output)
         (.export rcon writer contexts)))))
 
-(defn test9
+(defn example9
   "Writing the result of a statements match to a file."
   []
-  (with-open2 [rcon (repo-connection (test6))]
+  (with-open2 [rcon (repo-connection (example6))]
     (.exportStatements rcon nil RDF/TYPE nil false (new RDFXMLWriter *out*) (resource-array nil))))
 
-(defn test10
+(defn example10
   "Datasets and multiple contexts"
   []
   (with-agraph [con *connection-params*
                 cat (:catalog *connection-params*)
                 repo {:name (:repository *connection-params*) :access :renew}
                 rcon]
-    (let [f (.getValueFactory repo)
+    (let [f (value-factory repo)
           exns "http://example.org/people/"
           alice (uri f exns "alice")
           bob (uri f exns "bob")
@@ -286,14 +288,14 @@
                              {:dataset (doto (new DatasetImpl)
                                          (.addDefaultGraph nil))})))))
 
-(defn test11
+(defn example11
   "Namespaces"
   []
   (with-agraph [con *connection-params*
                 cat (:catalog *connection-params*)
                 repo {:name (:repository *connection-params*) :access :renew}
                 rcon]
-    (let [f (.getValueFactory repo)
+    (let [f (value-factory repo)
           exns "http://example.org/people/"
           alice (uri f exns "alice")
           person (uri f exns "Person")]
@@ -303,16 +305,20 @@
       (printlns (tuple-query rcon QueryLanguage/SPARQL
                              "SELECT ?s ?p ?o WHERE { ?s ?p ?o . FILTER ((?p = rdf:type) && (?o = ex:Person) ) }" nil)))))
 
-(defn test12
+(defn example12
   "Text search"
   []
   (with-agraph [con *connection-params*
                 cat (:catalog *connection-params*)
                 repo {:name (:repository *connection-params*) :access :renew}
                 rcon]
-    (let [f (.getValueFactory repo)
+    (let [f (value-factory repo)
           exns "http://example.org/people/"]
-      (.createFreetextIndex repo "index1" (to-array (list (str exns "fullname"))))
+      (.createFreetextIndex rcon "index1"
+                            (let [config (AGFreetextIndexConfig/newInstance)]
+                              (.add (.getPredicates config) (.createURI f exns "fullname"))
+                              (println "config=" config)
+                              config))
       (let [alice (uri f exns "alice1")
             persontype (uri f exns "Person")
             fullname (uri f exns "fullname")
@@ -321,7 +327,7 @@
             booktype (uri f exns "Book")
             booktitle (uri f exns "title")
             wonderland (literal f "Alice in Wonderland")]
-        (clear! rcon (resource-array nil))
+        (clear! rcon)
         (add-all! rcon [[alice RDF/TYPE persontype]
                         [alice fullname alicename]
                         [book RDF/TYPE booktype]
@@ -334,10 +340,10 @@
                                         ; :query "SELECT ?s ?p ?o WHERE { ?s ?p ?o . FILTER regex(?o, "Ali") }"
           (printlns (take 5 (tuple-query rcon QueryLanguage/SPARQL queryString nil))))))))
 
-(defn test13
+(defn example13
   "Ask, Construct, and Describe queries"
   []
-  (with-open2 [rcon (repo-connection (test2)
+  (with-open2 [rcon (repo-connection (example2)
                                      {:namespaces {"ex" "http://example.org/people/"
                                                    "ont" "http://example.org/ontology/"}})]
     (printlns (tuple-query rcon QueryLanguage/SPARQL
@@ -357,12 +363,12 @@
     (printlns (query-graph rcon QueryLanguage/SPARQL
                            "describe ?s where { ?s ?p ?o . filter (?o = \"Alice\") }" nil))))
 
-(defn test14
+(defn example14
   "Parametric Queries"
   []
-  (let [repo (test2)]
+  (let [repo (example2)]
     (with-open2 [rcon (repo-connection repo)]
-      (let [f (.getValueFactory repo)
+      (let [f (value-factory repo)
             alice (uri f "http://example.org/people/alice1")
             bob (uri f "http://example.org/people/bob")]
         (println "Facts about Alice:")
@@ -374,7 +380,7 @@
                                "select ?s ?p ?o where { ?s ?p ?o}"
                                {:binding ["s" bob]}))))))
 
-(defn test16
+(defn example16
   "Federated triple stores."
   []
   (with-agraph [server *connection-params*
@@ -387,7 +393,7 @@
             green-rep (repo-init (repository cat "greenthings" :renew))
             green-con (repo-connection green-rep rcon-args)
             rainbow-rep (repo-init (repo-federation server
-                                                    red-rep green-rep))
+                                                    [red-rep green-rep]))
             rainbow-con (repo-connection rainbow-rep rcon-args)
             rf (value-factory red-con)
             gf (value-factory green-con)
@@ -411,10 +417,10 @@
                                  "select ?s where { ?s rdf:type ex:Apple }"
                                  nil)))))))
 
-;; (defn test17
+;; (defn example17
 ;;   "Prolog queries"
 ;;   []
-;;   (with-open2 [rcon (repo-connection (test6))]
+;;   (with-open2 [rcon (repo-connection (example6))]
 ;;     (.deleteEnvironment rcon "kennedys") ;; start fresh
 ;;     (.setEnvironment rcon "kennedys")
 ;;     (.setNamespace rcon "kdy" "http://www.franz.com/simple#")
@@ -436,12 +442,12 @@
 ;;       ")]
 ;;       (println row))))
 
-(defn test26
+(defn example26
   "Queries per second."
   []
-  (with-open2 [rcon (repo-connection (test6))]
+  (with-open2 [rcon (repo-connection (example6))]
     (let [reps 10
-          vf (.getValueFactory rcon)
+          vf (value-factory rcon)
           ;;TEMPORARY
           context (uri vf "http://example.org#vcards")
           ;; END TEMPORARY
@@ -476,22 +482,22 @@
                     reps count (int (/ (- end begin) 1000)) (mod (- end begin) 1000))
             (println)))))))
 
-(defn test-all
+(defn example-all
   []
-  (test1)
-  (test2)
-  (test3)
-  (test4)
-  (test5)
-  (test6)
-  (test7)
-  (test8)
-  (test9)
-  (test10)
-  (test11)
-  (test12)
-  (test13)
-  (test14)
-  (test16)
-  (test26)
+  (example1)
+  (example2)
+  (example3)
+  (example4)
+  (example5)
+  (example6)
+  (example7)
+  (example8)
+  (example9)
+  (example10)
+  (example11)
+  (example12)
+  (example13)
+  (example14)
+  (example16)
+  (example26)
   )

@@ -87,8 +87,10 @@
     
     <target name="test"
             description="Run tests">
-        <run-clj expr="(use 'com.franz.test) (run-tests-exit 'com.franz.agraph.agtest)"/>
-        <run-clj expr="(use 'com.franz.test) (run-tests-exit 'com.franz.agraph.stress-conn)"/>
+        <run-clj expr="(use 'com.franz.test) (run-tests-exit
+                       'com.franz.agraph.agtest
+                       'com.franz.agraph.stress-conn
+                       'com.franz.agraph.test.tutorial)"/>
     </target>
     
     <target name="prepush"

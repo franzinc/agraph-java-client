@@ -90,14 +90,18 @@
      (repo-connection (repo-init (repository catalog repo-name nil)) rcon-args)))
 
 (defn repo-federation
-  "rcons: may be of type AGRepository or AGRepositoryConnection"
-  [^AGServer server rcons rcon-args]
-  (-> (.federate server
-                 (into-array AGRepository (map #(cond (instance? AGRepository %) %
-                                                      (nil? %) nil
-                                                      :else (.getRepository ^AGRepositoryConnection %))
-                                                rcons)))
-      open repo-init (repo-connection rcon-args)))
+  "rcons: may be of type AGRepository or AGRepositoryConnection
+   rcon-args (optional): if supplied, will also call repo-init, repo-connection, and open, and return the AGRepositoryConnection.
+   Returns: AGRepository or AGRepositoryConnection"
+  ([^AGServer server rcons]
+     (.federate server
+                (into-array AGRepository (map #(cond (instance? AGRepository %) %
+                                                     (nil? %) nil
+                                                     :else (.getRepository ^AGRepositoryConnection %))
+                                              rcons))))
+  ([^AGServer server rcons rcon-args]
+     (-> (repo-federation server rcons)
+         open repo-init (repo-connection rcon-args))))
 
 (defn ag-server
   [url username password]
