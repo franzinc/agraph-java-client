@@ -44,6 +44,7 @@
         <path location="${lib}/sesame-2.6.5/commons-httpclient-3.1.jar"/>
         <path location="${lib}/sesame-2.6.5/openrdf-sesame-2.6.5-onejar.jar"/>
         <path location="${lib}/sesame-2.6.5/sesame-sparql-testsuite-2.6.5.jar"/>
+        <path location="${lib}/sesame-2.6.5/sesame-store-testsuite-2.6.5.jar"/>
         <path location="${lib}/jena-2.6.2/arq-2.8.1.jar"/>
         <path location="${lib}/jena-2.6.2/icu4j-3.4.4.jar"/>
         <path location="${lib}/jena-2.6.2/iri-0.7.jar"/>
@@ -420,6 +421,12 @@
             depends="build"
             description="Run sesame sparql update tests.">
         <run-java tasknamex="sparql-update-tests" classname="org.junit.runner.JUnitCore" arg="test.openrdf.AGSparqlUpdateTest"/>
+    </target>
+
+    <target name="repository-connection-tests"
+            depends="build"
+            description="Run sesame repository connection tests.">
+        <run-java tasknamex="repository-connection-tests" classname="org.junit.runner.JUnitCore" arg="test.openrdf.AGRepositoryConnectionTest"/>
     </target>
 
     <target name="jena-compliance-tests"
