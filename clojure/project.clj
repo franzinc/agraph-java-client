@@ -36,6 +36,8 @@
   :url "http://github.com/franzinc/agraph-java-client"
   :source-path "src"
   :target-dir "dist"
+  :extra-classpath-dirs ["tutorial"]
+  :repl-init com.franz.agraph.tutorial
   :warn-on-reflection true
   ;; TODO :parent [com.franz/agraph-java-client #=(eval (str agraph-version)) :relative-path "../pom.xml"]
   :manifest {"Implementation-Title" "Clojure client API for Franz AllegroGraph v4"
