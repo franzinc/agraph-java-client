@@ -9,9 +9,10 @@
 package com.franz.agraph.pool;
 
 import org.apache.commons.httpclient.HttpConnectionManager;
-import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
+import org.apache.commons.httpclient.SimpleHttpConnectionManager;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 import org.apache.commons.pool.PoolableObjectFactory;
+import org.openrdf.OpenRDFException;
 import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,11 +40,19 @@ implements PoolableObjectFactory {
 	private final static Logger log = LoggerFactory.getLogger(AGConnFactory.class);
 	
 	private final AGConnConfig props;
+
+	private final AGPoolConfig poolProps;
 	
-	public AGConnFactory(AGConnConfig props) throws RepositoryException {
+	public AGConnFactory(AGConnConfig props) {
 		this.props = props;
+		this.poolProps = null;
 	}
-	
+
+	public AGConnFactory(AGConnConfig props, AGPoolConfig poolProps) {
+		this.props = props;
+		this.poolProps = poolProps;
+	}
+
 	@Override
 	public Object makeObject() throws Exception {
 		return makeConnection();
@@ -51,14 +60,14 @@ implements PoolableObjectFactory {
 	
 	protected AGRepositoryConnection makeConnection() throws Exception {
 		HttpConnectionManagerParams params = new HttpConnectionManagerParams();
-		params.setDefaultMaxConnectionsPerHost(Integer.MAX_VALUE);
-		params.setMaxTotalConnections(Integer.MAX_VALUE);
+		//params.setDefaultMaxConnectionsPerHost(Integer.MAX_VALUE);
+		//params.setMaxTotalConnections(Integer.MAX_VALUE);
 		//params.setConnectionTimeout((int) TimeUnit.SECONDS.toMillis(10));
 		if (props.httpSocketTimeout != null) {
 			params.setSoTimeout(props.httpSocketTimeout);
 		}
 		
-		HttpConnectionManager manager = closeLater( new MultiThreadedHttpConnectionManager());
+		HttpConnectionManager manager = closeLater( new SimpleHttpConnectionManager());
 		manager.setParams(params);
 		AGHTTPClient httpClient = new AGHTTPClient(props.serverUrl, manager);
 		AGServer server = closeLater( new AGServer(props.username, props.password, httpClient) );
@@ -77,7 +86,7 @@ implements PoolableObjectFactory {
 		}
 		repo.initialize();
 		
-		AGRepositoryConnection conn = closeLater( new AGRepositoryConnectionCloseup(this, closeLater( repo.getConnection())));
+		AGRepositoryConnection conn = closeLater( new AGRepositoryConnectionCloseup(this, closeLater( repo.getConnection()), manager));
 		if (props.sessionLifetime != null) {
 			conn.setSessionLifetime(props.sessionLifetime);
 		}
@@ -89,7 +98,7 @@ implements PoolableObjectFactory {
 	 * Synchronized and re-checks hasRepository so multiple
 	 * do not try to create the repo at the same time.
 	 */
-	private synchronized AGRepository createRepo(AGCatalog cat) throws Exception {
+	private synchronized AGRepository createRepo(AGCatalog cat) throws OpenRDFException {
 		if (!cat.hasRepository(props.repository)) {
 			return cat.createRepository(props.repository, true);
 		} else {
@@ -187,15 +196,17 @@ implements PoolableObjectFactory {
 		
 		private final AGRepositoryConnection conn;
 		private final Closer closer;
+		private final HttpConnectionManager manager;
 		
-		public AGRepositoryConnectionCloseup(Closer closer, AGRepositoryConnection conn) {
+		public AGRepositoryConnectionCloseup(Closer closer, AGRepositoryConnection conn, HttpConnectionManager manager) {
 			super((AGRepository) conn.getRepository(), conn.getHttpRepoClient());
 			this.closer = closer;
 			this.conn = conn;
+			this.manager = manager;
 		}
 		
 		/**
-		 * Closes the {@link AGRepositoryConnection}, {@link AGRepository}, and {@link AGServer}.
+		 * Closes the {@link AGRepositoryConnection}, {@link AGRepository}, {@link AGServer}, and {@link HttpConnectionManager}.
 		 */
 		@Override
 		public void close() throws RepositoryException {
@@ -207,6 +218,7 @@ implements PoolableObjectFactory {
 			closer.close(conn);
 			closer.close(conn.getRepository());
 			closer.close(conn.getRepository().getCatalog().getServer());
+			closer.close(manager);
 		}
 		
 	}

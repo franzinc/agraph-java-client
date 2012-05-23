@@ -45,6 +45,7 @@ public class TestSuites {
         StreamingTest.class,
         ServerCodeTests.class,
         AGConnPoolSessionTest.class,
+        AGConnPoolClosingTest.class,
         SpinTest.class
     })
     public static class Temp {}
