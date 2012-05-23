@@ -180,7 +180,7 @@ public class AGAbstractTest extends Closer {
         }
 	}
 	
-	public static Map<String, String> processes() throws AGHttpException {
+	public static Map<String, String> processes(AGServer server) throws AGHttpException {
 		String url = server.getServerURL() + "/" + AGProtocol.PROCESSES;
 		TupleQueryResult results = server.getHTTPClient().getTupleQueryResult(url);
 		Map<String, String> map = new HashMap<String, String>();
@@ -190,6 +190,25 @@ public class AGAbstractTest extends Closer {
 				Value id = bindingSet.getValue("pid");
 				Value name = bindingSet.getValue("name");
 				map.put(id.stringValue(), name.stringValue());
+			}
+		} catch (QueryEvaluationException e) {
+			throw new AGHttpException(e);
+		} finally {
+			Closer.Close(results);
+		}
+		return map;
+	}
+
+	public static Map<String, String> sessions(AGServer server) throws AGHttpException {
+		String url = server.getServerURL() + "/" + AGProtocol.SESSION;
+		TupleQueryResult results = server.getHTTPClient().getTupleQueryResult(url);
+		Map<String, String> map = new HashMap<String, String>();
+		try {
+			while (results.hasNext()) {
+				BindingSet bindingSet = results.next();
+				Value k = bindingSet.getValue("uri");
+				Value v = bindingSet.getValue("description");
+				map.put(k.stringValue(), v.stringValue());
 			}
 		} catch (QueryEvaluationException e) {
 			throw new AGHttpException(e);

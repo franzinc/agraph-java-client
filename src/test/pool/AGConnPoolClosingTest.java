@@ -32,16 +32,19 @@ import com.franz.agraph.pool.AGConnPool;
 import com.franz.agraph.pool.AGConnProp;
 import com.franz.agraph.pool.AGPoolProp;
 import com.franz.agraph.repository.AGRepositoryConnection;
+import com.franz.agraph.repository.AGServer;
+import com.franz.util.Closer;
 
-public class AGConnPoolClosingTest extends AGAbstractTest {
+public class AGConnPoolClosingTest extends Closer {
 
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
 
 	private static final int NUM = 10;
 
     @After
-    public void closeAfter() {
+    public void closeAfter() throws Exception {
     	close();
+    	log.debug("sessions after close: " + AGAbstractTest.sessions(AGAbstractTest.newAGServer()));
     }
 
     @Test
@@ -97,10 +100,11 @@ public class AGConnPoolClosingTest extends AGAbstractTest {
 
         close();
     	long start = System.nanoTime();
+    	final AGServer server = closeLater(AGAbstractTest.newAGServer());
         Map<String, String> procs = Util.waitFor(TimeUnit.SECONDS.toMillis(1), TimeUnit.SECONDS.toMillis(30),
         		new Callable<Map<String, String>>() {
         	public Map<String, String> call() throws Exception {
-        		Map<String, String> procs = processes();
+        		Map<String, String> procs = AGAbstractTest.processes(server);
 		        for (Entry<String, String> entry : procs.entrySet()) {
 					if (entry.getValue().contains("test.pool.AGConnPoolClosingTest")
 							&& entry.getValue().contains("session")) {
@@ -111,6 +115,36 @@ public class AGConnPoolClosingTest extends AGAbstractTest {
 			}
 		});
         Assert.assertNull("Session process " + TimeUnit.NANOSECONDS.toSeconds((System.nanoTime() - start)) + " seconds after closing.", procs);
+    }
+
+    @Test
+    @Category(TestSuites.Stress.class)
+    public void test_openSockets_spr39342() throws Exception {
+    	AGConnPool pool = closeLater( AGConnPool.create(
+    			AGConnProp.serverUrl, AGAbstractTest.findServerUrl(),
+    			AGConnProp.username, AGAbstractTest.username(),
+    			AGConnProp.password, AGAbstractTest.password(),
+				AGConnProp.catalog, "/",
+				AGConnProp.repository, "pool.spr39342",
+                AGConnProp.session, AGConnProp.Session.TX,
+                AGPoolProp.maxActive, 12,
+                AGPoolProp.maxWait, 40000,
+                AGPoolProp.shutdownHook, true,
+                AGPoolProp.testOnBorrow, false,
+                AGPoolProp.minIdle, 6,
+                AGPoolProp.maxIdle, 7,
+                AGPoolProp.timeBetweenEvictionRunsMillis, 1000,
+                AGPoolProp.minEvictableIdleTimeMillis, 1000,
+                AGPoolProp.initialSize, 10,
+                AGConnProp.sessionLifetime, 20,
+                AGPoolProp.testWhileIdle, true,
+                AGPoolProp.numTestsPerEvictionRun, 1));
+    	final AGServer server = closeLater(AGAbstractTest.newAGServer());
+    	AGRepositoryConnection conn = closeLater( pool.borrowConnection() );
+        Thread.sleep(20000);
+        pool.returnObject(conn);
+        log.debug("After return");
+        Thread.sleep(10000);
     }
 
 }
