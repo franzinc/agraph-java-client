@@ -11,8 +11,10 @@ package test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static test.Util.ifBlank;
+import static test.Util.netstat;
 import static test.Util.or;
 import static test.Util.readLines;
+import static test.util.Clj.filter;
 import info.aduna.iteration.CloseableIteration;
 
 import java.io.File;
@@ -22,7 +24,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -38,6 +43,8 @@ import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import clojure.lang.AFn;
 
 import com.franz.agraph.http.AGProtocol;
 import com.franz.agraph.http.exception.AGHttpException;
@@ -180,7 +187,7 @@ public class AGAbstractTest extends Closer {
         }
 	}
 	
-	public static Map<String, String> processes() throws AGHttpException {
+	public static Map<String, String> processes(AGServer server) throws AGHttpException {
 		String url = server.getServerURL() + "/" + AGProtocol.PROCESSES;
 		TupleQueryResult results = server.getHTTPClient().getTupleQueryResult(url);
 		Map<String, String> map = new HashMap<String, String>();
@@ -190,6 +197,25 @@ public class AGAbstractTest extends Closer {
 				Value id = bindingSet.getValue("pid");
 				Value name = bindingSet.getValue("name");
 				map.put(id.stringValue(), name.stringValue());
+			}
+		} catch (QueryEvaluationException e) {
+			throw new AGHttpException(e);
+		} finally {
+			Closer.Close(results);
+		}
+		return map;
+	}
+
+	public static Map<String, String> sessions(AGServer server) throws AGHttpException {
+		String url = server.getServerURL() + "/" + AGProtocol.SESSION;
+		TupleQueryResult results = server.getHTTPClient().getTupleQueryResult(url);
+		Map<String, String> map = new HashMap<String, String>();
+		try {
+			while (results.hasNext()) {
+				BindingSet bindingSet = results.next();
+				Value k = bindingSet.getValue("uri");
+				Value v = bindingSet.getValue("description");
+				map.put(k.stringValue(), v.stringValue());
 			}
 		} catch (QueryEvaluationException e) {
 			throw new AGHttpException(e);
@@ -386,5 +412,33 @@ public class AGAbstractTest extends Closer {
         println("Number of results: " + count);
         Closer.Close(rows);
     }
+
+	public static List<String> waitForNetStat(final List<String> excluding) throws Exception {
+		return Util.waitFor(TimeUnit.SECONDS, 1, 30, new Callable<List<String>>() {
+        	public List<String> call() throws Exception {
+                List<String> netstat = filter(new AFn() {
+                	public Object invoke(Object line) {
+                		return ! excluding.contains(line);
+                	}
+                }, netstat());
+        		return netstat.isEmpty() ? null : netstat;
+        	}
+		});
+	}
+
+	public static Map<String, String> waitForSessions(final AGServer server, final String repoName) throws Exception {
+		Map<String, String> sessions = Util.waitFor(TimeUnit.SECONDS, 1, 30, new Callable<Map<String, String>>() {
+        	public Map<String, String> call() throws Exception {
+        		Map<String, String> sessions = AGAbstractTest.sessions(server);
+		        for (Entry<String, String> entry : sessions.entrySet()) {
+					if (entry.getValue().contains(repoName)) {
+						return sessions;
+					}
+				}
+		        return null;
+			}
+		});
+		return sessions;
+	}
 
 }

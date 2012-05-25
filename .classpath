@@ -24,5 +24,6 @@
 	<classpathentry kind="lib" path="lib/sesame-2.6.5/openrdf-sesame-2.6.5-onejar.jar" sourcepath="lib/sesame-2.6.5/openrdf-sesame-2.6.5-onejar-src.jar"/>
 	<classpathentry kind="lib" path="lib/sesame-2.6.5/sesame-sparql-testsuite-2.6.5.jar" sourcepath="lib/sesame-2.6.5/sesame-sparql-testsuite-2.6.5-sources.jar"/>
 	<classpathentry kind="lib" path="lib/sesame-2.6.5/sesame-store-testsuite-2.6.5.jar" sourcepath="lib/sesame-2.6.5/sesame-store-testsuite-2.6.5-sources.jar"/>
+	<classpathentry kind="lib" path="clojure/libs/clojure-1.4.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

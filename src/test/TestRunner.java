@@ -26,11 +26,15 @@ import org.junit.experimental.categories.Category;
 import org.junit.experimental.categories.Categories.ExcludeCategory;
 import org.junit.experimental.categories.Categories.IncludeCategory;
 import org.junit.runners.Suite.SuiteClasses;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Different from the JUnitCore runner, this class prints test exceptions as they happen.
  */
 public class TestRunner {
+
+    private final static Logger log = LoggerFactory.getLogger(TestRunner.class);
 
     /**
      * @param args Suite class name to run
@@ -192,9 +196,9 @@ public class TestRunner {
         List<Object> r = new ArrayList<Object>();
         for (Method m : methods) {
         	try {
-                r.add( m.invoke(obj, args) );
+                    r.add( m.invoke(obj, args) );
         	} catch (Exception e) {
-                e.printStackTrace(System.err);
+                    log.warn("ignoring", e);
         	}
         }
         return r;

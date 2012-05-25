@@ -18,6 +18,7 @@ import java.util.List;
 import javax.xml.stream.XMLStreamReader;
 
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
+import org.apache.commons.httpclient.SimpleHttpConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -110,6 +111,8 @@ public class Closer implements Closeable {
 			return (Obj) close((XMLStreamReader)o);
 		} else if (o instanceof MultiThreadedHttpConnectionManager) {
 			return (Obj) close((MultiThreadedHttpConnectionManager)o);
+		} else if (o instanceof SimpleHttpConnectionManager) {
+			return (Obj) close((SimpleHttpConnectionManager)o);
 		} else {
 			return closeReflection(o);
 		}
@@ -153,6 +156,19 @@ public class Closer implements Closeable {
 	}
 	
 	public MultiThreadedHttpConnectionManager close(MultiThreadedHttpConnectionManager o) {
+		if (o != null) {
+			try {
+				o.shutdown();
+			} catch (Exception e) {
+				return handleCloseException(o, e);
+			} finally {
+				remove(o);
+			}
+		}
+		return null;
+	}
+	
+	public SimpleHttpConnectionManager close(SimpleHttpConnectionManager o) {
 		if (o != null) {
 			try {
 				o.shutdown();
@@ -234,6 +250,10 @@ public class Closer implements Closeable {
 	}
 	
 	public static MultiThreadedHttpConnectionManager Close(MultiThreadedHttpConnectionManager o) {
+		return singleton.close(o);
+	}
+	
+	public static SimpleHttpConnectionManager Close(SimpleHttpConnectionManager o) {
 		return singleton.close(o);
 	}
 	

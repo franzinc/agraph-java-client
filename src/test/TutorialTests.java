@@ -608,13 +608,13 @@ public class TutorialTests extends AGAbstractTest {
     public void example16() throws Exception {
         example6();
         // create two ordinary stores, and one federated store:
-        AGRepository redRepo = server.getCatalog().createRepository("redthingsjv");
+        AGRepository redRepo = cat.createRepository("redthingsjv-ex16");
         closeLater(redRepo);
         redRepo.initialize();
         AGRepositoryConnection redConn = getConnection(redRepo);
         redConn.clear();
         ValueFactory rf = redConn.getValueFactory();
-        AGRepository greenRepo = cat.createRepository("greenthingsjv");
+        AGRepository greenRepo = cat.createRepository("greenthingsjv-ex16");
         closeLater(greenRepo);
         greenRepo.initialize();
         AGRepositoryConnection greenConn = getConnection(greenRepo);
