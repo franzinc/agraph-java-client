@@ -8,6 +8,9 @@
 
 package test;
 
+import static test.util.Clj.filter;
+import info.aduna.io.IOUtil;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,7 +24,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPOutputStream;
+
+import clojure.lang.AFn;
+import clojure.lang.IFn;
 
 import com.franz.util.Closer;
 
@@ -255,11 +262,19 @@ public class Util {
     	
     }
 
+    public static <ReturnType> ReturnType waitFor(TimeUnit unit, long sleep, long maxWait, Callable<ReturnType> fn) throws Exception {
+    	return waitFor(unit.toMillis(sleep), unit.toNanos(maxWait), fn);
+    }
+
+    public static Object waitFor(TimeUnit unit, long sleep, long maxWait, IFn fn) throws Exception {
+    	return waitFor(unit.toMillis(sleep), unit.toNanos(maxWait), fn);
+    }
+
     /**
      * Call fn until it returns null or false.
      * @return the last value from fn
      */
-    public static <ReturnType> ReturnType waitFor(long sleep, long maxWait, Callable<ReturnType> fn) throws Exception {
+    public static <ReturnType> ReturnType waitFor(long sleepMillis, long maxWaitNanos, Callable<ReturnType> fn) throws Exception {
     	long start = System.nanoTime();
     	while (true) {
     		ReturnType ret = fn.call();
@@ -267,14 +282,35 @@ public class Util {
     			return ret;
     		}
     		try {
-				Thread.sleep(sleep);
+				Thread.sleep(sleepMillis);
 			} catch (InterruptedException e) {
 				continue;
 			}
-			if ((System.nanoTime() - start) < maxWait) {
+			if ((System.nanoTime() - start) >= maxWaitNanos) {
 				return ret;
 			}
     	}
     }
+    
+    /**
+     * Exec 'netstat -tap' for this java process.
+     * @return output lines from netstat
+     */
+	public static List<String> netstat() throws IOException {
+		String[] cmd = {"bash", "-c", "netstat -tap 2>/dev/null | grep $PPID"};
+		Process p = Runtime.getRuntime().exec(cmd);
+		String string = IOUtil.readString(p.getInputStream());
+		List<String> list = new ArrayList( Arrays.asList(string.split("\n")));
+		list.remove("");
+		return list;
+	}
+	
+	public static List<String> closeWait(List<String> netstat) throws Exception {
+		return filter(new AFn() {
+			public Object invoke(Object line) {
+				return ((String)line).contains("CLOSE_WAIT");
+			}
+		}, netstat);
+	}
 
 }

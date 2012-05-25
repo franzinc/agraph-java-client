@@ -68,7 +68,7 @@ public class AGConnPoolSessionTest extends Closer {
     @Category(TestSuites.Prepush.class)
     public void testPlain() throws Exception {
         AGServer server = closeLater( new AGServer(AGAbstractTest.findServerUrl(), AGAbstractTest.username(), AGAbstractTest.password()));
-        AGCatalog catalog = server.getCatalog("/");
+        AGCatalog catalog = server.getCatalog(AGAbstractTest.CATALOG_ID);
         AGRepository repo = closeLater( catalog.createRepository("pool.testPlain"));
         AGRepositoryConnection conn = closeLater( repo.getConnection());
         Assert.assertTrue(conn.toString(), conn.getHttpRepoClient().getRoot().contains(AGAbstractTest.findServerUrl()));
@@ -87,7 +87,7 @@ public class AGConnPoolSessionTest extends Closer {
     			AGConnProp.serverUrl, AGAbstractTest.findServerUrl(),
     			AGConnProp.username, AGAbstractTest.username(),
     			AGConnProp.password, AGAbstractTest.password(),
-				AGConnProp.catalog, "/",
+				AGConnProp.catalog, AGAbstractTest.CATALOG_ID,
 				AGConnProp.repository, "pool.testPoolDedicated",
 				AGConnProp.session, AGConnProp.Session.DEDICATED,
                 AGConnProp.sessionLifetime, TimeUnit.MINUTES.toSeconds(1),
@@ -110,7 +110,7 @@ public class AGConnPoolSessionTest extends Closer {
     			AGConnProp.serverUrl, AGAbstractTest.findServerUrl(),
     			AGConnProp.username, AGAbstractTest.username(),
     			AGConnProp.password, AGAbstractTest.password(),
-				AGConnProp.catalog, "/",
+				AGConnProp.catalog, AGAbstractTest.CATALOG_ID,
 				AGConnProp.repository, "pool.testPoolTx",
 				AGConnProp.session, AGConnProp.Session.TX,
                 AGConnProp.sessionLifetime, TimeUnit.MINUTES.toSeconds(1),
@@ -139,7 +139,7 @@ public class AGConnPoolSessionTest extends Closer {
     			AGConnProp.serverUrl, AGAbstractTest.findServerUrl(),
     			AGConnProp.username, AGAbstractTest.username(),
     			AGConnProp.password, AGAbstractTest.password(),
-    			AGConnProp.catalog, "/",
+    			AGConnProp.catalog, AGAbstractTest.CATALOG_ID,
     			AGConnProp.repository, "pool.deleteDatatypeMapping",
     			AGConnProp.session, AGConnProp.Session.SHARED,
     			AGConnProp.sessionLifetime, TimeUnit.MINUTES.toSeconds(1),
@@ -206,7 +206,7 @@ public class AGConnPoolSessionTest extends Closer {
     			AGConnProp.serverUrl, AGAbstractTest.findServerUrl(),
     			AGConnProp.username, AGAbstractTest.username(),
     			AGConnProp.password, AGAbstractTest.password(),
-				AGConnProp.catalog, "/",
+				AGConnProp.catalog, AGAbstractTest.CATALOG_ID,
 				AGConnProp.repository, "pool.maxActive",
 				AGConnProp.session, AGConnProp.Session.DEDICATED,
 				AGConnProp.sessionLifetime, seconds * clients * 2,
@@ -253,7 +253,7 @@ public class AGConnPoolSessionTest extends Closer {
     public void fast() throws Exception {
     	final int seconds = 35;
     	final int clients = 8;
-    	AGAbstractTest.deleteRepository("/", "pool.fast");
+    	AGAbstractTest.deleteRepository(AGAbstractTest.CATALOG_ID, "pool.fast");
     	final AGConnPool pool = closeLater( AGConnPool.create(
     			AGConnProp.serverUrl, AGAbstractTest.findServerUrl(),
     			AGConnProp.username, AGAbstractTest.username(),

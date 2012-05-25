@@ -55,6 +55,7 @@
         <path location="${lib}/commons-cli-1.2.jar"/>
         <path location="${lib}/commons-pool-1.5.6.jar"/>
         <path location="${lib}/servlet-api-2.5.jar"/>
+        <path location="clojure/libs/clojure-1.4.0.jar"/>
     </path>
     
     <target name="init">
@@ -222,15 +223,13 @@
                 <sysproperty key="org.apache.commons.logging.simplelog.defaultlog"
                              value="${log}"/>
                 <sysproperty key="org.apache.commons.logging.simplelog.log.org"
-                             value="info"/>
+                             value="warn"/>
                 <sysproperty key="org.apache.commons.logging.simplelog.log.httpclient"
-                             value="info"/>
+                             value="warn"/>
                 <sysproperty key="org.apache.commons.logging.simplelog.showlogname"
                              value="true"/>
-                <sysproperty key="org.apache.commons.logging.simplelog.log.com"
-                             value="info"/>
                 <sysproperty key="org.apache.commons.logging.simplelog.log.test"
-                             value="info"/>
+                             value="${log}"/>
                 <sysproperty key="AGRAPH_HOST" value="${env.AGRAPH_HOST}"/>
                 <sysproperty key="AGRAPH_PORT" value="${env.AGRAPH_PORT}"/>
                 <sysproperty key="AGRAPH_ROOT" value="${env.root}"/>
@@ -238,7 +237,6 @@
                 <classpath>
                     <path location="${jarfile}"/>
                     <path location="${testjarfile}"/>
-                    <path refid="classpath"/>
                 </classpath>
                 <arg value="@{arg}"/>
             </java>
@@ -270,7 +268,6 @@
             <classpath>
                 <path location="${jarfile}"/>
                 <path location="${testjarfile}"/>
-                <path refid="classpath"/>
             </classpath>
             <formatter type="plain" usefile="no"/>
             <test name="${test}"/>
@@ -278,7 +275,7 @@
     </target>
     
     <target name="test-prepush"
-            depends="compile"
+            depends="jar, test-jar"
             description="run prepush tests">
         <run-java tasknamex="test" classname="test.TestRunner" arg="test.TestSuites$Prepush"/>
     </target>
@@ -289,13 +286,13 @@
     </target>
     
     <target name="test-broken"
-            depends="compile"
+            depends="jar, test-jar"
             description="run tests known to be broken">
         <run-java tasknamex="test" classname="test.TestRunner" arg="test.TestSuites$Broken"/>
     </target>
     
     <target name="test-stress"
-            depends="compile"
+            depends="jar, test-jar"
             description="long-running stress tests">
         <run-java tasknamex="test-stream" classname="test.TestRunner" arg="test.TestSuites$Prepush"
                   streamResults="true"/>
@@ -303,7 +300,7 @@
     </target>
     
     <target name="test-temp"
-            depends="compile"
+            depends="jar, test-jar"
             description="">
         <property name="cat" value="Temp"/>
         <property name="prefix" value="test.TestSuites$"/>
@@ -313,7 +310,7 @@
     </target>
     
     <target name="test-stress-events"
-            depends="compile"
+            depends="jar"
             description="Run events.sh with small settings">
         <exec executable="time" taskname="events"
               failonerror="true">
@@ -384,33 +381,33 @@
     </target>
     
     <target name="lubm-prolog"
-            depends="compile"
+            depends="jar, test-jar"
             description="Run test.stress.Events">
         <run-java tasknamex="lubm-prolog" classname="test.lubm.AGLubmProlog" arg=""/>
     </target>
     
     <target name="lubm-sparql"
-            depends="compile"
+            depends="jar, test-jar"
             description="Run test.stress.Events">
         <run-java tasknamex="lubm-sparql" classname="test.lubm.AGLubmSparql" arg=""/>
     </target>
     
     <target name="tutorial"
-            depends="compile"
+            depends="jar, test-jar"
             description="Run tutorial example. Use -Dexample=5 for a specific example, default is all">
         <property name="example" value="all"/>
         <run-java tasknamex="tutorial" classname="tutorial.TutorialExamples" arg="${example}"/>
     </target>
     
     <target name="jena-tutorial"
-            depends="compile"
+            depends="jar, test-jar"
             description="Run jena examples. Use -Dexample=5 for a specific example, default is all">
         <property name="example" value="all"/>
         <run-java tasknamex="jena-tutorial" classname="tutorial.JenaTutorialExamples" arg="${example}"/>
     </target>
     
     <target name="jena-compliance-tests"
-            depends="compile"
+            depends="jar, test-jar"
             description="Run jena compliance tests.">
         <run-java tasknamex="AGGraphMakerTest   " classname="org.junit.runner.JUnitCore" arg="test.AGGraphMakerTest"/>
         <run-java tasknamex="AGGraphTest        " classname="org.junit.runner.JUnitCore" arg="test.AGGraphTest"/>

@@ -18,6 +18,7 @@ import test.pool.AGConnPoolClosingTest;
 import test.pool.AGConnPoolSessionTest;
 import test.stress.StreamingTest;
 import test.stress.TransactionStressTest;
+import test.util.CljTest;
 
 public class TestSuites {
 
@@ -45,7 +46,9 @@ public class TestSuites {
         StreamingTest.class,
         ServerCodeTests.class,
         AGConnPoolSessionTest.class,
-        SpinTest.class
+        AGConnPoolClosingTest.class,
+        SpinTest.class,
+        CljTest.class
     })
     public static class Temp {}
     
@@ -82,7 +85,8 @@ public class TestSuites {
         FreetextTests.class,
         DeleteDuplicatesTests.class,
         SparqlUpdateTests.class,
-        AGRepositoryFactoryTest.class
+        AGRepositoryFactoryTest.class,
+        CljTest.class
     })
     public static class Prepush {}
     
@@ -99,6 +103,7 @@ public class TestSuites {
     @ExcludeCategory(NotApplicableForAgraph.class)
     @SuiteClasses( { TutorialTests.class,
         QuickTests.class,
+        AGConnPoolClosingTest.class,
         AGRepositoryConnectionTests.class})
     public static class Broken implements NonPrepushTest {}
     
