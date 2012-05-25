@@ -221,8 +221,9 @@ implements ObjectPool, Closeable {
 	 * @param poolProps keys are {@link AGPoolProp}
 	 */
 	public static AGConnPool create(Map<AGConnProp, String> connProps, Map<AGPoolProp, String> poolProps) throws RepositoryException {
-		AGConnFactory fact = new AGConnFactory(new AGConnConfig(connProps));
-		final AGConnPool pool = AGConnPool.create(fact, new AGPoolConfig(poolProps));
+		AGPoolConfig poolConfig = new AGPoolConfig(poolProps);
+		AGConnFactory fact = new AGConnFactory(new AGConnConfig(connProps), poolConfig);
+		final AGConnPool pool = AGConnPool.create(fact, poolConfig);
 		pool.closeLater(fact);
 		return pool;
 	}
