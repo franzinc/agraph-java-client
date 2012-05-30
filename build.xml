@@ -423,7 +423,13 @@
     <target name="repository-connection-tests"
             depends="build"
             description="Run sesame repository connection tests.">
-        <run-java tasknamex="repository-connection-tests" classname="org.junit.runner.JUnitCore" arg="test.openrdf.AGRepositoryConnectionTest"/>
+        <run-java tasknamex="repository-connection-tests" classname="org.junit.runner.JUnitCore" arg="test.openrdf.repository.AGRepositoryConnectionTest"/>
+    </target>
+
+    <target name="repository-tests"
+            depends="build"
+            description="Run sesame repository tests.">
+        <run-java tasknamex="repository-tests" classname="org.junit.runner.JUnitCore" arg="test.openrdf.repository.AGAllRepositoryTests"/>
     </target>
 
     <target name="jena-compliance-tests"
