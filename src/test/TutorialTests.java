@@ -74,7 +74,7 @@ public class TutorialTests extends AGAbstractTest {
         assertTrue(server.getRevision().length() > 0);
         assertTrue(server.listCatalogs().size() > 0);
         assertEquals(CATALOG_ID, cat.getCatalogName());
-        assertEquals(repoId, repo.getRepositoryID());
+        assertEquals(REPO_ID, repo.getRepositoryID());
         assertNotNull(repo.getRepositoryURL());
         assertTrue(repo.isWritable());
         assertEquals(0, conn.size());

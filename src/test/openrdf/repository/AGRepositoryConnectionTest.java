@@ -1,4 +1,4 @@
-package test.openrdf;
+package test.openrdf.repository;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.openrdf.model.Statement;
 import org.openrdf.model.Value;
@@ -26,12 +27,10 @@ import org.openrdf.rio.RDFParseException;
 import test.AGAbstractTest;
 import test.Util;
 
-import com.franz.agraph.repository.AGServer;
-
 public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 	
 	/**
-	 * Location of test data that isn't provided in TEST_DIR_PREFIX
+	 * Location of local test data that isn't provided via TEST_DIR_PREFIX
 	 */
 	public static final String TEST_DATA_DIR = "src/test/";
 	
@@ -41,7 +40,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 
 	@Override
 	protected Repository createRepository() throws Exception {
-		return new AGServer(AGAbstractTest.findServerUrl(),AGAbstractTest.username(), AGAbstractTest.password()).getCatalog(AGAbstractTest.CATALOG_ID).createRepository("AGRepositoryConnectionTest");
+		return AGAbstractTest.sharedRepository();
 	}
 
     @Test
@@ -549,5 +548,19 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 		}
 
     }
+
+    /**
+     * TODO: Needs query timeout (rfe11547).  
+     * 
+     * Meanwhile, fail right away to speed up the test suite.
+     * 
+     */
+    @Override
+	public void testOrderByQueriesAreInterruptable()
+			throws Exception
+		{
+    		// fail quickly
+    		Assert.fail("Fails needing query timeout (rfe11547) implemented.");
+		}
 
 }

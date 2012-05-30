@@ -59,6 +59,7 @@ import com.franz.util.Closer;
 public class AGAbstractTest extends Closer {
 
     static public final String CATALOG_ID = "java-catalog";
+    static public final String REPO_ID = "javatest";
 
     public Logger log = LoggerFactory.getLogger(this.getClass());
     
@@ -66,11 +67,11 @@ public class AGAbstractTest extends Closer {
     protected static AGCatalog cat;
     protected AGRepository repo;
     protected AGRepositoryConnection conn;
-    protected static String repoId;
     
     protected AGValueFactory vf;
     
     private static String serverUrl;
+    private static AGRepository sharedRepo = null;
     
     private String testName = null;
 
@@ -147,13 +148,35 @@ public class AGAbstractTest extends Closer {
 		}
     }
     
+    /**
+     * Returns a shared repository to use for testing purposes.
+     * 
+     * The shared repository is deleted/created on first use, and is
+     * simply cleared on subsequent uses; this speeds up testing as
+     * deleting/creating a new repository can take some time.
+     * 
+     * @return
+     * @throws RepositoryException
+     */
+    public static AGRepository sharedRepository() throws RepositoryException {
+    	if (sharedRepo==null) {
+    		AGCatalog cat = newAGServer().getCatalog(CATALOG_ID);
+    		cat.deleteRepository(REPO_ID);
+    		sharedRepo = cat.createRepository(REPO_ID);
+    	} else {
+   			AGRepositoryConnection conn = sharedRepo.getConnection();
+   			conn.clear();
+   			conn.clearNamespaces();
+    	}
+    	return sharedRepo;
+    }
+    
     @BeforeClass
     public static void setUpOnce() {
         server = newAGServer();
         try {
             cat = server.getCatalog(CATALOG_ID);
-            repoId = "javatest";
-			cat.deleteRepository(repoId);
+			cat.deleteRepository(REPO_ID);
 
 	        // test connection once
 	        ping();
@@ -173,7 +196,7 @@ public class AGAbstractTest extends Closer {
     }
 
 	private static void ping() throws RepositoryException {
-		AGRepository repo = cat.createRepository(repoId);
+		AGRepository repo = cat.createRepository(REPO_ID);
         try {
             repo.initialize();
             AGRepositoryConnection conn = repo.getConnection();
@@ -236,7 +259,7 @@ public class AGAbstractTest extends Closer {
     
     @Before
     public void setUp() throws Exception {
-        repo = cat.createRepository(repoId);
+        repo = cat.createRepository(REPO_ID);
         closeLater(repo);
         repo.initialize();
         vf = repo.getValueFactory();
