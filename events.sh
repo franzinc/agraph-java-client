@@ -8,4 +8,5 @@ java -cp classes:agraph.jar\
 :lib/sesame-2.6.5/openrdf-sesame-2.6.5-onejar.jar\
 :lib/logging/*\
 :lib/json.jar\
+:clojure/libs/clojure-1.4.0.jar\
  test.stress.Events $*
