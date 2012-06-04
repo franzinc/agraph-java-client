@@ -67,6 +67,13 @@ public class Clj {
     }
     
     /**
+     * http://clojuredocs.org/clojure_core/clojure.core/map
+     */
+    public static <Type> List<Type> map(IFn fn1, Collection<Type> coll) throws Exception {
+        return (List<Type>) var("map").invoke(fn1, coll);
+    }
+    
+    /**
      * http://clojuredocs.org/clojure_core/clojure.core/interpose
      */
     public static List interpose(Object sep, Collection coll) throws Exception {

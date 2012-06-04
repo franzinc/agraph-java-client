@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -30,6 +32,7 @@ import java.util.zip.GZIPOutputStream;
 import clojure.lang.AFn;
 import clojure.lang.IFn;
 
+import com.franz.agraph.repository.AGServer;
 import com.franz.util.Closer;
 
 public class Util {
@@ -311,6 +314,39 @@ public class Util {
 				return ((String)line).contains("CLOSE_WAIT");
 			}
 		}, netstat);
+	}
+
+	public static List<String> waitForNetStat(int maxWaitSeconds, final List<String> excluding) throws Exception {
+		return Util.waitFor(TimeUnit.SECONDS, 1, maxWaitSeconds, new Callable<List<String>>() {
+        	public List<String> call() throws Exception {
+                List<String> netstat = filter(new AFn() {
+                	public Object invoke(Object line) {
+                		for (String exclude : excluding) {
+                			if (((String)line).matches(exclude)) {
+                				return false;
+                			}
+						}
+                		return true;
+                	}
+                }, netstat());
+        		return netstat.isEmpty() ? null : netstat;
+        	}
+		});
+	}
+
+	public static Map<String, String> waitForSessions(final AGServer server, final String repoName) throws Exception {
+		Map<String, String> sessions = Util.waitFor(TimeUnit.SECONDS, 1, 30, new Callable<Map<String, String>>() {
+        	public Map<String, String> call() throws Exception {
+        		Map<String, String> sessions = AGAbstractTest.sessions(server);
+		        for (Entry<String, String> entry : sessions.entrySet()) {
+					if (entry.getValue().contains(repoName)) {
+						return sessions;
+					}
+				}
+		        return null;
+			}
+		});
+		return sessions;
 	}
 
 }

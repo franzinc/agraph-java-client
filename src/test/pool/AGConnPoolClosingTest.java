@@ -10,16 +10,12 @@ package test.pool;
 
 import static test.Util.closeWait;
 import static test.Util.netstat;
-import static test.Util.waitFor;
 import static test.util.Clj.applyStr;
-import static test.util.Clj.filter;
 import static test.util.Clj.interpose;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -33,6 +29,9 @@ import org.slf4j.LoggerFactory;
 
 import test.AGAbstractTest;
 import test.TestSuites;
+import test.Util;
+import test.util.Clj;
+
 import clojure.lang.AFn;
 
 import com.franz.agraph.pool.AGConnPool;
@@ -114,23 +113,36 @@ public class AGConnPoolClosingTest extends Closer {
         close();
     	long start = System.nanoTime();
     	final AGServer server = closeLater(AGAbstractTest.newAGServer());
-        Map<String, String> sessions = AGAbstractTest.waitForSessions(server, repoName);
+        Map<String, String> sessions = Util.waitForSessions(server, repoName);
         Assert.assertNull("Sessions alive " + TimeUnit.NANOSECONDS.toSeconds((System.nanoTime() - start)) + " seconds after closing: " + sessions, sessions);
         close(server);
     }
-
+    
+	private static List<String> netstatLinesToRegex(List<String> netstatBefore) throws Exception {
+		return Clj.map(new AFn() {
+        	public Object invoke(Object netstatLine) {
+        		String[] netstatFields = ((String)netstatLine).split(" +");
+        		return ".*" + netstatFields[3] + " +" + netstatFields[4] + ".*";
+        	}
+		}, netstatBefore);
+	}
+	
     @Test
     @Category(TestSuites.Stress.class)
     public void openSockets_bug21099() throws Exception {
-        final List<String> netstatBefore = netstat();
+    	final String repoName = "pool.bug21099";
+    	
+        List<String> netstatBefore = netstat();
         {
-        	log.debug("openSockets_bug21099 netstatBefore: " + applyStr(interpose("\n", netstatBefore)));
+        	log.info("openSockets_bug21099 netstatBefore: " + applyStr(interpose("\n", netstatBefore)));
             List<String> closeWait = closeWait(netstatBefore);
             if (!closeWait.isEmpty()) {
             	log.warn("openSockets_bug21099 netstat close_wait Before: " + applyStr(interpose("\n", closeWait)));
             }
         }
-    	final String repoName = "pool.bug21099";
+        // use a regex to get the ports from netstat, but allow for the state to change (when filtering in waitForNetStat below)
+        netstatBefore = netstatLinesToRegex(netstatBefore);
+        log.info("openSockets_bug21099 netstatBefore regexes: " + applyStr(interpose("\n", netstatBefore)));
     	AGConnPool pool = closeLater( AGConnPool.create(
     			AGConnProp.serverUrl, AGAbstractTest.findServerUrl(),
     			AGConnProp.username, AGAbstractTest.username(),
@@ -152,23 +164,19 @@ public class AGConnPoolClosingTest extends Closer {
                 AGPoolProp.initialSize, 5
     	));
         Thread.sleep(30000);
-        List<String> netstat = filter(new AFn() {
-        	public Object invoke(Object line) {
-        		return ! netstatBefore.contains(line);
-        	}
-        }, netstat());
+        List<String> netstat = Util.waitForNetStat(0, netstatBefore);
         List<String> closeWait = closeWait(netstat);
         Assert.assertTrue("sockets in CLOSE_WAIT: " + applyStr(interpose("\n", closeWait)), closeWait.isEmpty());
         Assert.assertTrue("too many sockets open: " + applyStr(interpose("\n", netstat)), 10 >= netstat.size());
         
         close(pool);
-        
-        netstat = AGAbstractTest.waitForNetStat(netstatBefore);
-        Assert.assertNull("sockets open after closing pool: " + netstat, netstat);
-        
-    	final AGServer server = closeLater(AGAbstractTest.newAGServer());
-    	long start = System.nanoTime();
-        Map<String, String> sessions = AGAbstractTest.waitForSessions(server, repoName);
+         
+        netstat = Util.waitForNetStat(30, netstatBefore);
+        Assert.assertNull("sockets open after closing pool: " + applyStr(interpose("\n", netstat)), netstat);
+
+        final AGServer server = closeLater(AGAbstractTest.newAGServer());
+        long start = System.nanoTime();
+        Map<String, String> sessions = Util.waitForSessions(server, repoName);
         Assert.assertNull("Sessions alive " + TimeUnit.NANOSECONDS.toSeconds((System.nanoTime() - start)) + " seconds after closing.", sessions);
         close(server);
     }
@@ -179,8 +187,10 @@ public class AGConnPoolClosingTest extends Closer {
      * Test without the pool.
      */
     public void openSockets_bug21109_direct() throws Exception {
-        final List<String> netstatBefore = netstat();
-    	log.debug("openSockets_bug21109_direct netstatBefore: " + applyStr(interpose("\n", netstatBefore)));
+        List<String> netstatBefore = netstat();
+    	log.info("openSockets_bug21109_direct netstatBefore: " + applyStr(interpose("\n", netstatBefore)));
+        // use a regex to get the ports from netstat, but allow for the state to change (when filtering in waitForNetStat below)
+        netstatBefore = netstatLinesToRegex(netstatBefore);
         
     	final String repoName = "direct.bug21109";
     	AGServer server = closeLater(AGAbstractTest.newAGServer());
@@ -200,11 +210,7 @@ public class AGConnPoolClosingTest extends Closer {
             	log.debug("netstat " + i + ": " + applyStr(interpose("\n", netstat())));
         	}
 		}
-        List<String> netstat = filter(new AFn() {
-        	public Object invoke(Object line) {
-        		return ! netstatBefore.contains(line);
-        	}
-        }, netstat());
+        List<String> netstat = Util.waitForNetStat(0, netstatBefore);
         List<String> closeWait = closeWait(netstat);
         Assert.assertTrue("sockets in CLOSE_WAIT: " + applyStr(interpose("\n", closeWait)), closeWait.isEmpty());
         Assert.assertTrue("too many sockets open: " + applyStr(interpose("\n", netstat)), 10 >= netstat.size());
@@ -212,12 +218,12 @@ public class AGConnPoolClosingTest extends Closer {
         repo = close(repo);
         server = close(server);
         
-        netstat = AGAbstractTest.waitForNetStat(netstatBefore);
+        netstat = Util.waitForNetStat(30, netstatBefore);
         Assert.assertNull("sockets open after closing pool: " + applyStr(interpose("\n", netstat)), netstat);
         
     	server = closeLater(AGAbstractTest.newAGServer());
     	long start = System.nanoTime();
-        Map<String, String> sessions = AGAbstractTest.waitForSessions(server, repoName);
+        Map<String, String> sessions = Util.waitForSessions(server, repoName);
         Assert.assertNull("Sessions alive " + TimeUnit.NANOSECONDS.toSeconds((System.nanoTime() - start)) + " seconds after closing: " + sessions, sessions);
         close(server);
     }

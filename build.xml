@@ -366,7 +366,7 @@
     <target name="test-dist"
             description="Tests distribution agraph*.tar.gz">
         <exec executable="make" taskname="make"
-              failonerror="true" timeout="40000">
+              failonerror="true" timeout="120000">
             <env key="VERSION" value="${env.version}"/>
             <arg value="dist"/>
         </exec>
