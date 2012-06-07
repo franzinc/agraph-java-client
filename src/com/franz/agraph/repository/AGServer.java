@@ -53,12 +53,14 @@ public class AGServer implements Closeable {
 	private final AGCatalog rootCatalog;
 	
 	/**
-	 * Creates an AGServer instance for interacting with an AllegroGraph
-	 * server at serverURL.
-	 *     
+	 * Creates an instance for interacting with an AllegroGraph server.
+	 * 
+	 * Uses Basic authentication.
+	 *  
 	 * @param serverURL the URL of the server (trailing slashes are removed).
 	 * @param username a user id for authenticating with the server 
-	 * @param password a password for authenticating with the server  
+	 * @param password a password for authenticating with the server
+	 * @see #AGServer(String)
 	 */
 	public AGServer(String serverURL, String username, String password) {
 		this.serverURL = serverURL.replaceAll("/$", "");
@@ -67,6 +69,16 @@ public class AGServer implements Closeable {
 		rootCatalog = new AGCatalog(this,AGCatalog.ROOT_CATALOG);
 	}
 	
+	/**
+	 * Creates an instance for interacting with an AllegroGraph server.
+	 * 
+	 * Uses Basic authentication with the server as configured in the 
+	 * httpClient instance.
+	 *  
+	 * @param username a user id for authenticating with the server 
+	 * @param password a password for authenticating with the server  
+	 * @param httpClient the AGHTTPClient instance to use
+	 */
 	public AGServer(String username, String password, AGHTTPClient httpClient) {
 		this.serverURL = httpClient.getServerURL();
 		this.httpClient = httpClient; 
@@ -74,6 +86,74 @@ public class AGServer implements Closeable {
 		rootCatalog = new AGCatalog(this,AGCatalog.ROOT_CATALOG);
 	}
 	
+	/**
+	 * Creates an instance for interacting with an AllegroGraph server.
+	 *<p>
+	 * Attempts X.509 server and client authentication when no username and
+	 * password have been set in the httpClient, and properties such as
+	 * <p><code><pre>
+	 * javax.net.ssl.keyStore, 
+	 * javax.net.ssl.keyStorePassword, 
+	 * javax.net.ssl.keyStoreType, and
+	 * javax.net.ssl.trustStore
+	 * </pre></code>
+	 * have been set appropriately.
+	 * <p>
+	 * Also set SSL directives in the server's config file, e.g:
+	 * <p><code><pre>
+	 * SSLPort 10036
+	 * SSLClientAuthRequired true
+	 * SSLClientAuthUsernameField CN
+	 * SSLCertificate /path/agraph.cert
+	 * SSLCAFile /path/ca.cert
+	 * </pre></code>
+	 * For more details, see <a href="http://www.franz.com/agraph/support/documentation/v4/daemon-config.html#header2-10">Server configuration</a>.
+	 * <p>
+	 * @param httpClient the AGHTTPClient instance to use
+	 * @see #AGServer(String)
+	 */
+	public AGServer(AGHTTPClient httpClient) {
+		this.serverURL = httpClient.getServerURL();
+		this.httpClient = httpClient; 
+		rootCatalog = new AGCatalog(this,AGCatalog.ROOT_CATALOG);
+	}
+	
+	/**
+	 * Creates an instance for interacting with an AllegroGraph server.
+	 * <p>
+	 * Uses a new default AGHTTPClient instance having the given serverURL.
+	 * <p>
+	 * Attempts X.509 server and client authentication when properties 
+	 * such as
+	 * <p><code><pre>
+	 * javax.net.ssl.keyStore, 
+	 * javax.net.ssl.keyStorePassword, 
+	 * javax.net.ssl.keyStoreType, and
+	 * javax.net.ssl.trustStore
+	 * </pre></code>
+	 * have been set appropriately.
+	 * <p>
+	 * Also set SSL directives in the server's config file, e.g:
+	 * <p><code><pre>
+	 * SSLPort 10036
+	 * SSLClientAuthRequired true
+	 * SSLClientAuthUsernameField CN
+	 * SSLCertificate /path/agraph.cert
+	 * SSLCAFile /path/ca.cert
+	 * </pre></code>
+	 * For more details, see <a href="http://www.franz.com/agraph/support/documentation/v4/daemon-config.html#header2-10">Server configuration</a>.
+	 * <p>
+	 * @param serverURL the URL of the server (trailing slashes are removed).
+	 * @see #AGServer(String, String, String)
+	 * @see #AGServer(AGHTTPClient)
+	 */
+	public AGServer(String serverURL) {
+		this.serverURL = serverURL.replaceAll("/$", "");
+		this.httpClient = new AGHTTPClient(serverURL); 
+		rootCatalog = new AGCatalog(this,AGCatalog.ROOT_CATALOG);
+	}
+	
+
 	/**
 	 * Returns the URL of this AllegroGraph server.
 	 * 
@@ -83,6 +163,11 @@ public class AGServer implements Closeable {
 		return serverURL;
 	}
 	
+	/**
+	 * Returns the AGHTTPClient instance for this server.
+	 * 
+	 * @return the AGHTTPClient instance for this server.
+	 */
 	public AGHTTPClient getHTTPClient() {
 		return httpClient;
 	}

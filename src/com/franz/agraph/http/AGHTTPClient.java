@@ -11,7 +11,6 @@ package com.franz.agraph.http;
 import static com.franz.agraph.http.AGProtocol.AMOUNT_PARAM_NAME;
 import static com.franz.agraph.http.AGProtocol.OVERRIDE_PARAM_NAME;
 import static org.openrdf.http.protocol.Protocol.ACCEPT_PARAM_NAME;
-//import info.aduna.net.http.HttpClientUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -265,7 +264,7 @@ implements Closeable {
 	 *            the password
 	 */
 	public void setUsernameAndPassword(String username, String password) {
-
+		
 		if (username != null && password != null) {
 			logger.debug("Setting username '{}' and password for server at {}.", username, serverURL);
 			try {
@@ -283,7 +282,7 @@ implements Closeable {
 			httpClient.getParams().setAuthenticationPreemptive(false);
 		}
 	}
-
+	
 	/**
 	 * Sets the AG user for X-Masquerade-As-User requests.
 	 * 
@@ -301,7 +300,7 @@ implements Closeable {
 				&& httpClient.getState().getCredentials(authScope) != null) {
 			method.setDoAuthentication(true);
 		} else {
-			method.setDoAuthentication(false);
+			//method.setDoAuthentication(false);
 		}
 		if (masqueradeAsUser != null) {
 			method.addRequestHeader(new Header("x-masquerade-as-user", masqueradeAsUser));

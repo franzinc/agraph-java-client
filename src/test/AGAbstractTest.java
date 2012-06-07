@@ -64,6 +64,7 @@ public class AGAbstractTest extends Closer {
     protected AGValueFactory vf;
     
     private static String serverUrl;
+    private static String sslServerUrl;
     private static AGRepository sharedRepo = null;
     
     private String testName = null;
@@ -75,6 +76,13 @@ public class AGAbstractTest extends Closer {
     	return serverUrl;
     }
 
+    public static String findSslServerUrl() {
+    	if (sslServerUrl == null) {
+    		sslServerUrl = findSslServerUrl1();
+    	}
+    	return sslServerUrl;
+    }
+    
 	private static String findServerUrl1() {
 		String host = or(ifBlank(System.getenv("AGRAPH_HOST"), null),
 				ifBlank(System.getProperty("AGRAPH_HOST"), null));
@@ -99,6 +107,30 @@ public class AGAbstractTest extends Closer {
 		return "http://" + or(host, "localhost") + ":" + or(port, "10035");
 	}
     
+	private static String findSslServerUrl1() {
+		String host = or(ifBlank(System.getenv("AGRAPH_SSLHOST"), null),
+				ifBlank(System.getProperty("AGRAPH_SSLHOST"), null));
+		String port = or(ifBlank(System.getenv("AGRAPH_SSLPORT"), null),
+				ifBlank(System.getProperty("AGRAPH_SSLPORT"), null));
+		
+		if ((host == null || host.equals("localhost")) && port == null) {
+			File portFile = new File("../agraph/lisp/agraph.sslport");
+			try {
+				host = "localhost";
+				if (portFile.exists()) {
+					System.out.println("Reading agraph.sslport: " + portFile.getAbsolutePath());
+					port = readLines(portFile).get(0);
+				} else {
+					port = "10036";
+				}
+			} catch (Exception e) {
+				throw new RuntimeException("Trying to read SSLPortFile: " + portFile.getAbsolutePath(), e);
+			}
+		}
+		
+		return "https://" + or(host, "localhost") + ":" + or(port, "10036");
+	}
+	
     public static String username() {
         return or(System.getenv("AGRAPH_USER"), "test");
     }
