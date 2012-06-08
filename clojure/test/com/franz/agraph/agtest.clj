@@ -211,11 +211,11 @@
 
 (deftest illegal-sparql
   (is (thrown? org.openrdf.query.QueryEvaluationException
-               ;; xsd prefix declaration is missing
+               ;; undefined prefix declaration is missing
                (tuple-query rcon QueryLanguage/SPARQL
                             (str "SELECT ?s ?p ?o  "
                                  "WHERE { ?s ?p ?o . "
-                                 "FILTER (xsd:int(?o) >= 30) }")
+                                 "FILTER (undefined:int(?o) >= 30) }")
                             nil))))
 
 (deftest test6-baseuri
