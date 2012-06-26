@@ -143,6 +143,7 @@ public class AGConnPoolClosingTest extends Closer {
         // use a regex to get the ports from netstat, but allow for the state to change (when filtering in waitForNetStat below)
         netstatBefore = netstatLinesToRegex(netstatBefore);
         log.info("openSockets_bug21099 netstatBefore regexes: " + applyStr(interpose("\n", netstatBefore)));
+        final int maxIdle = 20;
     	AGConnPool pool = closeLater( AGConnPool.create(
     			AGConnProp.serverUrl, AGAbstractTest.findServerUrl(),
     			AGConnProp.username, AGAbstractTest.username(),
@@ -155,7 +156,7 @@ public class AGConnPoolClosingTest extends Closer {
                 AGPoolProp.shutdownHook, true,
                 AGPoolProp.testOnBorrow, false,
                 AGPoolProp.minIdle, 10,
-                AGPoolProp.maxIdle, 20,
+                AGPoolProp.maxIdle, maxIdle,
                 AGPoolProp.timeBetweenEvictionRunsMillis, 1000,
                 AGPoolProp.minEvictableIdleTimeMillis, 2000,
                 AGConnProp.sessionLifetime, 30,
@@ -167,7 +168,8 @@ public class AGConnPoolClosingTest extends Closer {
         List<String> netstat = Util.waitForNetStat(0, netstatBefore);
         List<String> closeWait = closeWait(netstat);
         Assert.assertTrue("sockets in CLOSE_WAIT: " + applyStr(interpose("\n", closeWait)), closeWait.isEmpty());
-        Assert.assertTrue("too many sockets open: " + applyStr(interpose("\n", netstat)), 10 >= netstat.size());
+        // there may be maxIdle sockets "ESTABLISHED" and some in TIME_WAIT, so check for (maxIdle*2)
+        Assert.assertTrue("too many sockets open: " + applyStr(interpose("\n", netstat)), (maxIdle*2) >= netstat.size());
         
         close(pool);
          
