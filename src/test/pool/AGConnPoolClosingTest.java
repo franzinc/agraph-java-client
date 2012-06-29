@@ -132,25 +132,26 @@ public class AGConnPoolClosingTest extends Closer {
     public void openSockets_bug21099() throws Exception {
     	final String repoName = "pool.bug21099";
     	
+        Thread.sleep(1000);
         List<String> netstatBefore = netstat();
         {
         	log.info("openSockets_bug21099 netstatBefore: " + applyStr(interpose("\n", netstatBefore)));
-            List<String> closeWait = closeWait(netstatBefore);
-            if (!closeWait.isEmpty()) {
-            	log.warn("openSockets_bug21099 netstat close_wait Before: " + applyStr(interpose("\n", closeWait)));
-            }
+                List<String> closeWait = closeWait(netstatBefore);
+                if (!closeWait.isEmpty()) {
+                        log.warn("openSockets_bug21099 netstat close_wait Before: " + applyStr(interpose("\n", closeWait)));
+                }
         }
         // use a regex to get the ports from netstat, but allow for the state to change (when filtering in waitForNetStat below)
         netstatBefore = netstatLinesToRegex(netstatBefore);
         log.info("openSockets_bug21099 netstatBefore regexes: " + applyStr(interpose("\n", netstatBefore)));
         final int maxIdle = 20;
     	AGConnPool pool = closeLater( AGConnPool.create(
-    			AGConnProp.serverUrl, AGAbstractTest.findServerUrl(),
-    			AGConnProp.username, AGAbstractTest.username(),
-    			AGConnProp.password, AGAbstractTest.password(),
-				AGConnProp.catalog, AGAbstractTest.CATALOG_ID,
-				AGConnProp.repository, repoName,
-                AGConnProp.session, AGConnProp.Session.TX,
+                                              AGConnProp.serverUrl, AGAbstractTest.findServerUrl(),
+                                              AGConnProp.username, AGAbstractTest.username(),
+                                              AGConnProp.password, AGAbstractTest.password(),
+                                              AGConnProp.catalog, AGAbstractTest.CATALOG_ID,
+                                              AGConnProp.repository, repoName,
+                                              AGConnProp.session, AGConnProp.Session.TX,
                 AGPoolProp.maxActive, 40,
                 AGPoolProp.maxWait, 40000,
                 AGPoolProp.shutdownHook, true,
@@ -172,7 +173,8 @@ public class AGConnPoolClosingTest extends Closer {
         Assert.assertTrue("too many sockets open: " + applyStr(interpose("\n", netstat)), (maxIdle*2) >= netstat.size());
         
         close(pool);
-         
+
+        Thread.sleep(3000);
         netstat = Util.waitForNetStat(30, netstatBefore);
         Assert.assertNull("sockets open after closing pool: " + applyStr(interpose("\n", netstat)), netstat);
 
@@ -189,6 +191,7 @@ public class AGConnPoolClosingTest extends Closer {
      * Test without the pool.
      */
     public void openSockets_bug21109_direct() throws Exception {
+        Thread.sleep(1000);
         List<String> netstatBefore = netstat();
     	log.info("openSockets_bug21109_direct netstatBefore: " + applyStr(interpose("\n", netstatBefore)));
         // use a regex to get the ports from netstat, but allow for the state to change (when filtering in waitForNetStat below)
@@ -209,9 +212,9 @@ public class AGConnPoolClosingTest extends Closer {
         	close(conn2);
         	close(conn3);
         	if (i==5) {
-            	log.debug("netstat " + i + ": " + applyStr(interpose("\n", netstat())));
+                        log.debug("netstat " + i + ": " + applyStr(interpose("\n", netstat())));
         	}
-		}
+        }
         List<String> netstat = Util.waitForNetStat(0, netstatBefore);
         List<String> closeWait = closeWait(netstat);
         Assert.assertTrue("sockets in CLOSE_WAIT: " + applyStr(interpose("\n", closeWait)), closeWait.isEmpty());
@@ -220,6 +223,7 @@ public class AGConnPoolClosingTest extends Closer {
         repo = close(repo);
         server = close(server);
         
+        Thread.sleep(3000);
         netstat = Util.waitForNetStat(30, netstatBefore);
         Assert.assertNull("sockets open after closing pool: " + applyStr(interpose("\n", netstat)), netstat);
         
