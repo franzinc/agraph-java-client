@@ -12,11 +12,11 @@ import java.io.File;
 
 import org.openrdf.model.Resource;
 import org.openrdf.repository.RepositoryException;
+import org.openrdf.repository.base.RepositoryBase;
 
 import com.franz.agraph.http.AGHTTPClient;
 import com.franz.agraph.http.AGHttpRepoClient;
 import com.franz.agraph.http.exception.AGHttpException;
-import com.franz.util.Closeable;
 
 /**
  * A class for virtual repositories, used for working with federations, 
@@ -30,7 +30,7 @@ import com.franz.util.Closeable;
  * @see AGServer#virtualRepository(String)
  * @see AGServer#federate(AGAbstractRepository...)
  */
-public class AGVirtualRepository implements AGAbstractRepository, Closeable {
+public class AGVirtualRepository extends RepositoryBase implements AGAbstractRepository {
 	private final AGServer server;
 	final AGRepository wrapped;
 	private final String spec;
@@ -101,17 +101,15 @@ public class AGVirtualRepository implements AGAbstractRepository, Closeable {
         shutDown();
     }
 
-	// stubs
+	@Override
+	protected void initializeInternal() throws RepositoryException {
+	}
+
+	
+    @Override
+	protected void shutDownInternal() throws RepositoryException {}
+
     
-	/**
-	 * Required by OpenRDF/Sesame, a repository must be initialized before use.
-	 */
-    @Override
-	public void initialize() {}
-	
-    @Override
-	public void shutDown() throws RepositoryException {}
-	
 	/**
 	 * The dataDir is not currently applicable to AllegroGraph. 
 	 * @deprecated not applicable to AllegroGraph

@@ -17,11 +17,11 @@ import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.TupleQueryResult;
 import org.openrdf.repository.RepositoryException;
+import org.openrdf.repository.base.RepositoryBase;
 
 import com.franz.agraph.http.AGHTTPClient;
 import com.franz.agraph.http.AGHttpRepoClient;
 import com.franz.agraph.http.exception.AGHttpException;
-import com.franz.util.Closeable;
 
 /**
  * Implements the Sesame Repository interface for AllegroGraph, representing
@@ -31,7 +31,7 @@ import com.franz.util.Closeable;
  * With the Sesame API, most data operations on a repository are done through
  * the {@link AGRepositoryConnection} returned by {@link #getConnection()}.
  */
-public class AGRepository implements AGAbstractRepository, Closeable {
+public class AGRepository extends RepositoryBase implements AGAbstractRepository {
 
 	private final AGCatalog catalog;
 	private final String repositoryID;
@@ -98,10 +98,8 @@ public class AGRepository implements AGAbstractRepository, Closeable {
 		return getCatalog().getHTTPClient();
 	}
 
-	/**
-	 * Required by OpenRDF/Sesame, a repository must be initialized before use.
-	 */
-	public void initialize() throws RepositoryException {
+	@Override
+	protected void initializeInternal() throws RepositoryException {
 	}
 
 	/**
@@ -154,6 +152,7 @@ public class AGRepository implements AGAbstractRepository, Closeable {
 	 * The dataDir is not currently applicable to AllegroGraph.
 	 * @deprecated not applicable to AllegroGraph
 	 */
+	@Override
 	public File getDataDir() {
 		return null;
 	}
@@ -162,12 +161,13 @@ public class AGRepository implements AGAbstractRepository, Closeable {
 	 * The dataDir is not currently applicable to AllegroGraph. 
 	 * @deprecated not applicable to AllegroGraph
 	 */
+	@Override
 	public void setDataDir(File dataDir) {
 		// TODO: consider using this for client-side logging
 	}
 
-    @Override
-	public void shutDown() throws RepositoryException {
+	@Override
+	protected void shutDownInternal() throws RepositoryException {
 	}
 
 	/**
