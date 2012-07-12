@@ -202,6 +202,7 @@ public class AGConnPoolSessionTest extends Closer {
     public void maxActive() throws Exception {
     	final int seconds = 5;
     	final int clients = 4;
+    	final int wait = seconds * clients * 2;
     	final AGConnPool pool = closeLater( AGConnPool.create(
     			AGConnProp.serverUrl, AGAbstractTest.findServerUrl(),
     			AGConnProp.username, AGAbstractTest.username(),
@@ -209,12 +210,12 @@ public class AGConnPoolSessionTest extends Closer {
 				AGConnProp.catalog, AGAbstractTest.CATALOG_ID,
 				AGConnProp.repository, "pool.maxActive",
 				AGConnProp.session, AGConnProp.Session.DEDICATED,
-				AGConnProp.sessionLifetime, seconds * clients * 2,
-				AGConnProp.httpSocketTimeout, TimeUnit.SECONDS.toMillis(seconds * clients),
+				AGConnProp.sessionLifetime, wait,
+				AGConnProp.httpSocketTimeout, TimeUnit.SECONDS.toMillis(wait),
                 AGPoolProp.shutdownHook, true,
                 AGPoolProp.testOnBorrow, true,
 				AGPoolProp.maxActive, 2,
-				AGPoolProp.maxWait, TimeUnit.SECONDS.toMillis((seconds * clients) + 10),
+				AGPoolProp.maxWait, TimeUnit.SECONDS.toMillis(wait),
 				AGPoolProp.maxIdle, 8
 		));
         ExecutorService exec = Executors.newFixedThreadPool(clients);
@@ -245,7 +246,7 @@ public class AGConnPoolSessionTest extends Closer {
 				}
 			}));
 		}
-        assertSuccess(errors,  seconds * clients * 2, TimeUnit.SECONDS);
+        assertSuccess(errors,  wait, TimeUnit.SECONDS);
     }
 
     @Test
@@ -253,6 +254,7 @@ public class AGConnPoolSessionTest extends Closer {
     public void fast() throws Exception {
     	final int seconds = 35;
     	final int clients = 8;
+    	final int wait = seconds * clients * 2;
     	AGAbstractTest.deleteRepository(AGAbstractTest.CATALOG_ID, "pool.fast");
     	final AGConnPool pool = closeLater( AGConnPool.create(
     			AGConnProp.serverUrl, AGAbstractTest.findServerUrl(),
@@ -261,12 +263,12 @@ public class AGConnPoolSessionTest extends Closer {
 				AGConnProp.catalog, "/",
 				AGConnProp.repository, "pool.fast",
 				AGConnProp.session, AGConnProp.Session.DEDICATED,
-				AGConnProp.sessionLifetime, seconds * clients * 2,
-				AGConnProp.httpSocketTimeout, TimeUnit.SECONDS.toMillis(seconds * clients),
+				AGConnProp.sessionLifetime, wait,
+				AGConnProp.httpSocketTimeout, TimeUnit.SECONDS.toMillis(wait),
                 AGPoolProp.shutdownHook, true,
                 AGPoolProp.testOnBorrow, true,
 				AGPoolProp.maxActive, 2,
-				AGPoolProp.maxWait, TimeUnit.SECONDS.toMillis(seconds + 10),
+				AGPoolProp.maxWait, TimeUnit.SECONDS.toMillis(wait),
 				AGPoolProp.maxIdle, 8
 		));
         final AtomicLong idx = new AtomicLong(0);
@@ -304,7 +306,7 @@ public class AGConnPoolSessionTest extends Closer {
 				}
 			}));
 		}
-        assertSuccess(errors,  seconds * clients * 2, TimeUnit.SECONDS);
+        assertSuccess(errors,  wait, TimeUnit.SECONDS);
         log.info("count=" + count);
     }
 

@@ -174,8 +174,7 @@ public class AGConnPoolClosingTest extends Closer {
         
         close(pool);
 
-        Thread.sleep(3000);
-        netstat = Util.waitForNetStat(30, netstatBefore);
+        netstat = Util.waitForNetStat(120, netstatBefore);
         Assert.assertNull("sockets open after closing pool: " + applyStr(interpose("\n", netstat)), netstat);
 
         final AGServer server = closeLater(AGAbstractTest.newAGServer());
@@ -223,8 +222,7 @@ public class AGConnPoolClosingTest extends Closer {
         repo = close(repo);
         server = close(server);
         
-        Thread.sleep(3000);
-        netstat = Util.waitForNetStat(30, netstatBefore);
+        netstat = Util.waitForNetStat(120, netstatBefore);
         Assert.assertNull("sockets open after closing pool: " + applyStr(interpose("\n", netstat)), netstat);
         
     	server = closeLater(AGAbstractTest.newAGServer());
