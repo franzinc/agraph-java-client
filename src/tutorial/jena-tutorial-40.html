@@ -126,7 +126,7 @@ In Windows XP, you can set an environment variable by
 <p>We need to clarify some terminology before proceeding. </p>
 <ul>
   <li>&quot;RDF&quot; is the <a href="http://www.w3.org/RDF/">Resource Description Framework</a> defined by the <a href="http://www.w3.org/">World Wide Web Consortium</a> (W3C). It provides an elegantly simple means for describing multi-faceted resource objects and for linking them into complex relationship graphs. AllegroGraph Server creates, searches, and manages such RDF graphs. </li>
-  <li>A &quot;URI&quot; is a <a href="http://www.ietf.org/rfc/rfc2396.txt">Uniform Resource Identifier</a>. It is a label used to uniquely identify various types of entities in an RDF graph. A typical URI looks a lot like a web address: http://www.company.com/project/class#number. In spite of the resemblance, a URI is not a web address. It is simply a unique label. </li>
+  <li>A &quot;URI&quot; is a <a href="http://www.ietf.org/rfc/rfc2396.txt">Uniform Resource Identifier</a>. It is a label used to uniquely identify various types of entities in an RDF graph. A typical URI looks a lot like a web address: http://example.org/project/class#number. In spite of the resemblance, a URI is not a web address. It is simply a unique label. </li>
   <li>A &quot;triple&quot; is a data statement, a &quot;fact,&quot; stored in RDF format. It states that a  resource has an attribute with a value. It consists of three fields:</li>
   <ul>  <li>Subject: The first field contains the URI that uniquely identifies the resource that this triple describes. </li>
   <li>Predicate: The second field contains the URI identifying a property of this resource, such as its color or size, or a relationship between this resource and another one, such as parentage or ownership. </li>
@@ -885,12 +885,11 @@ spherical/degrees/-180.0/180.0/-90.0/90.0/5.0&gt;)
 <p>This variation returns Valjean's ego group as a single list:</p>
 <pre class="input">    (select ?group
       (ego-group !lm:character11 1 associates ?group))</pre>
-    The result in the Java interaction window is: 
+The result in the Java interaction window is:
 <pre class="output">Valjean's ego group in one list depth 1 (using associates).<br>Group: &quot;({character27} {character25} {character28} {character23} {character26}<br> {character55} {character11} {character24})&quot;<br>Number of results: 1</pre>
- 
 <h3 id="SNA Search - Path from A to B">SNA Search - Path from A to B</h3>
 <p>In the following examples, we explore the graph for the shortest path from Valjean to Bossuet, using the three generators to place restrictions on the quality of the path. These are the relevant paths between these two characters:</p>
- <img src="pathsValBos.jpg" width="913" height="254"> 
+<img src="pathsValBos.jpg" width="913" height="254"> 
 <p>Our first query asks AllegroGraph to use <strong>intimates</strong> to find the shortest possible path between Valjean and Bossuet that is composed entirely of &quot;knows_well&quot; links. Those would be the green arrows in the diagram above. The <strong>breadth-first-search-paths</strong> function asks for a start node and an end node, a generator, an optional maximum path length, and a variable to bind to the resulting path(s). Valjean is character11, and Bossuet is character64.</p>
 <pre class="input">    (select ?path
       (breadth-first-search-paths !lm:character11 !lm:character64 intimates 10 ?path))</pre>

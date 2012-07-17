@@ -229,7 +229,7 @@
 
 (deftest test16-federation
   (close rcon)
-  (let [ex "http://www.demo.com/example#"
+  (let [ex "http://example.org/"
         rcon-args {:namespaces {"ex" ex}}
         ;; create two ordinary stores, and one federated store: 
         red-con (ag-repo-con cat "redthings" rcon-args)

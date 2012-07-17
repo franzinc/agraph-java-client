@@ -1708,7 +1708,7 @@ public class TutorialExamples {
         println("Federation is writable? " + rainbowRepo.isWritable());
         AGRepositoryConnection rainbowConn = rainbowRepo.getConnection();
         closeBeforeExit(rainbowConn);
-        String ex = "http://www.demo.com/example#";
+        String ex = "http://example.com/";
         // add a few triples to the red and green stores:
         redConn.add(rf.createURI(ex+"mcintosh"), RDF.TYPE, rf.createURI(ex+"Apple"));
         redConn.add(rf.createURI(ex+"reddelicious"), RDF.TYPE, rf.createURI(ex+"Apple"));    

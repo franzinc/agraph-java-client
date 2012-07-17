@@ -385,7 +385,7 @@
   []
   (with-agraph [server *connection-params*
                 cat (:catalog *connection-params*)]
-    (let [ex "http://www.demo.com/example#"
+    (let [ex "http://example.org/"
           rcon-args {:namespaces {"ex" ex}}]
       ;; create two ordinary stores, and one federated store: 
       (let [red-rep (repo-init (repository cat "redthings" :renew))

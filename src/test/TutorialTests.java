@@ -626,7 +626,7 @@ public class TutorialTests extends AGAbstractTest {
         rainbowRepo.initialize();
         assertFalse("Federation is writable?", rainbowRepo.isWritable());
         AGRepositoryConnection rainbowConn = getConnection(rainbowRepo);
-        String ex = "http://www.demo.com/example#";
+        String ex = "http://example.org/";
         // add a few triples to the red and green stores:
         URI mac = rf.createURI(ex+"mcintosh");
         redConn.add(mac, RDF.TYPE, rf.createURI(ex+"Apple"));
