@@ -118,8 +118,10 @@ implements Closeable {
 			post.addRequestHeader(header);
 		}
 		post.addRequestHeader("Accept-encoding", "gzip");
-		post.setQueryString(params);
-		if (requestEntity != null) {
+		if (requestEntity == null) {
+			post.setRequestBody(params);
+		} else {
+			post.setQueryString(params);
 			post.setRequestEntity(requestEntity);
 		}
 		try {
