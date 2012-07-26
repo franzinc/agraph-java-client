@@ -78,7 +78,7 @@ endif
 	cp lib/logging/*.jar $(DIST)/lib/logging
 	mkdir -p $(DIST)/lib/sesame
 	cp lib/sesame/commons-*.{jar,zip} $(DIST)/lib/sesame
-	cp lib/sesame/openrdf-sesame-2.6.7-onejar*.jar $(DIST)/lib/sesame
+	cp lib/sesame/openrdf-sesame-2.6.8-onejar*.jar $(DIST)/lib/sesame
 	mkdir -p $(DIST)/lib/jena-2.6.2
 	cp lib/jena-2.6.2/*.jar $(DIST)/lib/jena-2.6.2
 	mkdir -p $(DIST)/doc

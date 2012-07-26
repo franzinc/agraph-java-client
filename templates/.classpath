@@ -9,7 +9,7 @@
 	<classpathentry kind="lib" path="lib/logging/slf4j-jcl-1.6.1.jar" sourcepath="lib/logging/slf4j-jcl-1.6.1-sources.jar"/>
 	<classpathentry kind="lib" path="lib/sesame/commons-codec-1.3.jar"/>
 	<classpathentry kind="lib" path="lib/sesame/commons-httpclient-3.1.jar" sourcepath="lib/sesame/commons-httpclient-3.1-src.zip"/>
-	<classpathentry kind="lib" path="lib/sesame/openrdf-sesame-2.6.7-onejar.jar" sourcepath="lib/sesame/openrdf-sesame-2.6.7-onejar-src.jar"/>
+	<classpathentry kind="lib" path="lib/sesame/openrdf-sesame-2.6.8-onejar.jar" sourcepath="lib/sesame/openrdf-sesame-2.6.8-onejar-src.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/jena-2.6.2/arq-2.8.1.jar" sourcepath="lib/jena-2.6.2/arq-2.8.1-sources.jar"/>
 	<classpathentry kind="lib" path="lib/jena-2.6.2/icu4j-3.4.4.jar"/>
