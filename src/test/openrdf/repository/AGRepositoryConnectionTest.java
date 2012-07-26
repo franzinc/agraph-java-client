@@ -38,11 +38,89 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 		super(name);
 	}
 
+	
 	@Override
 	protected Repository createRepository() throws Exception {
 		return AGAbstractTest.sharedRepository();
 	}
 
+	@Override
+	public void testDeleteDefaultGraph() throws Exception {
+		super.testDeleteDefaultGraph();
+	}
+	
+	@Override
+	public void testDefaultContext() throws Exception {
+		super.testDefaultContext();
+	}
+	
+	@Override
+	public void testDefaultInsertContext() throws Exception {
+		super.testDefaultInsertContext();
+	}
+	
+	@Override
+	public void testExclusiveNullContext() throws Exception {
+		super.testExclusiveNullContext();
+	}
+	
+    /**
+     * TODO: Needs query timeout (rfe11547).  
+     * 
+     * Meanwhile, fail right away to speed up the test suite.
+     * 
+     */
+    @Override
+	public void testOrderByQueriesAreInterruptable() throws Exception {
+    	// fail quickly
+    	Assert.fail("Fails needing query timeout (rfe11547) implemented.");
+	}
+
+	@Override
+	public void testGetNamespaces() throws Exception {
+		super.testGetNamespaces();
+	}
+	
+	@Override
+	public void testXmlCalendarZ() throws Exception {
+		super.testXmlCalendarZ();
+	}
+	
+	@Override
+	public void testSES713() throws Exception {
+		super.testSES713();
+	}
+	
+	public void testBaseURIInQueryString() throws Exception {
+		testCon.add(vf.createURI("urn:test:s1"), vf.createURI("urn:test:p1"), vf.createURI("urn:test:o1"));
+		TupleQueryResult rs = testCon.prepareTupleQuery(QueryLanguage.SPARQL, "BASE <urn:test:s1> SELECT * { <> ?p ?o }").evaluate();
+		try {
+			assertTrue(rs.hasNext());
+		}finally {
+			rs.close();
+		}
+	}
+	
+	public void testBaseURIInParam() throws Exception {
+		testCon.add(vf.createURI("http://example.org/s1"), vf.createURI("urn:test:p1"), vf.createURI("urn:test:o1"));
+		TupleQueryResult rs = testCon.prepareTupleQuery(QueryLanguage.SPARQL, "SELECT * { <s1> ?p ?o }", "http://example.org").evaluate();
+		try {
+			assertTrue(rs.hasNext());
+		}finally {
+			rs.close();
+		}
+	}
+	
+	public void testBaseURIInParamWithTrailingSlash() throws Exception {
+		testCon.add(vf.createURI("http://example.org/s1"), vf.createURI("urn:test:p1"), vf.createURI("urn:test:o1"));
+		TupleQueryResult rs = testCon.prepareTupleQuery(QueryLanguage.SPARQL, "SELECT * { <s1> ?p ?o }", "http://example.org/").evaluate();
+		try {
+			assertTrue(rs.hasNext());
+		}finally {
+			rs.close();
+		}
+	}
+		
     @Test
 	public void testHasStatementWithoutBNodes() throws Exception {
 		testCon.add(name, name, nameBob);
@@ -548,19 +626,5 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 		}
 
     }
-
-    /**
-     * TODO: Needs query timeout (rfe11547).  
-     * 
-     * Meanwhile, fail right away to speed up the test suite.
-     * 
-     */
-    @Override
-	public void testOrderByQueriesAreInterruptable()
-			throws Exception
-		{
-    		// fail quickly
-    		Assert.fail("Fails needing query timeout (rfe11547) implemented.");
-		}
 
 }

@@ -72,6 +72,7 @@ import com.franz.agraph.repository.AGQuery;
 import com.franz.agraph.repository.AGRDFFormat;
 import com.franz.agraph.repository.AGSpinFunction;
 import com.franz.agraph.repository.AGSpinMagicProperty;
+import com.franz.agraph.repository.AGUpdate;
 import com.franz.agraph.repository.AGValueFactory;
 import com.franz.util.Closeable;
 
@@ -775,7 +776,17 @@ public class AGHttpRepoClient implements Closeable {
 		if (!q.isPrepared()) {
 			queryParams.add(new NameValuePair(Protocol.QUERY_LANGUAGE_PARAM_NAME,
 				ql.getName()));
-			queryParams.add(new NameValuePair(Protocol.QUERY_PARAM_NAME, q.getQueryString()));
+			if (q instanceof AGUpdate) {
+				queryParams.add(new NameValuePair(Protocol.UPDATE_PARAM_NAME, q.getQueryString()));
+			} else {
+				queryParams.add(new NameValuePair(Protocol.QUERY_PARAM_NAME, q.getQueryString()));
+			}
+			if (q.getBaseURI() != null) {
+				queryParams.add(new NameValuePair(Protocol.BASEURI_PARAM_NAME, q.getBaseURI()));
+			}
+			if (q.getMaxQueryTime() > 0) {
+				queryParams.add(new NameValuePair(Protocol.TIMEOUT_PARAM_NAME, Integer.toString(q.getMaxQueryTime())));
+			}
 			queryParams.add(new NameValuePair(Protocol.INCLUDE_INFERRED_PARAM_NAME,
 				Boolean.toString(includeInferred)));
 			if (q.isCheckVariables()) {
@@ -789,6 +800,9 @@ public class AGHttpRepoClient implements Closeable {
 			if (q.getOffset()>=0) {
 				queryParams.add(new NameValuePair("offset",
 						Integer.toString(q.getOffset())));
+			}
+			if (q.isLoggingEnabled()) {
+				queryParams.add(new NameValuePair("logQuery","true"));
 			}
 			if (planner != null) {
 				queryParams.add(new NameValuePair(AGProtocol.PLANNER_PARAM_NAME,
@@ -804,21 +818,33 @@ public class AGHttpRepoClient implements Closeable {
 			}
 		
 			if (ql==QueryLanguage.SPARQL && dataset != null) {
-				for (URI defaultGraphURI : dataset.getDefaultGraphs()) {
-					String param = Protocol.NULL_PARAM_VALUE;
-					if (defaultGraphURI == null) {
-						queryParams.add(new NameValuePair(
-							Protocol.CONTEXT_PARAM_NAME, param));
-					} else {
-						param = defaultGraphURI.toString();
-						queryParams.add(new NameValuePair(
-								Protocol.DEFAULT_GRAPH_PARAM_NAME, param));
+				if (q instanceof AGUpdate) {
+					for (URI graphURI : dataset.getDefaultRemoveGraphs()) {
+						queryParams.add(new NameValuePair(Protocol.REMOVE_GRAPH_PARAM_NAME, String.valueOf(graphURI)));
 					}
-				}
-				for (URI namedGraphURI : dataset.getNamedGraphs()) {
-					queryParams.add(new NameValuePair(
-							Protocol.NAMED_GRAPH_PARAM_NAME, namedGraphURI
-								.toString()));
+					if (dataset.getDefaultInsertGraph() != null) {
+						queryParams.add(new NameValuePair(Protocol.INSERT_GRAPH_PARAM_NAME, String.valueOf(dataset.getDefaultInsertGraph())));
+					}
+					for (URI defaultGraphURI : dataset.getDefaultGraphs()) {
+						queryParams.add(new NameValuePair(Protocol.USING_GRAPH_PARAM_NAME, String.valueOf(defaultGraphURI)));
+					}
+					for (URI namedGraphURI : dataset.getNamedGraphs()) {
+						queryParams.add(new NameValuePair(Protocol.USING_NAMED_GRAPH_PARAM_NAME, String.valueOf(namedGraphURI)));
+					}
+				} else {
+					for (URI defaultGraphURI : dataset.getDefaultGraphs()) {
+						if (defaultGraphURI == null) {
+							queryParams.add(new NameValuePair(
+									Protocol.CONTEXT_PARAM_NAME, Protocol.NULL_PARAM_VALUE));
+						} else {
+							queryParams.add(new NameValuePair(
+									Protocol.DEFAULT_GRAPH_PARAM_NAME, defaultGraphURI.toString()));
+						}
+					}
+					for (URI namedGraphURI : dataset.getNamedGraphs()) {
+						queryParams.add(new NameValuePair(
+								Protocol.NAMED_GRAPH_PARAM_NAME, namedGraphURI.toString()));
+					}
 				}
 			} // TODO: no else clause here assumes AG's default dataset matches
 			// Sesame's, confirm this.

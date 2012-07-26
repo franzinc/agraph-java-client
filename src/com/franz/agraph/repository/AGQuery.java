@@ -75,6 +75,9 @@ public abstract class AGQuery extends AbstractQuery {
 	
 	protected int offset = -1;
 	
+	protected boolean loggingEnabled = false;
+	
+	
 	public AGQuery(AGRepositoryConnection con, QueryLanguage ql, String queryString, String baseURI) {
 		super.setIncludeInferred(false); // set default
 		this.httpCon = con;
@@ -139,6 +142,33 @@ public abstract class AGQuery extends AbstractQuery {
 	 */
 	public String getQueryString() {
 		return queryString;
+	}
+	
+	/**
+	 * Sets the loggingEnabled parameter for this query.
+	 * 
+	 * Default is false.  
+	 * 
+	 * @param loggingEnabled boolean indicating whether logging is enabled.
+	 */
+	public void setLoggingEnabled(boolean loggingEnabled) {
+		this.loggingEnabled = loggingEnabled; 
+	}
+	
+	/**
+	 * Gets the loggingEnabled setting for this query.
+	 */
+	public boolean isLoggingEnabled() {
+		return loggingEnabled; 
+	}
+	
+	/**
+	 * Gets the baseURI for this query.
+	 * 
+	 * @return the base URI.
+	 */
+	public String getBaseURI() {
+		return baseURI;
 	}
 	
 	/**
