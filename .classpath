@@ -25,5 +25,6 @@
 	<classpathentry kind="lib" path="lib/sesame/sesame-sparql-testsuite-2.6.8.jar" sourcepath="lib/sesame/sesame-sparql-testsuite-2.6.8-sources.jar"/>
 	<classpathentry kind="lib" path="lib/sesame/sesame-store-testsuite-2.6.8.jar" sourcepath="lib/sesame/sesame-store-testsuite-2.6.8-sources.jar"/>
 	<classpathentry kind="lib" path="clojure/libs/clojure-1.4.0.jar"/>
+	<classpathentry kind="lib" path="lib/callimachus/alibaba-repository-auditing-2.0-SNAPSHOT.jar" sourcepath="lib/callimachus/alibaba-repository-auditing-2.0-SNAPSHOT-sources.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
