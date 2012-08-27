@@ -25,7 +25,7 @@ import org.openrdf.repository.auditing.ActivityFactory;
 import org.openrdf.repository.auditing.AuditingRepository;
 import org.openrdf.repository.auditing.AuditingRepositoryConnection;
 
-public class AGAuditingTest extends TestCase {
+public class AGAuditingPurgeTest extends TestCase {
 	public static final URI ACTIVITY = new URIImpl("http://www.w3.org/ns/prov#Activity");
 	public static final URI RECENT = new URIImpl("http://www.openrdf.org/rdf/2012/auditing#RecentActivity");
 	public static final URI OBSOLETE = new URIImpl("http://www.openrdf.org/rdf/2012/auditing#ObsoleteActivity");
@@ -77,6 +77,7 @@ public class AGAuditingTest extends TestCase {
 	public void setUp() throws Exception {
 		Repository r = AGCallimachusTest.sharedCallimachusRepository();
 		repo = new AuditingRepository(r);
+		repo.setPurgeAfter(DatatypeFactory.newInstance().newDuration("PT0S"));
 		repo.initialize();
 		final DatatypeFactory df = DatatypeFactory.newInstance();
 		final ActivityFactory delegate = repo.getActivityFactory();
@@ -194,10 +195,10 @@ public class AGAuditingTest extends TestCase {
 		con = commit(repo, con);
 		assertFalse(con.hasStatement(carmichael, knows, harris, false));
 		assertTrue(con.hasStatement(carmichael, GENERATED_BY, null, false));
-		assertEquals(2, con.getContextIDs().asList().size());
+		assertEquals(Arrays.asList(lastActivity), con.getContextIDs().asList());
 		assertTrue(con.hasStatement(null, RDF.TYPE, ACTIVITY, false));
 		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
-		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
+		assertFalse(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertTrue(con.hasStatement(null, INFORMED_BY, null, false));
 		assertTrue(con.hasStatement(null, CAHNGED, null, false));
@@ -213,18 +214,19 @@ public class AGAuditingTest extends TestCase {
 		con.add(lismer, knows, macDonald);
 		con.add(macDonald, knows, varley);
 		con.add(varley, knows, thomson);
+		URI activity = lastActivity;
 		con = reopen(repo, con);
 		con.remove((Resource)null, knows, null);
 		con = commit(repo, con);
 		assertFalse(con.hasStatement(carmichael, knows, harris, false));
 		assertTrue(con.hasStatement(carmichael, GENERATED_BY, null, false));
 		assertFalse(con.hasStatement(null, null, null, false, new Resource[]{null}));
-		assertEquals(2, con.getContextIDs().asList().size());
+		assertEquals(Arrays.asList(activity), con.getContextIDs().asList());
 		assertTrue(con.hasStatement(null, RDF.TYPE, ACTIVITY, false));
 		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
-		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
+		assertFalse(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
-		assertTrue(con.hasStatement(null, INFORMED_BY, null, false));
+		assertFalse(con.hasStatement(null, INFORMED_BY, null, false));
 		assertFalse(con.hasStatement(null, CAHNGED, null, false));
 		assertEquals(0, con.getStatements(null, RDF.TYPE, RECENT, false).asList().size());
 	}
@@ -241,10 +243,10 @@ public class AGAuditingTest extends TestCase {
 		assertFalse(con.hasStatement(carmichael, knows, harris, false));
 		assertTrue(con.hasStatement(carmichael, knows, jackson, false));
 		assertTrue(con.hasStatement(carmichael, GENERATED_BY, null, false));
-		assertEquals(3, con.getContextIDs().asList().size());
+		assertEquals(2, con.getContextIDs().asList().size());
 		assertTrue(con.hasStatement(null, RDF.TYPE, ACTIVITY, false));
 		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
-		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
+		assertFalse(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertTrue(con.hasStatement(null, INFORMED_BY, null, false));
 		assertTrue(con.hasStatement(null, CAHNGED, null, false));
@@ -261,10 +263,10 @@ public class AGAuditingTest extends TestCase {
 		assertFalse(con.hasStatement(carmichael, knows, harris, false));
 		assertTrue(con.hasStatement(carmichael, knows, jackson, false));
 		assertTrue(con.hasStatement(carmichael, GENERATED_BY, null, false));
-		assertEquals(2, con.getContextIDs().asList().size());
+		assertEquals(Arrays.asList(lastActivity), con.getContextIDs().asList());
 		assertTrue(con.hasStatement(null, RDF.TYPE, ACTIVITY, false));
 		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
-		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
+		assertFalse(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertTrue(con.hasStatement(null, INFORMED_BY, null, false));
 		assertTrue(con.hasStatement(null, CAHNGED, null, false));
@@ -282,12 +284,12 @@ public class AGAuditingTest extends TestCase {
 		stmts.close();
 		con = commit(repo, con);
 		assertFalse(con.hasStatement(carmichael, null, null, false));
-		assertEquals(2, con.getContextIDs().asList().size());
-		assertTrue(con.hasStatement(null, RDF.TYPE, ACTIVITY, false));
+		assertEquals(0, con.getContextIDs().asList().size());
+		assertFalse(con.hasStatement(null, RDF.TYPE, ACTIVITY, false));
 		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
-		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
-		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
-		assertTrue(con.hasStatement(null, INFORMED_BY, null, false));
+		assertFalse(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
+		assertFalse(con.hasStatement(null, ENDED_AT, null, false));
+		assertFalse(con.hasStatement(null, INFORMED_BY, null, false));
 		assertFalse(con.hasStatement(null, CAHNGED, null, false));
 	}
 
@@ -295,17 +297,18 @@ public class AGAuditingTest extends TestCase {
 		begin(con);
 		assertTrue(con.isEmpty());
 		con.add(carmichael, knows, harris);
+		URI activity = lastActivity;
 		con = reopen(repo, con);
 		con.remove(carmichael, GENERATED_BY, null);
 		con = commit(repo, con);
 		assertTrue(con.hasStatement(carmichael, knows, harris, false));
 		assertFalse(con.hasStatement(carmichael, GENERATED_BY, null, false));
-		assertEquals(2, con.getContextIDs().asList().size());
+		assertEquals(Arrays.asList(activity), con.getContextIDs().asList());
 		assertTrue(con.hasStatement(null, RDF.TYPE, ACTIVITY, false));
 		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
-		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
+		assertFalse(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
-		assertTrue(con.hasStatement(null, INFORMED_BY, null, false));
+		assertFalse(con.hasStatement(null, INFORMED_BY, null, false));
 		assertFalse(con.hasStatement(null, CAHNGED, null, false));
 	}
 
@@ -313,6 +316,7 @@ public class AGAuditingTest extends TestCase {
 		begin(con);
 		assertTrue(con.isEmpty());
 		con.add(carmichael, knows, harris);
+		URI activity = lastActivity;
 		con = reopen(repo, con);
 		RepositoryResult<Statement> stmts = con.getStatements(carmichael, GENERATED_BY, null, false);
 		Value revision = stmts.next().getObject();
@@ -321,12 +325,12 @@ public class AGAuditingTest extends TestCase {
 		con = commit(repo, con);
 		assertTrue(con.hasStatement(carmichael, knows, harris, false));
 		assertFalse(con.hasStatement(carmichael, GENERATED_BY, null, false));
-		assertEquals(2, con.getContextIDs().asList().size());
+		assertEquals(Arrays.asList(activity), con.getContextIDs().asList());
 		assertTrue(con.hasStatement(null, RDF.TYPE, ACTIVITY, false));
 		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
-		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
+		assertFalse(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
-		assertTrue(con.hasStatement(null, INFORMED_BY, null, false));
+		assertFalse(con.hasStatement(null, INFORMED_BY, null, false));
 		assertFalse(con.hasStatement(null, CAHNGED, null, false));
 	}
 
@@ -361,10 +365,10 @@ public class AGAuditingTest extends TestCase {
 		con = commit(repo, con);
 		assertTrue(con.hasStatement(carmichael, knows, harris, false));
 		assertTrue(con.hasStatement(carmichael, GENERATED_BY, null, false));
-		assertEquals(3, con.getContextIDs().asList().size());
+		assertEquals(2, con.getContextIDs().asList().size());
 		assertTrue(con.hasStatement(null, RDF.TYPE, ACTIVITY, false));
 		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
-		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
+		assertFalse(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertTrue(con.hasStatement(null, INFORMED_BY, null, false));
 		assertFalse(con.hasStatement(null, CAHNGED, null, false));
@@ -380,10 +384,10 @@ public class AGAuditingTest extends TestCase {
 		con = commit(repo, con);
 		assertTrue(con.hasStatement(carmichael, knows, jackson, false));
 		assertTrue(con.hasStatement(carmichael, GENERATED_BY, null, false));
-		assertEquals(2, con.getContextIDs().asList().size());
+		assertEquals(Arrays.asList(lastActivity), con.getContextIDs().asList());
 		assertTrue(con.hasStatement(null, RDF.TYPE, ACTIVITY, false));
 		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
-		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
+		assertFalse(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertTrue(con.hasStatement(null, INFORMED_BY, null, false));
 		assertTrue(con.hasStatement(null, CAHNGED, null, false));
@@ -397,10 +401,10 @@ public class AGAuditingTest extends TestCase {
 		con.remove(carmichael, null, null);
 		con = commit(repo, con);
 		assertFalse(con.hasStatement(carmichael, null, null, false));
-		assertEquals(2, con.getContextIDs().asList().size());
+		assertEquals(Arrays.asList(lastActivity), con.getContextIDs().asList());
 		assertTrue(con.hasStatement(null, RDF.TYPE, ACTIVITY, false));
 		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
-		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
+		assertFalse(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertTrue(con.hasStatement(null, INFORMED_BY, null, false));
 		assertTrue(con.hasStatement(null, CAHNGED, null, false));
@@ -432,10 +436,10 @@ public class AGAuditingTest extends TestCase {
 		con = commit(repo, con);
 		assertFalse(con.hasStatement(carmichael, knows, harris, false));
 		assertTrue(con.hasStatement(carmichael, GENERATED_BY, null, false));
-		assertEquals(2, con.getContextIDs().asList().size());
+		assertEquals(Arrays.asList(lastActivity), con.getContextIDs().asList());
 		assertTrue(con.hasStatement(null, RDF.TYPE, ACTIVITY, false));
 		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
-		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
+		assertFalse(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertTrue(con.hasStatement(null, INFORMED_BY, null, false));
 		assertTrue(con.hasStatement(null, CAHNGED, null, false));
@@ -450,10 +454,10 @@ public class AGAuditingTest extends TestCase {
 				"WHERE { <carmichael> ?p ?o } ", "http://example.com/").execute();
 		con = commit(repo, con);
 		assertFalse(con.hasStatement(carmichael, null, null, false));
-		assertEquals(2, con.getContextIDs().asList().size());
+		assertEquals(Arrays.asList(lastActivity), con.getContextIDs().asList());
 		assertTrue(con.hasStatement(null, RDF.TYPE, ACTIVITY, false));
 		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
-		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
+		assertFalse(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertTrue(con.hasStatement(null, INFORMED_BY, null, false));
 		assertTrue(con.hasStatement(null, CAHNGED, null, false));
@@ -468,13 +472,12 @@ public class AGAuditingTest extends TestCase {
 				"INSERT { <carmichael> <http://xmlns.com/foaf/0.1/knows> <jackson> }\n" +
 				"WHERE { <carmichael> ?p ?o } ", "http://example.com/").execute();
 		con = commit(repo, con);
-		assertFalse(con.hasStatement(carmichael, knows, harris, false));
 		assertTrue(con.hasStatement(carmichael, knows, jackson, false));
 		assertTrue(con.hasStatement(carmichael, GENERATED_BY, null, false));
-		assertEquals(2, con.getContextIDs().asList().size());
+		assertEquals(Arrays.asList(lastActivity), con.getContextIDs().asList());
 		assertTrue(con.hasStatement(null, RDF.TYPE, ACTIVITY, false));
 		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
-		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
+		assertFalse(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertTrue(con.hasStatement(null, INFORMED_BY, null, false));
 		assertTrue(con.hasStatement(null, CAHNGED, null, false));
