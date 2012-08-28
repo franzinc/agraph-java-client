@@ -79,8 +79,10 @@ endif
 	mkdir -p $(DIST)/lib/sesame
 	cp lib/sesame/commons-*.{jar,zip} $(DIST)/lib/sesame
 	cp lib/sesame/openrdf-sesame-2.6.8-onejar*.jar $(DIST)/lib/sesame
-	mkdir -p $(DIST)/lib/jena-2.6.2
-	cp lib/jena-2.6.2/*.jar $(DIST)/lib/jena-2.6.2
+	mkdir -p $(DIST)/lib/jena
+	cp lib/jena/*.jar $(DIST)/lib/jena
+	rm $(DIST)/lib/jena/*-tests.jar
+	rm $(DIST)/lib/jena/*-test-sources.jar
 	mkdir -p $(DIST)/doc
 	cp src/tutorial/java-tutorial-40.html $(DIST)/doc
 	cp src/tutorial/jena-tutorial-40.html $(DIST)/doc
