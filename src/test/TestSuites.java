@@ -61,6 +61,7 @@ public class TestSuites {
     @SuiteClasses( { MasqueradeAsUserTests.class,
     	UserManagementTests.class,
     	TutorialTests.class,
+    	LiteralAndResourceResultsTest.class,
         QuickTests.class,
         AGRepositoryConnectionTests.class,
         RDFTransactionTest.class,
