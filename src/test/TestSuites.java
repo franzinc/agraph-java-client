@@ -85,6 +85,8 @@ public class TestSuites {
         FreetextTests.class,
         DeleteDuplicatesTests.class,
         SparqlUpdateTests.class,
+        SparqlDefaultTest.class,
+        SparqlDefaultDatasetTest.class,
         AGRepositoryFactoryTest.class,
         CljTest.class
     })
