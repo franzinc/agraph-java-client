@@ -418,7 +418,8 @@
     <target name="sparql-update-tests"
             depends="build"
             description="Run sesame sparql update tests.">
-        <run-java tasknamex="sparql-update-tests" classname="org.junit.runner.JUnitCore" arg="test.openrdf.AGSparqlUpdateTest"/>
+        <run-java tasknamex="dawg-tests" classname="org.junit.runner.JUnitCore" arg="test.openrdf.AGSparqlUpdateConformanceTest"/>
+        <run-java tasknamex="more-tests" classname="org.junit.runner.JUnitCore" arg="test.openrdf.AGSparqlUpdateTest"/>
     </target>
 
     <target name="repository-connection-tests"
