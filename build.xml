@@ -445,6 +445,13 @@
         <run-java tasknamex="AGReifierTest      " classname="org.junit.runner.JUnitCore" arg="test.AGReifierTest"/>
     </target>
     
+    <target name="callimachus-tests"
+            depends="build"
+            description="Run callimachus tests.">
+        <run-java tasknamex="audit-tests" classname="org.junit.runner.JUnitCore" arg="test.callimachus.AGAuditingTest"/>
+        <run-java tasknamex="purge-tests" classname="org.junit.runner.JUnitCore" arg="test.callimachus.AGAuditingPurgeTest"/>
+    </target>
+
     <target name="mvn-install"
             depends="build"
             description="install jars into local maven repo">

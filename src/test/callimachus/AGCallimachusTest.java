@@ -16,14 +16,12 @@ import org.apache.commons.httpclient.methods.RequestEntity;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.openrdf.model.Literal;
-import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.vocabulary.RDFS;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.Update;
 import org.openrdf.query.impl.DatasetImpl;
 import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.RepositoryResult;
 
 import test.AGAbstractTest;
 import test.TestSuites;
@@ -107,15 +105,11 @@ public class AGCallimachusTest extends AGAbstractTest {
     	conn.add(e1,RDFS.LABEL,o_label,g0);
     	Assert.assertEquals("Expected 4 statements after trigger", 4, conn.size());
 
-    	/*String queryString = "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> \n"
+    	String queryString = "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> \n"
     			+ "DELETE {<http://example.com/entity1> rdfs:label ?oldLabel} \n"
     			+ "INSERT {<http://example.com/entity1> rdfs:label \"New Label\"} \n"
     			+ "WHERE {<http://example.com/entity1> rdfs:label ?oldLabel}; \n";
-    			*/
-    	String queryString = "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> \n"
-    			+ "DELETE {GRAPH ?g {<http://example.com/entity1> rdfs:label ?oldLabel}} \n"
-    			+ "INSERT {<http://example.com/entity1> rdfs:label \"New Label\"} \n"
-    			+ "WHERE {GRAPH ?g {<http://example.com/entity1> rdfs:label ?oldLabel}}; \n";
+    			
     	Update u = conn.prepareUpdate(QueryLanguage.SPARQL, queryString);
     	DatasetImpl ds = new DatasetImpl();
     	URI a1 = vf.createURI("http://example.com/activity1");
@@ -123,11 +117,7 @@ public class AGCallimachusTest extends AGAbstractTest {
     	u.setDataset(ds);
     	u.execute();
     	Assert.assertEquals("g0 should be empty", 0, conn.size(g0));
-    	Assert.assertEquals("activity1 should have 9 statements after update (verify this test, should deleted/untriggered statements be reified?)", 9, conn.size(a1));
-    	RepositoryResult<Statement> stmts = conn.getStatements(null,null,null,false,a1);
-    	while (stmts.hasNext()) {
-    		System.out.println(stmts.next());
-    	}
+    	Assert.assertEquals("activity1 should have 12 statements after update", 12, conn.size(a1));
     }
     
 }
