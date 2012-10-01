@@ -31,6 +31,8 @@ public class DynamicCatalogTests extends AGAbstractTest {
     	Assert.assertEquals("expected no change in catalogs", numCatalogs, server.listCatalogs().size());
     	catalog.createRepository(repoID);
     	Assert.assertTrue("expected repository", catalog.hasRepository(repoID));
+    	catalog.deleteRepository(repoID);
+    	Assert.assertTrue("unexpected repository", !catalog.hasRepository(repoID));
     	server.deleteCatalog(catalogID);
     	Assert.assertNull("expected catalog to be deleted", server.getCatalog(catalogID));
     	try {
