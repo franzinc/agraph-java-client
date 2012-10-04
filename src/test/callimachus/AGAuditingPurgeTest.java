@@ -78,6 +78,7 @@ public class AGAuditingPurgeTest extends TestCase {
 		Repository r = AGCallimachusTest.sharedCallimachusRepository();
 		repo = new AuditingRepository(r);
 		repo.setPurgeAfter(DatatypeFactory.newInstance().newDuration("PT0S"));
+		repo.setTransactional(false);
 		repo.initialize();
 		final DatatypeFactory df = DatatypeFactory.newInstance();
 		final ActivityFactory delegate = repo.getActivityFactory();

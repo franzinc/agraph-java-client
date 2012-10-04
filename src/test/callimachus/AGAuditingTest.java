@@ -77,6 +77,7 @@ public class AGAuditingTest extends TestCase {
 	public void setUp() throws Exception {
 		Repository r = AGCallimachusTest.sharedCallimachusRepository();
 		repo = new AuditingRepository(r);
+		repo.setTransactional(false);
 		repo.initialize();
 		final DatatypeFactory df = DatatypeFactory.newInstance();
 		final ActivityFactory delegate = repo.getActivityFactory();
