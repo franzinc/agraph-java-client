@@ -193,9 +193,9 @@ public class AGRepository extends RepositoryBase implements AGAbstractRepository
 		NameValuePair[] data = {};
 		try {
 			if (bulkMode) {
-				getHTTPClient().put(url, headers, data, null);
+				getHTTPClient().put(url, headers, data, null, null);
 			} else {
-				getHTTPClient().delete(url, headers, data);
+				getHTTPClient().delete(url, headers, data, null);
 			}
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
@@ -239,7 +239,7 @@ public class AGRepository extends RepositoryBase implements AGAbstractRepository
 		Header[] headers = new Header[0];
 		NameValuePair[] data = {new NameValuePair("type",policy)};
 		try {
-			getHTTPClient().put(url, headers, data, null);
+			getHTTPClient().put(url, headers, data, null, null);
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}

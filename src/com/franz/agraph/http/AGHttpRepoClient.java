@@ -68,6 +68,7 @@ import com.franz.agraph.http.handler.AGTQRHandler;
 import com.franz.agraph.http.storedproc.AGDeserializer;
 import com.franz.agraph.http.storedproc.AGSerializer;
 import com.franz.agraph.repository.AGAbstractRepository;
+import com.franz.agraph.repository.AGMaterializer;
 import com.franz.agraph.repository.AGQuery;
 import com.franz.agraph.repository.AGRDFFormat;
 import com.franz.agraph.repository.AGSpinFunction;
@@ -417,7 +418,7 @@ public class AGHttpRepoClient implements Closeable {
 					encodedContext));
 		}
 		getHTTPClient().delete(url, headers,
-				params.toArray(new NameValuePair[params.size()]));
+				params.toArray(new NameValuePair[params.size()]), null);
 	}
 
 	public void setAutoCommit(boolean autoCommit) throws AGHttpException {
@@ -484,7 +485,7 @@ public class AGHttpRepoClient implements Closeable {
 	public void clearNamespaces() throws AGHttpException {
 		String url = Protocol.getNamespacesLocation(getRoot());
 		Header[] headers = {};
-		getHTTPClient().delete(url, headers, new NameValuePair[0]);
+		getHTTPClient().delete(url, headers, new NameValuePair[0], null);
 	}
 
 	public void upload(final Reader contents, String baseURI,
@@ -721,7 +722,7 @@ public class AGHttpRepoClient implements Closeable {
 		NameValuePair[] params = {};
 		try {
 			getHTTPClient().put(url, headers, params,
-					new StringRequestEntity(name, "text/plain", "UTF-8"));
+					new StringRequestEntity(name, "text/plain", "UTF-8"),null);
 		} catch (UnsupportedEncodingException e) {
 			throw new RuntimeException(e);
 		}
@@ -731,7 +732,7 @@ public class AGHttpRepoClient implements Closeable {
 		String url = Protocol.getNamespacePrefixLocation(getRoot(),
 				prefix);
 		Header[] headers = {};
-		getHTTPClient().delete(url, headers, new NameValuePair[0]);
+		getHTTPClient().delete(url, headers, new NameValuePair[0], null);
 	}
 
 	public void query(AGQuery q, boolean analyzeOnly, AGResponseHandler handler) throws 
@@ -877,7 +878,7 @@ public class AGHttpRepoClient implements Closeable {
 		String url = AGProtocol.getSavedQueryLocation(getRoot(), queryName);
 		Header[] headers = {};
 		NameValuePair[] params = {};
-		getHTTPClient().delete(url, headers, params);
+		getHTTPClient().delete(url, headers, params, null);
 	}
 	
 	public synchronized void close() throws AGHttpException {
@@ -949,7 +950,7 @@ public class AGHttpRepoClient implements Closeable {
 		if (tokenizer != "default") {
 			params.add(new NameValuePair("tokenizer", tokenizer));
 		}
-		getHTTPClient().put(url, new Header[0], params.toArray(new NameValuePair[params.size()]), null);
+		getHTTPClient().put(url, new Header[0], params.toArray(new NameValuePair[params.size()]), null,null);
 	}
 	
 	/**
@@ -962,7 +963,7 @@ public class AGHttpRepoClient implements Closeable {
 		String url = AGProtocol.getFreetextIndexLocation(getRoot(), index);
 		Header[] headers = {};
 		NameValuePair[] params = {};
-		getHTTPClient().delete(url, headers, params);
+		getHTTPClient().delete(url, headers, params, null);
 	}
 	
 	/**
@@ -1062,7 +1063,7 @@ public class AGHttpRepoClient implements Closeable {
 		Header[] headers = {};
 		NameValuePair[] params = { new NameValuePair(
 				AGProtocol.FTI_PREDICATE_PARAM_NAME, pred_nt) };
-		getHTTPClient().delete(url, headers, params);
+		getHTTPClient().delete(url, headers, params, null);
 	}
 
 	public String[] getPredicateMappings() throws AGHttpException {
@@ -1098,7 +1099,7 @@ public class AGHttpRepoClient implements Closeable {
 		Header[] headers = {};
 		NameValuePair[] params = { new NameValuePair(
 				AGProtocol.TYPE_PARAM_NAME, datatype_nt) };
-		getHTTPClient().delete(url, headers, params);
+		getHTTPClient().delete(url, headers, params, null);
 	}
 
 	public String[] getDatatypeMappings() throws AGHttpException {
@@ -1126,7 +1127,7 @@ public class AGHttpRepoClient implements Closeable {
 		}
 		Header[] headers = {};
 		NameValuePair[] params = {};
-		getHTTPClient().delete(url, headers, params);
+		getHTTPClient().delete(url, headers, params, null);
 	}
 
 	public void addRules(String rules) throws AGHttpException {
@@ -1235,7 +1236,7 @@ public class AGHttpRepoClient implements Closeable {
 		for (String point: points) {
 			params.add(new NameValuePair(AGProtocol.POINT_PARAM_NAME, point));
 		}
-		getHTTPClient().put(url, headers, params.toArray(new NameValuePair[params.size()]), null);
+		getHTTPClient().put(url, headers, params.toArray(new NameValuePair[params.size()]), null, null);
 	}
 	
 	public void getGeoBox(String type_uri, String predicate_uri, float xmin, float xmax,
@@ -1345,7 +1346,7 @@ public class AGHttpRepoClient implements Closeable {
 		if (query!=null) {
 			params.add(new NameValuePair(AGProtocol.QUERY_PARAM_NAME, query));
 		}
-		getHTTPClient().put(url, headers, params.toArray(new NameValuePair[params.size()]), null);
+		getHTTPClient().put(url, headers, params.toArray(new NameValuePair[params.size()]), null, null);
 	}
 	
 	public void registerSNANeighborMatrix(String matrix, String generator, List<String> group, int depth) 
@@ -1358,7 +1359,7 @@ public class AGHttpRepoClient implements Closeable {
 			params.add(new NameValuePair(AGProtocol.GROUP_PARAM_NAME, node));
 		}
 		params.add(new NameValuePair(AGProtocol.DEPTH_PARAM_NAME, Integer.toString(depth)));
-		getHTTPClient().put(url, headers, params.toArray(new NameValuePair[params.size()]), null);
+		getHTTPClient().put(url, headers, params.toArray(new NameValuePair[params.size()]), null, null);
 	}
 
 	/**
@@ -1393,7 +1394,7 @@ public class AGHttpRepoClient implements Closeable {
 		String url = AGProtocol.getIndicesURL(getRoot())+"/"+index;
 		Header[] headers = {};
 		NameValuePair[] params = {};
-		getHTTPClient().put(url, headers, params, null);
+		getHTTPClient().put(url, headers, params, null, null);
 	}
 	
 	/**
@@ -1408,7 +1409,7 @@ public class AGHttpRepoClient implements Closeable {
 		String url = AGProtocol.getIndicesURL(getRoot())+"/"+index;
 		Header[] headers = {};
 		NameValuePair[] params = {};
-		getHTTPClient().delete(url, headers, params);
+		getHTTPClient().delete(url, headers, params, null);
 	}
 	
 	public void registerEncodableNamespace(String namespace, String format)
@@ -1430,7 +1431,7 @@ public class AGHttpRepoClient implements Closeable {
 		List<NameValuePair> params = new ArrayList<NameValuePair>(2);
 		params.add(new NameValuePair("prefix", namespace));
 		getHTTPClient().delete(url, headers,
-					params.toArray(new NameValuePair[params.size()]));
+					params.toArray(new NameValuePair[params.size()]), null);
 	}
 
 	/**
@@ -1443,7 +1444,7 @@ public class AGHttpRepoClient implements Closeable {
 		String url = getRoot()+"/tripleCache";
 		Header[] headers = {};
 		NameValuePair[] params = {new NameValuePair("size", Long.toString(size))};
-		getHTTPClient().put(url, headers, params, null);
+		getHTTPClient().put(url, headers, params, null, null);
 	}
 
 	public void registerEncodableNamespaces(JSONArray formattedNamespaces) 
@@ -1550,7 +1551,7 @@ public class AGHttpRepoClient implements Closeable {
 		String url = getRoot()+"/tripleCache";
 		Header[] headers = {};
 		NameValuePair[] params = {};
-		getHTTPClient().delete(url, headers, params);
+		getHTTPClient().delete(url, headers, params, null);
 	}
 
 	public String[] getBlankNodes(int blankNodeAmount) throws AGHttpException {
@@ -1581,7 +1582,58 @@ public class AGHttpRepoClient implements Closeable {
 		if (comparisonMode!=null) {
 			params.add(new NameValuePair("mode", comparisonMode));
 		}
-		getHTTPClient().delete(url,headers,params.toArray(new NameValuePair[params.size()]));
+		getHTTPClient().delete(url,headers,params.toArray(new NameValuePair[params.size()]), null);
+	}
+	
+	/**
+	 * Materializes inferred statements (generates and adds them to the store).
+	 * <p>
+	 * The materializer's configuration determines how statements are materialized.
+	 * 
+	 * @param materializer the materializer to use. 
+	 * @return the number of statements added. 
+	 * @throws AGHttpException
+	 * @see AGMaterializer#newInstance()
+	 */
+	public long materialize(AGMaterializer materializer) throws AGHttpException {
+		String url = getRoot() + "/materializeEntailed";
+		Header[] headers = {};
+		List<NameValuePair> params = new ArrayList<NameValuePair>(5);
+		if (materializer!=null) {
+			for (String with: materializer.getWithRulesets()) {
+				params.add(new NameValuePair("with", with));
+			}
+			for (String with: materializer.getWithoutRulesets()) {
+				params.add(new NameValuePair("without", with));
+			}
+			Integer period = materializer.getCommitPeriod();
+			if (period!=null) {
+				params.add(new NameValuePair("commit", period.toString()));
+			}
+			Boolean useTypeSubproperty = materializer.getUseTypeSubproperty();
+			if (useTypeSubproperty!=null) {
+				params.add(new NameValuePair("useTypeSubproperty", useTypeSubproperty.toString()));
+			}
+		} // else, using the server's default materializer
+		AGLongHandler handler = new AGLongHandler();
+		getHTTPClient().put(url,headers,params.toArray(new NameValuePair[params.size()]),null,handler);
+		return handler.getResult();
+	}
+	
+	/**
+	 * Deletes materialized statements.
+	 * 
+	 * @throws AGHttpException
+	 * returns the number of statements deleted.
+	 * @see #materialize(AGMaterializer)
+	 */
+	public long deleteMaterialized() throws RepositoryException {
+		String url = getRoot() + "/materializeEntailed";
+		Header[] headers = {};
+		List<NameValuePair> params = new ArrayList<NameValuePair>(2);
+		AGLongHandler handler = new AGLongHandler();
+		getHTTPClient().delete(url,headers,params.toArray(new NameValuePair[params.size()]), handler);
+		return handler.getResult();
 	}
 	
 	public void optimizeIndices(Boolean wait, int level) throws AGHttpException {
@@ -1609,7 +1661,7 @@ public class AGHttpRepoClient implements Closeable {
 		for (int i = 0; fn.getArguments() != null && i < fn.getArguments().length; i++) {
 			params[i+1] = new NameValuePair(AGProtocol.SPIN_ARGUMENTS, fn.getArguments()[i]);
 		}
-		getHTTPClient().put(AGProtocol.spinURL(getRoot(), x, fn.getUri()), null, params, null);
+		getHTTPClient().put(AGProtocol.spinURL(getRoot(), x, fn.getUri()), null, params, null, null);
 	}
 
 	/**
@@ -1637,7 +1689,7 @@ public class AGHttpRepoClient implements Closeable {
 	 * @since v4.4
 	 */
 	public void deleteSpinFunction(String uri) throws AGHttpException {
-		getHTTPClient().delete(AGProtocol.spinURL(getRoot(), AGProtocol.SPIN_FUNCTION, uri), null, null);
+		getHTTPClient().delete(AGProtocol.spinURL(getRoot(), AGProtocol.SPIN_FUNCTION, uri), null, null, null);
 	}
 
 	/**
@@ -1678,7 +1730,7 @@ public class AGHttpRepoClient implements Closeable {
 	 * @since v4.4
 	 */
 	public void deleteSpinMagicProperty(String uri) throws AGHttpException {
-		getHTTPClient().delete(AGProtocol.spinURL(getRoot(), AGProtocol.SPIN_MAGICPROPERTY, uri), null, null);
+		getHTTPClient().delete(AGProtocol.spinURL(getRoot(), AGProtocol.SPIN_MAGICPROPERTY, uri), null, null, null);
 	}
 
 	/**

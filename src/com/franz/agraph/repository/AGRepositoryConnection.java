@@ -1699,6 +1699,31 @@ implements RepositoryConnection, Closeable {
 	}
 	
 	/**
+	 * Materializes inferred statements (generates and adds them to the store).
+	 * <p>
+	 * The materializer's configuration determines how statements are materialized.
+	 * 
+	 * @param materializer the materializer to use. 
+	 * @return the number of statements added.
+	 * @throws AGHttpException
+	 * @see AGMaterializer#newInstance()
+	 */
+	public long materialize(AGMaterializer materializer) throws RepositoryException {
+		return getHttpRepoClient().materialize(materializer);
+	}
+	
+	/**
+	 * Deletes materialized statements.
+	 * 
+	 * @return the number of statements deleted.
+	 * @throws AGHttpException
+	 * @see #materialize(AGMaterializer)
+	 */
+	public long deleteMaterialized() throws RepositoryException {
+		return getHttpRepoClient().deleteMaterialized();
+	}
+	
+	/**
 	 * Sets the AG user for X-Masquerade-As-User requests.
 	 * 
 	 * For AG superusers only.  This allows AG superusers to run requests as

@@ -69,11 +69,11 @@ public class ServerCodeTests extends AGAbstractTest {
 
 		public void putScript(String path, File script) throws Exception {
 			http().put(server.getServerURL() + "/scripts/" + path, null, null,
-					new FileRequestEntity(script, "text/plain"));
+					new FileRequestEntity(script, "text/plain"), null);
 		}
 		
 		public void deleteScript(String path) throws Exception {
-			http().delete(server.getServerURL() + "/scripts/" + path, null, null);
+			http().delete(server.getServerURL() + "/scripts/" + path, null, null, null);
 		}
 		
 		public TupleQueryResult initFile() throws Exception {
@@ -82,11 +82,11 @@ public class ServerCodeTests extends AGAbstractTest {
 
 		public void putInitFile(File script) throws Exception {
 			http().put(server.getServerURL() + "/initfile", null, null,
-					new FileRequestEntity(script, "text/plain"));
+					new FileRequestEntity(script, "text/plain"), null);
 		}
 		
 		public void deleteInitFile() throws Exception {
-	    	http().delete(server.getServerURL() + "/initfile", null, null);
+	    	http().delete(server.getServerURL() + "/initfile", null, null, null);
 		}
 
 	}
