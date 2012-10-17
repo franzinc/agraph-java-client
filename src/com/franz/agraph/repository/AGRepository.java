@@ -193,9 +193,9 @@ public class AGRepository extends RepositoryBase implements AGAbstractRepository
 		NameValuePair[] data = {};
 		try {
 			if (bulkMode) {
-				getHTTPClient().put(url, headers, data, null);
+				getHTTPClient().put(url, headers, data, null, null);
 			} else {
-				getHTTPClient().delete(url, headers, data);
+				getHTTPClient().delete(url, headers, data, null);
 			}
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
@@ -211,6 +211,49 @@ public class AGRepository extends RepositoryBase implements AGAbstractRepository
 	public boolean isBulkMode() throws RepositoryException {
 		try {
 			return Boolean.parseBoolean(getHTTPClient().getString(repositoryURL+"/bulkMode"));
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		}
+	}
+	
+	/**
+	 * Sets the repository's duplicate suppression policy.
+	 * 
+	 * This determines how/whether duplicates will be automatically removed at 
+	 * commit time.  
+	 *  
+	 * Legal policy names are "false" (turns automatic suppression off), 
+	 * "spo" (removes statements with the same s, p, and o), and "spog" 
+	 * (compares s, p, o, and g).
+	 * 
+	 * For on-demand duplicate deletion, see 
+	 * {@link AGRepositoryConnection#deleteDuplicates(String)}.
+	 * 
+	 * See also the protocol documentation for
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#get-suppress-duplicates">suppressing duplicates</a>.
+	 * @param policy name of the suppression policy to use 
+	 * @see #getDuplicateSuppressionPolicy()
+	 */
+	public void setDuplicateSuppressionPolicy(String policy) throws RepositoryException {
+		String url = repositoryURL + "/suppressDuplicates";
+		Header[] headers = new Header[0];
+		NameValuePair[] data = {new NameValuePair("type",policy)};
+		try {
+			getHTTPClient().put(url, headers, data, null, null);
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		}
+	}
+	
+	/**
+	 * Returns the repository's duplicate suppression policy.
+	 *  
+	 * @return the policy name.
+	 * @see #setDuplicateSuppressionPolicy(String)
+	 */
+	public String getDuplicateSuppressionPolicy() throws RepositoryException {
+		try {
+			return getHTTPClient().getString(repositoryURL+"/suppressDuplicates");
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}

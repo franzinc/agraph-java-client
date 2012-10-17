@@ -191,7 +191,7 @@ implements Closeable {
 		}
 	}
 
-	public void delete(String url, Header[] headers, NameValuePair[] params)
+	public void delete(String url, Header[] headers, NameValuePair[] params, AGResponseHandler handler)
 			throws AGHttpException {
 		DeleteMethod delete = new DeleteMethod(url);
 		setDoAuthentication(delete);
@@ -205,7 +205,9 @@ implements Closeable {
 		}
 		try {
 			int httpCode = getHttpClient().executeMethod(delete);
-			if (httpCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
+			if (httpCode == HttpURLConnection.HTTP_OK) {
+				if (handler!=null) handler.handleResponse(delete);
+			} else if (httpCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
 				throw new AGHttpException(new UnauthorizedException());
 			} else if (!is2xx(httpCode)) {
 				AGErrorHandler errHandler = new AGErrorHandler();
@@ -217,11 +219,13 @@ implements Closeable {
 		} catch (IOException e) {
 			handleSessionConnectionError(e,url);
 		} finally {
-			releaseConnection(delete);
+			if (handler == null || handler.releaseConnection()) {
+				releaseConnection(delete);
+			}
 		}
 	}
 
-	public void put(String url, Header[] headers, NameValuePair[] params, RequestEntity requestEntity) throws AGHttpException {
+	public void put(String url, Header[] headers, NameValuePair[] params, RequestEntity requestEntity,AGResponseHandler handler) throws AGHttpException {
 		PutMethod put = new PutMethod(url);
 		setDoAuthentication(put);
 		if (headers != null) {
@@ -237,7 +241,9 @@ implements Closeable {
 		}
 		try {
 			int httpCode = getHttpClient().executeMethod(put);
-			if (httpCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
+			if (httpCode == HttpURLConnection.HTTP_OK) {
+				if (handler!=null) handler.handleResponse(put);
+			} else if (httpCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
 				throw new AGHttpException(new UnauthorizedException());
 			} else if (!is2xx(httpCode)) {
 				AGErrorHandler errHandler = new AGErrorHandler();
@@ -249,7 +255,9 @@ implements Closeable {
 		} catch (IOException e) {
 			handleSessionConnectionError(e,url);
 		} finally {
-			releaseConnection(put);
+			if (handler == null || handler.releaseConnection()) {
+				releaseConnection(put);
+			}
 		}
 	}
 
@@ -337,26 +345,26 @@ implements Closeable {
 		if (logger.isDebugEnabled()) logger.debug("putCatalog: " + catalogURL);
 		Header[] headers = new Header[0];
 		NameValuePair[] params = new NameValuePair[0];
-		put(catalogURL,headers,params,null);
+		put(catalogURL,headers,params,null,null);
 	}
 	
 	public void deleteCatalog(String catalogURL) throws AGHttpException {
 		Header[] headers = new Header[0];
 		NameValuePair[] params = new NameValuePair[0];
-		delete(catalogURL, headers, params);
+		delete(catalogURL, headers, params, null);
 	}
 	
 	public void putRepository(String repositoryURL) throws AGHttpException {
 		if (logger.isDebugEnabled()) logger.debug("putRepository: " + repositoryURL);
 		Header[] headers = new Header[0];
 		NameValuePair[] params = { new NameValuePair(OVERRIDE_PARAM_NAME, "false") };
-		put(repositoryURL,headers,params,null);
+		put(repositoryURL,headers,params,null,null);
 	}
 
 	public void deleteRepository(String repositoryURL) throws AGHttpException {
 		Header[] headers = new Header[0];
 		NameValuePair[] params = new NameValuePair[0];
-		delete(repositoryURL, headers, params);
+		delete(repositoryURL, headers, params, null);
 	}
 
 	public TupleQueryResult getTupleQueryResult(String url) throws AGHttpException {

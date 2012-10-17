@@ -21,6 +21,22 @@ import com.franz.agraph.repository.AGRepositoryConnection;
 
 public class DeleteDuplicatesTests extends AGAbstractTest {
 
+	@Test
+	@Category(TestSuites.Prepush.class)
+	public void testDuplicateSuppressionPolicy() throws Exception {
+		Assert.assertEquals("expected false","false",repo.getDuplicateSuppressionPolicy());
+		repo.setDuplicateSuppressionPolicy("spog");
+		Assert.assertEquals("expected spog","spog",repo.getDuplicateSuppressionPolicy());
+		conn.add(new File("src/test/example.nq"), null, AGRDFFormat.NQUADS);
+		Assert.assertEquals("expected size 10", 10, conn.size());
+		conn.add(new File("src/test/example.nq"), null, AGRDFFormat.NQUADS);
+		Assert.assertEquals("expected size 15", 15, conn.size());
+		repo.setDuplicateSuppressionPolicy("spo");
+		Assert.assertEquals("expected spo","spo",repo.getDuplicateSuppressionPolicy());
+		repo.setDuplicateSuppressionPolicy("false");
+		Assert.assertEquals("expected false","false",repo.getDuplicateSuppressionPolicy());
+	}
+	
     @Test
     @Category(TestSuites.Prepush.class)
     public void testSPOG() throws Exception {

@@ -9,6 +9,7 @@
 package com.franz.agraph.jena;
 
 import java.util.Iterator;
+import java.util.concurrent.TimeUnit;
 
 import org.openrdf.query.GraphQueryResult;
 import org.openrdf.query.QueryEvaluationException;
@@ -19,7 +20,9 @@ import com.franz.agraph.repository.AGBooleanQuery;
 import com.franz.agraph.repository.AGGraphQuery;
 import com.franz.agraph.repository.AGTupleQuery;
 import com.franz.util.Closeable;
+import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.query.Dataset;
+import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QueryException;
 import com.hp.hpl.jena.query.QueryExecution;
 import com.hp.hpl.jena.query.QuerySolution;
@@ -228,6 +231,55 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 	@Override
 	public void setInitialBinding(QuerySolution binding) {
 		binding = this.binding;
+	}
+
+
+	@Override
+	public Iterator<Triple> execConstructTriples() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	@Override
+	public Iterator<Triple> execDescribeTriples() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	@Override
+	public Query getQuery() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	@Override
+	public void setTimeout(long arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public void setTimeout(long arg0, TimeUnit arg1) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public void setTimeout(long arg0, long arg1) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public void setTimeout(long arg0, TimeUnit arg1, long arg2, TimeUnit arg3) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

@@ -355,7 +355,7 @@ public class AGServer implements Closeable {
 		String url = serverURL+"/users/"+user;
 		Header[] headers = new Header[0];
 		NameValuePair[] params = { new NameValuePair("password", password) };
-		getHTTPClient().put(url, headers, params, null);
+		getHTTPClient().put(url, headers, params, null, null);
 	}
 	
 	/**
@@ -368,7 +368,7 @@ public class AGServer implements Closeable {
 		String url = serverURL+"/users/"+user;
 		Header[] headers = new Header[0];
 		NameValuePair[] params = new NameValuePair[0];
-		getHTTPClient().delete(url, headers, params);
+		getHTTPClient().delete(url, headers, params, null);
 	}
 	
 	/**
@@ -395,7 +395,7 @@ public class AGServer implements Closeable {
    			new NameValuePair("write", Boolean.toString(write)),
    			new NameValuePair("catalog", catalog),
    			new NameValuePair("repository", repository)};
-		getHTTPClient().put(url, headers, params, null);
+		getHTTPClient().put(url, headers, params, null, null);
 	}
 	
 	/**
@@ -422,7 +422,7 @@ public class AGServer implements Closeable {
    			new NameValuePair("write", Boolean.toString(write)),
    			new NameValuePair("catalog", catalog),
    			new NameValuePair("repository", repository)};
-		getHTTPClient().delete(url, headers, params);
+		getHTTPClient().delete(url, headers, params, null);
 	}
 	
 	/**
@@ -573,7 +573,7 @@ public class AGServer implements Closeable {
 		String url = serverURL+"/users/"+user+"/permissions/"+permission;
 		Header[] headers = new Header[0];
 		NameValuePair[] params = {};
-		getHTTPClient().put(url, headers, params, null);
+		getHTTPClient().put(url, headers, params, null, null);
 	}
 
 	/**
@@ -587,7 +587,7 @@ public class AGServer implements Closeable {
 		String url = serverURL+"/users/"+user+"/permissions/"+permission;
 		Header[] headers = new Header[0];
 		NameValuePair[] params = {};
-		getHTTPClient().delete(url, headers, params);
+		getHTTPClient().delete(url, headers, params, null);
 		
 	}
 
@@ -611,7 +611,7 @@ public class AGServer implements Closeable {
 		String url = serverURL+"/roles/"+role;
 		Header[] headers = new Header[0];
 		NameValuePair[] params = {};
-		getHTTPClient().put(url, headers, params, null);
+		getHTTPClient().put(url, headers, params, null, null);
 	}
 
 	/**
@@ -639,7 +639,7 @@ public class AGServer implements Closeable {
    			new NameValuePair("write", Boolean.toString(write)),
    			new NameValuePair("catalog", catalog),
    			new NameValuePair("repository", repository)};
-		getHTTPClient().put(url, headers, params, null);
+		getHTTPClient().put(url, headers, params, null, null);
 	}
 
 	/**
@@ -720,7 +720,7 @@ public class AGServer implements Closeable {
 		if (p!=null) params.add(new NameValuePair("p", p));
 		if (o!=null) params.add(new NameValuePair("o", o));
 		if (g!=null) params.add(new NameValuePair("g", g));
-		getHTTPClient().delete(url, headers, params.toArray(new NameValuePair[params.size()]));
+		getHTTPClient().delete(url, headers, params.toArray(new NameValuePair[params.size()]), null);
 	}
 
 	/**
@@ -744,7 +744,7 @@ public class AGServer implements Closeable {
 		String url = serverURL+"/users/"+user+"/roles/"+role;
 		Header[] headers = {};
 		NameValuePair[] params = {}; 
-		getHTTPClient().put(url, headers, params, null);
+		getHTTPClient().put(url, headers, params, null, null);
 	}
 
 	/**
@@ -758,7 +758,7 @@ public class AGServer implements Closeable {
 		String url = serverURL+"/users/"+user+"/roles/"+role;
 		Header[] headers = {};
 		NameValuePair[] params = {}; 
-		getHTTPClient().delete(url, headers, params);
+		getHTTPClient().delete(url, headers, params, null);
 		
 	}
 
@@ -783,7 +783,7 @@ public class AGServer implements Closeable {
    			new NameValuePair("write", Boolean.toString(write)),
    			new NameValuePair("catalog", catalog),
    			new NameValuePair("repository", repository)};
-		getHTTPClient().delete(url, headers, params);
+		getHTTPClient().delete(url, headers, params, null);
 	}
 
 	/**
@@ -796,7 +796,7 @@ public class AGServer implements Closeable {
 		String url = serverURL+"/roles/"+role;
 		Header[] headers = new Header[0];
 		NameValuePair[] params = new NameValuePair[0];
-		getHTTPClient().delete(url, headers, params);
+		getHTTPClient().delete(url, headers, params, null);
 	}
 
 	
@@ -811,7 +811,7 @@ public class AGServer implements Closeable {
 		String url = serverURL+"/roles/"+role+"/permissions/"+permission;
 		Header[] headers = new Header[0];
 		NameValuePair[] params = {};
-		getHTTPClient().put(url, headers, params, null);
+		getHTTPClient().put(url, headers, params, null, null);
 	}
 
 	/**
@@ -825,7 +825,7 @@ public class AGServer implements Closeable {
 		String url = serverURL+"/roles/"+role+"/permissions/"+permission;
 		Header[] headers = new Header[0];
 		NameValuePair[] params = {};
-		getHTTPClient().delete(url, headers, params);
+		getHTTPClient().delete(url, headers, params, null);
 		
 	}
 
