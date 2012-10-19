@@ -60,7 +60,7 @@ public class TestSuites {
     @RunWith(Categories.class)
     @ExcludeCategory(NonPrepushTest.class)
     @SuiteClasses( { AGCallimachusTest.class,
-    @SuiteClasses( { AGMaterializerTests.class,
+        AGMaterializerTests.class,
     	MasqueradeAsUserTests.class,
     	UserManagementTests.class,
     	TutorialTests.class,
