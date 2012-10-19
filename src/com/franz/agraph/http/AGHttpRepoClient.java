@@ -1603,8 +1603,8 @@ public class AGHttpRepoClient implements Closeable {
 			for (String with: materializer.getWithRulesets()) {
 				params.add(new NameValuePair("with", with));
 			}
-			for (String with: materializer.getWithoutRulesets()) {
-				params.add(new NameValuePair("without", with));
+			for (String without: materializer.getWithoutRulesets()) {
+				params.add(new NameValuePair("without", without));
 			}
 			Integer period = materializer.getCommitPeriod();
 			if (period!=null) {
