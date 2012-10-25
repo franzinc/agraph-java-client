@@ -81,7 +81,7 @@ public class AGMaterializer {
 	 * @return the without rulesets
 	 */
 	public List<String> getWithoutRulesets() {
-		return with;
+		return without;
 	}
 	
 	/**
