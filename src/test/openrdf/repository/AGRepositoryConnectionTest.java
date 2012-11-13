@@ -7,18 +7,22 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Collection;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
+import org.openrdf.model.impl.StatementImpl;
+import org.openrdf.model.vocabulary.RDFS;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.GraphQuery;
 import org.openrdf.query.GraphQueryResult;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.query.QueryInterruptedException;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.TupleQuery;
 import org.openrdf.query.TupleQueryResult;
@@ -114,17 +118,44 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 	public void testExclusiveNullContext() throws Exception {
 		super.testExclusiveNullContext();
 	}
-	
+
     /**
-     * TODO: Needs query timeout (rfe11547).  
+     * TODO: query.evaluate() needs to be inside the try below, in the 
+     * parent test it's not.
      * 
-     * Meanwhile, fail right away to speed up the test suite.
+     * TODO: 512 statements are added all at once here, in the parent 
+     * test there are 512 single adds (far slower, consider rfe10261 to
+     * improve the performance of the unmodified parent test).   
      * 
      */
     @Override
 	public void testOrderByQueriesAreInterruptable() throws Exception {
-    	// fail quickly
-    	Assert.fail("Fails needing query timeout (rfe11547) implemented.");
+    	//super.testOrderByQueriesAreInterruptable();
+		testCon.setAutoCommit(false);
+		Collection<Statement> stmts = new ArrayList<Statement>();
+		for (int index = 0; index < 512; index++) {
+			stmts.add(new StatementImpl(RDFS.CLASS, RDFS.COMMENT, testCon.getValueFactory().createBNode()));
+		}
+		testCon.add(stmts);
+		testCon.setAutoCommit(true);
+
+		TupleQuery query = testCon.prepareTupleQuery(QueryLanguage.SPARQL,
+				"SELECT * WHERE { ?s ?p ?o . ?s1 ?p1 ?o1 . ?s2 ?p2 ?o2 . ?s3 ?p3 ?o3 } ORDER BY ?s1 ?p1 ?o1 LIMIT 1000");
+		query.setMaxQueryTime(2);
+
+		long startTime = System.currentTimeMillis();
+		try {
+			TupleQueryResult result = query.evaluate();
+			result.hasNext();
+			fail("Query should have been interrupted");
+		}
+		catch (QueryInterruptedException e) {
+			// Expected
+			long duration = System.currentTimeMillis() - startTime;
+
+			assertTrue("Query not interrupted quickly enough, should have been ~2s, but was "
+					+ (duration / 1000) + "s", duration < 5000);
+		}
 	}
 
 	@Override

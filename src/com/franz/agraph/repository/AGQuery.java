@@ -13,10 +13,12 @@ import java.util.Iterator;
 import org.openrdf.query.Binding;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.query.QueryInterruptedException;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.impl.AbstractQuery;
 
 import com.franz.agraph.http.exception.AGHttpException;
+import com.franz.agraph.http.exception.AGQueryTimeoutException;
 import com.franz.agraph.http.handler.AGResponseHandler;
 import com.franz.agraph.http.handler.AGStringHandler;
 
@@ -141,7 +143,9 @@ public abstract class AGQuery extends AbstractQuery {
 	 * @return the query string.
 	 */
 	public String getQueryString() {
-		return queryString;
+		long timeout = getMaxQueryTime();
+		String timeoutPrefix = timeout > 0 ? "PREFIX franzOption_queryTimeout: <franz:"+timeout+">     # timeout in seconds\n " : "";
+		return timeoutPrefix + queryString;
 	}
 	
 	/**
@@ -277,6 +281,8 @@ public abstract class AGQuery extends AbstractQuery {
 			throws QueryEvaluationException {
 		try {
 			httpCon.getHttpRepoClient().query(this, analyzeOnly, handler);
+		} catch (AGQueryTimeoutException e) {
+			throw new QueryInterruptedException(e);
 		} catch (AGHttpException e) {
 			throw new QueryEvaluationException(e);
 		}

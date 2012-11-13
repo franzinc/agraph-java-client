@@ -17,6 +17,7 @@ import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.http.exception.AGMalformedDataException;
 import com.franz.agraph.http.exception.AGMalformedQueryException;
 import com.franz.agraph.http.exception.AGPreconditionFailedException;
+import com.franz.agraph.http.exception.AGQueryTimeoutException;
 import com.franz.agraph.http.exception.AGUnsupportedFileFormatException;
 import com.franz.agraph.http.exception.AGUnsupportedQueryLanguageException;
 
@@ -31,6 +32,7 @@ public class AGErrorHandler extends AGResponseHandler {
 	// Extended error types
 	public static final String PRECONDITION_FAILED = "PRECONDITION FAILED";
 	public static final String IO_EXCEPTION = "IO EXCEPTION";
+	public static final String QUERY_TIMEOUT = "QUERY TIMEOUT";
 
 	private AGHttpException result = null;
 
@@ -60,6 +62,8 @@ public class AGErrorHandler extends AGResponseHandler {
 				return new AGUnsupportedFileFormatException(message);
 			} else if (UNSUPPORTED_QUERY_LANGUAGE.equals(type)) {
 				return new AGUnsupportedQueryLanguageException(message);
+			} else if (QUERY_TIMEOUT.equals(type)) {
+				return new AGQueryTimeoutException(message);
 			}
 		}
 		// unrecognized error type, use the whole errorString
