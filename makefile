@@ -1,7 +1,13 @@
 # Standard Franz make rules forward to ant targets.
 
-default: FORCE
-	ant clean-build
+# AGVERSION is supposed to be the branch name without the leading "v".
+AGVERSION ?= $(shell (git symbolic-ref -q HEAD 2>/dev/null || echo unknown) | sed 's,refs/heads/v,,')
+
+ifeq ($(AGVERSION),unknown)
+$(error AGVERSION not defined)
+endif
+
+default: build
 
 clean: dist-clean
 	ant clean
@@ -13,25 +19,13 @@ test-bigger: FORCE
 	ant test-bigger
 
 build: FORCE
-ifndef VERSION
 	ant build
-else
-	ant -Denv.version=$(VERSION) build
-endif
 
 javadoc: FORCE
-ifndef VERSION
 	ant javadoc
-else
-	ant -Denv.version=$(VERSION) javadoc
-endif
 
 srcjar: FORCE
-ifndef VERSION
 	ant srcjar
-else
-	ant -Denv.version=$(VERSION) srcjar
-endif
 
 tags: FORCE
 	rm -f TAGS
@@ -45,33 +39,29 @@ tags: FORCE
 TUTORIAL_FILES = *.ntriples *.rdf *.txt *TutorialExamples.java
 
 ifdef CUSTOMER_DIST
-DISTDIR = agraph-$(VERSION)-client-java
+DISTDIR = agraph-$(AGVERSION)-client-java
 DIST = DIST/$(DISTDIR)
 TARNAME = DIST/$(DISTDIR).tar.gz
 TAROPTS = --owner=root --group=root 
 else
 DISTDIR = .
 DIST = DIST
-TARNAME = agraph-$(VERSION)-client-java.tar.gz
+TARNAME = agraph-$(AGVERSION)-client-java.tar.gz
 TAROPTS = 
 endif
 
 dist: FORCE
-ifndef VERSION
-	@echo VERSION is not defined.
-	@exit 1
-endif
-	ant -Denv.version=$(VERSION) -DDIST=$(DIST) dist-init
-	sed 's|SERVER_VERSION|$(VERSION)|g' templates/.project > $(DIST)/.project
-	sed 's|agraph-VERSION|agraph-$(VERSION)|g' templates/.classpath > $(DIST)/.classpath
+	ant -DDIST=$(DIST) dist-init
+	sed 's|SERVER_VERSION|$(AGVERSION)|g' templates/.project > $(DIST)/.project
+	sed 's|agraph-VERSION|agraph-$(AGVERSION)|g' templates/.classpath > $(DIST)/.classpath
 	mkdir -p $(DIST)/src/tutorial
 	for f in $(TUTORIAL_FILES); do \
 	    echo copying src/tutorial/$$f...; \
 	    cp src/tutorial/$$f $(DIST)/src/tutorial; \
 	done
 	mkdir -p $(DIST)/lib
-	cp agraph.jar $(DIST)/lib/agraph-$(VERSION).jar
-	cp agraph-src.jar $(DIST)/lib/agraph-$(VERSION)-src.jar
+	cp agraph.jar $(DIST)/lib/agraph-$(AGVERSION).jar
+	cp agraph-src.jar $(DIST)/lib/agraph-$(AGVERSION)-src.jar
 	cp lib/json.jar $(DIST)/lib/json.jar
 	cp lib/commons-pool-1.5.6.jar $(DIST)/lib/commons-pool-1.5.6.jar
 	mkdir -p $(DIST)/lib/logging

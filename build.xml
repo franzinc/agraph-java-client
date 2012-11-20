@@ -9,23 +9,8 @@
 
     <property name="DIST" value="DIST"/>
 
-    <!-- Version is parameterized instead of hard-coded in multiple places. -->
-    <!-- This same algorithm is in clojure/project.clj -->
-    <!-- VERSION and env.version are set in makefile. -->
-    <!-- git-branch-name is used as default for dev only. -->
-    <loadfile property="git-branch-name" srcFile=".git-branch-name"
-              failonerror="false">
-        <filterchain> <striplinebreaks/> </filterchain>
-    </loadfile> 
-    <condition property="env.version"
-               value="${env.VERSION}"
-               else="${git-branch-name}-snapshot">
-        <and>
-            <isset property="env.VERSION"/>
-            <length string="${env.VERSION}" when="greater" length="0"/>
-        </and>
-    </condition>
-    
+    <property name="env.version" value="${env.AGVERSION}"/>
+
     <!-- Library. -->
     <property name="src" location="src"/>
     <property name="lib" location="lib"/>
