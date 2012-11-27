@@ -118,7 +118,7 @@ public class AGHttpRepoClient implements Closeable {
 	private String sessionRoot, repoRoot;
 	private boolean loadInitFile = false;
 	private List<String> scripts = null;
-
+	
 	// TODO: choose proper defaults
 	private TupleQueryResultFormat preferredTQRFormat = TupleQueryResultFormat.SPARQL;
 	private BooleanQueryResultFormat preferredBQRFormat = BooleanQueryResultFormat.TEXT;
@@ -155,6 +155,20 @@ public class AGHttpRepoClient implements Closeable {
 		else throw new AGHttpException("This session-only connection has been closed. Re-open a new one to start using it again.");
 	}
 
+	/**
+	 * Returns true if using the main server port for sessions.
+	 * 
+	 * Gets System property com.franz.agraph.http.useMainPortForSessions
+	 * (defaults to false).
+	 * 
+	 * @return an RDFFormat, either NQUADS or TRIX
+	 */
+	public boolean usingMainPortForSessions() {
+		boolean b = Boolean.parseBoolean(System.getProperty("com.franz.agraph.http.useMainPortForSessions","false"));
+		logger.debug("com.franz.agraph.http.useMainPortForSessions=" + b);
+		return b;
+	}	
+	
 	public AGValueFactory getValueFactory() {
 		return repo.getValueFactory();
 	}
@@ -288,12 +302,48 @@ public class AGHttpRepoClient implements Closeable {
 			AGStringHandler handler = new AGStringHandler();
 			getHTTPClient().post(url, headers, params.toArray(new NameValuePair[params.size()]), null, handler);
 			usingDedicatedSession = true;
-			sessionRoot = handler.getResult();
+			sessionRoot = adjustSessionUrlIfUsingMainPort(handler.getResult());
 			if (logger.isDebugEnabled())
 				logger.debug("openSession: {}", sessionRoot);
 		}
 	}
 
+	/**
+	 * Returns an appropriate session url to use.
+	 * 
+	 * The server provides a session url assuming a dedicated port 
+	 * to communicate with the appropriate server backend for this
+	 * session.  Sometimes clients may prefer to use the main port
+	 * for all communication, as dictated by the system property
+	 * com.franz.agraph.http.usingMainPortSessions=true.  When this
+	 * flag is set, this method returns a modified session url that
+	 * allows the client to communicate via the main port for this
+	 * session.
+	 * 
+	 * In future this method may not be needed, as the server could
+	 * provide the appropriate url based on server configuration.
+	 * 
+	 * @param dedicatedSessionUrl the dedicated session url from the server. 
+	 * @return an appropriate session url, possibly using main port instead.
+	 * 
+	 * @throws AGHttpException
+	 */
+	private String adjustSessionUrlIfUsingMainPort(String dedicatedSessionUrl) throws AGHttpException {
+		if (usingMainPortForSessions()) {
+			String tail = dedicatedSessionUrl.substring(dedicatedSessionUrl.lastIndexOf(':') + 1);
+			String port = tail.substring(0, tail.indexOf('/'));
+			try {
+				Integer.parseInt(port);
+			} catch (NumberFormatException e) {
+				throw new AGHttpException(
+						"problem finding port in session url: " + tail);
+			}
+			return repoRoot + "/session/" + tail;
+		} else {
+			return dedicatedSessionUrl;
+		}
+	}
+	
 	private void closeSession(String sessionRoot) throws 
 			AGHttpException {
 		if (sessionRoot != null && !getHTTPClient().isClosed()) {

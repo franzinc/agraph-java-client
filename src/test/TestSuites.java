@@ -73,7 +73,7 @@ public class TestSuites {
         IndexManagementTests.class,
         EncodableNamespaceTests.class,
         FederationTests.class,
-        SessionLifetimeTests.class,
+        SessionTests.class,
     	ServerCodeTests.class,
         SpogiTripleCacheTests.class,
         UploadCommitPeriodTests.class,
