@@ -1,5 +1,6 @@
 package test.callimachus;
 
+
 import static org.openrdf.query.QueryLanguage.SPARQL;
 import info.aduna.iteration.CloseableIteration;
 
@@ -31,7 +32,7 @@ import org.openrdf.repository.auditing.AuditingRepositoryConnection;
 import org.openrdf.rio.RDFHandlerException;
 import org.openrdf.rio.trig.TriGWriter;
 
-public class AGAuditingTest extends TestCase {
+public class AGAuditingRecentTest extends TestCase {
 	private static final String PREFIX = "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
 			"PREFIX prov:<http://www.w3.org/ns/prov#>\n" +
 			"PREFIX foaf:<http://xmlns.com/foaf/0.1/>\n" +
@@ -155,6 +156,8 @@ public class AGAuditingTest extends TestCase {
 	public void setUp() throws Exception {
 		Repository r = AGCallimachusTest.sharedCallimachusRepository();
 		repo = new AuditingRepository(r);
+		repo.setMinRecent(1);
+		repo.setMaxRecent(1);
 		repo.initialize();
 		final ActivityFactory delegate = repo.getActivityFactory();
 		repo.setActivityFactory(new ActivityFactory() {
@@ -208,14 +211,14 @@ public class AGAuditingTest extends TestCase {
 		assertFalse(con.hasStatement(null, null, null, false, new Resource[]{null}));
 		assertEquals(Arrays.asList(lastActivityGraph), con.getContextIDs().asList());
 		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
 		assertFalse(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertFalse(con.hasStatement(null, INFLUENCED_BY, null, false));
 		assertFalse(con.hasStatement(null, WITHOUT, null, false));
 		assertTrue(ask(
 				"GRAPH ?activity1 {",
-				"    ?activity1 a prov:Bundle ;",
+				"    ?activity1 a audit:RecentBundle, prov:Bundle ;",
 				"        prov:wasGeneratedBy ?provenance1 .",
 				"    ",
 				"    ?provenance1 prov:endedAtTime ?ended1 ;",
@@ -309,12 +312,12 @@ public class AGAuditingTest extends TestCase {
 		assertFalse(con.hasStatement(null, null, null, false, new Resource[]{null}));
 		assertEquals(3, con.getContextIDs().asList().size());
 		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
 		assertFalse(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertTrue(con.hasStatement(null, INFLUENCED_BY, null, false));
 		assertFalse(con.hasStatement(null, WITHOUT, null, false));
-		assertEquals(0, con.getStatements(null, RDF.TYPE, RECENT, false).asList().size());
+		assertEquals(1, con.getStatements(null, RDF.TYPE, RECENT, false).asList().size());
 		assertTrue(ask("FILTER NOT EXISTS {\n"
 				+ "    ?activity prov:generated [prov:specializationOf ?self]\n"
 				+ "    FILTER (strstarts(?self,?activity))\n" + "}\n"));
@@ -365,7 +368,7 @@ public class AGAuditingTest extends TestCase {
 				"    FILTER NOT EXISTS { ?e prov:wasGeneratedBy ?p FILTER (?e != ?activity2) }",
 				"}",
 				"GRAPH ?activity3 {",
-				"    ?activity3 a prov:Bundle ;",
+				"    ?activity3 a audit:RecentBundle, prov:Bundle ;",
 				"        prov:wasInfluencedBy ?activity1, ?activity2 ;",
 				"        prov:wasGeneratedBy ?provenance3 .",
 				"    ",
@@ -487,7 +490,7 @@ public class AGAuditingTest extends TestCase {
 		assertTrue(con.hasStatement(carmichael, GENERATED_BY, null, false));
 		assertEquals(2, con.getContextIDs().asList().size());
 		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
 		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertTrue(con.hasStatement(null, INFLUENCED_BY, null, false));
@@ -507,7 +510,7 @@ public class AGAuditingTest extends TestCase {
 				"    FILTER NOT EXISTS { <carmichael> prov:wasGeneratedBy ?provenance1 }",
 				"}",
 				"GRAPH ?activity2 {",
-				"    ?activity2 a prov:Bundle ;",
+				"    ?activity2 a audit:RecentBundle, prov:Bundle ;",
 				"        prov:wasGeneratedBy ?provenance2 ;",
 				"        prov:wasInfluencedBy ?activity1 .",
 				"    ",
@@ -543,7 +546,7 @@ public class AGAuditingTest extends TestCase {
 		assertTrue(con.hasStatement(carmichael, GENERATED_BY, null, false));
 		assertEquals(2, con.getContextIDs().asList().size());
 		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
 		assertFalse(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertTrue(con.hasStatement(null, INFLUENCED_BY, null, false));
@@ -565,7 +568,7 @@ public class AGAuditingTest extends TestCase {
 				"    FILTER NOT EXISTS { <carmichael> prov:wasGeneratedBy ?provenance1 }",
 				"}",
 				"GRAPH ?activity2 {",
-				"    ?activity2 a prov:Bundle ;",
+				"    ?activity2 a audit:RecentBundle, prov:Bundle ;",
 				"        prov:wasGeneratedBy ?provenance2 ;",
 				"        prov:wasInfluencedBy ?activity1 .",
 				"    ",
@@ -597,13 +600,13 @@ public class AGAuditingTest extends TestCase {
 		assertTrue(con.hasStatement(carmichael, GENERATED_BY, null, false));
 		assertEquals(1, con.getContextIDs().asList().size());
 		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
 		assertFalse(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertFalse(con.hasStatement(null, INFLUENCED_BY, null, false));
 		assertFalse(con.hasStatement(null, WITHOUT, null, false));
 		assertTrue(ask("GRAPH ?activity1 {",
-				"    ?activity1 a prov:Bundle ;",
+				"    ?activity1 a audit:RecentBundle, prov:Bundle ;",
 				"        prov:wasGeneratedBy ?provenance1 .",
 				"    ",
 				"    ?provenance1 prov:endedAtTime ?ended1 ;",
@@ -666,12 +669,12 @@ public class AGAuditingTest extends TestCase {
 		assertFalse(con.hasStatement(null, null, null, false, new Resource[]{null}));
 		assertEquals(2, con.getContextIDs().asList().size());
 		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
-		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertFalse(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertTrue(con.hasStatement(null, INFLUENCED_BY, null, false));
 		assertFalse(con.hasStatement(null, WITHOUT, null, false));
-		assertEquals(0, con.getStatements(null, RDF.TYPE, RECENT, false).asList().size());
+		assertEquals(1, con.getStatements(null, RDF.TYPE, RECENT, false).asList().size());
 		assertTrue(ask("GRAPH ?activity1 {",
 				"    ?activity1 a prov:Bundle ;",
 				"        prov:wasGeneratedBy ?provenance1 .",
@@ -691,7 +694,7 @@ public class AGAuditingTest extends TestCase {
 				"    FILTER NOT EXISTS { ?activity1 a audit:ObsoleteBundle }",
 				"}",
 				"GRAPH ?activity2 {",
-				"    ?activity2 a audit:ObsoleteBundle, prov:Bundle ;",
+				"    ?activity2 a audit:RecentBundle, prov:Bundle ;",
 				"        prov:wasInfluencedBy ?activity1 ;",
 				"        prov:wasGeneratedBy ?provenance2 .",
 				"    ",
@@ -713,7 +716,7 @@ public class AGAuditingTest extends TestCase {
 		assertTrue(con.hasStatement(carmichael, GENERATED_BY, null, false));
 		assertEquals(3, con.getContextIDs().asList().size());
 		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
 		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertTrue(con.hasStatement(null, INFLUENCED_BY, null, false));
@@ -745,7 +748,7 @@ public class AGAuditingTest extends TestCase {
 				"            rdf:object <harris> .",
 				"}",
 				"GRAPH ?activity3 {",
-				"    ?activity3 a prov:Bundle ;",
+				"    ?activity3 a audit:RecentBundle, prov:Bundle ;",
 				"        prov:wasInfluencedBy ?activity2 ;",
 				"        prov:wasGeneratedBy ?provenance3 .",
 				"    ",
@@ -771,7 +774,7 @@ public class AGAuditingTest extends TestCase {
 		assertTrue(con.hasStatement(carmichael, GENERATED_BY, null, false));
 		assertEquals(2, con.getContextIDs().asList().size());
 		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
 		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertTrue(con.hasStatement(null, INFLUENCED_BY, null, false));
@@ -788,7 +791,7 @@ public class AGAuditingTest extends TestCase {
 				"        audit:with ?triple .",
 				"}",
 				"GRAPH ?activity2 {",
-				"    ?activity2 a prov:Bundle ;",
+				"    ?activity2 a audit:RecentBundle, prov:Bundle ;",
 				"        prov:wasInfluencedBy ?activity1 ;",
 				"        prov:wasGeneratedBy ?provenance2 .",
 				"    ",
@@ -822,7 +825,7 @@ public class AGAuditingTest extends TestCase {
 		assertFalse(con.hasStatement(carmichael, null, null, false));
 		assertEquals(2, con.getContextIDs().asList().size());
 		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
 		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertTrue(con.hasStatement(null, INFLUENCED_BY, null, false));
@@ -839,7 +842,7 @@ public class AGAuditingTest extends TestCase {
 				"GRAPH ?activity2 {",
 				"    ?activity1 prov:wasGeneratedBy ?provenance2 .",
 				"    ",
-				"    ?activity2 a prov:Bundle ;",
+				"    ?activity2 a audit:RecentBundle, prov:Bundle ;",
 				"        prov:wasInfluencedBy ?activity1 ;",
 				"        prov:wasGeneratedBy ?provenance2 .",
 				"    ",
@@ -863,8 +866,8 @@ public class AGAuditingTest extends TestCase {
 		assertFalse(con.hasStatement(carmichael, GENERATED_BY, null, false));
 		assertEquals(2, con.getContextIDs().asList().size());
 		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
-		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertFalse(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertTrue(con.hasStatement(null, INFLUENCED_BY, null, false));
 		assertFalse(con.hasStatement(null, WITHOUT, null, false));
@@ -881,7 +884,7 @@ public class AGAuditingTest extends TestCase {
 				"    <carmichael> foaf:knows <harris> .",
 				"}",
 				"GRAPH ?activity2 {",
-				"    ?activity2 a audit:ObsoleteBundle, prov:Bundle ;",
+				"    ?activity2 a audit:RecentBundle, prov:Bundle ;",
 				"        prov:wasInfluencedBy ?activity1 ;",
 				"        prov:wasGeneratedBy ?provenance2 .",
 				"    ",
@@ -907,8 +910,8 @@ public class AGAuditingTest extends TestCase {
 		assertFalse(con.hasStatement(carmichael, GENERATED_BY, null, false));
 		assertEquals(2, con.getContextIDs().asList().size());
 		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
-		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertFalse(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertTrue(con.hasStatement(null, INFLUENCED_BY, null, false));
 		assertFalse(con.hasStatement(null, WITHOUT, null, false));
@@ -925,7 +928,7 @@ public class AGAuditingTest extends TestCase {
 				"    <carmichael> foaf:knows <harris> .",
 				"}",
 				"GRAPH ?activity2 {",
-				"    ?activity2 a audit:ObsoleteBundle, prov:Bundle ;",
+				"    ?activity2 a audit:RecentBundle, prov:Bundle ;",
 				"        prov:wasInfluencedBy ?activity1 ;",
 				"        prov:wasGeneratedBy ?provenance2 .",
 				"    ",
@@ -952,7 +955,7 @@ public class AGAuditingTest extends TestCase {
 		assertTrue(con.hasStatement(carmichael, GENERATED_BY, null, false));
 		assertEquals(3, con.getContextIDs().asList().size());
 		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
 		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertTrue(con.hasStatement(null, INFLUENCED_BY, null, false));
@@ -981,7 +984,7 @@ public class AGAuditingTest extends TestCase {
 				"        prov:wasRevisionOf ?carmichael1 .",
 				"}",
 				"GRAPH ?activity3 {",
-				"    ?activity3 a prov:Bundle ;",
+				"    ?activity3 a audit:RecentBundle, prov:Bundle ;",
 				"        prov:wasInfluencedBy ?activity2 ;",
 				"        prov:wasGeneratedBy ?provenance3 .",
 				"    ",
@@ -1009,7 +1012,7 @@ public class AGAuditingTest extends TestCase {
 		assertTrue(con.hasStatement(carmichael, GENERATED_BY, null, false));
 		assertEquals(3, con.getContextIDs().asList().size());
 		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
 		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertTrue(con.hasStatement(null, INFLUENCED_BY, null, false));
@@ -1038,7 +1041,7 @@ public class AGAuditingTest extends TestCase {
 				"        audit:with ?triple2 .",
 				"}",
 				"GRAPH ?activity3 {",
-				"    ?activity3 a prov:Bundle ;",
+				"    ?activity3 a audit:RecentBundle, prov:Bundle ;",
 				"        prov:wasInfluencedBy ?activity1, ?activity2 ;",
 				"        prov:wasGeneratedBy ?provenance3 .",
 				"    ",
@@ -1071,7 +1074,7 @@ public class AGAuditingTest extends TestCase {
 		assertFalse(con.hasStatement(carmichael, null, null, false));
 		assertEquals(2, con.getContextIDs().asList().size());
 		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
 		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertTrue(con.hasStatement(null, INFLUENCED_BY, null, false));
@@ -1088,7 +1091,7 @@ public class AGAuditingTest extends TestCase {
 				"        audit:with ?triple .",
 				"}",
 				"GRAPH ?activity2 {",
-				"    ?activity2 a audit:ObsoleteBundle, prov:Bundle ;",
+				"    ?activity2 a audit:RecentBundle, prov:Bundle ;",
 				"        prov:wasInfluencedBy ?activity1 ;",
 				"        prov:wasGeneratedBy ?provenance2 .",
 				"    ",
@@ -1115,14 +1118,14 @@ public class AGAuditingTest extends TestCase {
 		assertFalse(con.hasStatement(null, null, null, false, new Resource[]{null}));
 		assertEquals(Arrays.asList(lastActivityGraph), con.getContextIDs().asList());
 		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
 		assertFalse(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertFalse(con.hasStatement(null, INFLUENCED_BY, null, false));
 		assertFalse(con.hasStatement(null, WITHOUT, null, false));
 		assertTrue(ask(
 				"GRAPH ?activity1 {",
-				"    ?activity1 a prov:Bundle ;",
+				"    ?activity1 a audit:RecentBundle, prov:Bundle ;",
 				"        prov:wasGeneratedBy ?provenance1 .",
 				"    ",
 				"    ?provenance1 prov:endedAtTime ?ended1 ;",
@@ -1148,7 +1151,7 @@ public class AGAuditingTest extends TestCase {
 		assertTrue(con.hasStatement(carmichael, GENERATED_BY, null, false));
 		assertEquals(2, con.getContextIDs().asList().size());
 		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
 		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertTrue(con.hasStatement(null, INFLUENCED_BY, null, false));
@@ -1166,7 +1169,7 @@ public class AGAuditingTest extends TestCase {
 				"    FILTER (str(?carmichael1) = concat(str(?activity1), '#!', str(<carmichael>)))",
 				"}",
 				"GRAPH ?activity2 {",
-				"    ?activity2 a prov:Bundle ;",
+				"    ?activity2 a audit:RecentBundle, prov:Bundle ;",
 				"        prov:wasInfluencedBy ?activity1 ;",
 				"        prov:wasGeneratedBy ?provenance2 .",
 				"    ",
@@ -1199,7 +1202,7 @@ public class AGAuditingTest extends TestCase {
 		assertFalse(con.hasStatement(carmichael, null, null, false));
 		assertEquals(2, con.getContextIDs().asList().size());
 		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
 		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertTrue(con.hasStatement(null, INFLUENCED_BY, null, false));
@@ -1216,7 +1219,7 @@ public class AGAuditingTest extends TestCase {
 				"        audit:with ?triple .",
 				"}",
 				"GRAPH ?activity2 {",
-				"    ?activity2 a audit:ObsoleteBundle, prov:Bundle ;",
+				"    ?activity2 a audit:RecentBundle, prov:Bundle ;",
 				"        prov:wasInfluencedBy ?activity1 ;",
 				"        prov:wasGeneratedBy ?provenance2 .",
 				"    ",
@@ -1247,7 +1250,7 @@ public class AGAuditingTest extends TestCase {
 		assertTrue(con.hasStatement(carmichael, GENERATED_BY, null, false));
 		assertEquals(2, con.getContextIDs().asList().size());
 		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
 		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertTrue(con.hasStatement(null, INFLUENCED_BY, null, false));
@@ -1264,7 +1267,7 @@ public class AGAuditingTest extends TestCase {
 				"        audit:with ?triple .",
 				"}",
 				"GRAPH ?activity2 {",
-				"    ?activity2 a prov:Bundle ;",
+				"    ?activity2 a audit:RecentBundle, prov:Bundle ;",
 				"        prov:wasInfluencedBy ?activity1 ;",
 				"        prov:wasGeneratedBy ?provenance2 .",
 				"    ",
@@ -1301,14 +1304,14 @@ public class AGAuditingTest extends TestCase {
 		assertTrue(con.hasStatement(carmichael, GENERATED_BY, null, false));
 		assertEquals(1, con.getContextIDs().asList().size());
 		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
 		assertFalse(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertFalse(con.hasStatement(null, INFLUENCED_BY, null, false));
 		assertFalse(con.hasStatement(null, WITHOUT, null, false));
 		assertTrue(ask(
 				"GRAPH ?activity1 {",
-				"    ?activity1 a prov:Bundle ;",
+				"    ?activity1 a audit:RecentBundle, prov:Bundle ;",
 				"        prov:wasGeneratedBy ?provenance1 .",
 				"    ",
 				"    ?provenance1 prov:endedAtTime ?ended1 ;",
@@ -1333,14 +1336,14 @@ public class AGAuditingTest extends TestCase {
 		assertFalse(con.hasStatement(null, null, null, false, new Resource[]{null}));
 		assertEquals(Arrays.asList(lastActivityGraph), con.getContextIDs().asList());
 		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
 		assertFalse(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertFalse(con.hasStatement(null, INFLUENCED_BY, null, false));
 		assertFalse(con.hasStatement(null, WITHOUT, null, false));
 		assertTrue(ask(
 				"GRAPH ?activity1 {",
-				"    ?activity1 a prov:Bundle ;",
+				"    ?activity1 a audit:RecentBundle, prov:Bundle ;",
 				"        prov:wasGeneratedBy ?provenance1 .",
 				"    ",
 				"    ?provenance1 prov:endedAtTime ?ended1 ;",
@@ -1365,7 +1368,7 @@ public class AGAuditingTest extends TestCase {
 		assertFalse(con.hasStatement(null, null, null, false, new Resource[]{null}));
 		assertEquals(2, con.getContextIDs().asList().size());
 		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
 		assertFalse(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertFalse(con.hasStatement(null, INFLUENCED_BY, null, false));
@@ -1375,7 +1378,7 @@ public class AGAuditingTest extends TestCase {
 				"    <carmichael> foaf:knows <harris>",
 				"}",
 				"GRAPH ?activity1 {",
-				"    ?activity1 a prov:Bundle ;",
+				"    ?activity1 a audit:RecentBundle, prov:Bundle ;",
 				"        prov:wasGeneratedBy ?provenance1 .",
 				"    ",
 				"    ?provenance1 prov:endedAtTime ?ended1 ;",
@@ -1404,7 +1407,7 @@ public class AGAuditingTest extends TestCase {
 		assertFalse(con.hasStatement(null, null, null, false, new Resource[]{null}));
 		assertEquals(Arrays.asList(graph), con.getContextIDs().asList());
 		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
 		assertFalse(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertFalse(con.hasStatement(null, INFLUENCED_BY, null, false));
@@ -1412,7 +1415,7 @@ public class AGAuditingTest extends TestCase {
 		assertTrue(ask(
 				"GRAPH <graph> {",
 				"    <carmichael> foaf:knows <harris> .",
-				"    <graph> a prov:Bundle ;",
+				"    <graph> a audit:RecentBundle, prov:Bundle ;",
 				"        prov:wasGeneratedBy ?provenance1 .",
 				"    ",
 				"    ?provenance1 prov:endedAtTime ?ended1 ;",
@@ -1438,7 +1441,7 @@ public class AGAuditingTest extends TestCase {
 		assertFalse(con.hasStatement(null, null, null, false, new Resource[]{null}));
 		assertEquals(2, con.getContextIDs().asList().size());
 		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
 		assertFalse(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertFalse(con.hasStatement(null, INFLUENCED_BY, null, false));
@@ -1448,7 +1451,7 @@ public class AGAuditingTest extends TestCase {
 				"    <carmichael> foaf:knows <harris>",
 				"}",
 				"GRAPH ?activity1 {",
-				"    ?activity1 a prov:Bundle ;",
+				"    ?activity1 a audit:RecentBundle, prov:Bundle ;",
 				"        prov:wasGeneratedBy ?provenance1 .",
 				"    ",
 				"    ?provenance1 prov:endedAtTime ?ended1 ;",
@@ -1476,7 +1479,7 @@ public class AGAuditingTest extends TestCase {
 		assertFalse(con.hasStatement(null, null, null, false, new Resource[]{null}));
 		assertEquals(2, con.getContextIDs().asList().size());
 		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
 		assertFalse(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertFalse(con.hasStatement(null, INFLUENCED_BY, null, false));
@@ -1486,7 +1489,7 @@ public class AGAuditingTest extends TestCase {
 				"    <carmichael> foaf:knows <harris>",
 				"}",
 				"GRAPH ?activity1 {",
-				"    ?activity1 a prov:Bundle ;",
+				"    ?activity1 a audit:RecentBundle, prov:Bundle ;",
 				"        prov:wasGeneratedBy ?provenance1 .",
 				"    ",
 				"    ?provenance1 prov:endedAtTime ?ended1 ;",
@@ -1513,7 +1516,7 @@ public class AGAuditingTest extends TestCase {
 		assertFalse(con.hasStatement(null, null, null, false, new Resource[]{null}));
 		assertEquals(2, con.getContextIDs().asList().size());
 		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
 		assertFalse(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertFalse(con.hasStatement(null, INFLUENCED_BY, null, false));
@@ -1523,7 +1526,7 @@ public class AGAuditingTest extends TestCase {
 				"    <carmichael> foaf:knows <harris>",
 				"}",
 				"GRAPH ?activity1 {",
-				"    ?activity1 a prov:Bundle ;",
+				"    ?activity1 a audit:RecentBundle, prov:Bundle ;",
 				"        prov:wasGeneratedBy ?provenance1 .",
 				"    ",
 				"    ?provenance1 prov:endedAtTime ?ended1 ;",
@@ -1540,60 +1543,6 @@ public class AGAuditingTest extends TestCase {
 				"}"));
 	}
 
-	public void testDeleteHashGraph() throws Exception {
-		begin(con);
-		assertTrue(con.isEmpty());
-		String other = con.getInsertContext() + "#other-graph";
-		con.add(carmichael, knows, harris, vf.createURI(other));
-		con = reopen(repo, con);
-		con.prepareUpdate(QueryLanguage.SPARQL, "DELETE DATA { <carmichael> <http://xmlns.com/foaf/0.1/knows> <harris> }", "http://example.com/").execute();
-		con = commit(repo, con);
-		assertFalse(con.hasStatement(carmichael, knows, harris, false));
-		assertTrue(con.hasStatement(carmichael, GENERATED_BY, null, false));
-		assertEquals(2, con.getContextIDs().asList().size());
-		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
-		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
-		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
-		assertTrue(con.hasStatement(null, INFLUENCED_BY, null, false));
-		assertTrue(con.hasStatement(null, WITHOUT, null, false));
-		assertTrue(ask("GRAPH ?activity1 {",
-				"    ?activity1 a audit:ObsoleteBundle, prov:Bundle ;",
-				"        prov:wasGeneratedBy ?provenance1 .",
-				"    ",
-				"    ?provenance1 prov:endedAtTime ?ended1 ;",
-				"        prov:generated ?other, ?carmichael1 .",
-				"    ",
-				"    ?carmichael1 prov:specializationOf <carmichael> .",
-				"    ",
-				"    ?other prov:wasGeneratedBy ?provenance1 .",
-				"    FILTER strends(str(?other), '#other-graph')",
-				"    FILTER (str(?carmichael1) = concat(str(?activity1), '#!', str(<carmichael>)))",
-				"}",
-				"GRAPH ?activity2 {",
-				"    ?activity2 a prov:Bundle ;",
-				"        prov:wasInfluencedBy ?other, ?activity1 ;",
-				"        prov:wasGeneratedBy ?provenance2 .",
-				"    ",
-				"    ?provenance2 prov:endedAtTime ?ended2 ;",
-				"        prov:generated ?carmichael2 .",
-				"    ",
-				"    ?carmichael2 prov:specializationOf <carmichael> ;",
-				"        prov:wasRevisionOf ?carmichael1 ;",
-				"        audit:without ?triple .",
-				"    ",
-				"    ?triple rdf:subject <carmichael> ;",
-				"            rdf:predicate foaf:knows ;",
-				"            rdf:object <harris> .",
-				"    ",
-				"    <carmichael> prov:wasGeneratedBy ?provenance2 .",
-				"    ",
-				"    FILTER (str(?carmichael1) = concat(str(?activity1), '#!', str(<carmichael>)))",
-				"    FILTER (str(?carmichael2) = concat(str(?activity2), '#!', str(<carmichael>)))",
-				"    FILTER NOT EXISTS { ?activity2 a audit:ObsoleteBundle }",
-				"}"));
-	}
-
 	public void testDeleteDataGraph() throws Exception {
 		begin(con);
 		assertTrue(con.isEmpty());
@@ -1605,13 +1554,12 @@ public class AGAuditingTest extends TestCase {
 		assertTrue(con.hasStatement(carmichael, GENERATED_BY, null, false));
 		assertEquals(3, con.getContextIDs().asList().size());
 		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
 		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertTrue(con.hasStatement(null, INFLUENCED_BY, null, false));
 		assertTrue(con.hasStatement(null, WITHOUT, null, false));
 		assertTrue(ask("GRAPH <graph> {",
-				"    <graph> a audit:ObsoleteBundle .",
 				"    ?carmichael0 audit:with ?triple .",
 				"}",
 				"GRAPH ?activity1 {",
@@ -1627,7 +1575,7 @@ public class AGAuditingTest extends TestCase {
 				"    FILTER (str(?carmichael1) = concat(str(?activity1), '#!', str(<carmichael>)))",
 				"}",
 				"GRAPH ?activity2 {",
-				"    ?activity2 a prov:Bundle ;",
+				"    ?activity2 a audit:RecentBundle, prov:Bundle ;",
 				"        prov:wasInfluencedBy <graph>, ?activity1 ;",
 				"        prov:wasGeneratedBy ?provenance2 .",
 				"    ",
@@ -1654,6 +1602,60 @@ public class AGAuditingTest extends TestCase {
 				"}"));
 	}
 
+	public void testDeleteHashGraph() throws Exception {
+		begin(con);
+		assertTrue(con.isEmpty());
+		String other = con.getInsertContext() + "#other-graph";
+		con.add(carmichael, knows, harris, vf.createURI(other));
+		con = reopen(repo, con);
+		con.prepareUpdate(QueryLanguage.SPARQL, "DELETE DATA { <carmichael> <http://xmlns.com/foaf/0.1/knows> <harris> }", "http://example.com/").execute();
+		con = commit(repo, con);
+		assertFalse(con.hasStatement(carmichael, knows, harris, false));
+		assertTrue(con.hasStatement(carmichael, GENERATED_BY, null, false));
+		assertEquals(2, con.getContextIDs().asList().size());
+		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
+		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
+		assertTrue(con.hasStatement(null, INFLUENCED_BY, null, false));
+		assertTrue(con.hasStatement(null, WITHOUT, null, false));
+		assertTrue(ask("GRAPH ?activity1 {",
+				"    ?activity1 a audit:ObsoleteBundle, prov:Bundle ;",
+				"        prov:wasGeneratedBy ?provenance1 .",
+				"    ",
+				"    ?provenance1 prov:endedAtTime ?ended1 ;",
+				"        prov:generated ?other, ?carmichael1 .",
+				"    ",
+				"    ?carmichael1 prov:specializationOf <carmichael> .",
+				"    ",
+				"    ?other prov:wasGeneratedBy ?provenance1 .",
+				"    FILTER strends(str(?other), '#other-graph')",
+				"    FILTER (str(?carmichael1) = concat(str(?activity1), '#!', str(<carmichael>)))",
+				"}",
+				"GRAPH ?activity2 {",
+				"    ?activity2 a audit:RecentBundle, prov:Bundle ;",
+				"        prov:wasInfluencedBy ?other, ?activity1 ;",
+				"        prov:wasGeneratedBy ?provenance2 .",
+				"    ",
+				"    ?provenance2 prov:endedAtTime ?ended2 ;",
+				"        prov:generated ?carmichael2 .",
+				"    ",
+				"    ?carmichael2 prov:specializationOf <carmichael> ;",
+				"        prov:wasRevisionOf ?carmichael1 ;",
+				"        audit:without ?triple .",
+				"    ",
+				"    ?triple rdf:subject <carmichael> ;",
+				"            rdf:predicate foaf:knows ;",
+				"            rdf:object <harris> .",
+				"    ",
+				"    <carmichael> prov:wasGeneratedBy ?provenance2 .",
+				"    ",
+				"    FILTER (str(?carmichael1) = concat(str(?activity1), '#!', str(<carmichael>)))",
+				"    FILTER (str(?carmichael2) = concat(str(?activity2), '#!', str(<carmichael>)))",
+				"    FILTER NOT EXISTS { ?activity2 a audit:ObsoleteBundle }",
+				"}"));
+	}
+
 	public void testDeleteWhere() throws Exception {
 		begin(con);
 		assertTrue(con.isEmpty());
@@ -1667,8 +1669,8 @@ public class AGAuditingTest extends TestCase {
 		assertTrue(con.hasStatement(carmichael, GENERATED_BY, null, false));
 		assertEquals(2, con.getContextIDs().asList().size());
 		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
-		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertFalse(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertTrue(con.hasStatement(null, INFLUENCED_BY, null, false));
 		assertFalse(con.hasStatement(null, WITHOUT, null, false));
@@ -1686,7 +1688,7 @@ public class AGAuditingTest extends TestCase {
 				"    <harris> prov:wasGeneratedBy ?provenance1 .",
 				"}",
 				"GRAPH ?activity2 {",
-				"    ?activity2 a audit:ObsoleteBundle, prov:Bundle ;",
+				"    ?activity2 a audit:RecentBundle, prov:Bundle ;",
 				"        prov:wasInfluencedBy ?activity1 ;",
 				"        prov:wasGeneratedBy ?provenance2 .",
 				"    ",
@@ -1708,7 +1710,7 @@ public class AGAuditingTest extends TestCase {
 		assertTrue(con.hasStatement(carmichael, GENERATED_BY, null, false));
 		assertEquals(2, con.getContextIDs().asList().size());
 		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
 		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertTrue(con.hasStatement(null, INFLUENCED_BY, null, false));
@@ -1724,7 +1726,7 @@ public class AGAuditingTest extends TestCase {
 				"        audit:with ?triple1, ?triple2 .",
 				"}",
 				"GRAPH ?activity2 {",
-				"    ?activity2 a prov:Bundle ;",
+				"    ?activity2 a audit:RecentBundle, prov:Bundle ;",
 				"        prov:wasInfluencedBy ?activity1 ;",
 				"        prov:wasGeneratedBy ?provenance2 .",
 				"    ",
@@ -1761,7 +1763,7 @@ public class AGAuditingTest extends TestCase {
 		assertTrue(con.hasStatement(carmichael, GENERATED_BY, null, false));
 		assertEquals(2, con.getContextIDs().asList().size());
 		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
 		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertTrue(con.hasStatement(null, INFLUENCED_BY, null, false));
@@ -1780,7 +1782,7 @@ public class AGAuditingTest extends TestCase {
 				"    [] foaf:knows <jackson> .",
 				"}",
 				"GRAPH ?activity2 {",
-				"    ?activity2 a prov:Bundle ;",
+				"    ?activity2 a audit:RecentBundle, prov:Bundle ;",
 				"        prov:wasInfluencedBy ?activity1 ;",
 				"        prov:wasGeneratedBy ?provenance2 .",
 				"    ",
@@ -1813,13 +1815,13 @@ public class AGAuditingTest extends TestCase {
 		assertTrue(con.hasStatement(carmichael, GENERATED_BY, null, false));
 		assertEquals(3, con.getContextIDs().asList().size());
 		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
-		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertFalse(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertTrue(con.hasStatement(null, INFLUENCED_BY, null, false));
 		assertTrue(con.hasStatement(null, WITHOUT, null, false));
 		assertTrue(ask("GRAPH ?activity1 {",
-				"    ?activity1 a audit:ObsoleteBundle, prov:Bundle ;",
+				"    ?activity1 a prov:Bundle ;",
 				"        prov:wasGeneratedBy ?provenance1 .",
 				"    ",
 				"    ?provenance1 prov:endedAtTime ?ended1 ;",
@@ -1840,7 +1842,7 @@ public class AGAuditingTest extends TestCase {
 				"    <harris> prov:wasGeneratedBy ?provenance2 .",
 				"}",
 				"GRAPH ?activity3 {",
-				"    ?activity3 a prov:Bundle ;",
+				"    ?activity3 a audit:RecentBundle, prov:Bundle ;",
 				"        prov:wasInfluencedBy ?activity1, ?activity2 ;",
 				"        prov:wasGeneratedBy ?provenance3 .",
 				"    ",
@@ -1879,13 +1881,13 @@ public class AGAuditingTest extends TestCase {
 		assertTrue(con.hasStatement(carmichael, GENERATED_BY, null, false));
 		assertEquals(3, con.getContextIDs().asList().size());
 		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
 		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertTrue(con.hasStatement(null, INFLUENCED_BY, null, false));
 		assertFalse(con.hasStatement(null, WITHOUT, null, false));
 		assertTrue(ask("GRAPH ?activity1 {",
-				"    ?activity1 a audit:ObsoleteBundle, prov:Bundle ;",
+				"    ?activity1 a prov:Bundle ;",
 				"        prov:wasGeneratedBy ?provenance1 .",
 				"    ",
 				"    ?provenance1 prov:endedAtTime ?ended1 ;",
@@ -1903,7 +1905,7 @@ public class AGAuditingTest extends TestCase {
 				"    ?harris2 prov:specializationOf <harris> .",
 				"}",
 				"GRAPH ?activity3 {",
-				"    ?activity3 a prov:Bundle ;",
+				"    ?activity3 a audit:RecentBundle, prov:Bundle ;",
 				"        prov:wasInfluencedBy ?activity1, ?activity2 ;",
 				"        prov:wasGeneratedBy ?provenance3 .",
 				"    ",
@@ -1947,17 +1949,16 @@ public class AGAuditingTest extends TestCase {
 		assertTrue(con.hasStatement(carmichael, GENERATED_BY, null, false));
 		assertEquals(4, con.getContextIDs().asList().size());
 		assertTrue(con.hasStatement(null, RDF.TYPE, BUNDLE, false));
-		assertFalse(con.hasStatement(null, RDF.TYPE, RECENT, false));
-		assertTrue(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
+		assertTrue(con.hasStatement(null, RDF.TYPE, RECENT, false));
+		assertFalse(con.hasStatement(null, RDF.TYPE, OBSOLETE, false));
 		assertTrue(con.hasStatement(null, ENDED_AT, null, false));
 		assertTrue(con.hasStatement(null, INFLUENCED_BY, null, false));
 		assertTrue(con.hasStatement(null, WITHOUT, null, false));
 		assertTrue(ask("GRAPH <graph> {",
-				"    <graph> a audit:ObsoleteBundle .",
 				"    ?carmichael0 audit:with ?triple1 .",
 				"}",
 				"GRAPH ?activity1 {",
-				"    ?activity1 a audit:ObsoleteBundle, prov:Bundle ;",
+				"    ?activity1 a prov:Bundle ;",
 				"        prov:wasGeneratedBy ?provenance1 .",
 				"    ",
 				"    ?provenance1 prov:endedAtTime ?ended1 ;",
@@ -1979,7 +1980,7 @@ public class AGAuditingTest extends TestCase {
 				"    <harris> prov:wasGeneratedBy ?provenance2 .",
 				"}",
 				"GRAPH ?activity3 {",
-				"    ?activity3 a prov:Bundle ;",
+				"    ?activity3 a audit:RecentBundle, prov:Bundle ;",
 				"        prov:wasInfluencedBy ?activity1, ?activity2, <graph>, <set> ;",
 				"        prov:wasGeneratedBy ?provenance3 .",
 				"    ",
