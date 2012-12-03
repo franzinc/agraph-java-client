@@ -11,37 +11,71 @@ package test;
 import java.io.File;
 
 import junit.framework.Assert;
+import junit.framework.AssertionFailedError;
 
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.vocabulary.OWL;
 import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.model.vocabulary.RDFS;
+import org.openrdf.repository.RepositoryConnection;
+import org.openrdf.repository.RepositoryException;
+import org.openrdf.repository.RepositoryResult;
 
 import com.franz.agraph.repository.AGMaterializer;
 import com.franz.agraph.repository.AGRDFFormat;
 
 public class AGMaterializerTests extends AGAbstractTest {
 
+	protected static String printStatements(RepositoryConnection conn) throws RepositoryException {
+		RepositoryResult<Statement> results = conn.getStatements(null, null, null, false);
+		StringBuffer m = new StringBuffer();
+		int limit = Integer.parseInt(System.getProperty("AGMaterializerTests.printStatements.limit", "50"));
+		int i=0;
+		for (;results.hasNext() && i<limit; i++) {
+			if (i==0) {
+				m.append("\nDumping all statements to help debug:\n");
+			}
+			m.append(results.next());
+			m.append("\n");
+		}
+		if (results.hasNext()) {
+			m.append("(there are more, stopping at " + limit + ")\n");
+		}
+		return m.toString();
+	}
+	
 	@Test
 	@Category(TestSuites.Prepush.class)
 	public void materializeOverDefaultGraph() throws Exception {
 		URI a = vf.createURI("http://a");
 		URI p = vf.createURI("http://p");
 		URI A = vf.createURI("http://A");
-		conn.add(a,p,a);
-		conn.add(p,RDFS.DOMAIN,A);
-		AGMaterializer materializer = AGMaterializer.newInstance();
-		materializer.withRuleset("all");
-		Assert.assertEquals(1, conn.materialize(materializer));
-		Assert.assertEquals("expected size 3", 3, conn.size());
-		Assert.assertTrue(conn.hasStatement(a, RDF.TYPE, A, false));
-		Assert.assertEquals(1, conn.deleteMaterialized());
-		Assert.assertFalse(conn.hasStatement(a, RDF.TYPE, A, false));
-		Assert.assertEquals("expected size 2", 2, conn.size());
+		try {
+			conn.add(a, p, a);
+			conn.add(p, RDFS.DOMAIN, A);
+			AGMaterializer materializer = AGMaterializer.newInstance();
+			materializer.withRuleset("all");
+			Assert.assertEquals(
+					"unexpected number of materialized triples added", 1,
+					conn.materialize(materializer));
+			Assert.assertEquals("expected size 3", 3, conn.size());
+			Assert.assertTrue(conn.hasStatement(a, RDF.TYPE, A, false));
+			Assert.assertEquals(
+					"unexpected number of materialized triples deleted", 1,
+					conn.deleteMaterialized());
+			Assert.assertFalse(conn.hasStatement(a, RDF.TYPE, A, false));
+			Assert.assertEquals("expected size 2", 2, conn.size());
+		} catch (AssertionFailedError e) {
+			StringBuffer m = new StringBuffer();
+			m.append(e.getMessage());
+			m.append(printStatements(conn));
+			throw new AssertionFailedError(m.toString());
+		}
 	}
-	
+
 	@Test
 	@Category(TestSuites.Prepush.class)
 	public void materializeOverDefaultGraphTransactional() throws Exception {
