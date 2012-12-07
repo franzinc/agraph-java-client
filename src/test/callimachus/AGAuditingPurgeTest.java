@@ -1425,9 +1425,10 @@ public class AGAuditingPurgeTest extends TestCase {
 	public void testDeleteConnected() throws Exception {
 		begin(con);
 		assertTrue(con.isEmpty());
-		BNode node = vf.createBNode();
-		con.add(carmichael, knows, node);
-		con.add(node, knows, jackson);
+		//		BNode node = vf.createBNode();
+		//		con.add(carmichael, knows, node);
+		//		con.add(node, knows, jackson);
+		con.prepareUpdate(QueryLanguage.SPARQL, PREFIX + "INSERT DATA { <carmichael> foaf:knows _:b0 . _:b0 foaf:knows <jackson> . }", "http://example.com/").execute();
 		con = reopen(repo, con);
 		con.prepareUpdate(QueryLanguage.SPARQL, PREFIX + "DELETE { <carmichael> foaf:knows ?friend . ?friend foaf:knows ?foaf } WHERE { <carmichael> foaf:knows ?friend . ?friend foaf:knows ?foaf } ", "http://example.com/").execute();
 		con = commit(repo, con);
@@ -1459,9 +1460,10 @@ public class AGAuditingPurgeTest extends TestCase {
 	public void testDeleteLink() throws Exception {
 		begin(con);
 		assertTrue(con.isEmpty());
-		BNode node = vf.createBNode();
-		con.add(carmichael, knows, node);
-		con.add(node, knows, jackson);
+		//		BNode node = vf.createBNode();
+		//		con.add(carmichael, knows, node);
+		//		con.add(node, knows, jackson);
+		con.prepareUpdate(QueryLanguage.SPARQL, PREFIX + "INSERT DATA { <carmichael> foaf:knows _:b0 . _:b0 foaf:knows <jackson> . }", "http://example.com/").execute();
 		con = reopen(repo, con);
 		con.prepareUpdate(QueryLanguage.SPARQL, PREFIX + "DELETE { <carmichael> foaf:knows ?friend } WHERE { <carmichael> foaf:knows ?friend } ", "http://example.com/").execute();
 		con = commit(repo, con);

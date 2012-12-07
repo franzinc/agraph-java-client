@@ -93,7 +93,9 @@ public class AGCallimachusTest extends AGAbstractTest {
         Assert.assertTrue("Title should be correct", conn.hasStatement(s,p,o_right,false,g));
         Assert.assertFalse("Incorrect title should be gone", conn.hasStatement(s,p,o_wrong,false,g));
    }
-    
+
+/*  
+// leaving off for now; cf. rfe12026
     @Test
     @Category(TestSuites.Prepush.class)
     public void testTriggerAuditing() throws Exception {
@@ -119,5 +121,6 @@ public class AGCallimachusTest extends AGAbstractTest {
     	Assert.assertEquals("g0 should be empty", 0, conn.size(g0));
     	Assert.assertEquals("activity1 should have 12 statements after update", 12, conn.size(a1));
     }
-    
+*/
+  
 }
