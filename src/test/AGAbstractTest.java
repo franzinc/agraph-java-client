@@ -334,7 +334,7 @@ public class AGAbstractTest extends Closer {
     public static void assertSetsEqual(String msg, Collection expected, Collection actual) {
         expected = new ArrayList(expected);
         actual = new ArrayList(actual);
-        assertEquals(actual.toString(), expected.size(), actual.size());
+        assertEquals(msg, expected.size(), actual.size());
         for (Iterator iter = expected.iterator(); iter.hasNext();) {
             Object exp = iter.next();
             boolean found = false;
@@ -406,25 +406,20 @@ public class AGAbstractTest extends Closer {
     }
     
     public static void assertFiles(File expected, File actual) throws Exception {
-        assertEquals("diff " + expected.getCanonicalPath() + " " + actual.getCanonicalPath(),
-        		stripBlankNodes(readLines(expected)),
-        		stripBlankNodes(readLines(actual)));
+        assertSetsEqual("diff " + expected.getCanonicalPath() + " " + actual.getCanonicalPath(),
+            stripBlankNodes(readLines(expected)),
+            stripBlankNodes(readLines(actual)));
     }
     
     private static List<String> stripBlankNodes(List<String> strings) {
-    	List<String> ret = new ArrayList<String>(strings.size());
-    	for (String str : strings) {
-    		String[] split = str.split("b........x.");
-    		StringBuilder b = new StringBuilder();
-    		for (int i = 0; i < split.length; i++) {
-    			b.append(split[i]);
-    		}
-    		ret.add(b.toString());
-		}
-    	return ret;
-	}
+        List<String> ret = new ArrayList<String>(strings.size());
+        for (String str : strings) {
+            ret.add(str.replaceAll("b........x.", "b00000000x0"));
+        }
+        return ret;
+    }
 
-	public static Map mapKeep(Object[] keys, Map map) {
+    public static Map mapKeep(Object[] keys, Map map) {
         Map ret = new HashMap();
         for (int i = 0; i < keys.length; i++) {
             ret.put(keys[i], map.get(keys[i]));
