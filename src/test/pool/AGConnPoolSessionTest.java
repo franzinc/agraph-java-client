@@ -95,7 +95,11 @@ public class AGConnPoolSessionTest extends Closer {
                 AGPoolProp.testOnBorrow, true,
                 AGPoolProp.maxWait, TimeUnit.SECONDS.toMillis(30)
 		));
-        AGRepositoryConnection conn = closeLater( pool.borrowConnection());
+    	AGServer server = closeLater( AGAbstractTest.newAGServer());
+    	AGCatalog catalog = server.getCatalog(AGAbstractTest.CATALOG_ID);
+    	AGRepository repo = closeLater( catalog.createRepository("pool.testPoolDedicated"));
+    	repo.setConnPool(pool);
+        AGRepositoryConnection conn = closeLater( repo.getConnection());
         Assert.assertFalse(conn.toString(), conn.getHttpRepoClient().getRoot().contains(AGAbstractTest.findServerUrl()));
         Assert.assertEquals(0, conn.size());
         conn.deleteDatatypeMapping(XMLSchema.DOUBLE);
@@ -117,7 +121,11 @@ public class AGConnPoolSessionTest extends Closer {
                 AGPoolProp.testOnBorrow, true,
                 AGPoolProp.maxWait, TimeUnit.SECONDS.toMillis(30)
 		));
-        AGRepositoryConnection conn = closeLater( pool.borrowConnection());
+    	AGServer server = closeLater( AGAbstractTest.newAGServer());
+    	AGCatalog catalog = server.getCatalog(AGAbstractTest.CATALOG_ID);
+    	AGRepository repo = closeLater( catalog.createRepository("pool.testPoolTx"));
+    	repo.setConnPool(pool);
+        AGRepositoryConnection conn = closeLater( repo.getConnection());
         Assert.assertFalse(conn.toString(), conn.getHttpRepoClient().getRoot().contains(AGAbstractTest.findServerUrl()));
         Assert.assertEquals(0, conn.size());
         conn.deleteDatatypeMapping(XMLSchema.DOUBLE);
@@ -147,16 +155,21 @@ public class AGConnPoolSessionTest extends Closer {
     			AGPoolProp.testOnBorrow, true,
     			AGPoolProp.maxWait, TimeUnit.SECONDS.toMillis(30)
     	));
-    	{
-    		AGRepositoryConnection conn = closeLater( pool.borrowConnection());
-            Assert.assertTrue(conn.toString(), conn.getHttpRepoClient().getRoot().contains(AGAbstractTest.findServerUrl()));
-    		AGValueFactory vf = conn.getValueFactory();
-    		for (int i = 0; i < NUM * 10; i++) {
-    			conn.add(new File("src/tutorial/java-kennedy.ntriples"), ns, RDFFormat.NTRIPLES, vf.createURI(ns + i));
-    		}
-    		log.debug("size=" + conn.size());
-    		close(conn);
-    	}
+		AGServer server = closeLater(AGAbstractTest.newAGServer());
+		AGCatalog catalog = server.getCatalog(AGAbstractTest.CATALOG_ID);
+		final AGRepository repo = closeLater(catalog
+				.createRepository("pool.deleteDatatypeMapping"));
+		repo.setConnPool(pool);
+		AGRepositoryConnection conn = closeLater(repo.getConnection());
+		Assert.assertTrue(conn.toString(), conn.getHttpRepoClient().getRoot()
+				.contains(AGAbstractTest.findServerUrl()));
+		AGValueFactory vf = conn.getValueFactory();
+		for (int i = 0; i < NUM * 10; i++) {
+			conn.add(new File("src/tutorial/java-kennedy.ntriples"), ns,
+					RDFFormat.NTRIPLES, vf.createURI(ns + i));
+		}
+		log.debug("size=" + conn.size());
+		close(conn);
     	ExecutorService exec = Executors.newFixedThreadPool(NUM);
     	final List<Throwable> errors = new ArrayList<Throwable>();
     	final AtomicLong count = new AtomicLong(0);
@@ -170,7 +183,7 @@ public class AGConnPoolSessionTest extends Closer {
     						if (now-start > TimeUnit.MINUTES.toNanos((int)(MINUTES * 0.9))) {
     							break;
     						}
-    						AGRepositoryConnection conn = pool.borrowConnection();
+    						AGRepositoryConnection conn = repo.getConnection();
     						try {
     							conn.deleteDatatypeMapping(XMLSchema.DOUBLE);
     							count.incrementAndGet();
@@ -218,6 +231,10 @@ public class AGConnPoolSessionTest extends Closer {
 				AGPoolProp.maxWait, TimeUnit.SECONDS.toMillis(wait),
 				AGPoolProp.maxIdle, 8
 		));
+    	AGServer server = closeLater( AGAbstractTest.newAGServer());
+    	AGCatalog catalog = server.getCatalog(AGAbstractTest.CATALOG_ID);
+    	final AGRepository repo = closeLater( catalog.createRepository("pool.maxActive"));
+    	repo.setConnPool(pool);
         ExecutorService exec = Executors.newFixedThreadPool(clients);
     	List<Future<Boolean>> errors = new ArrayList<Future<Boolean>>(clients);
         final AtomicLong idx = new AtomicLong(0);
@@ -228,7 +245,8 @@ public class AGConnPoolSessionTest extends Closer {
 					try {
 						long id = idx.incrementAndGet();
 						log.debug(id + " start");
-						AGRepositoryConnection conn = pool.borrowConnection();
+						AGRepositoryConnection conn = repo.getConnection();
+
 						try {
 							log.debug(id + " open");
 							conn.size();
@@ -271,6 +289,10 @@ public class AGConnPoolSessionTest extends Closer {
 				AGPoolProp.maxWait, TimeUnit.SECONDS.toMillis(wait),
 				AGPoolProp.maxIdle, 8
 		));
+    	AGServer server = closeLater( AGAbstractTest.newAGServer());
+    	AGCatalog catalog = server.getCatalog(AGAbstractTest.CATALOG_ID);
+    	final AGRepository repo = closeLater( catalog.createRepository("pool.fast"));
+    	repo.setConnPool(pool);
         final AtomicLong idx = new AtomicLong(0);
         final AtomicLong count = new AtomicLong(0);
         ExecutorService exec = Executors.newFixedThreadPool(clients);
@@ -286,7 +308,7 @@ public class AGConnPoolSessionTest extends Closer {
 						long duration = TimeUnit.SECONDS.toNanos(seconds);
 						long start = System.nanoTime();
 						while (System.nanoTime()-start < duration) {
-							AGRepositoryConnection conn = pool.borrowConnection();
+							AGRepositoryConnection conn = repo.getConnection();
 							try {
 								//log.debug(id + " open");
 								myCount++;

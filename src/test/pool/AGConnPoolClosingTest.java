@@ -79,15 +79,22 @@ public class AGConnPoolClosingTest extends Closer {
 		));
 		
 	Assert.assertEquals(pool.toString(), 0, pool.getNumActive());
+
 	final int NUM = 10; // Number of workers
 	final int HOLD_TIME = 20; // seconds
+
+	final AGServer server = AGAbstractTest.newAGServer();
+	AGCatalog catalog = server.getCatalog(AGAbstractTest.CATALOG_ID);
+	final AGRepository repo = closeLater(catalog.createRepository(repoName));
+	repo.setConnPool(pool);
+
         ExecutorService exec = Executors.newFixedThreadPool(NUM);
         final List<Throwable> errors = new ArrayList<Throwable>();
         for (int i = 0; i < NUM; i++) {
 			exec.execute(new Runnable() {
 				public void run() {
 					try {
-						AGRepositoryConnection conn = pool.borrowConnection();
+						AGRepositoryConnection conn = repo.getConnection();
 						try {
 							conn.size();
 							// Hold the connection for a while 
@@ -122,7 +129,6 @@ public class AGConnPoolClosingTest extends Closer {
 
         close();
     	long start = System.nanoTime();
-    	final AGServer server = closeLater(AGAbstractTest.newAGServer());
         Map<String, String> sessions = Util.waitForSessions(server, repoName);
         Assert.assertNull("Sessions alive " + TimeUnit.NANOSECONDS.toSeconds((System.nanoTime() - start)) + " seconds after closing: " + sessions, sessions);
         close(server);

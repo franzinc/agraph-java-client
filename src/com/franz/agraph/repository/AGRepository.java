@@ -22,6 +22,7 @@ import org.openrdf.repository.base.RepositoryBase;
 import com.franz.agraph.http.AGHTTPClient;
 import com.franz.agraph.http.AGHttpRepoClient;
 import com.franz.agraph.http.exception.AGHttpException;
+import com.franz.agraph.pool.AGConnPool;
 
 /**
  * Implements the Sesame Repository interface for AllegroGraph, representing
@@ -38,6 +39,7 @@ public class AGRepository extends RepositoryBase implements AGAbstractRepository
 	private final String catalogPrefixedRepositoryID;
 	private final String repositoryURL;
 	private final AGValueFactory vf;
+	private AGConnPool pool;
 
 	/**
 	 * Creates an AGRepository instance for a repository having the given
@@ -106,8 +108,12 @@ public class AGRepository extends RepositoryBase implements AGAbstractRepository
 	 * Create a connection to the repository.
 	 */
 	public AGRepositoryConnection getConnection() throws RepositoryException {
-		AGHttpRepoClient repoclient = new AGHttpRepoClient(this, getCatalog().getHTTPClient(), repositoryURL, null);
-		return new AGRepositoryConnection(this, repoclient);
+		if (pool!=null) {
+			return pool.borrowConnection();
+		} else {
+			AGHttpRepoClient repoclient = new AGHttpRepoClient(this, getCatalog().getHTTPClient(), repositoryURL, null);
+			return new AGRepositoryConnection(this, repoclient);
+		}
 	}
 
 	/**
@@ -168,6 +174,7 @@ public class AGRepository extends RepositoryBase implements AGAbstractRepository
 
 	@Override
 	protected void shutDownInternal() throws RepositoryException {
+		if (pool!=null) pool.close();
 	}
 
 	/**
@@ -258,6 +265,33 @@ public class AGRepository extends RepositoryBase implements AGAbstractRepository
 			throw new RepositoryException(e);
 		}
 	}
+
+	/**
+	 * Sets the connection pool to use with this repository. 
+	 * <p>
+	 * Enables the repository to use a connection pool so that Sesame
+	 * apps can transparently benefit from connection pooling.  If pool 
+	 * is not null, getConnection() borrows a connection from the pool, 
+	 * and closing the connection returns it to the pool.  The pool is
+	 * closed when the Repository is shutdown.
+	 * 
+	 * <p><code><pre>
+	 * Note that the AGConnPool parameters:
+	 *  
+	 * 		AGConnProp.serverUrl, "http://localhost:10035",
+	 * 		AGConnProp.username, "test",
+	 * 		AGConnProp.password, "xyzzy",
+	 * 		AGConnProp.catalog, "/",
+	 * 		AGConnProp.repository, "my_repo",
+	 * 
+	 * are currently assumed to match those of this repository.
+	 * </pre></code></p>
+	 * 
+	 * @see AGConnPool
+	 */
+	public void setConnPool(AGConnPool pool) {
+		this.pool = pool;
+	}
 	
     /**
      * Forces a checkpoint for this repository. 
@@ -270,6 +304,7 @@ public class AGRepository extends RepositoryBase implements AGAbstractRepository
 		NameValuePair[] data = {};
 		getHTTPClient().post(url,hdr,data,null,null);
 	}
+	
     /**
      * Waits until background db processes have gone idle.
      * 
