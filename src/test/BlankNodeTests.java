@@ -110,4 +110,12 @@ public class BlankNodeTests extends AGAbstractTest {
 		Assert.assertEquals(1, conn.size());
 		Assert.assertTrue(conn.hasStatement(bnode, p, bnode, false, p));
 	}
+	
+	@Test
+	@Category(TestSuites.Prepush.class)
+	public void blankNodesPerRequest() throws Exception {
+		vf.setBlankNodesPerRequest(vf.getBlankNodesPerRequest()*10);
+		vf.createBNode();
+		Assert.assertEquals(vf.getBlankNodesPerRequest(), vf.getBlankNodeIds().length);
+	}
 }
