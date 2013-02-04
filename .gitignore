@@ -16,3 +16,6 @@ JenaTutorialExamples.*.nt
 JenaTutorialExamples.*.rdf
 TutorialExamples.*.nt
 TutorialExamples.*.rdf
+phase-[0-6].ds
+phase-[0-6].nmon
+phase-[0-6].vm
