@@ -38,7 +38,7 @@ creating, querying and maintaining RDF data, and for managing the stored triples
 	  <li><a href="#Exporting Triples">Exporting Triples</a></li>      
       <li><a href="#Namespaces">Namespaces</a></li>
       <!--<li><a href="#Free Text Search">Free Text Search</a></li> -->
-      <li><a href="#Ask, Describe, and Construct Queries">Select, Ask, Describe, and Construct Queries</a></li>
+      <li><a href="#Ask, Describe, and Construct Queries">Select, Ask, Describe, Construct, and Update Queries</a></li>
       <!--<li><a href="#Parametric Queries">Parametric Queries</a></li>
       <li><a href="#Range Matches">Range Matches</a></li>
       <li><a href="#Federated Repositories">Federated Repositories</a></li>  
@@ -575,13 +575,14 @@ called the connection method <strong>registerFreeTextPredicate()</strong> to reg
 <pre class="output">Substring match for 'lic'.<br>[s=http://example.org/people/alice1;p=http://example.org/people/fullname;o=&quot;Alice B. Toklas&quot;]<br>[s=http://example.org/people/book1;p=http://example.org/people/title;o=&quot;Alice in Wonderland&quot;]</pre>
 <p>As you can see, the regex match found &quot;lic&quot; in &quot;Alice in Wonderland,&quot; which was not a registered free-text predicate. It made this match by doing a string comparison against every object value in the triple store. Even though you can streamline the SPARQL query considerably by writing more restrictive patterns, this is still inherently less efficient than using the indexed approach. </p>
 -->
-<h2 id="Ask, Describe, and Construct Queries">Select, Ask, Describe, and Construct Queries (example13())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
+<h2 id="Ask, Describe, and Construct Queries">Select, Ask, Describe, Construct, and Update Queries (example13())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>SPARQL provides alternatives to the standard SELECT query. Example example13() exercises these alternatives to show how AllegroGraph Server handles them using the Java Jena API. </p>
 <ul>
-  <li> SELECT: Returns variables bound in a query pattern match. </li>
+  <li>SELECT: Returns variables bound in a query pattern match. </li>
   <li>ASK: Returns a boolean indicating whether a query matches or not. </li>
   <li>CONSTRUCT: Returns triples constructed by substituting variables in a set of triple templates. </li>
-  <li>DESCRIBE: Returns all of the triples of a matching resource. </li>
+  <li>DESCRIBE: Returns a concise bounded description of a matching resource. </li>
+  <li>Updates: Executes <a href="http://www.w3.org/TR/sparql11-update/">SPARQL Update</a> queries to modify the model/repository. </li>
 </ul>
 <p>The example begins by borrowing an AGGraphMaker object from example6(). From the maker object we can generate an AGModel object. This connects to an existing repository that contains vcard and Kennedy data. We'll need to register a Kennedy namespace to make the queries easier to read. 
 <pre class="input">	public static void example13() throws Exception {<br>		AGGraphMaker maker = example6();<br>		AGModel model = new AGModel(maker.getGraph());<br>		model.setNsPrefix(&quot;kdy&quot;, &quot;http://www.franz.com/simple#&quot;);</pre>
@@ -606,6 +607,18 @@ ASK: Is there anyone named Alice? false</pre>
 <p>Printing the result model to standard output reveals that the &quot;model&quot; is expressed as RDF/XML. The actual output is too lengthy to show here, but one block confirms that the has-grandchild triples are present as expected: </p>
 <pre class="output">  &lt;rdf:Description rdf:about=&quot;http://www.franz.com/simple#person2&quot;&gt;<br>    &lt;j.0:has-grandchild rdf:resource=&quot;http://www.franz.com/simple#person44&quot;/&gt;<br>    &lt;j.0:has-grandchild rdf:resource=&quot;http://www.franz.com/simple#person76&quot;/&gt;<br>    &lt;j.0:has-grandchild rdf:resource=&quot;http://www.franz.com/simple#person42&quot;/&gt;<br>    &lt;j.0:has-grandchild rdf:resource=&quot;http://www.franz.com/simple#person51&quot;/&gt;
 ...</pre>
+<p><a href="http://www.w3.org/TR/sparql11-update/">SPARQL Update</a> queries can also be evaluated to modify the model/repository.  A SPARQL Update can be executed as follows:</p>
+<pre class="input">
+		queryString = "insert data { kdy:person4 kdy:nickname 'Jack'}";
+		query = AGQueryFactory.create(queryString);
+		qe = AGQueryExecutionFactory.create(query, model);
+		try {
+			qe.execUpdate();
+		} finally {
+			qe.close();
+		}
+</pre>
+
 <h2 id="RDFS++ Inference">RDFS++ Inference (example19())&nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>The great promise of the semantic web is that we can use RDF metadata to combine information from multiple sources into a single, common model.&nbsp; The great problem of the semantic web is that it is so difficult to recognize when two resource descriptions from different sources actually represent the same thing.&nbsp; This problem arises because there is no uniform or universal way to generate URIs identifying resources.&nbsp; As a result, we may create two resources, Bob and Robert, that actually represent the same person. </p>
 <p>This problem has generated much creativity in the field. One way to approach the problem is through inference.&nbsp; There are certain relationships and circumstances where an inference engine can deduce that two resource descriptions actually represent one thing, and then automatically merge the descriptions.&nbsp; AllegroGraph's <a href="../reasoner-tutorial.html">inference engine</a> can be turned on or off each time you run a query against the triple store.&nbsp;  (Note that inference is turned off by default, which is the opposite of standard Jena behavior.) </p>

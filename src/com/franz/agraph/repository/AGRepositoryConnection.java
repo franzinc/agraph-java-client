@@ -688,7 +688,7 @@ implements RepositoryConnection, Closeable {
 	}
 
 	@Override
-	public Update prepareUpdate(QueryLanguage ql,
+	public AGUpdate prepareUpdate(QueryLanguage ql,
 			String queryString, String baseURI) {
 		// TODO: consider having the server parse and process the query,
 		// throw MalformedQueryException, etc.
@@ -698,7 +698,7 @@ implements RepositoryConnection, Closeable {
 	}
 	
 	@Override
-	public Update prepareUpdate(QueryLanguage ql, String queryString) {
+	public AGUpdate prepareUpdate(QueryLanguage ql, String queryString) {
 		// TODO: consider having the server parse and process the query,
 		// throw MalformedQueryException, etc.
 		AGUpdate u = new AGUpdate(this, ql, queryString, null);
