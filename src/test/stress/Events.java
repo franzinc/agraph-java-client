@@ -30,6 +30,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -54,6 +55,10 @@ import org.openrdf.query.TupleQueryResultHandler;
 import org.openrdf.query.TupleQueryResultHandlerException;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.rio.ntriples.NTriplesUtil;
+
+import com.franz.agraph.pool.AGConnPool;
+import com.franz.agraph.pool.AGConnProp;
+import com.franz.agraph.pool.AGPoolProp;
 
 import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGQueryLanguage;
@@ -86,8 +91,9 @@ public class Events extends Closer {
         
         // Time to run queries in minutes
         static private int QUERY_TIME = 10;
-	// When non-zero perform QUERY_SIZE queries in query phases
-	static private int QUERY_SIZE = 0;
+
+        // When non-zero perform QUERY_SIZE queries in query phases
+        static private int QUERY_SIZE = 0;
         
         // Size of the Events
         static private int EVENT_SIZE = 50;
@@ -118,7 +124,10 @@ public class Events extends Closer {
         
         static boolean MONITOR = true;
 
-	static boolean BULKMODE = false;
+        static boolean BULKMODE = false;
+
+        // When non-zero use a connection pool of the specified size
+        static private int POOL_SIZE = 0;
         
         public enum LOGT {
             ALL, ELAPSED, NOTIME;
@@ -247,8 +256,8 @@ public class Events extends Closer {
             options.addOption(OptionBuilder.withLongOpt("url")
                     .withArgName("URL").hasArg()
                     .withDescription("AGraph URL [default=" + URL +
-                            " from env var AGRAPH_HOST, java property AGRAPH_HOST, or \"localhost\";" +
-                    " and env var AGRAPH_PORT, java property AGRAPH_PORT, ../agraph/lisp/agraph.port, or 10035")
+                        " from env var AGRAPH_HOST, java property AGRAPH_HOST, or \"localhost\";" +
+                        " and env var AGRAPH_PORT, java property AGRAPH_PORT, ../agraph/lisp/agraph.port, or 10035")
                     .create());
             options.addOption(OptionBuilder.withLongOpt("username")
                     .withArgName("NAME").hasArg()
@@ -284,6 +293,10 @@ public class Events extends Closer {
             options.addOption(OptionBuilder.withLongOpt("bulkmode")
                     .withArgName("true|false").hasArg()
                     .withDescription("Use repository bulk mode. [default=" + BULKMODE + "]")
+                    .create());
+            options.addOption(OptionBuilder.withLongOpt("pool-size")
+                    .withArgName("POOL_SIZE").hasArg()
+                    .withDescription("When non-zero, sets the connection pool size [default=" + POOL_SIZE + "]")
                     .create());
             
             cmd = new PosixParser().parse(options, args);
@@ -327,7 +340,8 @@ public class Events extends Closer {
             MONITOR = cmdVal("monitor", MONITOR);
             LOG = cmdVal("log", LOG);
             stream = cmdVal("stream", stream);
-	    BULKMODE = cmdVal("bulkmode", BULKMODE);
+            BULKMODE = cmdVal("bulkmode", BULKMODE);
+            POOL_SIZE = cmdVal("pool-size", POOL_SIZE);
             
             if (cmd.hasOption("seed")) {
                 long seed = Long.parseLong(cmd.getOptionValue("seed"));
@@ -335,17 +349,16 @@ public class Events extends Closer {
                 trace("Set random seed to %s.", seed);
             }
             trace("Parameters:"
-            		+ " catalog=" + CATALOG
-            		+ " repository=" + REPOSITORY
-            		+ " url=" + URL
-            		+ " size=" + SIZE
-            		+ " stream=" + stream);
+                        + " catalog=" + CATALOG
+                        + " repository=" + REPOSITORY
+                        + " url=" + URL
+                        + " size=" + SIZE
+                        + " stream=" + stream);
         }
         
         public static boolean hasOption(String opt) {
             return cmd.hasOption(opt);
         }
-
     }
     
     static double logtime(double time) {
@@ -368,8 +381,8 @@ public class Events extends Closer {
         System.out.println(sb.toString());
     }
 
-    public AGRepositoryConnection connect() throws RepositoryException {
-        AGServer server = closeLater( new AGServer(findServerUrl(), username(), password()) );
+    private AGRepositoryConnection connect() throws RepositoryException {
+        AGServer server = closeLater( new AGServer(Defaults.URL, Defaults.USERNAME, Defaults.PASSWORD) );
         AGCatalog cat = server.getCatalog(Defaults.CATALOG);
         AGRepository repo = closeLater( cat.createRepository(Defaults.REPOSITORY) );
         repo.initialize();
@@ -379,6 +392,102 @@ public class Events extends Closer {
         conn.setAutoCommit(true);
         trace("Dedicated backend: " + conn.getHttpRepoClient().getRoot());
         return conn;
+    }
+
+    private static AGRepository repoPool;
+    
+    private static void MaybeInitializePool() {
+        if (Defaults.POOL_SIZE == 0) {
+            return;
+        }
+
+        try {
+            String myServerUrl = Defaults.URL; // "http://localhost:10035";
+            String myUsername = Defaults.USERNAME; // "test";
+            String myPassword = Defaults.PASSWORD; // "xyzzy";
+            String myCatalog = Defaults.CATALOG; // "java-catalog";
+            String myRepo = Defaults.REPOSITORY; // "javatest";
+
+            AGConnPool pool = AGConnPool.create(
+                    AGConnProp.serverUrl, myServerUrl,
+                    AGConnProp.username, myUsername,
+                    AGConnProp.password, myPassword,
+                    AGConnProp.catalog, myCatalog,
+                    AGConnProp.repository, myRepo,
+                    // The above values must match the repo defined above;
+                    // that redundancy should go away in a future release,
+                    // as part of rfe11963.
+                    AGConnProp.session,    AGConnProp.Session.DEDICATED, 
+                    AGConnProp.sessionLifetime, TimeUnit.MINUTES.toSeconds(10),
+                    AGPoolProp.testOnBorrow, true,
+                    AGPoolProp.timeBetweenEvictionRunsMillis, TimeUnit.SECONDS.toMillis(120),
+                    AGPoolProp.minEvictableIdleTimeMillis, TimeUnit.SECONDS.toMillis(120),
+                    AGPoolProp.maxWait, TimeUnit.SECONDS.toMillis(60),
+                    AGPoolProp.initialSize, Defaults.POOL_SIZE,
+                    AGPoolProp.maxActive, Defaults.POOL_SIZE);
+
+            AGServer server = new AGServer(myServerUrl, myUsername, myPassword);
+            try {
+                AGCatalog catalog = server.getCatalog(myCatalog);
+                repoPool = catalog.createRepository(myRepo);
+                repoPool.setConnPool(pool);
+                repoPool.initialize();
+            }
+            finally {
+                server.close();
+            }
+        }
+        catch (RepositoryException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public class ConnectionHolder {
+        private AGRepositoryConnection conn;
+
+        public ConnectionHolder() throws RepositoryException {
+            if (repoPool == null) {
+                conn = connect();
+            }
+        }
+
+        public void begin() {
+            try {
+                if (repoPool != null) {
+                    conn = repoPool.getConnection();
+                }
+                ThreadVars.valueFactory.set(conn.getValueFactory());
+            }
+            catch (RepositoryException e) {
+                errors++;
+                e.printStackTrace();
+            }
+        }
+
+        public AGRepositoryConnection use() {
+            return conn;
+        }
+
+        public void end() {
+            try {
+                ThreadVars.valueFactory.set(null);
+                if (repoPool != null) {
+                    conn.close();
+                    conn = null;
+                }
+            }
+            catch (RepositoryException e) {
+                errors++;
+                e.printStackTrace();
+            }
+        }
+
+        void close() {
+            if (repoPool == null) {
+                ThreadVars.valueFactory.set(null);
+                Events.this.close(conn);
+            }
+        }
     }
 
     private static class ThreadVars {
@@ -747,7 +856,7 @@ public class Events extends Closer {
         private int eventsPerCommit;
         private int triplesPerCommit;
         private final RandomDate dateMaker;
-        private AGRepositoryConnection conn;
+        private final ConnectionHolder connHolder;
         
         public Loader(int theId, long theTripleGoal, int theEventsPerCommit, RandomDate dateMaker) throws Exception {
             id = theId;
@@ -755,13 +864,12 @@ public class Events extends Closer {
             triplesPerCommit = theEventsPerCommit * Defaults.EVENT_SIZE;
             loopCount = theTripleGoal / triplesPerCommit / Defaults.LOAD_WORKERS;
             eventsPerCommit = theEventsPerCommit;
-            conn = connect();
+            connHolder = new ConnectionHolder();
         }
         
         public Integer call() {
             Thread.currentThread().setName("loader(" + id + ")");
             ThreadVars.dateMaker.set(dateMaker);
-            ThreadVars.valueFactory.set(conn.getValueFactory());
             
             final int statusSize = Defaults.STATUS;
             int count = 0, errors = 0;
@@ -771,6 +879,7 @@ public class Events extends Closer {
             statements.setSize(triplesPerCommit);
             
             for (int loop = 0; loop < loopCount; loop++) {
+                connHolder.begin();
                 // Fill in the statements to commit
                 for (int event = 0, index = 0; event < eventsPerCommit; event++) {
                     index = AllEvents.makeEvent(statements, index);
@@ -789,13 +898,14 @@ public class Events extends Closer {
                 }
                 
                 try {
-                    conn.add(statements);
+                    connHolder.use().add(statements);
                     count += triplesPerCommit;
                 } catch (Exception e) {
-        			errors++;
+                    errors++;
                     trace("Error adding statements...");
                     e.printStackTrace();
                 }
+                connHolder.end();
             }
             
             trace("Loading Done - %d triples at %d triples " +
@@ -804,10 +914,10 @@ public class Events extends Closer {
             return 0;
         }
 
-		@Override
-		public void close() {
-			Events.this.close(conn);
-		}
+        @Override
+        public void close() {
+            connHolder.close();
+        }
     }
     
     private static class QueryResult {
@@ -825,18 +935,18 @@ public class Events extends Closer {
         private int id;
         private String timestamp;
         private final RandomDate dateMaker;
-	private final QueryLanguage language;
-        AGRepositoryConnection conn;
+        private final QueryLanguage language;
+        private ConnectionHolder connHolder;
         
         public Querier(int theId, int theSecondsToRun, RandomDate dateMaker, QueryLanguage lang) throws Exception {
             id = theId;
             secondsToRun = theSecondsToRun;
             this.dateMaker = dateMaker;
-	    language = lang;
-            conn = connect();
+            language = lang;
+            connHolder = new ConnectionHolder();
         }
         
-	private long sparqlQuery(AGRepositoryConnection conn, ValueFactory vf, boolean trace) {
+        private long sparqlQuery(AGRepositoryConnection conn, boolean trace) {
             // Pick a random customer
             String customerNT = NTriplesUtil.toNTriplesString(new RandomCustomer().makeValue());
             
@@ -857,16 +967,16 @@ public class Events extends Closer {
             
             String queryString;
             AGTupleQuery tupleQuery;
-	    queryString = String.format(
-		    "select ?s ?p ?o " +
-		    "from %s " +
-		    "where { " +
-		    "  ?s %s ?date . " +
-		    "  filter ( ( ?date >= %s ) && ( ?date <= %s ) ) " +
-		    "  ?s ?p ?o " +
-		    "}",
-		    customerNT, timestamp, startNT, endNT);
-	    tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.SPARQL, queryString);
+            queryString = String.format(
+                "select ?s ?p ?o " +
+                "from %s " +
+                "where { " +
+                "  ?s %s ?date . " +
+                "  filter ( ( ?date >= %s ) && ( ?date <= %s ) ) " +
+                "  ?s ?p ?o " +
+                "}",
+                customerNT, timestamp, startNT, endNT);
+            tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.SPARQL, queryString);
             tupleQuery = streamQuery(tupleQuery);
 
             // Actually pull the full results to the client, then just count them
@@ -877,70 +987,7 @@ public class Events extends Closer {
                     trace("query: %s", queryString);
                 }
                 if (Defaults.stream == Defaults.STREAM.HAND || Defaults.stream == Defaults.STREAM.PULH) {
-                	CountingHandler handler = new CountingHandler();
-                    tupleQuery.evaluate(handler);
-                    count = handler.count;
-                } else {
-                    result = tupleQuery.evaluate();
-                    count = count(result);
-                }
-		// test sparql and prolog return same results:
-                //				Set<Stmt> stmts = Stmt.statementSet(result);
-                //				count = stmts.size();
-                //				AGAbstractTest.assertSetsEqual(queryString, stmts,
-                //						Stmt.statementSet(tupleQuery2.evaluate()));
-            } catch (Exception e) {
-    			errors++;
-                trace("Error executing query:\n%s\n", queryString);
-                e.printStackTrace();
-                count = -1;
-            } finally {
-                Events.this.close(result);
-            }
-            
-            return count;
-	}
-
-	private long prologQuery(AGRepositoryConnection conn, ValueFactory vf, boolean trace) {
-            // Pick a random customer
-            String customerNT = NTriplesUtil.toNTriplesString(new RandomCustomer().makeValue());
-            
-            // Pick a random date range
-            GregorianCalendar start, end;
-            start = FullDateRange.getRandom();
-            end = FullDateRange.getRandom();
-            
-            if (start.after(end)) {
-                GregorianCalendar swap = end;
-                end = start;
-                start = swap;
-            }
-            
-            String startNT, endNT;
-            startNT = NTriplesUtil.toNTriplesString(CalendarToValue(start));
-            endNT = NTriplesUtil.toNTriplesString(CalendarToValue(end));
-            
-            String queryString;
-            AGTupleQuery tupleQuery;
-
-	    queryString = String.format(
-		    "(select (?s ?p ?o)" +
-		    "(:use-planner nil)" +
-		    "(q- ?s !%s (? !%s !%s) !%s)" +
-		    "(q- ?s ?p ?o !%s))",
-		    timestamp, startNT, endNT, customerNT, customerNT);
-	    tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
-            tupleQuery = streamQuery(tupleQuery);
-
-            // Actually pull the full results to the client, then just count them
-            TupleQueryResult result = null;
-            long count = 0;
-            try {
-                if (Defaults.VERBOSE > 0 && trace) {
-                    trace("query: %s", queryString);
-                }
-                if (Defaults.stream == Defaults.STREAM.HAND || Defaults.stream == Defaults.STREAM.PULH) {
-                	CountingHandler handler = new CountingHandler();
+                        CountingHandler handler = new CountingHandler();
                     tupleQuery.evaluate(handler);
                     count = handler.count;
                 } else {
@@ -948,12 +995,12 @@ public class Events extends Closer {
                     count = count(result);
                 }
                 // test sparql and prolog return same results:
-                //				Set<Stmt> stmts = Stmt.statementSet(result);
-                //				count = stmts.size();
-                //				AGAbstractTest.assertSetsEqual(queryString, stmts,
-                //						Stmt.statementSet(tupleQuery2.evaluate()));
+                // Set<Stmt> stmts = Stmt.statementSet(result);
+                // count = stmts.size();
+                // AGAbstractTest.assertSetsEqual(queryString, stmts,
+                // Stmt.statementSet(tupleQuery2.evaluate()));
             } catch (Exception e) {
-    			errors++;
+                errors++;
                 trace("Error executing query:\n%s\n", queryString);
                 e.printStackTrace();
                 count = -1;
@@ -962,44 +1009,107 @@ public class Events extends Closer {
             }
             
             return count;
-	}
+        }
 
-        private long randomQuery(AGRepositoryConnection conn, ValueFactory vf, boolean trace) {
+        private long prologQuery(AGRepositoryConnection conn, boolean trace) {
+            // Pick a random customer
+            String customerNT = NTriplesUtil.toNTriplesString(new RandomCustomer().makeValue());
+            
+            // Pick a random date range
+            GregorianCalendar start, end;
+            start = FullDateRange.getRandom();
+            end = FullDateRange.getRandom();
+            
+            if (start.after(end)) {
+                GregorianCalendar swap = end;
+                end = start;
+                start = swap;
+            }
+            
+            String startNT, endNT;
+            startNT = NTriplesUtil.toNTriplesString(CalendarToValue(start));
+            endNT = NTriplesUtil.toNTriplesString(CalendarToValue(end));
+            
+            String queryString;
+            AGTupleQuery tupleQuery;
 
-		if(this.language == AGQueryLanguage.PROLOG) {
-			return prologQuery(conn, vf, trace);
-		} else {
-			return sparqlQuery(conn, vf, trace);
-		} 
+            queryString = String.format(
+                    "(select (?s ?p ?o)" +
+                    "(:use-planner nil)" +
+                    "(q- ?s !%s (? !%s !%s) !%s)" +
+                    "(q- ?s ?p ?o !%s))",
+                    timestamp, startNT, endNT, customerNT, customerNT);
+            tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
+            tupleQuery = streamQuery(tupleQuery);
+
+            // Actually pull the full results to the client, then just count them
+            TupleQueryResult result = null;
+            long count = 0;
+            try {
+                if (Defaults.VERBOSE > 0 && trace) {
+                    trace("query: %s", queryString);
+                }
+                if (Defaults.stream == Defaults.STREAM.HAND || Defaults.stream == Defaults.STREAM.PULH) {
+                        CountingHandler handler = new CountingHandler();
+                    tupleQuery.evaluate(handler);
+                    count = handler.count;
+                } else {
+                    result = tupleQuery.evaluate();
+                    count = count(result);
+                }
+                // test sparql and prolog return same results:
+                // Set<Stmt> stmts = Stmt.statementSet(result);
+                // count = stmts.size();
+                // AGAbstractTest.assertSetsEqual(queryString, stmts,
+                // Stmt.statementSet(tupleQuery2.evaluate()));
+            } catch (Exception e) {
+                errors++;
+                trace("Error executing query:\n%s\n", queryString);
+                e.printStackTrace();
+                count = -1;
+            } finally {
+                Events.this.close(result);
+            }
+            
+            return count;
+        }
+
+        private long randomQuery(AGRepositoryConnection conn, boolean trace) {
+
+                if(this.language == AGQueryLanguage.PROLOG) {
+                    return prologQuery(conn, trace);
+                } else {
+                    return sparqlQuery(conn, trace);
+                } 
         }
         
         class CountingHandler implements TupleQueryResultHandler {
-		long count = 0;
-			public void startQueryResult(List<String> bindingNames) throws TupleQueryResultHandlerException {
-			}
-			public void handleSolution(BindingSet bindingSet) throws TupleQueryResultHandlerException {
-				count++;
-			}
-			public void endQueryResult() throws TupleQueryResultHandlerException {
-			}
-		}
+                long count = 0;
+                        public void startQueryResult(List<String> bindingNames) throws TupleQueryResultHandlerException {
+                        }
+                        public void handleSolution(BindingSet bindingSet) throws TupleQueryResultHandlerException {
+                                count++;
+                        }
+                        public void endQueryResult() throws TupleQueryResultHandlerException {
+                        }
+                }
 
-	private int count(TupleQueryResult result) throws Exception {
-	    int count = 0;
+        private int count(TupleQueryResult result) throws Exception {
+            int count = 0;
             while (result.hasNext()) {
                 result.next();
                 count++;
             }
             return count;
-        }		
+        }                
         
         public QueryResult call() {
             Thread.currentThread().setName("query(" + id + ")");
             ThreadVars.dateMaker.set(dateMaker);
-            ValueFactory vf;
-            ThreadVars.valueFactory.set(vf = conn.getValueFactory());
-            
-            timestamp = NTriplesUtil.toNTriplesString(vf.createURI(Defaults.NS, "EventTimeStamp"));
+
+            connHolder.begin();
+            timestamp = NTriplesUtil.toNTriplesString(ThreadVars.valueFactory.get().createURI(Defaults.NS, "EventTimeStamp"));
+            connHolder.end();
             
             final int statusSize = Math.max(1, Defaults.STATUS / 5);
             long count = 0, subcount = 0, queries = 0, restarts = 0;
@@ -1008,7 +1118,9 @@ public class Events extends Closer {
             
             while (true) {
                 // Do the query
-                long result = randomQuery(conn, vf, (queries % statusSize == 0));
+                connHolder.begin();
+                long result = randomQuery(connHolder.use(), (queries % statusSize == 0));
+                connHolder.end();
                 if (result < 0) {
                     restarts++;
                 } else {
@@ -1028,12 +1140,12 @@ public class Events extends Closer {
                     subcount = count;
                     
                     seconds = (end.getTimeInMillis() - startTime.getTimeInMillis()) / 1000.0;
-		    // stop after secondsToRun only if Defaults.QUERY_SIZE == 0
-		    // or if we've performed Defaults.QUERY_SIZE / Defaults.QUERY_WORKERS
-		    // queries.
+                    // stop after secondsToRun only if Defaults.QUERY_SIZE == 0
+                    // or if we've performed Defaults.QUERY_SIZE / Defaults.QUERY_WORKERS
+                    // queries.
                     if ((Defaults.QUERY_SIZE == 0 && seconds > secondsToRun) ||
-			(Defaults.QUERY_SIZE > 0 && 
-			 queries >= Defaults.QUERY_SIZE / Defaults.QUERY_WORKERS)) {
+                        (Defaults.QUERY_SIZE > 0 && 
+                         queries >= Defaults.QUERY_SIZE / Defaults.QUERY_WORKERS)) {
                         break;
                     }
                 }
@@ -1047,28 +1159,26 @@ public class Events extends Closer {
             return new QueryResult(queries, count);
         }
 
-		@Override
-		public void close() {
-			Events.this.close(conn);
-		}
+        @Override
+        public void close() {
+            connHolder.close();
+        }
     }
     
     class Deleter implements Callable<Object>, Closeable {
-    	
+            
         private final RandomDate range;
-        private AGRepositoryConnection conn;
+        private ConnectionHolder connHolder;
         
         public Deleter(RandomDate range) throws Exception {
             this.range = range;
-            conn = connect();
+            connHolder = new ConnectionHolder();
         }
         
         public Integer call() {
             Thread.currentThread().setName("deleter(" + range + ")");
-            ValueFactory vf;
-            ThreadVars.valueFactory.set(vf = conn.getValueFactory());
-            
-            String timestamp = NTriplesUtil.toNTriplesString(vf.createURI(Defaults.NS, "EventTimeStamp"));
+            connHolder.begin();
+            String timestamp = NTriplesUtil.toNTriplesString(ThreadVars.valueFactory.get().createURI(Defaults.NS, "EventTimeStamp"));
             int limit = (9 * (int) Math.pow(10,5))/Defaults.EVENT_SIZE;
             
             // interval is 1 day's worth of milliseconds.
@@ -1082,6 +1192,7 @@ public class Events extends Closer {
             String startNT, endNT, queryString;
             startNT = NTriplesUtil.toNTriplesString(CalendarToValue(start));
             endNT = NTriplesUtil.toNTriplesString(CalendarToValue(eod));
+            connHolder.end();
             
             long events = 0;
             long count = 0;
@@ -1102,39 +1213,41 @@ public class Events extends Closer {
                     if (Defaults.VERBOSE > 0) {
                         trace(queryString);
                     }
-                    AGTupleQuery query = conn.prepareTupleQuery(AGQueryLanguage.SPARQL, queryString);
+                    connHolder.begin();
+                    AGTupleQuery query = connHolder.use().prepareTupleQuery(AGQueryLanguage.SPARQL, queryString);
                     query = streamQuery(query);
                     TupleQueryResult result = null;
                     count = 0;
                     try {
-                        long before = conn.size();
+                        long before = connHolder.use().size();
                         if (Defaults.stream == Defaults.STREAM.HAND || Defaults.stream == Defaults.STREAM.PULH) {
-                        	DeletingHandler handler = new DeletingHandler(conn);
-                        	query.evaluate(handler);
+                                DeletingHandler handler = new DeletingHandler(connHolder.use());
+                                query.evaluate(handler);
                             count = handler.count;
                         } else {
                             result = query.evaluate();
                             while (result.hasNext()) {
                                 BindingSet bs = result.next();
-                                conn.remove(conn.getValueFactory().createStatement(
+                                connHolder.use().remove(ThreadVars.valueFactory.get().createStatement(
                                         (BNode)bs.getValue("s"),
                                         (URI)bs.getValue("p"),
                                         bs.getValue("o")));
                                 count++;
                             }
                         }
-                        long sizeDiff = before - conn.size();
+                        long sizeDiff = before - connHolder.use().size();
                         if (Defaults.VERBOSE > 0 && count != sizeDiff) {
                             trace("delete counts differ: size-diff: %d, query-count: %d", count, sizeDiff);
                         }
                     } catch (Exception e) {
-            			errors++;
+                        errors++;
                         trace("Error executing query:\n%s\n", queryString);
                         e.printStackTrace();
                         count = -1;
                     } finally {
-                    	Events.this.close(result);
+                            Events.this.close(result);
                     }
+                    connHolder.end();
                 } else {
                     queryString = String.format("(select0 (?event)" +
                             "(:limit %d) (:count-only t)" +
@@ -1143,29 +1256,33 @@ public class Events extends Closer {
                     if (Defaults.VERBOSE > 0) {
                         trace(queryString);
                     }
-                    AGTupleQuery tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
+                    connHolder.begin();
+                    AGTupleQuery tupleQuery = connHolder.use().prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
                     try {
-                        long before = conn.size();
+                        long before = connHolder.use().size();
                         long count1 = tupleQuery.count();
-                        count = before - conn.size();
+                        count = before - connHolder.use().size();
                         if (Defaults.VERBOSE > 0 && count != count1) {
                             trace("delete counts differ: size-diff: %d, query-count: %d", count, count1);
                         }
                     } catch (Exception e) {
-            			errors++;
+                        errors++;
                         trace("Error executing query:\n%s\n", queryString);
                         e.printStackTrace();
                     }
+                    connHolder.end();
                 }
                 events += count;
                 
                 if (count == 0) {
                     trace("Finished deleting %d triples, %tF.", events, start);
                     start = eod;
+                    connHolder.begin();
                     startNT = NTriplesUtil.toNTriplesString(CalendarToValue(start));
                     eod = (GregorianCalendar) start.clone();
                     eod.setTimeInMillis(eod.getTimeInMillis() + interval);
                     endNT = NTriplesUtil.toNTriplesString(CalendarToValue(eod));
+                    connHolder.end();
                 }
             }
             
@@ -1176,9 +1293,8 @@ public class Events extends Closer {
 
         @Override
         public void close() {
-            Events.this.close(conn);
+            connHolder.close();
         }
-
     }
 
     class DeletingHandler implements TupleQueryResultHandler {
@@ -1191,7 +1307,7 @@ public class Events extends Closer {
         }
         public void handleSolution(BindingSet bs) throws TupleQueryResultHandlerException {
             try {
-                conn.remove(conn.getValueFactory().createStatement(
+                conn.remove(ThreadVars.valueFactory.get().createStatement(
                                                                    (BNode)bs.getValue("s"),
                                                                    (URI)bs.getValue("p"),
                                                                    bs.getValue("o")));
@@ -1206,25 +1322,25 @@ public class Events extends Closer {
 
     class Pinger implements Runnable {
 
-	    private AGRepositoryConnection conn;
+            private AGRepositoryConnection conn;
 
-	    public Pinger(AGRepositoryConnection c) {
-		    conn = c;
-	    }
+            public Pinger(AGRepositoryConnection c) {
+                    conn = c;
+            }
 
-	    public void run() {
-		while (true) {
-		    try {
-			trace("pinger running for " + conn.getHttpRepoClient().getRoot());
-			conn.ping();
-			Thread.sleep(Math.round(conn.getSessionLifetime() * 1000 /2));
-		    } catch (InterruptedException e) {
-			    trace("Exception encountered in pinger: %s", e.toString());
-		    } catch (RepositoryException e) {
-			    trace("Exception encountered in pinger: %s", e.toString());
-		    }
-		}
-	    }
+            public void run() {
+                while (true) {
+                    try {
+                        trace("pinger running for " + conn.getHttpRepoClient().getRoot());
+                        conn.ping();
+                        Thread.sleep(Math.round(conn.getSessionLifetime() * 1000 /2));
+                    } catch (InterruptedException e) {
+                            trace("Exception encountered in pinger: %s", e.toString());
+                    } catch (RepositoryException e) {
+                            trace("Exception encountered in pinger: %s", e.toString());
+                    }
+                }
+            }
     }
 
     public static class Monitor {
@@ -1243,8 +1359,8 @@ public class Events extends Closer {
             if (Defaults.MONITOR) {
                 try {
                     String[] commands = 
-			new String[]{"src/test/stress/monitor.sh", "start", "phase-" + phase,
-				     Defaults.CATALOG, Defaults.REPOSITORY};
+                        new String[]{"src/test/stress/monitor.sh", "start", "phase-" + phase,
+                                     Defaults.CATALOG, Defaults.REPOSITORY};
                     Process p = Runtime.getRuntime().exec(commands);
                     printOutput(p);
                     trace("./monitor.sh was started.");
@@ -1254,65 +1370,65 @@ public class Events extends Closer {
             }
         }
         
-	static public void stop(int phase, AGRepositoryConnection c) {
+        static public void stop(int phase, AGRepositoryConnection c) {
             if (Defaults.MONITOR) {
                 try {
                     String[] commands = new String[]{"src/test/stress/monitor.sh", "end",
-						     "phase-" + phase, Defaults.CATALOG,
-						     Defaults.REPOSITORY};
+                                                     "phase-" + phase, Defaults.CATALOG,
+                                                     Defaults.REPOSITORY};
                     Process p = Runtime.getRuntime().exec(commands);
                     printOutput(p);
                     trace("./monitor.sh was stopped.");
-		    // use http api for starting checkpoint and merge.
-		    if (phase < 4) {
-			AGRepository repo = c.getRepository().getValueFactory().getRepository();
+                    // use http api for starting checkpoint and merge.
+                    if (phase < 4) {
+                        AGRepository repo = c.getRepository().getValueFactory().getRepository();
 
-			trace("Phase 0 Begin: Forced Merge");
-			c.optimizeIndices(true, 1);
-			repo.ensureDBIdle();
-			trace("Phase 0 End: Forced Merge");
-			trace("Phase 0 Begin: Forced Checkpoint");
-			repo.forceCheckpoint();
-			trace("Phase 0 End: Forced Checkpoint");
-		    }
+                        trace("Phase 0 Begin: Forced Merge");
+                        c.optimizeIndices(true, 1);
+                        repo.ensureDBIdle();
+                        trace("Phase 0 End: Forced Merge");
+                        trace("Phase 0 Begin: Forced Checkpoint");
+                        repo.forceCheckpoint();
+                        trace("Phase 0 End: Forced Checkpoint");
+                    }
                 } catch (IOException e) {
                     trace("./monitor.sh was not stopped.");
-		} catch (RepositoryException e) {
-		    trace("error in Monitor.stop()");
-		    e.printStackTrace();
-		    System.exit(-1);
-		}
+                } catch (RepositoryException e) {
+                    trace("error in Monitor.stop()");
+                    e.printStackTrace();
+                    System.exit(-1);
+                }
             }
         }
 
     }
 
-	static AGTupleQuery streamQuery(AGTupleQuery tupleQuery) {
-		if (Defaults.stream == Defaults.STREAM.PULL || Defaults.stream == Defaults.STREAM.PULH) {
-			tupleQuery = new AGStreamTupleQuery(tupleQuery);
-		}
-		return tupleQuery;
-	}
+    static AGTupleQuery streamQuery(AGTupleQuery tupleQuery) {
+            if (Defaults.stream == Defaults.STREAM.PULL || Defaults.stream == Defaults.STREAM.PULH) {
+                    tupleQuery = new AGStreamTupleQuery(tupleQuery);
+            }
+            return tupleQuery;
+    }
 
     /**
      * @param args Run with --help
      */
     public static void main(String[] args) throws Exception {
-    	Events events = new Events();
-    	try {
-    		events.run(args);
-    	} catch (Exception e) {
-    		System.err.println(e);
-    		e.printStackTrace();
-    		System.exit(-1);
-    	} finally {
-    		Closer.Close(events);
-    	}
-    	if (events.errors > 0) {
-    		// exit with error
-    		throw new Exception("Errors during execution: " + events.errors);
-    	}
-		System.exit(0);
+            Events events = new Events();
+            try {
+                events.run(args);
+            } catch (Exception e) {
+                System.err.println(e);
+                e.printStackTrace();
+                System.exit(-1);
+            } finally {
+                Closer.Close(events);
+            }
+            if (events.errors > 0) {
+                // exit with error
+                throw new Exception("Errors during execution: " + events.errors);
+            }
+            System.exit(0);
     }
     
     public void run(String[] args) throws Exception {
@@ -1326,29 +1442,31 @@ public class Events extends Closer {
             trace("SUPERSEDING %s %s:%s.", Defaults.URL, Defaults.CATALOG, Defaults.REPOSITORY);
         }
         
-	long initStart = System.currentTimeMillis(), initEnd;
-	double initSeconds;
-	trace("Phase 0 Begin: " + (Defaults.hasOption("open") ? "opening " : "renewing ") +
-	      Defaults.CATALOG + ":" + Defaults.REPOSITORY);
+        long initStart = System.currentTimeMillis(), initEnd;
+        double initSeconds;
+        trace("Phase 0 Begin: " + (Defaults.hasOption("open") ? "opening " : "renewing ") +
+              Defaults.CATALOG + ":" + Defaults.REPOSITORY);
         AGServer server = new AGServer(Defaults.URL, Defaults.USERNAME, Defaults.PASSWORD);
         AGCatalog catalog = server.getCatalog(Defaults.CATALOG);
         if (false == Defaults.hasOption("open")) {
             catalog.deleteRepository(Defaults.REPOSITORY);
         }
         server.close();
-        
-        AGRepositoryConnection conn = connect();
-	initEnd = System.currentTimeMillis();
-	initSeconds = (initEnd - initStart) / 1000;
-	trace("Phase 0 End: Initial " + (Defaults.hasOption("open") ? "opening" : "renewing") +
-	      " took " + initSeconds + " seconds.");
 
-	// thread needed to send pings to conn in case any phase exceeds the session lifetime.
-	Thread ping = new Thread(new Pinger(conn));
-	ping.start();
+        MaybeInitializePool();
+
+        AGRepositoryConnection conn = connect();
+        initEnd = System.currentTimeMillis();
+        initSeconds = (initEnd - initStart) / 1000;
+        trace("Phase 0 End: Initial " + (Defaults.hasOption("open") ? "opening" : "renewing") +
+              " took " + initSeconds + " seconds.");
+
+        // thread needed to send pings to conn in case any phase exceeds the session lifetime.
+        Thread ping = new Thread(new Pinger(conn));
+        ping.start();
 
         ThreadVars.valueFactory.set(conn.getValueFactory());
-	conn.getRepository().getValueFactory().getRepository().setBulkMode(Defaults.BULKMODE);
+        conn.getRepository().getValueFactory().getRepository().setBulkMode(Defaults.BULKMODE);
         
         AllEvents.initialize();
         
@@ -1367,16 +1485,16 @@ public class Events extends Closer {
             
             /////////////////////////////////////////////////////////////////////// PHASE 1
             if (Defaults.PHASE <= 1) {
-		start = System.currentTimeMillis();
-		trace("Phase 0 Begin: Launching child load workers.");
+                start = System.currentTimeMillis();
+                trace("Phase 0 Begin: Launching child load workers.");
                 List<Callable<Object>> tasks = new ArrayList<Callable<Object>>(Defaults.LOAD_WORKERS);
-            	for (int task = 0; task < Defaults.LOAD_WORKERS; task++) {
-            		tasks.add(new Loader(task, Defaults.SIZE / 10, 1, BaselineRange));
-            	}
-		end = System.currentTimeMillis();
-		seconds = (end - start) / 1000;
-		trace("Phase 0 End: Initial load_workers took " + seconds + " seconds.");
-		
+                    for (int task = 0; task < Defaults.LOAD_WORKERS; task++) {
+                            tasks.add(new Loader(task, Defaults.SIZE / 10, 1, BaselineRange));
+                    }
+                end = System.currentTimeMillis();
+                seconds = (end - start) / 1000;
+                trace("Phase 0 End: Initial load_workers took " + seconds + " seconds.");
+                
                 trace("Phase 1 Begin: Baseline %d triple commits.", Defaults.EVENT_SIZE);
                 Monitor.start(1);
                 start = System.currentTimeMillis();
@@ -1386,10 +1504,10 @@ public class Events extends Closer {
                 triples = triplesEnd - triplesStart;
                 seconds = (end - start) / 1000.0;
                 trace("Phase 1 End: %d total triples added in %.1f seconds " +
-                		"(%.2f triples/second, %.2f commits/second). " +
-                		"Store contains %d triples.", triples, logtime(seconds),
-                		logtime(triples/seconds),
-                		logtime(triples/Defaults.EVENT_SIZE/seconds), triplesEnd);
+                                "(%.2f triples/second, %.2f commits/second). " +
+                                "Store contains %d triples.", triples, logtime(seconds),
+                                logtime(triples/seconds),
+                                logtime(triples/Defaults.EVENT_SIZE/seconds), triplesEnd);
 
                 closeAll(tasks);
                 Monitor.stop(1, conn); 
@@ -1412,9 +1530,9 @@ public class Events extends Closer {
                 triples = triplesEnd - triplesStart;
                 seconds = (end - start) / 1000.0;
                 trace("Phase 2 End: %d total triples bulk-loaded in %.1f seconds " +
-                		"(%.2f triples/second, %.2f commits/second). " +
-                		"Store contains %d triples.", triples, seconds, triples/seconds,
-                		triples/Defaults.BULK_EVENTS/Defaults.EVENT_SIZE/seconds, triplesEnd);
+                                "(%.2f triples/second, %.2f commits/second). " +
+                                "Store contains %d triples.", triples, seconds, triples/seconds,
+                                triples/Defaults.BULK_EVENTS/Defaults.EVENT_SIZE/seconds, triplesEnd);
 
                 closeAll(tasks);
                 Monitor.stop(2, conn);
@@ -1433,14 +1551,14 @@ public class Events extends Closer {
                 start = System.currentTimeMillis();
                 invokeAndGetAll(executor, tasks);
                 end = System.currentTimeMillis();
-		trace("p3: trying to get repo size on conn " + conn.getHttpRepoClient().getRoot());
+                trace("p3: trying to get repo size on conn " + conn.getHttpRepoClient().getRoot());
                 triplesEnd = conn.size();
                 triples = triplesEnd - triplesStart;
                 seconds = (end - start) / 1000.0;
                 trace("Phase 3 End: %d total triples added in %.1f seconds " +
-                		"(%.2f triples/second, %.2f commits/second). " +
-                		"Store contains %d triples.", triples, seconds, triples/seconds,
-                		triples/Defaults.EVENT_SIZE/seconds, triplesEnd);
+                                "(%.2f triples/second, %.2f commits/second). " +
+                                "Store contains %d triples.", triples, seconds, triples/seconds,
+                                triples/Defaults.EVENT_SIZE/seconds, triplesEnd);
 
                 executor.shutdown();
                 closeAll(tasks);
@@ -1452,32 +1570,32 @@ public class Events extends Closer {
         /////////////////////////////////////////////////////////////////////// PHASE 4
         if (Defaults.PHASE <= 4) {
             if (Defaults.QUERY_WORKERS > 0 && Defaults.PHASE > 0) {
-		long start = System.currentTimeMillis(), end;
-		double seconds;
+                long start = System.currentTimeMillis(), end;
+                double seconds;
 
-		trace("Phase 0 Begin: Launching child query workers.");
+                trace("Phase 0 Begin: Launching child query workers.");
 
                 ExecutorService executor = Executors.newFixedThreadPool(Defaults.QUERY_WORKERS);
                 List<Callable<Object>> sparqlQueriers = new ArrayList<Callable<Object>>(Defaults.QUERY_WORKERS);
                 List<Callable<Object>> prologQueriers = new ArrayList<Callable<Object>>(Defaults.QUERY_WORKERS);
                 for (int task = 0; task < Defaults.QUERY_WORKERS; task++) {
-		    sparqlQueriers.add(new Querier(task, Defaults.QUERY_TIME*60, FullDateRange,
-						   AGQueryLanguage.SPARQL));
+                    sparqlQueriers.add(new Querier(task, Defaults.QUERY_TIME*60, FullDateRange,
+                                                   AGQueryLanguage.SPARQL));
                     prologQueriers.add(new Querier(task, Defaults.QUERY_TIME*60, FullDateRange,
-						   AGQueryLanguage.PROLOG));
+                                                   AGQueryLanguage.PROLOG));
                 }
                 end = System.currentTimeMillis();
                 seconds = (end - start) / 1000.0;
-		trace("Phase 0 End: Initial query_workers took " + seconds + " seconds.");
+                trace("Phase 0 End: Initial query_workers took " + seconds + " seconds.");
                 trace("Phase 4 Begin: Perform SPARQL queries with %d processes for %d %s.",
-		      Defaults.QUERY_WORKERS,
-		      Defaults.QUERY_SIZE == 0 ? Defaults.QUERY_TIME : Defaults.QUERY_SIZE,
-		      Defaults.QUERY_SIZE == 0 ? "minutes" : "queries");
+                      Defaults.QUERY_WORKERS,
+                      Defaults.QUERY_SIZE == 0 ? Defaults.QUERY_TIME : Defaults.QUERY_SIZE,
+                      Defaults.QUERY_SIZE == 0 ? "minutes" : "queries");
                 Monitor.start(4);
                 int queries = 0;
                 long triples = 0;
                 start = System.currentTimeMillis();
-		// sparql first, then prolog second
+                // sparql first, then prolog second
                 try {
                     List<Future<Object>> fs = executor.invokeAll(sparqlQueriers);
                     for (Future<Object> f : fs) {
@@ -1486,32 +1604,32 @@ public class Events extends Closer {
                         triples += queryResult.triples;
                     }
                 } catch (InterruptedException e) {
-        			errors++;
+                    errors++;
                     e.printStackTrace();
                 } catch (ExecutionException e) {
-        			errors++;
+                    errors++;
                     e.printStackTrace();
                 }
                 end = System.currentTimeMillis();
                 seconds = (end - start) / 1000.0;
                 trace("Phase 4 End: %d total triples returned over %d queries in " +
-		      "%.1f seconds (%.2f triples/second, %.2f queries/second, " +
-		      "%d triples/query) MemUsed %d.", triples, queries, logtime(seconds),
-		      logtime(triples/seconds), logtime(queries/seconds), triples/queries,
-		      ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getUsed());
+                      "%.1f seconds (%.2f triples/second, %.2f queries/second, " +
+                      "%d triples/query) MemUsed %d.", triples, queries, logtime(seconds),
+                      logtime(triples/seconds), logtime(queries/seconds), triples/queries,
+                      ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getUsed());
                 Monitor.stop(4, conn);
 
                 closeAll(sparqlQueriers);
 
                 trace("Phase 5 Begin: Perform SPARQL queries with %d processes for %d %s.",
-		      Defaults.QUERY_WORKERS,
-		      Defaults.QUERY_SIZE == 0 ? Defaults.QUERY_TIME : Defaults.QUERY_SIZE,
-		      Defaults.QUERY_SIZE == 0 ? "minutes" : "queries");
+                      Defaults.QUERY_WORKERS,
+                      Defaults.QUERY_SIZE == 0 ? Defaults.QUERY_TIME : Defaults.QUERY_SIZE,
+                      Defaults.QUERY_SIZE == 0 ? "minutes" : "queries");
                 Monitor.start(5);
                 queries = 0;
                 triples = 0;
                 start = System.currentTimeMillis();
-		// sparql first, then prolog second
+                // sparql first, then prolog second
                 try {
                     List<Future<Object>> fs = executor.invokeAll(prologQueriers);
                     for (Future<Object> f : fs) {
@@ -1520,18 +1638,18 @@ public class Events extends Closer {
                         triples += queryResult.triples;
                     }
                 } catch (InterruptedException e) {
-        			errors++;
+                    errors++;
                     e.printStackTrace();
                 } catch (ExecutionException e) {
-        			errors++;
+                    errors++;
                     e.printStackTrace();
                 }
                 end = System.currentTimeMillis();
                 seconds = (end - start) / 1000.0;
                 trace("Phase 5 End: %d total triples returned over %d queries in " +
-		      "%.1f seconds (%.2f triples/second, %.2f queries/second, " +
-		      "%d triples/query).", triples, queries, logtime(seconds),
-		      logtime(triples/seconds), logtime(queries/seconds), triples/queries);
+                      "%.1f seconds (%.2f triples/second, %.2f queries/second, " +
+                      "%d triples/query).", triples, queries, logtime(seconds),
+                      logtime(triples/seconds), logtime(queries/seconds), triples/queries);
                 Monitor.stop(5, conn);
 
                 executor.shutdown();
@@ -1542,10 +1660,10 @@ public class Events extends Closer {
         /////////////////////////////////////////////////////////////////////// PHASE 5
         if (Defaults.PHASE <= 6 && Defaults.DELETE_WORKERS > 0) {
             long triplesStart = conn.size();
-	    long start = System.currentTimeMillis(), end;
-	    double seconds;
+            long start = System.currentTimeMillis(), end;
+            double seconds;
 
-	    trace("Phase 0 Begin: Launching child delete workers.");
+            trace("Phase 0 Begin: Launching child delete workers.");
 
             ExecutorService executor = Executors.newFixedThreadPool(2);
             List<Callable<Object>> tasks = new ArrayList<Callable<Object>>(2);
@@ -1553,9 +1671,9 @@ public class Events extends Closer {
             if (Defaults.DELETE_WORKERS > 1) {
                 tasks.add(new Deleter(DeleteRangeTwo));
             }
-	    end = System.currentTimeMillis();
-	    seconds = (end - start) / 1000.0;
-	    trace("Phase 0 End: Initial delete_workers took " + seconds + " seconds.");
+            end = System.currentTimeMillis();
+            seconds = (end - start) / 1000.0;
+            trace("Phase 0 End: Initial delete_workers took " + seconds + " seconds.");
             trace("Phase 6 Begin: Shrink store by 1 month.");
             Monitor.start(6);
             start = System.currentTimeMillis();
@@ -1567,8 +1685,8 @@ public class Events extends Closer {
             long triples = triplesEnd - triplesStart;
             seconds = (end - start) / 1000.0;
             trace("Phase 6 End: %d total triples deleted in %.1f seconds " +
-		  "(%.2f triples/second). Store contains %d triples.", triples,
-		  logtime(seconds), logtime(triples/seconds), triplesEnd);
+                  "(%.2f triples/second). Store contains %d triples.", triples,
+                  logtime(seconds), logtime(triples/seconds), triplesEnd);
             Monitor.stop(6, conn);
         }
         
@@ -1597,7 +1715,7 @@ public class Events extends Closer {
                     tasks.add(new Loader(task, Defaults.SIZE/10, 1, smallCommitsRange));
                 }
                 for (int task = 0; task < Defaults.QUERY_WORKERS; task++) {
-			tasks.add(new Querier(task, Defaults.QUERY_TIME*60, fullDateRange, AGQueryLanguage.SPARQL));
+                        tasks.add(new Querier(task, Defaults.QUERY_TIME*60, fullDateRange, AGQueryLanguage.SPARQL));
                 }
                 if (Defaults.DELETE_WORKERS > 0) {
                     tasks.add(new Deleter(deleteRangeOne));
@@ -1625,25 +1743,29 @@ public class Events extends Closer {
                         }
                     }
                 } catch (InterruptedException e) {
-        			errors++;
+                    errors++;
                     e.printStackTrace();
                 } catch (ExecutionException e) {
-        			errors++;
+                    errors++;
                     e.printStackTrace();
                 }
                 long end = System.currentTimeMillis();
                 double seconds = (end - start) / 1000.0;
                 trace("Phase 6 End: %d total triples returned over %d queries in " +
-                		"%.1f seconds (%.2f triples/second, %.2f queries/second, " +
-                		"%d triples/query, %d triples added, %d deletes).", triples, queries,
-                		logtime(seconds), logtime(triples/seconds), logtime(queries/seconds),
-                		(queries==0 ? 0 : triples/queries), added, deleted);
+                                "%.1f seconds (%.2f triples/second, %.2f queries/second, " +
+                                "%d triples/query, %d triples added, %d deletes).", triples, queries,
+                                logtime(seconds), logtime(triples/seconds), logtime(queries/seconds),
+                                (queries==0 ? 0 : triples/queries), added, deleted);
                 closeAll(tasks);
             }
             executor.shutdown();
             Monitor.stop(7, conn);
         }
         
+        if (repoPool != null) {
+            repoPool.shutDown();
+        }
+
         /////////////////////////////////////////////////////////////////////// END
         long triplesEnd = conn.size();
         double totalSeconds = (System.currentTimeMillis() - startTime) / 1000.0;
@@ -1661,12 +1783,12 @@ public class Events extends Closer {
                 f.get();
             }
         } catch (InterruptedException e) {
-			errors++;
+            errors++;
             e.printStackTrace();
         } catch (ExecutionException e) {
-			errors++;
+            errors++;
             e.printStackTrace();
         }
     }
-    
+
 }
