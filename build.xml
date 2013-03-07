@@ -40,6 +40,7 @@
         <path location="${lib}/commons-cli-1.2.jar"/>
         <path location="${lib}/commons-pool-1.5.6.jar"/>
         <path location="${lib}/servlet-api-2.5.jar"/>
+        <path location="${lib}/callimachus/openrdf-alibaba-2.0-rc7.jar"/>
         <path location="clojure/libs/clojure-1.4.0.jar"/>
     </path>
     
@@ -400,7 +401,8 @@
     <target name="sparql-update-tests"
             depends="build"
             description="Run sesame sparql update tests.">
-        <run-java tasknamex="sparql-update-tests" classname="org.junit.runner.JUnitCore" arg="test.openrdf.AGSparqlUpdateTest"/>
+        <run-java tasknamex="dawg-tests" classname="org.junit.runner.JUnitCore" arg="test.openrdf.AGSparqlUpdateConformanceTest"/>
+        <run-java tasknamex="more-tests" classname="org.junit.runner.JUnitCore" arg="test.openrdf.AGSparqlUpdateTest"/>
     </target>
 
     <target name="repository-connection-tests"
@@ -426,6 +428,15 @@
         <run-java tasknamex="AGReifierTest      " classname="org.junit.runner.JUnitCore" arg="test.AGReifierTest"/>
     </target>
     
+    <target name="callimachus-tests"
+            depends="build"
+            description="Run callimachus tests.">
+        <run-java tasknamex="Auditing" classname="org.junit.runner.JUnitCore" arg="test.callimachus.AGAuditingTest"/>
+        <run-java tasknamex="AuditingPurge" classname="org.junit.runner.JUnitCore" arg="test.callimachus.AGAuditingPurgeTest"/>
+        <run-java tasknamex="AuditingRecent" classname="org.junit.runner.JUnitCore" arg="test.callimachus.AGAuditingRecentTest"/>
+        <run-java tasknamex="AuditingRecentPurge" classname="org.junit.runner.JUnitCore" arg="test.callimachus.AGAuditingRecentPurgeTest"/>
+    </target>
+
     <target name="mvn-install"
             depends="build"
             description="install jars into local maven repo">

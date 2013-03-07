@@ -31,8 +31,6 @@ import org.openrdf.rio.helpers.StatementCollector;
 import test.AGAbstractTest;
 import test.TestSuites;
 
-import com.franz.agraph.repository.AGServer;
-
 public class AGSparqlUpdateTest extends SPARQLUpdateTest {
 
 	@Test
@@ -84,7 +82,7 @@ public class AGSparqlUpdateTest extends SPARQLUpdateTest {
 
 	@Override
 	protected Repository newRepository() throws Exception {
-		return new AGServer(AGAbstractTest.findServerUrl(),AGAbstractTest.username(), AGAbstractTest.password()).getCatalog(AGAbstractTest.CATALOG_ID).createRepository("AGSPARQLUpdateTest");
+		return AGAbstractTest.sharedRepository();
 	}
 
 	/* protected methods */

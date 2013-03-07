@@ -14,6 +14,7 @@ import org.junit.experimental.categories.Categories.IncludeCategory;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite.SuiteClasses;
 
+import test.callimachus.AGCallimachusTest;
 import test.pool.AGConnPoolClosingTest;
 import test.pool.AGConnPoolSessionTest;
 import test.stress.StreamingTest;
@@ -58,10 +59,12 @@ public class TestSuites {
      */
     @RunWith(Categories.class)
     @ExcludeCategory(NonPrepushTest.class)
-    @SuiteClasses( { AGMaterializerTests.class,
+    @SuiteClasses( { AGCallimachusTest.class,
+        AGMaterializerTests.class,
     	MasqueradeAsUserTests.class,
     	UserManagementTests.class,
     	TutorialTests.class,
+    	LiteralAndResourceResultsTest.class,
         QuickTests.class,
         AGRepositoryConnectionTests.class,
         RDFTransactionTest.class,
@@ -86,6 +89,8 @@ public class TestSuites {
         FreetextTests.class,
         DeleteDuplicatesTests.class,
         SparqlUpdateTests.class,
+        SparqlDefaultTest.class,
+        SparqlDefaultDatasetTest.class,
         AGRepositoryFactoryTest.class,
         CljTest.class
     })
