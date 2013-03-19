@@ -15,10 +15,12 @@ import org.openrdf.query.GraphQueryResult;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.TupleQueryResult;
+import org.openrdf.query.UpdateExecutionException;
 
 import com.franz.agraph.repository.AGBooleanQuery;
 import com.franz.agraph.repository.AGGraphQuery;
 import com.franz.agraph.repository.AGTupleQuery;
+import com.franz.agraph.repository.AGUpdate;
 import com.franz.util.Closeable;
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.query.Dataset;
@@ -162,6 +164,34 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 		return new AGResultSet(result, model);
 	}
 
+	/**
+	 * Executes SPARQL Update.
+	 * <p>
+	 * Executes as a <a href="http://www.w3.org/TR/sparql11-update/">SPARQL Update</a> 
+	 * to modify the model/repository.
+	 */
+	public void execUpdate() {
+		AGUpdate u = model.getGraph().getConnection().prepareUpdate(query.getLanguage(), query.getQueryString());
+		u.setIncludeInferred(model.getGraph() instanceof AGInfGraph);
+		u.setEntailmentRegime(model.getGraph().getEntailmentRegime());
+		u.setCheckVariables(query.isCheckVariables());
+		u.setLimit(query.getLimit());
+		u.setOffset(query.getOffset());
+		if (binding!=null) {
+			Iterator<String> vars = binding.varNames();
+			while (vars.hasNext()) {
+				String var = vars.next();
+				u.setBinding(var, model.getGraph().vf.asValue(binding.get(var).asNode()));
+			}
+		}
+		try {
+			u.setDataset(model.getGraph().getDataset());
+			u.execute();
+		} catch (UpdateExecutionException e) {
+			throw new QueryException(e);
+		}
+	}
+	
 	public long countSelect() {
 		AGTupleQuery tq = model.getGraph().getConnection().prepareTupleQuery(query.getLanguage(), query.getQueryString());
 		tq.setIncludeInferred(model.getGraph() instanceof AGInfGraph);

@@ -8,6 +8,8 @@
 
 package test;
 
+import java.io.FileInputStream;
+
 import junit.framework.Assert;
 
 import org.junit.Test;
@@ -17,11 +19,20 @@ import org.openrdf.model.URI;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.Update;
 
+import com.franz.agraph.jena.AGGraph;
+import com.franz.agraph.jena.AGGraphMaker;
+import com.franz.agraph.jena.AGModel;
+import com.franz.agraph.jena.AGQuery;
+import com.franz.agraph.jena.AGQueryExecution;
+import com.franz.agraph.jena.AGQueryExecutionFactory;
+import com.franz.agraph.jena.AGQueryFactory;
+import com.hp.hpl.jena.sparql.vocabulary.FOAF;
+
 public class SparqlUpdateTests extends AGAbstractTest {
 
     @Test
     @Category(TestSuites.Prepush.class)
-    public void testUpdate() throws Exception {
+    public void testSesameUpdate() throws Exception {
     	URI s = vf.createURI("http://example/book1");
     	URI p = vf.createURI("http://purl.org/dc/elements/1.1/title");
     	Literal o_wrong = vf.createLiteral("Fundamentals of Compiler Desing");
@@ -44,7 +55,7 @@ public class SparqlUpdateTests extends AGAbstractTest {
     
     @Test
     @Category(TestSuites.Prepush.class)
-    public void updateViaBooleanQuery() throws Exception {
+    public void testSesameUpdateViaBooleanQuery() throws Exception {
     	URI s = vf.createURI("http://example/book1");
     	URI p = vf.createURI("http://purl.org/dc/elements/1.1/title");
     	Literal o_wrong = vf.createLiteral("Fundamentals of Compiler Desing");
@@ -66,4 +77,33 @@ public class SparqlUpdateTests extends AGAbstractTest {
     	Assert.assertFalse("Incorrect title should be gone", conn.hasStatement(s,p,o_wrong,false,g));
     }
 
+    @Test
+    @Category(TestSuites.Prepush.class)
+    public void testJenaUpdate() throws Exception {
+    	AGGraphMaker maker = closeLater( new AGGraphMaker(conn) );
+    	AGGraph graph = closeLater( maker.getUnionOfAllGraphs() );
+    	AGModel model = closeLater( new AGModel(graph) );
+    	model.read(new FileInputStream("src/test/example.nq"), null, "NQUADS");
+    	Assert.assertEquals("expected size 10", 10, model.size());
+    	Assert.assertTrue("Bob should be there", model.contains(model.createResource("http://example.org/bob/foaf.rdf#me"), FOAF.name, model.createLiteral("Bob")));
+    	Assert.assertFalse("Robert should not be there", model.contains(model.createResource("http://example.org/bob/foaf.rdf#me"), FOAF.name, model.createLiteral("Robert")));
+    	
+    	// Perform a sequence of SPARQL UPDATE queries in one request to correct the title
+    	String queryString = "PREFIX foaf: <http://xmlns.com/foaf/0.1/> \n"
+    			+ "DELETE DATA { GRAPH <http://example.org/bob/foaf.rdf> { <http://example.org/bob/foaf.rdf#me>  foaf:name  \"Bob\" } } ; \n"
+    			+ "\n"
+    			+ "PREFIX foaf: <http://xmlns.com/foaf/0.1/> \n"
+    			+ "INSERT DATA { GRAPH <http://example.org/bob/foaf.rdf> { <http://example.org/bob/foaf.rdf#me>  foaf:name  \"Robert\" } }";
+    	
+        AGQuery query = AGQueryFactory.create(queryString);
+        AGQueryExecution qe = AGQueryExecutionFactory.create(query, model);
+		try {
+			qe.execUpdate();
+		} finally {
+			qe.close();
+		}
+        Assert.assertTrue("Robert should be there", model.contains(model.createResource("http://example.org/bob/foaf.rdf#me"), FOAF.name, model.createLiteral("Robert")));
+        Assert.assertFalse("Bob should not be there", model.contains(model.createResource("http://example.org/bob/foaf.rdf#me"), FOAF.name, model.createLiteral("Bob")));
+   }
+    
 }

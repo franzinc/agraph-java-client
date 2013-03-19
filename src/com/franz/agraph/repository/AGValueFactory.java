@@ -30,7 +30,7 @@ public class AGValueFactory extends ValueFactoryImpl {
 	private final AGRepository repository;
 	private final AGRepositoryConnection conn;
 	
-	private int blankNodeAmount = 100;
+	private int blankNodesPerRequest = Integer.parseInt(System.getProperty("com.franz.agraph.repository.blankNodesPerRequest", "100"));
 	private String[] blankNodeIds;
 	private int index = -1;
 	
@@ -56,12 +56,12 @@ public class AGValueFactory extends ValueFactoryImpl {
 		return getRepository().getHTTPClient();
 	}
 	
-	private void getBlankNodeIds() {
+	private void requestBlankNodeIds() {
 		try {
 			if (conn == null) {
-				blankNodeIds = getHTTPClient().getBlankNodes(getRepository().getRepositoryURL(), blankNodeAmount);
+				blankNodeIds = getHTTPClient().getBlankNodes(getRepository().getRepositoryURL(), blankNodesPerRequest);
 			} else {
-				blankNodeIds = conn.getHttpRepoClient().getBlankNodes(blankNodeAmount);
+				blankNodeIds = conn.getHttpRepoClient().getBlankNodes(blankNodesPerRequest);
 			}
 			index = blankNodeIds.length - 1;
 		} catch (AGHttpException e) {
@@ -70,9 +70,46 @@ public class AGValueFactory extends ValueFactoryImpl {
 		}		
 	}
 	
+	/**
+	 * Sets the number of blank nodes to fetch per request.
+	 * <p>
+	 * This can be used to control the number and frequency of 
+	 * HTTP requests made when automatically obtaining new sets
+	 * of blank node ids from the server.
+	 * <p>
+	 * Defaults to the value of System property 
+	 * com.franz.agraph.repository.blankNodesPerRequest 
+	 * or to 100 if that property has not been set.
+	 *   
+	 * @param amount
+	 */
+	public void setBlankNodesPerRequest(int amount) {
+		blankNodesPerRequest=amount;
+	}
+	
+	/**
+	 * Gets the number of blank nodes fetched per request.
+	 * 
+	 * @return the number of blank nodes fetched per request.
+	 */
+	public int getBlankNodesPerRequest() {
+		return blankNodesPerRequest;
+	}
+	
+	/**
+	 * Returns the array of fetched blank node ids
+	 * 
+	 * Primarily for testing purposes, not for use in apps.
+	 * 
+	 * @return the array of fetched blank node ids
+	 */
+	public String[] getBlankNodeIds() {
+		return blankNodeIds;
+	}
+	
 	String getNextBNodeId() {
 		if (index==-1) {
-			getBlankNodeIds();
+			requestBlankNodeIds();
 		}
 		String id = blankNodeIds[index];
 		index--;

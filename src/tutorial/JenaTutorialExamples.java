@@ -19,6 +19,7 @@ import com.franz.agraph.jena.AGGraphMaker;
 import com.franz.agraph.jena.AGInfModel;
 import com.franz.agraph.jena.AGModel;
 import com.franz.agraph.jena.AGQuery;
+import com.franz.agraph.jena.AGQueryExecution;
 import com.franz.agraph.jena.AGQueryExecutionFactory;
 import com.franz.agraph.jena.AGQueryFactory;
 import com.franz.agraph.jena.AGReasoner;
@@ -588,7 +589,7 @@ public class JenaTutorialExamples {
 	}	
 	
 	/**
-	 * Ask, Construct, and Describe queries
+	 * Ask, Construct, Describe, and Update
 	 */
 	public static void example13() throws Exception {
 		AGGraphMaker maker = example6();
@@ -600,7 +601,7 @@ public class JenaTutorialExamples {
         // SELECT query
 		String queryString = "select ?s where { ?s rdf:type kdy:person} limit 5";
         AGQuery query = AGQueryFactory.create(queryString);
-        QueryExecution qe = AGQueryExecutionFactory.create(query, model);
+        AGQueryExecution qe = AGQueryExecutionFactory.create(query, model);
         println("\nSELECT some persons:");        
 		try {
 			ResultSet results = qe.execSelect();
@@ -651,6 +652,16 @@ public class JenaTutorialExamples {
 		} finally {
 			qe.close();
 		}
+		// Update
+		queryString = "insert data { kdy:person4 kdy:nickname 'Jack'}";
+        query = AGQueryFactory.create(queryString);
+        qe = AGQueryExecutionFactory.create(query, model);
+		try {
+			qe.execUpdate();
+		} finally {
+			qe.close();
+		}
+		
 	}
     /**
      * Prolog queries
