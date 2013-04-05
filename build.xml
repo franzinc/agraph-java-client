@@ -199,7 +199,7 @@
         <attribute name="maxmemory" default="1024m"/>
         <attribute name="streamResults" default="false"/>
         <sequential>
-            <property name="log" value="info"/>
+            <property name="log" value="trace"/>
             <java classname="@{classname}" failonerror="true" taskname="@{tasknamex}"
                   fork="true" maxmemory="@{maxmemory}"
                   inputstring="">
@@ -213,6 +213,8 @@
                 <sysproperty key="org.apache.commons.logging.simplelog.log.httpclient"
                              value="warn"/>
                 <sysproperty key="org.apache.commons.logging.simplelog.showlogname"
+                             value="true"/>
+                <sysproperty key="org.apache.commons.logging.simplelog.showdatetime"
                              value="true"/>
                 <sysproperty key="org.apache.commons.logging.simplelog.log.test"
                              value="${log}"/>
@@ -236,7 +238,7 @@
         <property name="cat" value="Prepush"/>
         <property name="prefix" value="test.TestSuites$"/>
         <property name="test" value="${prefix}${cat}"/>
-        <property name="log" value="warn"/>
+        <property name="log" value="trace"/>
         <junit printsummary="no" haltonfailure="yes">
             <sysproperty key="org.apache.commons.logging.Log"
                          value="org.apache.commons.logging.impl.SimpleLog"/>
@@ -247,6 +249,8 @@
             <sysproperty key="org.apache.commons.logging.simplelog.log.httpclient"
                          value="warn"/>
             <sysproperty key="org.apache.commons.logging.simplelog.showlogname"
+                         value="true"/>
+            <sysproperty key="org.apache.commons.logging.simplelog.showdatetime"
                          value="true"/>
             <sysproperty key="AGRAPH_HOST" value="${env.AGRAPH_HOST}"/>
             <sysproperty key="AGRAPH_PORT" value="${env.AGRAPH_PORT}"/>
