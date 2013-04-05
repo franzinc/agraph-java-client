@@ -145,15 +145,15 @@ public class AGConnPoolClosingTest extends Closer {
         Thread.sleep(1000);
         List<String> netstatBefore = netstat();
         {
-        	log.info("openSockets_bug21099 netstatBefore: " + applyStr(interpose("\n", netstatBefore)));
+        	log.info("openSockets_bug21099 netstatBefore:\n" + applyStr(interpose("\n", netstatBefore)));
                 List<String> closeWait = closeWait(netstatBefore);
                 if (!closeWait.isEmpty()) {
-                        log.warn("openSockets_bug21099 netstat close_wait Before: " + applyStr(interpose("\n", closeWait)));
+                        log.warn("openSockets_bug21099 netstat close_wait Before:\n" + applyStr(interpose("\n", closeWait)));
                 }
         }
         // use a regex to get the ports from netstat, but allow for the state to change (when filtering in waitForNetStat below)
         netstatBefore = netstatLinesToRegex(netstatBefore);
-        log.info("openSockets_bug21099 netstatBefore regexes: " + applyStr(interpose("\n", netstatBefore)));
+        log.info("openSockets_bug21099 netstatBefore regexes:\n" + applyStr(interpose("\n", netstatBefore)));
         final int maxIdle = 20;
     	AGConnPool pool = closeLater( AGConnPool.create(
                                               AGConnProp.serverUrl, AGAbstractTest.findServerUrl(),
@@ -170,22 +170,41 @@ public class AGConnPoolClosingTest extends Closer {
                 AGPoolProp.maxIdle, maxIdle,
                 AGPoolProp.timeBetweenEvictionRunsMillis, 1000,
                 AGPoolProp.minEvictableIdleTimeMillis, 2000,
-                AGConnProp.sessionLifetime, 30,
+                AGConnProp.sessionLifetime, 30, // seconds
                 AGPoolProp.testWhileIdle, true,
                 AGPoolProp.numTestsPerEvictionRun, 5,
                 AGPoolProp.initialSize, 5
     	));
+
+	/* The AGConnPool configuration above will start off with 5
+	   (initialSize) session connections, then will immediately
+	   jump up to 10 (minIdle).  Then, every second, connections
+	   that have lived more than two seconds will be closed and
+	   new session connections will be created to replace them.
+           
+	   We let this cycle operate for a while (30 seconds).
+	   Afterward, we verify that we haven't leaked any session
+	   connections.  We use the presence of sockets in the
+	   CLOSE_WAIT state to determine if we've had such a leak.  As
+	   a reminder, a socket in CLOSE_WAIT state means that the
+	   remote end of the socket has closed but the local end
+	   hasn't yet.  So, the leak detection depends on the
+	   dedication session exceeding its sessionLifetime and
+	   closing down. 
+	*/
+
         Thread.sleep(30000);
+
         List<String> netstat = Util.waitForNetStat(0, netstatBefore);
         List<String> closeWait = closeWait(netstat);
-        Assert.assertTrue("sockets in CLOSE_WAIT: " + applyStr(interpose("\n", closeWait)), closeWait.isEmpty());
+        Assert.assertTrue("sockets in CLOSE_WAIT:\n" + applyStr(interpose("\n", closeWait)), closeWait.isEmpty());
         // there may be maxIdle sockets "ESTABLISHED" and some in TIME_WAIT, so check for (maxIdle*2)
-        Assert.assertTrue("too many sockets open: " + applyStr(interpose("\n", netstat)), (maxIdle*2) >= netstat.size());
-        
+        Assert.assertTrue("too many sockets open:\n" + applyStr(interpose("\n", netstat)), (maxIdle*2) >= netstat.size());
+
         close(pool);
 
         netstat = Util.waitForNetStat(120, netstatBefore);
-        Assert.assertNull("sockets open after closing pool: " + applyStr(interpose("\n", netstat)), netstat);
+        Assert.assertNull("sockets open after closing pool:\n" + applyStr(interpose("\n", netstat)), netstat);
 
         final AGServer server = closeLater(AGAbstractTest.newAGServer());
         long start = System.nanoTime();
