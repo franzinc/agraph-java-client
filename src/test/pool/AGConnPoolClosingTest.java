@@ -47,8 +47,6 @@ public class AGConnPoolClosingTest extends Closer {
 
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-	private static final int NUM = 10;
-
     @After
     public void closeAfter() throws Exception {
     	close();
@@ -80,7 +78,9 @@ public class AGConnPoolClosingTest extends Closer {
 				// AGPoolProp.testWhileIdle, true
 		));
 		
-        int activeConnections = pool.getNumActive();
+	Assert.assertEquals(pool.toString(), 0, pool.getNumActive());
+	final int NUM = 10; // Number of workers
+	final int HOLD_TIME = 20; // seconds
         ExecutorService exec = Executors.newFixedThreadPool(NUM);
         final List<Throwable> errors = new ArrayList<Throwable>();
         for (int i = 0; i < NUM; i++) {
@@ -90,9 +90,12 @@ public class AGConnPoolClosingTest extends Closer {
 						AGRepositoryConnection conn = pool.borrowConnection();
 						try {
 							conn.size();
-							Thread.sleep(TimeUnit.SECONDS.toMillis(20));
+							// Hold the connection for a while 
+							Thread.sleep(TimeUnit.SECONDS.toMillis(HOLD_TIME));
+							// Make sure it still works.
 							conn.size();
 						} finally {
+						    // Now return it to the pool.
 							conn.close();
 						}
 					} catch (Throwable e) {
@@ -101,8 +104,15 @@ public class AGConnPoolClosingTest extends Closer {
 				}
 			});
 		}
-        exec.awaitTermination(120, TimeUnit.SECONDS);
-        Assert.assertEquals(pool.toString(), activeConnections, pool.getNumActive());
+	/* Given the current configuration, 6 workers will be able to acquire a connection
+	   object.  The remaining 4 will block.  The original 6 will (in parallel)
+	   delay for HOLD_TIME seconds, return their connection to the pool, then terminate.
+	   The remaining 4 will them able to proceed.  So ultimately we will have two sets
+	   of delays, so that's how long we need to wait (plus some fudge to compensate for unexpected
+	   delays) */
+	final int WAIT_FUDGE = 5;
+        exec.awaitTermination(HOLD_TIME * 2 + WAIT_FUDGE, TimeUnit.SECONDS);
+        Assert.assertEquals(pool.toString(), 0, pool.getNumActive());
         if (!errors.isEmpty()) {
         	for (Throwable e : errors) {
 				log.error("error", e);
