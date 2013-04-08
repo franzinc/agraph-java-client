@@ -29,6 +29,8 @@ import org.junit.runners.Suite.SuiteClasses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static test.Util.logTimeStamped;
+
 /**
  * Different from the JUnitCore runner, this class prints test exceptions as they happen.
  */
@@ -66,7 +68,7 @@ public class TestRunner {
                     System.out.flush();
                     System.err.flush();
                     System.out.println();
-                    System.out.println("Testcase: " + fullname);
+		    logTimeStamped("Testcase: " + fullname);
                     Object test = testClass.newInstance();
                 	if (setTestName != null) {
                 		setTestName.invoke(test, m.getName());
@@ -74,11 +76,11 @@ public class TestRunner {
                     try {
                         invokeAll(methodsAnnotated(testClass, Before.class), false, test);
                         m.invoke(test);
-                        System.out.println("SUCCESS Testcase: " + fullname + " took " + (System.currentTimeMillis() - start) + " ms");
+                        logTimeStamped("SUCCESS Testcase: " + fullname + " took " + (System.currentTimeMillis() - start) + " ms");
                     } catch (Error e) {
                         failures.add(fullname);
                         System.out.flush();
-                        System.err.println("ERROR Testcase: " + fullname + " took " + (System.currentTimeMillis() - start) + " ms");
+                        logTimeStamped("ERROR Testcase: " + fullname + " took " + (System.currentTimeMillis() - start) + " ms");
                         throw e;
                     } catch (Throwable e) {
                         failures.add(fullname);
@@ -87,7 +89,7 @@ public class TestRunner {
                             e = e.getCause();
                         }
                         e.printStackTrace(System.err);
-                        System.err.println("FAIL Testcase: " + fullname + " took " + (System.currentTimeMillis() - start) + " ms");
+                        logTimeStamped("FAIL Testcase: " + fullname + " took " + (System.currentTimeMillis() - start) + " ms");
                     } finally {
                 		System.out.flush();
                     	invokeAllIgnoreExceptions(Util.reverse( methodsAnnotated(testClass, After.class)), false, test);

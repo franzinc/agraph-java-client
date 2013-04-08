@@ -18,8 +18,10 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -348,5 +350,12 @@ public class Util {
 		});
 		return sessions;
 	}
+
+    public static void logTimeStamped(String message) {
+	SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS");
+	System.out.println(sdf.format(Calendar.getInstance().getTime()) + " " + message);
+    }
+	
+    
 
 }
