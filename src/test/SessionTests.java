@@ -70,7 +70,7 @@ public class SessionTests extends AGAbstractTest {
     
     @Test
     @Category(TestSuites.Prepush.class)
-    public void sessionLifetime_rfe9634() throws Exception {
+    public void sessionLifetime_rfe9436() throws Exception {
     	Assert.assertEquals("expected default session lifetime ", AGHttpRepoClient.getDefaultSessionLifetime(),conn.getSessionLifetime());
 		conn.setSessionLifetime(connLife);
 		Assert.assertEquals("expected lifetime "+connLife, connLife, conn.getSessionLifetime());
