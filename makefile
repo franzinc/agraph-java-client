@@ -67,7 +67,8 @@ dist: FORCE
 	mkdir -p $(DIST)/lib/logging
 	cp lib/logging/*.jar $(DIST)/lib/logging
 	mkdir -p $(DIST)/lib/sesame
-	cp lib/sesame/commons-*.{jar,zip} $(DIST)/lib/sesame
+	cp lib/sesame/commons-*.jar $(DIST)/lib/sesame
+	cp lib/sesame/commons-*.zip $(DIST)/lib/sesame
 	cp lib/sesame/openrdf-sesame-2.6.8-onejar*.jar $(DIST)/lib/sesame
 	mkdir -p $(DIST)/lib/jena
 	cp lib/jena/*.jar $(DIST)/lib/jena
