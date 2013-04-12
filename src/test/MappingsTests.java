@@ -29,8 +29,6 @@ public class MappingsTests extends AGAbstractTest {
 		String[] mappings = conn.getDatatypeMappings();
 		int numAutoMappings = mappings.length; 
 		Assert.assertTrue("expected some automatic datatype mappings", numAutoMappings>0);
-		mappings = conn.getPredicateMappings();
-		Assert.assertEquals("expected no predicate mappings", 0, mappings.length);
 		// one way of confirming that primitive mappings are present
 		// or absent is to check for precision loss due to encoding 
 		// of the double below.
