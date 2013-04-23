@@ -221,7 +221,7 @@ public class AGConnPoolClosingTest extends Closer {
     public void openSockets_bug21109_direct() throws Exception {
         Thread.sleep(1000);
         List<String> netstatBefore = netstat();
-    	log.info("openSockets_bug21109_direct netstatBefore: " + applyStr(interpose("\n", netstatBefore)));
+    	log.info("openSockets_bug21109_direct netstatBefore:\n" + applyStr(interpose("\n", netstatBefore)));
         // use a regex to get the ports from netstat, but allow for the state to change (when filtering in waitForNetStat below)
         netstatBefore = netstatLinesToRegex(netstatBefore);
         
@@ -240,19 +240,19 @@ public class AGConnPoolClosingTest extends Closer {
         	close(conn2);
         	close(conn3);
         	if (i==5) {
-                        log.debug("netstat " + i + ": " + applyStr(interpose("\n", netstat())));
+                        log.debug("netstat " + i + ":\n" + applyStr(interpose("\n", netstat())));
         	}
         }
         List<String> netstat = Util.waitForNetStat(0, netstatBefore);
         List<String> closeWait = closeWait(netstat);
-        Assert.assertTrue("sockets in CLOSE_WAIT: " + applyStr(interpose("\n", closeWait)), closeWait.isEmpty());
-        Assert.assertTrue("too many sockets open: " + applyStr(interpose("\n", netstat)), 10 >= netstat.size());
+        Assert.assertTrue("sockets in CLOSE_WAIT:\n" + applyStr(interpose("\n", closeWait)), closeWait.isEmpty());
+        Assert.assertTrue("too many sockets open:\n" + applyStr(interpose("\n", netstat)), 10 >= netstat.size());
         
         repo = close(repo);
         server = close(server);
         
         netstat = Util.waitForNetStat(120, netstatBefore);
-        Assert.assertNull("sockets open after closing pool: " + applyStr(interpose("\n", netstat)), netstat);
+        Assert.assertNull("sockets open after closing pool:\n" + applyStr(interpose("\n", netstat)), netstat);
         
     	server = closeLater(AGAbstractTest.newAGServer());
     	long start = System.nanoTime();
