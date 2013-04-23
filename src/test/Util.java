@@ -298,11 +298,11 @@ public class Util {
     }
     
     /**
-     * Exec 'netstat -tap' for this java process.
+     * Exec 'netstat -tap' and extract the lines which pertain to this java process.
      * @return output lines from netstat
      */
 	public static List<String> netstat() throws IOException {
-		String[] cmd = {"bash", "-c", "netstat -tap 2>/dev/null | grep $PPID"};
+		String[] cmd = {"bash", "-c", "netstat -tap 2>/dev/null | egrep '\\<'$PPID/java'\\>'"};
 		Process p = Runtime.getRuntime().exec(cmd);
 		String string = IOUtil.readString(p.getInputStream());
 		List<String> list = new ArrayList( Arrays.asList(string.split("\n")));
