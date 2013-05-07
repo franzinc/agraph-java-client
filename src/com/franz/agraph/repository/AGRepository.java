@@ -28,7 +28,7 @@ import com.franz.agraph.pool.AGConnPool;
  * Implements the Sesame Repository interface for AllegroGraph, representing
  * <a href="http://www.franz.com/agraph/support/documentation/v4/agraph-introduction.html#triple-store">triple-stores
  * on the server</a>.
- * In AllegroGraph, a {@link AGCatalog} contains multiple repositories.
+ * In AllegroGraph, an {@link AGCatalog} contains multiple repositories.
  * With the Sesame API, most data operations on a repository are done through
  * the {@link AGRepositoryConnection} returned by {@link #getConnection()}.
  */
