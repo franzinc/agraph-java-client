@@ -198,6 +198,7 @@
         <attribute name="arg"/>
         <attribute name="maxmemory" default="1024m"/>
         <attribute name="streamResults" default="false"/>
+        <attribute name="useGzip" default="true"/>
         <sequential>
             <property name="log" value="trace"/>
             <java classname="@{classname}" failonerror="true" taskname="@{tasknamex}"
@@ -222,6 +223,7 @@
                 <sysproperty key="AGRAPH_PORT" value="${env.AGRAPH_PORT}"/>
                 <sysproperty key="AGRAPH_ROOT" value="${env.root}"/>
                 <sysproperty key="com.franz.agraph.repository.AGRepositoryConnection.streamResults" value="@{streamResults}"/>
+		<sysproperty key="com.franz.agraph.http.useGzip" value="@{useGzip}"/>
                 <classpath>
                     <path location="${jarfile}"/>
                     <path location="${testjarfile}"/>
@@ -296,7 +298,7 @@
         <property name="prefix" value="test.TestSuites$"/>
         <property name="test" value="${prefix}${cat}"/>
         <run-java tasknamex="test" classname="test.TestRunner" arg="${test}"
-                  streamResults="${streamResults}"/>
+                  streamResults="${streamResults}" useGzip="${useGzip}"/>
     </target>
     
     <target name="test-stress-events"

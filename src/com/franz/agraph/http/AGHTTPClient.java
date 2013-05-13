@@ -117,7 +117,10 @@ implements Closeable {
 		for (Header header : headers) {
 			post.addRequestHeader(header);
 		}
-		post.addRequestHeader("Accept-encoding", "gzip");
+		
+		if (System.getProperty("com.franz.agraph.http.useGzip","true").equals("true")) {
+		    post.addRequestHeader("Accept-encoding", "gzip");
+		}
 		if (requestEntity == null) {
 			post.setRequestBody(params);
 		} else {
@@ -165,7 +168,9 @@ implements Closeable {
 				get.addRequestHeader(header);
 			}
 		}
-		get.addRequestHeader("Accept-encoding", "gzip");
+		if (System.getProperty("com.franz.agraph.http.useGzip","true").equals("true")) {
+		    get.addRequestHeader("Accept-encoding", "gzip");
+		}
 		if (params != null) {
 			get.setQueryString(params);
 		}
