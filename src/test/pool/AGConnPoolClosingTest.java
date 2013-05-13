@@ -152,35 +152,45 @@ public class AGConnPoolClosingTest extends Closer {
         List<String> netstatBefore = netstat();
         {
         	log.info("openSockets_bug21099 netstatBefore:\n" + applyStr(interpose("\n", netstatBefore)));
+		/*
                 List<String> closeWait = closeWait(netstatBefore);
                 if (!closeWait.isEmpty()) {
                         log.warn("openSockets_bug21099 netstat close_wait Before:\n" + applyStr(interpose("\n", closeWait)));
                 }
+		*/
         }
         // use a regex to get the ports from netstat, but allow for the state to change (when filtering in waitForNetStat below)
         netstatBefore = netstatLinesToRegex(netstatBefore);
-        log.info("openSockets_bug21099 netstatBefore regexes:\n" + applyStr(interpose("\n", netstatBefore)));
+        //log.info("openSockets_bug21099 netstatBefore regexes:\n" + applyStr(interpose("\n", netstatBefore)));
+	final int minIdle = 10;
         final int maxIdle = 20;
     	AGConnPool pool = closeLater( AGConnPool.create(
+					      // Connection Properties
                                               AGConnProp.serverUrl, AGAbstractTest.findServerUrl(),
                                               AGConnProp.username, AGAbstractTest.username(),
                                               AGConnProp.password, AGAbstractTest.password(),
                                               AGConnProp.catalog, AGAbstractTest.CATALOG_ID,
                                               AGConnProp.repository, repoName,
                                               AGConnProp.session, AGConnProp.Session.TX,
-                AGPoolProp.maxActive, 40,
-                AGPoolProp.maxWait, 40000,
-                AGPoolProp.shutdownHook, true,
-                AGPoolProp.testOnBorrow, false,
-                AGPoolProp.minIdle, 10,
-                AGPoolProp.maxIdle, maxIdle,
-                AGPoolProp.timeBetweenEvictionRunsMillis, 1000,
-                AGPoolProp.minEvictableIdleTimeMillis, 2000,
-                AGConnProp.sessionLifetime, 30, // seconds
-                AGPoolProp.testWhileIdle, true,
-                AGPoolProp.numTestsPerEvictionRun, 5,
-                AGPoolProp.initialSize, 5
+					      AGConnProp.sessionLifetime, 30, // seconds
+
+					      // Pool properties.
+					      AGPoolProp.maxActive, 40, 
+					      AGPoolProp.maxWait, 40000, // Wait up to 40 seconds for borrowObject() to succeed
+					      AGPoolProp.shutdownHook, true, // Register a hook to close the pool when the JVM shuts down.
+					      AGPoolProp.testOnBorrow, false, // Don't attempt to validate each object before borrowObject() returns it
+					      AGPoolProp.minIdle, minIdle, // Ensure that the eviction thread maintains at least this many idle objects in the pool
+					      /* Max number of idle (unused) objects in the pool.  If returnObject() is called and the number of
+						 idle objects has reached this value, the returned object is immediately destroyed */
+					      AGPoolProp.maxIdle, maxIdle, 
+					      AGPoolProp.timeBetweenEvictionRunsMillis, 1000, // eviction thread polling interval
+					      AGPoolProp.minEvictableIdleTimeMillis, 2000, // An unused object must be idle at least this long before being eligible for eviction
+					      AGPoolProp.testWhileIdle, true, // validate objects in the idle object eviction thread
+					      AGPoolProp.numTestsPerEvictionRun, minIdle, // max number of objects to examine during each run of the idle object evictor thread
+					      AGPoolProp.initialSize, 5 // When the pool is created, this many connections will be initialized, then returned to the pool.
     	));
+
+	log.info("openSockets_bug21099: Pool created");
 
 	/* The AGConnPool configuration above will start off with 5
 	   (initialSize) session connections, then will immediately
@@ -199,13 +209,18 @@ public class AGConnPoolClosingTest extends Closer {
 	   closing down. 
 	*/
 
+	log.info("openSockets_bug21099: Sleeping for 30 seconds while pool oscillates");
         Thread.sleep(30000);
+	log.info("openSockets_bug21099: Sleep completed.  Checking for sockets in CLOSE_WAIT state");
 
+	/* Warning: netstat will be null if the filtered output resulted in 0 lines */
         List<String> netstat = Util.waitForNetStat(0, netstatBefore);
         List<String> closeWait = closeWait(netstat);
         Assert.assertTrue("sockets in CLOSE_WAIT:\n" + applyStr(interpose("\n", closeWait)), closeWait.isEmpty());
         // there may be maxIdle sockets "ESTABLISHED" and some in TIME_WAIT, so check for (maxIdle*2)
-        Assert.assertTrue("too many sockets open:\n" + applyStr(interpose("\n", netstat)), (maxIdle*2) >= netstat.size());
+	if (netstat != null) {
+	    Assert.assertTrue("too many sockets open:\n" + applyStr(interpose("\n", netstat)), (maxIdle*2) >= netstat.size());
+	}
 
         close(pool);
 
@@ -215,7 +230,7 @@ public class AGConnPoolClosingTest extends Closer {
         final AGServer server = closeLater(AGAbstractTest.newAGServer());
         long start = System.nanoTime();
         Map<String, String> sessions = Util.waitForSessions(server, repoName);
-        Assert.assertNull("Sessions alive " + TimeUnit.NANOSECONDS.toSeconds((System.nanoTime() - start)) + " seconds after closing.", sessions);
+        Assert.assertNull("Sessions alive " + TimeUnit.NANOSECONDS.toSeconds((System.nanoTime() - start)) + " seconds after closing:\n" + sessions, sessions);
         close(server);
     }
 
@@ -225,6 +240,7 @@ public class AGConnPoolClosingTest extends Closer {
      * Test without the pool.
      */
     public void openSockets_bug21109_direct() throws Exception {
+	log.info("openSockets_bug21109_direct: Test started. Sleeping for 1 second");
         Thread.sleep(1000);
         List<String> netstatBefore = netstat();
     	log.info("openSockets_bug21109_direct netstatBefore:\n" + applyStr(interpose("\n", netstatBefore)));
