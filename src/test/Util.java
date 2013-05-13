@@ -267,16 +267,27 @@ public class Util {
     	
     }
 
+    /**
+     * Call fn until it returns null or false, or until maxWait time units have elapsed.
+     * Sleep for 'sleep' time units between calls.
+     * @return the last value from fn
+     */
     public static <ReturnType> ReturnType waitFor(TimeUnit unit, long sleep, long maxWait, Callable<ReturnType> fn) throws Exception {
     	return waitFor(unit.toMillis(sleep), unit.toNanos(maxWait), fn);
     }
 
+    /**
+     * Call fn until it returns null or false, or until maxWait time units have elapsed.
+     * Sleep for 'sleep' time units between calls.
+     * @return the last value from fn
+     */
     public static Object waitFor(TimeUnit unit, long sleep, long maxWait, IFn fn) throws Exception {
     	return waitFor(unit.toMillis(sleep), unit.toNanos(maxWait), fn);
     }
 
     /**
-     * Call fn until it returns null or false.
+     * Call fn until it returns null or false, or until maxWaitNanos nanoseconds have elapsed.
+     * Sleep for sleepMillis milliseconds between calls.
      * @return the last value from fn
      */
     public static <ReturnType> ReturnType waitFor(long sleepMillis, long maxWaitNanos, Callable<ReturnType> fn) throws Exception {
@@ -298,11 +309,11 @@ public class Util {
     }
     
     /**
-     * Exec 'netstat -tap' and extract the lines which pertain to this java process.
+     * Exec 'netstat -ntap' and extract the lines which pertain to this java process.
      * @return output lines from netstat
      */
 	public static List<String> netstat() throws IOException {
-		String[] cmd = {"bash", "-c", "netstat -tap 2>/dev/null | egrep '\\<'$PPID/java'\\>'"};
+		String[] cmd = {"bash", "-c", "netstat -ntap 2>/dev/null | egrep '\\<'$PPID/java'\\>'"};
 		Process p = Runtime.getRuntime().exec(cmd);
 		String string = IOUtil.readString(p.getInputStream());
 		List<String> list = new ArrayList( Arrays.asList(string.split("\n")));
@@ -318,6 +329,7 @@ public class Util {
 		}, netstat);
 	}
 
+    /* Warning: Returns null if the filtered netstat output results in 0 lines */
 	public static List<String> waitForNetStat(int maxWaitSeconds, final List<String> excluding) throws Exception {
 		return Util.waitFor(TimeUnit.SECONDS, 1, maxWaitSeconds, new Callable<List<String>>() {
         	public List<String> call() throws Exception {
