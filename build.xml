@@ -225,6 +225,7 @@
                 <sysproperty key="com.franz.agraph.repository.AGRepositoryConnection.streamResults" value="@{streamResults}"/>
 		<sysproperty key="com.franz.agraph.http.useGzip" value="@{useGzip}"/>
 		<sysproperty key="test-failure-is-error" value="false"/>
+		<sysproperty key="dump-agraph-log-on-test-failure" value="false"/>
                 <classpath>
                     <path location="${jarfile}"/>
                     <path location="${testjarfile}"/>

@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.Reader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
@@ -368,6 +369,71 @@ public class Util {
 	System.out.println(sdf.format(Calendar.getInstance().getTime()) + " " + message);
     }
 	
-    
+    public static String GetLogDirFromAgraphCFG(String filename) 
+	throws java.io.FileNotFoundException, 
+	       java.io.IOException
+    {
+	String res=null;
+	
+	BufferedReader br = new BufferedReader(new FileReader(filename));
+	String line;
+	while ((line = br.readLine()) != null) {
+	    /* Confusingly, this String.match() has implicit ^ and $
+	       anchors so the regexp needs to be constructed such that
+	       it matches the entire string */
+	    if (line.matches("(?i)LogDir\\s+.*")) {
+		res=line.split("\\s+", 2)[1];
+		break;
+	    }
+	}
+	br.close();
 
+	return res;
+    }
+
+    public static String GetAgraphCfgFilenameFromAgraphRoot(String filename) 
+	throws java.io.FileNotFoundException, 
+	       java.io.IOException
+    {
+	BufferedReader br = new BufferedReader(new FileReader(filename));
+	
+	String res=br.readLine();
+	
+	br.close();
+
+	return res;
+    }
+	
+    public static void DumpFile(String filename) 
+	throws java.io.FileNotFoundException, 
+	       java.io.IOException
+    {
+	System.out.println("Dump of "+filename);
+	System.out.println("--------------------------------------------------------------");
+	
+	BufferedReader br = new BufferedReader(new FileReader(filename));
+	String line;
+	while ((line = br.readLine()) != null) {
+	    System.out.println(line);
+	}
+	br.close();
+
+	System.out.println("--------------------------------------------------------------");
+    }
+	
+	
+    public static void DumpAgraphLog() 
+	throws java.io.FileNotFoundException, 
+	       java.io.IOException
+    {
+	String AgraphRootFilename = "../agraph/lisp/agraph.root";
+	File AgraphRootFile = new File(AgraphRootFilename);
+	
+	if (AgraphRootFile.exists()) {
+	    String AgraphCfgFilename=GetAgraphCfgFilenameFromAgraphRoot(AgraphRootFilename);
+	    String LogDir=GetLogDirFromAgraphCFG(AgraphCfgFilename);
+	    
+	    DumpFile(LogDir+"/agraph.log");
+	}
+    }
 }

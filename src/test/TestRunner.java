@@ -91,6 +91,10 @@ public class TestRunner {
                         e.printStackTrace(System.err);
                         logTimeStamped("FAIL Testcase: " + fullname + " took " + (System.currentTimeMillis() - start) + " ms");
 
+			if(System.getProperty("dump-agraph-log-on-test-failure", "false").equals("true")) {
+			    Util.DumpAgraphLog();
+			}
+
 			if(System.getProperty("test-failure-is-error", "false").equals("true")) {
 			    System.exit(-1);
 			}
