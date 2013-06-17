@@ -224,6 +224,7 @@
                 <sysproperty key="AGRAPH_ROOT" value="${env.root}"/>
                 <sysproperty key="com.franz.agraph.repository.AGRepositoryConnection.streamResults" value="@{streamResults}"/>
 		<sysproperty key="com.franz.agraph.http.useGzip" value="@{useGzip}"/>
+		<sysproperty key="test-failure-is-error" value="false"/>
                 <classpath>
                     <path location="${jarfile}"/>
                     <path location="${testjarfile}"/>
