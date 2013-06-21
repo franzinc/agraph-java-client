@@ -9,7 +9,7 @@
 package com.franz.agraph.pool;
 
 import org.apache.commons.httpclient.HttpConnectionManager;
-import org.apache.commons.httpclient.SimpleHttpConnectionManager;
+import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 import org.apache.commons.pool.PoolableObjectFactory;
 import org.openrdf.OpenRDFException;
@@ -68,7 +68,7 @@ implements PoolableObjectFactory {
 			params.setSoTimeout(props.httpSocketTimeout);
 		}
 		
-		HttpConnectionManager manager = closeLater( new SimpleHttpConnectionManager());
+		HttpConnectionManager manager = closeLater( new MultiThreadedHttpConnectionManager());
 		manager.setParams(params);
 		AGHTTPClient httpClient = new AGHTTPClient(props.serverUrl, manager);
 		AGServer server = closeLater( new AGServer(props.username, props.password, httpClient) );

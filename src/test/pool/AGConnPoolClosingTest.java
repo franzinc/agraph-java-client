@@ -24,6 +24,16 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.openrdf.model.Statement;
+import org.openrdf.model.ValueFactory;
+import org.openrdf.query.BindingSet;
+import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.query.QueryLanguage;
+import org.openrdf.query.TupleQuery;
+import org.openrdf.query.TupleQueryResultHandler;
+import org.openrdf.query.TupleQueryResultHandlerException;
+import org.openrdf.repository.RepositoryConnection;
+import org.openrdf.repository.RepositoryResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -281,6 +291,89 @@ public class AGConnPoolClosingTest extends Closer {
         Map<String, String> sessions = Util.waitForSessions(server, repoName);
         Assert.assertNull("Sessions alive " + TimeUnit.NANOSECONDS.toSeconds((System.nanoTime() - start)) + " seconds after closing: " + sessions, sessions);
         close(server);
+    }
+    
+    
+    @Test
+    @Category(TestSuites.Broken.class)
+    /**
+     * Test for invalid configuration of HttpSessionManager
+     * Test fails if the AGConnFactory does not properly initialize
+     * the http session manager with MultiThreadedHttpSessionManager object.
+     * See: spr30491
+     */
+    public void invalidSessionPortsConfiguration_spr30491() throws Exception {
+    	final String repoName = "pool.spr30491-test";
+    	
+    	AGConnPool pool = closeLater( AGConnPool.create(
+					                AGConnProp.serverUrl, AGAbstractTest.findServerUrl(),
+					                AGConnProp.username, AGAbstractTest.username(),
+					                AGConnProp.password, AGAbstractTest.password(),
+					                AGConnProp.catalog, AGAbstractTest.CATALOG_ID,
+					                AGConnProp.repository, repoName,
+					                AGConnProp.session, AGConnProp.Session.DEDICATED,
+									AGPoolProp.shutdownHook, true,
+									AGPoolProp.maxActive, 1,
+									AGPoolProp.initialSize, 1 ));
+    	
+    	AGRepositoryConnection conn = pool.borrowConnection();
+
+    	Assert.assertEquals(pool.getNumActive(), 1);
+    	
+    	ValueFactory vf = conn.getValueFactory();
+    	conn.add( vf.createStatement(vf.createURI("http://ag/test-spr30491-test1"),
+					    				vf.createURI("http://ag/spr-name"),
+					    				vf.createLiteral("spr30491")) );
+    	
+    	TupleQuery query = conn.prepareTupleQuery(QueryLanguage.SPARQL,"SELECT ?s ?p ?o WHERE { ?s ?p ?o . }");
+    	
+    	final ValueFactory fvf = vf;
+    	final RepositoryConnection fconn = conn;
+    	
+    	//The handler executes on a separate thread and requires a thread safe Http Session Manager
+    	TupleQueryResultHandler handler = new TupleQueryResultHandler() {
+
+			@Override
+			public void startQueryResult(List<String> bindingNames)
+					throws TupleQueryResultHandlerException {
+			}
+
+			@Override
+			public void endQueryResult()
+					throws TupleQueryResultHandlerException {
+			}
+
+			@Override
+			public void handleSolution(BindingSet bindingSet)
+					throws TupleQueryResultHandlerException {
+				
+				try {
+					RepositoryResult<Statement> statements = fconn.getStatements(fvf.createURI(bindingSet.getValue("s").stringValue()), null, null, false);
+					Assert.assertNotNull(statements);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    throw new TupleQueryResultHandlerException(e);
+                }
+			}
+    		
+    	};
+
+    	try {
+        	query.evaluate(handler);
+    	}
+    	catch (QueryEvaluationException e) {
+    		//In failure situation the error message is expected to be similar in content to:
+    		//  org.openrdf.query.QueryEvaluationException: com.franz.agraph.http.exception.AGHttpException: Possible session port connection failure. Consult the Server Installation document for correct settings for SessionPorts. Url: http://localhost:29005/sessions/9475d245-3c15-d054-9e7b-000c293de094. Documentation: http://www.franz.com/agraph/support/documentation/v4/server-installation.html#sessionport
+    		//   at com.franz.agraph.repository.AGQuery.evaluate(AGQuery.java:287)
+    		
+    		Assert.fail("HttpSessionManager no configured properly in com.franz.agraph.pool.AGConnFactory");
+    	}
+    	
+    	pool.returnObject(conn);
+    	
+    	Assert.assertEquals(pool.getNumActive(), 0);
+    	
+    	close(pool);
     }
 
 }
