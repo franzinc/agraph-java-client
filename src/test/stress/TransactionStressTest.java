@@ -105,9 +105,19 @@ public class TransactionStressTest {
                 conn.remove(node, vf.createURI("http://example.org/finished"), vf.createLiteral("false"));
                 conn.add(node, vf.createURI("http://example.org/finished"), vf.createLiteral("true"));
                 conn.commit();
+                // commit turns on autocommit with sesame 2.7
+                // transaction semantics, make sure it's off
+                conn.setAutoCommit(false);
                 okay = true;
             }
-            finally {if (!okay) conn.rollback();}
+            finally {
+                if (!okay) {
+                    conn.rollback();
+                    // rollback turns on autocommit with sesame 2.7
+                    // transaction semantics, make sure it's off
+                    conn.setAutoCommit(false);
+                }
+            }
             return true;
         }
     }

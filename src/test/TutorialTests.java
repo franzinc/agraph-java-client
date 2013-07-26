@@ -1200,6 +1200,9 @@ public class TutorialTests extends AGAbstractTest {
         // Rollback
         //println("Rolling back contents of conn2.");
         conKennedy.rollback();
+        // rollback turns on autocommit with sesame 2.7 transaction
+        // semantics, make sure it's off
+        conKennedy.setAutoCommit(false);
         assertEquals("There are now triples visible via conn2.", 916, conKennedy.size());
         assert22("Using getStatements() on conn1; should find Valjean:",
                 new Stmt(char11, title, valjean),
