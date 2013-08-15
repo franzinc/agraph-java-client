@@ -199,7 +199,7 @@ public class TutorialTests extends AGAbstractTest {
         assertSetsEqual("Match triples having a specific DATETIME value.",
                 stmts(new Stmt(ted, birthdate, time)),
                 statementSet( conn.getStatements(null, null,
-                f.createLiteral("1984-12-06T09:00:00",XMLSchema.DATETIME), false)));
+                f.createLiteral("1984-12-06T09:00:00Z",XMLSchema.DATETIME), false)));
     }
     
     public static URI example6_setup(AGRepositoryConnection conn, AGRepository repo) throws Exception {
