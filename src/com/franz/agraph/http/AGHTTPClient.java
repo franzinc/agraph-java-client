@@ -121,7 +121,10 @@ implements Closeable {
 		if (System.getProperty("com.franz.agraph.http.useGzip","true").equals("true")) {
 		    post.addRequestHeader("Accept-encoding", "gzip");
 		}
-		if (requestEntity == null) {
+		// bug21953. Only write params to body if content-type is appropriate.
+		Header contentType = post.getRequestHeader("Content-Type");
+		if (requestEntity == null && ( contentType == null ||
+					       "application/x-www-form-urlencoded".contains(contentType.getValue()) )) {
 			post.setRequestBody(params);
 		} else {
 			post.setQueryString(params);
