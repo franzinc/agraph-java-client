@@ -126,6 +126,8 @@ public class Events extends Closer {
 
         static boolean BULKMODE = false;
 
+        static boolean SHARED = false;
+
         // When non-zero use a connection pool of the specified size
         static private int POOL_SIZE = 0;
         
@@ -298,6 +300,10 @@ public class Events extends Closer {
                     .withArgName("POOL_SIZE").hasArg()
                     .withDescription("When non-zero, sets the connection pool size [default=" + POOL_SIZE + "]")
                     .create());
+            options.addOption(OptionBuilder.withLongOpt("shared")
+                    .withArgName("true|false").hasArg()
+                    .withDescription("Use shared backends instead of dedicated sessions. [default=" + SHARED + "]")
+                    .create());
             
             cmd = new PosixParser().parse(options, args);
             if (cmd.hasOption("help")) {
@@ -342,6 +348,7 @@ public class Events extends Closer {
             stream = cmdVal("stream", stream);
             BULKMODE = cmdVal("bulkmode", BULKMODE);
             POOL_SIZE = cmdVal("pool-size", POOL_SIZE);
+            SHARED = cmdVal("shared", SHARED);
             
             if (cmd.hasOption("seed")) {
                 long seed = Long.parseLong(cmd.getOptionValue("seed"));
@@ -387,10 +394,14 @@ public class Events extends Closer {
         AGRepository repo = closeLater( cat.createRepository(Defaults.REPOSITORY) );
         repo.initialize();
         AGRepositoryConnection conn = closeLater( repo.getConnection() );
-        // Force an auto-committing non-shared backend 
-        conn.setAutoCommit(false);
-        conn.setAutoCommit(true);
-        trace("Dedicated backend: " + conn.getHttpRepoClient().getRoot());
+        if (!Defaults.SHARED) {
+            // Force an auto-committing non-shared backend 
+            conn.setAutoCommit(false);
+            conn.setAutoCommit(true);
+            trace("Dedicated backend: " + conn.getHttpRepoClient().getRoot());
+        } else {
+            trace("Shared backend: " + conn.getHttpRepoClient().getRoot());
+        }
         return conn;
     }
 
@@ -417,7 +428,8 @@ public class Events extends Closer {
                     // The above values must match the repo defined above;
                     // that redundancy should go away in a future release,
                     // as part of rfe11963.
-                    AGConnProp.session,    AGConnProp.Session.DEDICATED, 
+                    AGConnProp.session,
+                    (Defaults.SHARED ? AGConnProp.Session.SHARED : AGConnProp.Session.DEDICATED), 
                     AGConnProp.sessionLifetime, TimeUnit.MINUTES.toSeconds(10),
                     AGPoolProp.testOnBorrow, true,
                     AGPoolProp.timeBetweenEvictionRunsMillis, TimeUnit.SECONDS.toMillis(120),
