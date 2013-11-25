@@ -326,7 +326,7 @@ public class ServerCodeTests extends AGAbstractTest {
 			tupleQuery.evaluate();
 			fail("expected QueryEvaluationException");
 		} catch (QueryEvaluationException e) {
-			if (e.getMessage().contains("attempt to call `#:uncle/2' which is an undefined function.")) {
+			if (e.getMessage().contains("Undefined functor in Prolog query")) {
 				// good
 			} else {
 				throw e;
