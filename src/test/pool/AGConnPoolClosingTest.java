@@ -154,7 +154,8 @@ public class AGConnPoolClosingTest extends Closer {
 	}
 	
     @Test
-    @Category(TestSuites.Stress.class)
+    // @Category(TestSuites.Stress.class)
+    @Category(TestSuites.Broken.class) // This test is unreliable and has been disabled. -- dancy
     public void openSockets_bug21099() throws Exception {
     	final String repoName = "pool.bug21099";
     	

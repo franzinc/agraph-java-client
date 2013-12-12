@@ -209,9 +209,10 @@ public class AGConnPoolSessionTest extends Closer {
     		Assert.fail("see log for details: " + errors.toString());
     	}
     }
-    
+
     @Test
-    @Category(TestSuites.Stress.class)
+    //@Category(TestSuites.Stress.class)
+    @Category(TestSuites.Broken.class) // This test is unreliable and has been disabled. -- dancy
     public void maxActive() throws Exception {
     	final int seconds = 5;
     	final int clients = 4;
