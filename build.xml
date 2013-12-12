@@ -200,7 +200,7 @@
         <attribute name="streamResults" default="false"/>
         <attribute name="useGzip" default="true"/>
         <sequential>
-            <property name="log" value="trace"/>
+            <property name="log" value="info"/>
             <java classname="@{classname}" failonerror="true" taskname="@{tasknamex}"
                   fork="true" maxmemory="@{maxmemory}"
                   inputstring="">
@@ -242,7 +242,7 @@
         <property name="cat" value="Prepush"/>
         <property name="prefix" value="test.TestSuites$"/>
         <property name="test" value="${prefix}${cat}"/>
-        <property name="log" value="trace"/>
+        <property name="log" value="warn"/>
         <junit printsummary="no" haltonfailure="yes">
             <sysproperty key="org.apache.commons.logging.Log"
                          value="org.apache.commons.logging.impl.SimpleLog"/>
