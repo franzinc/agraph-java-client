@@ -8,7 +8,11 @@
 
 package com.franz.agraph.jena;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.openrdf.query.GraphQueryResult;
@@ -16,7 +20,6 @@ import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.TupleQueryResult;
 import org.openrdf.query.UpdateExecutionException;
-
 import com.franz.agraph.repository.AGBooleanQuery;
 import com.franz.agraph.repository.AGGraphQuery;
 import com.franz.agraph.repository.AGTupleQuery;
@@ -27,6 +30,7 @@ import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QueryException;
 import com.hp.hpl.jena.query.QueryExecution;
+import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.Model;
@@ -39,14 +43,16 @@ import com.hp.hpl.jena.util.FileManager;
  * 
  */
 public class AGQueryExecution implements QueryExecution, Closeable {
-
+	
 	private final AGQuery query;
 	private final AGModel model;
-	private QuerySolution binding;
-	
+	private QuerySolution binding;	
+	private static final long   TIMEOUT_UNSET = -1 ;
+	protected long timeout = TIMEOUT_UNSET;
+		
 	public AGQueryExecution(AGQuery query, AGModel model) {
 		this.query = query;
-		this.model = model;
+		this.model = model;		
 	}
 
 	
@@ -78,6 +84,8 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 		boolean result;
 		try {
 			bq.setDataset(model.getGraph().getDataset());
+			if(timeout > 0)
+				bq.setMaxQueryTime((int) (timeout/1000));
 			result = bq.evaluate();
 		} catch (QueryEvaluationException e) {
 			throw new QueryException(e);
@@ -111,6 +119,8 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 		GraphQueryResult result;
 		try {
 			gq.setDataset(model.getGraph().getDataset());
+			if(timeout > 0)
+				gq.setMaxQueryTime((int) (timeout/1000));
 			result = gq.evaluate();
 		} catch (QueryEvaluationException e) {
 			throw new QueryException(e);
@@ -119,8 +129,8 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 			m = ModelFactory.createDefaultModel();
 		}
 		try {
-			m.setNsPrefixes(result.getNamespaces());
-			while (result.hasNext()) {
+			m.setNsPrefixes(result.getNamespaces());			
+			while (result.hasNext()) {				
 				m.add(model.asStatement(AGNodeFactory.asTriple(result.next())));
 			}
 		} catch (QueryEvaluationException e) {
@@ -146,7 +156,7 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 		tq.setEntailmentRegime(model.getGraph().getEntailmentRegime());
 		tq.setCheckVariables(query.isCheckVariables());
 		tq.setLimit(query.getLimit());
-		tq.setOffset(query.getOffset());
+		tq.setOffset(query.getOffset());		
 		if (binding!=null) {
 			Iterator<String> vars = binding.varNames();
 			while (vars.hasNext()) {
@@ -157,10 +167,13 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 		TupleQueryResult result;
 		try {
 			tq.setDataset(model.getGraph().getDataset());
+			if(timeout > 0)
+				tq.setMaxQueryTime((int) (timeout/1000));
 			result = tq.evaluate();
-		} catch (QueryEvaluationException e) {
+		}		
+		catch (QueryEvaluationException e) {
 			throw new QueryException(e);
-		}
+		}		
 		return new AGResultSet(result, model);
 	}
 
@@ -186,6 +199,8 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 		}
 		try {
 			u.setDataset(model.getGraph().getDataset());
+			if(timeout > 0)
+				u.setMaxQueryTime((int) (timeout/1000));
 			u.execute();
 		} catch (UpdateExecutionException e) {
 			throw new QueryException(e);
@@ -260,56 +275,92 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 
 	@Override
 	public void setInitialBinding(QuerySolution binding) {
-		binding = this.binding;
+		this.binding = binding;
 	}
 
 
 	@Override
 	public Iterator<Triple> execConstructTriples() {
-		// TODO Auto-generated method stub
-		return null;
+		Iterator<Triple> it = null;		
+		if (query.getLanguage()!=QueryLanguage.SPARQL) {
+			throw new UnsupportedOperationException(query.getLanguage().getName() + " language does not support CONSTRUCT queries.");
+		}		
+		AGGraphQuery gq = model.getGraph().getConnection().prepareGraphQuery(query.getLanguage(), query.getQueryString());
+		gq.setIncludeInferred(model.getGraph() instanceof AGInfGraph);
+		gq.setEntailmentRegime(model.getGraph().getEntailmentRegime());
+		gq.setCheckVariables(query.isCheckVariables());
+		gq.setLimit(query.getLimit());
+		gq.setOffset(query.getOffset());		
+		if (binding!=null) {
+			Iterator<String> vars = binding.varNames();
+			while (vars.hasNext()) {
+				String var = vars.next();
+				gq.setBinding(var, model.getGraph().vf.asValue(binding.get(var).asNode()));
+			}
+		}		
+		GraphQueryResult result;		
+		try {
+			gq.setDataset(model.getGraph().getDataset());
+			if(timeout > 0)
+				gq.setMaxQueryTime((int) (timeout/1000));
+			result = gq.evaluate();
+		} catch (QueryEvaluationException e) {
+			throw new QueryException(e);
+		}		
+		try {
+			List<Triple> tripleArrayList = new ArrayList<Triple>();			
+	        while (result.hasNext()) {	        	
+				tripleArrayList.add(AGNodeFactory.asTriple(result.next()));				
+			}
+			//Getting Iterator from List
+			it = tripleArrayList.iterator();
+		} catch (QueryEvaluationException e) {
+			throw new QueryException(e);
+		}		
+		return it;		
 	}
 
 
 	@Override
 	public Iterator<Triple> execDescribeTriples() {
-		// TODO Auto-generated method stub
-		return null;
+		return execConstructTriples();		
 	}
 
 
 	@Override
 	public Query getQuery() {
-		// TODO Auto-generated method stub
-		return null;
+		Query queryObj = QueryFactory.create(query.getQueryString());			
+		return queryObj; 
 	}
 
 
 	@Override
-	public void setTimeout(long arg0) {
-		// TODO Auto-generated method stub
-		
+	public void setTimeout(long timeout) {	
+		this.timeout = timeout;		
 	}
 
 
 	@Override
-	public void setTimeout(long arg0, TimeUnit arg1) {
-		// TODO Auto-generated method stub
-		
+	public void setTimeout(long arg0, TimeUnit arg1) {		
+		this.timeout = arg1.toMillis(arg0);		
 	}
 
 
 	@Override
-	public void setTimeout(long arg0, long arg1) {
-		// TODO Auto-generated method stub
-		
+	public void setTimeout(long arg0, long arg1) {		
+		setTimeout(arg0, TimeUnit.MILLISECONDS, arg1, TimeUnit.MILLISECONDS) ;		
 	}
 
 
 	@Override
-	public void setTimeout(long arg0, TimeUnit arg1, long arg2, TimeUnit arg3) {
-		// TODO Auto-generated method stub
-		
-	}
+	public void setTimeout(long timeout1, TimeUnit timeUnit1, long timeout2, TimeUnit timeUnit2) {		
+		this.timeout = asMillis(timeout1, timeUnit1) ;	}
+	
+	private long asMillis(long duration, TimeUnit timeUnit)
+    {
+        return (duration < 0 ) ? duration : timeUnit.toMillis(duration) ;
+    }
 
+	   
+	
 }

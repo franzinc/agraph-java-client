@@ -12,10 +12,12 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import com.franz.agraph.jena.AGGraph;
 import com.franz.agraph.jena.AGGraphMaker;
+import com.franz.agraph.jena.AGGraphUnion;
 import com.franz.agraph.jena.AGInfModel;
 import com.franz.agraph.jena.AGModel;
 import com.franz.agraph.jena.AGQuery;
@@ -30,6 +32,7 @@ import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
 import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
+import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.query.QueryExecution;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
@@ -902,9 +905,116 @@ public class JenaTutorialExamples {
         maker1.close();
         maker2.close();
     }
+    
+    /**
+     * execConstructTriples(), execDescribeTriples()
+     */
+    public static void example23() throws Exception {
+		AGGraphMaker maker = example6();
+		AGModel model = new AGModel(maker.getGraph());
+		model.setNsPrefix("kdy", "http://www.franz.com/simple#");
+        // We don't want the vcards this time. This is how to delete an entire subgraph.
+		maker.removeGraph("http://example.org#vcards");
+        println("\nRemoved vcards.");
+        
+        // CONSTRUCT query
+        println("\nConstructing has-grandchild triples.");
+        String queryString = "construct {?a kdy:has-grandchild ?c}" + 
+        "    where { ?a kdy:has-child ?b . " +
+        "            ?b kdy:has-child ?c . }";
+        AGQuery query = AGQueryFactory.create(queryString);
+        AGQueryExecution qe = AGQueryExecutionFactory.create(query, model);
+		try {
+			Iterator<Triple> tripleIterConstruct = qe.execConstructTriples();			
+			while(tripleIterConstruct.hasNext())
+			{				
+				println(tripleIterConstruct.next());
+			}			
+		} finally {
+			qe.close();
+		}
+				
+	    // DESCRIBE query
+		queryString = "describe ?s ?p ?o where { ?s ?p ?o . } limit 1";
+	    query = AGQueryFactory.create(queryString);
+	    qe = AGQueryExecutionFactory.create(query, model);	    
+		try {
+			Iterator<Triple> tripleIterDescribe = qe.execDescribeTriples();
+			while(tripleIterDescribe.hasNext())
+			{
+				println(tripleIterDescribe.next());				
+			}
+		}
+		finally
+		{
+			qe.close();
+		}		
+		        
+	}
+    
+    
+    /**
+     * Graph createUnion  spr41131
+     */
+    public static void example24() throws Exception {
+    	AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);		
+		AGCatalog catalog = server.getCatalog(CATALOG_ID);
+		closeAll();
+		catalog.deleteRepository(REPOSITORY_ID);		
+		AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);        
+        myRepository.initialize();        
+        AGRepositoryConnection conn = myRepository.getConnection();
+        closeBeforeExit(conn);
+        AGGraphMaker maker =  new AGGraphMaker(conn);
+        AGGraph gd = maker.getGraph();
+        AGGraph g1 = maker.createGraph("http://example.org/g1");
+    	AGGraph g2 = maker.createGraph("http://example.org/g2");
+    	AGGraphUnion gd12 = maker.createUnion(gd, g1, g2);    	
+    	
+    	AGModel md = new AGModel(gd);
+    	AGModel m1 = new AGModel(g1);
+    	AGModel m2 = new AGModel(g2);
+    	
+    	Resource a = md.createResource("http://a");
+    	Resource b = md.createResource("http://b");
+    	Resource c = md.createResource("http://c");
+    	Property p = md.createProperty("http://p");
+    	Property q = md.createProperty("http://q");
+    	
+    	md.add(p,RDF.type, OWL.TransitiveProperty);
+    	m1.add(a,p,b);
+    	m1.add(p,RDFS.subPropertyOf,q);
+    	m2.add(b,p,c);
+    	
+    	AGModel md12 = new AGModel(gd12);
+    	
+    	System.out.println(" Model md Size:"+md.size());
+    	System.out.println(" Model m1 Size:"+m1.size());
+    	System.out.println(" Model m2 Size:"+m2.size());   	
+        System.out.println(" Model Model3 Size:"+md12.size());
+        
+    	AGQuery sparql = AGQueryFactory.create("select ?s ?p ?o where {?s ?p ?o .}");
+        AGQueryExecution qe = AGQueryExecutionFactory.create(sparql, md12);
+    	
+    	try {
+			ResultSet rs = qe.execSelect();						
+			while(rs.hasNext())
+			{				
+				println(rs.next());
+			}
+		}
+		finally
+		{
+			qe.close();
+		}    	
+		        
+	}
+
+    
+             
 
     /**
-	 * Usage: all Usage: [1-9,11-13,17-19,22]+
+	 * Usage: all Usage: [1-9,11-13,17-19,22-24]+
 	 */
 	public static void main(String[] args) throws Exception {
 		List<Integer> choices = new ArrayList<Integer>();
@@ -922,6 +1032,8 @@ public class JenaTutorialExamples {
 			choices.add(18);
 			choices.add(19);
 			choices.add(22);
+			choices.add(23);			
+			choices.add(24);			
 		} else {
 			for (int i = 0; i < args.length; i++) {
 				choices.add(Integer.parseInt(args[i]));
@@ -978,6 +1090,12 @@ public class JenaTutorialExamples {
 					break;
 				case 22:
 					example22();
+					break;
+				case 23:
+					example23();
+					break;
+				case 24:
+					example24();
 					break;
 				default:
 					throw new IllegalArgumentException("There is no example "

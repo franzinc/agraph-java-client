@@ -92,7 +92,8 @@ public class TestSuites {
         SparqlDefaultTest.class,
         SparqlDefaultDatasetTest.class,
         AGRepositoryFactoryTest.class,
-        CljTest.class
+        CljTest.class,
+        AGQueryExecutionTest.class
     })
     public static class Prepush {}
     
