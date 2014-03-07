@@ -59,12 +59,12 @@ public class AGMaterializerTests extends AGAbstractTest {
 			AGMaterializer materializer = AGMaterializer.newInstance();
 			materializer.withRuleset("all");
 			Assert.assertEquals(
-					"unexpected number of materialized triples added", 8,
+					"unexpected number of materialized triples added", 13,
 					conn.materialize(materializer));
-			Assert.assertEquals("expected size 10", 10, conn.size());
+			Assert.assertEquals("expected size 15", 15, conn.size());
 			Assert.assertTrue(conn.hasStatement(a, RDF.TYPE, A, false));
 			Assert.assertEquals(
-					"unexpected number of materialized triples deleted", 8,
+					"unexpected number of materialized triples deleted", 13,
 					conn.deleteMaterialized());
 			Assert.assertFalse(conn.hasStatement(a, RDF.TYPE, A, false));
 			Assert.assertEquals("expected size 2", 2, conn.size());
@@ -87,10 +87,10 @@ public class AGMaterializerTests extends AGAbstractTest {
 		conn.add(p,RDFS.DOMAIN,A);
 		AGMaterializer materializer = AGMaterializer.newInstance();
 		materializer.withRuleset("all");
-		Assert.assertEquals(8, conn.materialize(materializer));
-		Assert.assertEquals("expected size 10", 10, conn.size());
+		Assert.assertEquals(13, conn.materialize(materializer));
+		Assert.assertEquals("expected size 15", 15, conn.size());
 		Assert.assertTrue(conn.hasStatement(a, RDF.TYPE, A, false));
-		Assert.assertEquals(8, conn.deleteMaterialized());
+		Assert.assertEquals(13, conn.deleteMaterialized());
 		Assert.assertFalse(conn.hasStatement(a, RDF.TYPE, A, false));
 		Assert.assertEquals("expected size 2", 2, conn.size());
 	}
@@ -116,8 +116,7 @@ public class AGMaterializerTests extends AGAbstractTest {
 		conn.materialize(materializer);
 		Assert.assertTrue(conn.hasStatement(a, RDF.TYPE, A, false));
 		Assert.assertTrue(conn.hasStatement(a, mytype, B, false));
-		// TODO: materializer isn't yet complete for this inference
-		//Assert.assertTrue(conn.hasStatement(a, RDF.TYPE, B, false)); 
+		Assert.assertTrue(conn.hasStatement(a, RDF.TYPE, B, false)); 
 	}
 	
     @Test
