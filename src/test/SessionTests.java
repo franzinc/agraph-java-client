@@ -31,34 +31,46 @@ public class SessionTests extends AGAbstractTest {
 	@Category(TestSuites.Prepush.class)
 	public void sessionUsingDedicatedPort() throws Exception {
 		int mainPort = getPort(conn);
-		String init = System.setProperty("com.franz.agraph.http.useMainPortForSessions", "false");
+                String oldUse = System.setProperty("com.franz.agraph.http.useMainPortForSessions", "false");
+                String oldOverride = System.setProperty("com.franz.agraph.http.overrideServerUseMainPortForSessions", "true");
 		conn.setAutoCommit(false);
 		int sessionPort = getPort(conn);
 		Assert.assertTrue("session port should be different from main port", mainPort!=sessionPort);
 		conn.add(OWL.INVERSEOF, OWL.INVERSEOF, OWL.INVERSEOF);
 		conn.commit();
-		if (init!=null) {
-			System.setProperty("com.franz.agraph.http.useMainPortForSessions", init);
-		} else {
-			System.clearProperty("com.franz.agraph.http.useMainPortForSessions");
-		}
+                if (oldUse != null) {
+                    System.setProperty("com.franz.agraph.http.useMainPortForSessions", oldUse);
+                } else {
+                    System.clearProperty("com.franz.agraph.http.useMainPortForSessions");
+                }
+                if (oldOverride != null) {
+                    System.setProperty("com.franz.agraph.http.overrideServerUseMainPortForSessions", oldOverride);
+                } else {
+                    System.clearProperty("com.franz.agraph.http.overrideServerUseMainPortForSessions");
+                }
 	}
 	
     @Test
     @Category(TestSuites.Prepush.class)
     public void sessionUsingMainPort() throws Exception {
     	int mainPort = getPort(conn);
-    	String init = System.setProperty("com.franz.agraph.http.useMainPortForSessions", "true");
+    	String oldUse = System.setProperty("com.franz.agraph.http.useMainPortForSessions", "true");
+    	String oldOverride = System.setProperty("com.franz.agraph.http.overrideServerUseMainPortForSessions", "true");
     	conn.setAutoCommit(false);
     	int sessionPort = getPort(conn);
     	Assert.assertEquals("session port should be the same as main port", mainPort, sessionPort);
     	conn.add(OWL.INVERSEOF, OWL.INVERSEOF, OWL.INVERSEOF);
     	conn.commit();
-		if (init!=null) {
-			System.setProperty("com.franz.agraph.http.useMainPortForSessions", init);
-		} else {
-			System.clearProperty("com.franz.agraph.http.useMainPortForSessions");
-		}
+        if (oldUse != null) {
+            System.setProperty("com.franz.agraph.http.useMainPortForSessions", oldUse);
+        } else {
+            System.clearProperty("com.franz.agraph.http.useMainPortForSessions");
+        }
+        if (oldOverride != null) {
+            System.setProperty("com.franz.agraph.http.overrideServerUseMainPortForSessions", oldOverride);
+        } else {
+            System.clearProperty("com.franz.agraph.http.overrideServerUseMainPortForSessions");
+        }
     }
     
     private int getPort(AGRepositoryConnection conn) throws AGHttpException, MalformedURLException {

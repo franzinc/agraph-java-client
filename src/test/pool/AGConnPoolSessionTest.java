@@ -83,6 +83,7 @@ public class AGConnPoolSessionTest extends Closer {
     @Test
     @Category(TestSuites.Prepush.class)
     public void testPoolDedicated() throws Exception {
+        String oldOverride = System.setProperty("com.franz.agraph.http.overrideServerUseMainPortForSessions", "true");
     	AGConnPool pool = closeLater( AGConnPool.create(
     			AGConnProp.serverUrl, AGAbstractTest.findServerUrl(),
     			AGConnProp.username, AGAbstractTest.username(),
@@ -105,11 +106,17 @@ public class AGConnPoolSessionTest extends Closer {
         conn.deleteDatatypeMapping(XMLSchema.DOUBLE);
         conn.deleteDatatypeMapping(XMLSchema.FLOAT);
         Assert.assertEquals(0, conn.size());
+        if (oldOverride != null) {
+            System.setProperty("com.franz.agraph.http.overrideServerUseMainPortForSessions", oldOverride);
+        } else {
+            System.clearProperty("com.franz.agraph.http.overrideServerUseMainPortForSessions");
+        }
     }
 
     @Test
     @Category(TestSuites.Prepush.class)
     public void testPoolTx() throws Exception {
+        String oldOverride = System.setProperty("com.franz.agraph.http.overrideServerUseMainPortForSessions", "true");
     	AGConnPool pool = closeLater( AGConnPool.create(
     			AGConnProp.serverUrl, AGAbstractTest.findServerUrl(),
     			AGConnProp.username, AGAbstractTest.username(),
@@ -131,6 +138,11 @@ public class AGConnPoolSessionTest extends Closer {
         conn.deleteDatatypeMapping(XMLSchema.DOUBLE);
         conn.deleteDatatypeMapping(XMLSchema.FLOAT);
         Assert.assertEquals(0, conn.size());
+        if (oldOverride != null) {
+            System.setProperty("com.franz.agraph.http.overrideServerUseMainPortForSessions", oldOverride);
+        } else {
+            System.clearProperty("com.franz.agraph.http.overrideServerUseMainPortForSessions");
+        }
     }
 
     /**

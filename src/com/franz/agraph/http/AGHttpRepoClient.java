@@ -160,15 +160,19 @@ public class AGHttpRepoClient implements Closeable {
 	 * 
 	 * Gets System property com.franz.agraph.http.useMainPortForSessions
 	 * (defaults to false).
-	 * 
-	 * @return an RDFFormat, either NQUADS or TRIX
 	 */
 	public boolean usingMainPortForSessions() {
 		boolean b = Boolean.parseBoolean(System.getProperty("com.franz.agraph.http.useMainPortForSessions","false"));
 		logger.debug("com.franz.agraph.http.useMainPortForSessions=" + b);
 		return b;
 	}	
-	
+
+	private boolean overrideServerUseMainPortForSessions() {
+		boolean b = Boolean.parseBoolean(System.getProperty("com.franz.agraph.http.overrideServerUseMainPortForSessions","false"));
+		logger.debug("com.franz.agraph.http.overrideServerUseMainPortForSessions=" + b);
+		return b;
+	}
+
 	public AGValueFactory getValueFactory() {
 		return repo.getValueFactory();
 	}
@@ -311,17 +315,20 @@ public class AGHttpRepoClient implements Closeable {
 	/**
 	 * Returns an appropriate session url to use.
 	 * 
-	 * The server provides a session url assuming a dedicated port 
-	 * to communicate with the appropriate server backend for this
-	 * session.  Sometimes clients may prefer to use the main port
-	 * for all communication, as dictated by the system property
-	 * com.franz.agraph.http.usingMainPortSessions=true.  When this
-	 * flag is set, this method returns a modified session url that
-	 * allows the client to communicate via the main port for this
-	 * session.
+	 * If the UseMainPortForSessions server configuration option
+	 * is false (the default), the server provides a session url
+	 * seizing a dedicated port to communicate with the
+	 * appropriate server backend for this session. Sometimes
+	 * clients may prefer to use the main port for all
+	 * communication, as dictated by the system property
+	 * com.franz.agraph.http.usingMainPortForSessions=true. When
+	 * this flag is set, this method returns a modified session
+	 * url that allows the client to communicate via the main port
+	 * for this session.
 	 * 
-	 * In future this method may not be needed, as the server could
-	 * provide the appropriate url based on server configuration.
+	 * If the UseMainPortForSessions server configuration option
+	 * is true, then this does nothing as the session url provided
+	 * by the server already points to the main port.
 	 * 
 	 * @param dedicatedSessionUrl the dedicated session url from the server. 
 	 * @return an appropriate session url, possibly using main port instead.
@@ -329,7 +336,12 @@ public class AGHttpRepoClient implements Closeable {
 	 * @throws AGHttpException
 	 */
 	private String adjustSessionUrlIfUsingMainPort(String dedicatedSessionUrl) throws AGHttpException {
-		if (usingMainPortForSessions()) {
+                boolean usesMainPort = dedicatedSessionUrl.contains("/session/");
+                if (usingMainPortForSessions() && !usesMainPort) {
+                        /* Turn the url that looks like
+                         * http://localhost:<session-port>/...
+                         * into
+                         * http://localhost:<frontend-port>/session/<session-port>/... */
 			String tail = dedicatedSessionUrl.substring(dedicatedSessionUrl.lastIndexOf(':') + 1);
 			String port = tail.substring(0, tail.indexOf('/'));
 			try {
@@ -339,6 +351,19 @@ public class AGHttpRepoClient implements Closeable {
 						"problem finding port in session url: " + tail);
 			}
 			return repoRoot + "/session/" + tail;
+                } else if (!usingMainPortForSessions() && usesMainPort &&
+                           overrideServerUseMainPortForSessions()) {
+                        /* Turn the url that looks like
+                         * http://localhost:<frontend-port>/session/<session-port>/
+                         * into
+                         * http://localhost:<session-port> */
+                        int mainPortStart = dedicatedSessionUrl.lastIndexOf(":") + 1;
+                        int mainPortEnd = dedicatedSessionUrl.indexOf("/", mainPortStart);
+                        int sessionPortStart = dedicatedSessionUrl.indexOf("/session/") + 9;
+                        int sessionPortEnd = dedicatedSessionUrl.indexOf("/", sessionPortStart);
+                        return (dedicatedSessionUrl.substring(0, mainPortStart) +
+                                dedicatedSessionUrl.substring(sessionPortStart, sessionPortEnd) +
+                                dedicatedSessionUrl.substring(sessionPortEnd));
 		} else {
 			return dedicatedSessionUrl;
 		}
