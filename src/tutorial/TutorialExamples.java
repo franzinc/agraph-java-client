@@ -42,6 +42,9 @@ import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.ntriples.NTriplesWriter;
 import org.openrdf.rio.rdfxml.RDFXMLWriter;
 
+import com.franz.agraph.pool.AGConnPool;
+import com.franz.agraph.pool.AGConnProp;
+import com.franz.agraph.pool.AGPoolProp;
 import com.franz.agraph.repository.AGAbstractRepository;
 import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGFreetextIndexConfig;
@@ -2731,6 +2734,53 @@ public class TutorialExamples {
         myRepository.shutDown();
     
     }
+    
+    /**
+     * Connection pooling
+     */    
+    public static void example24() throws Exception {
+        // Tests getting the repository up. 
+        println("\nStarting example24().");                
+        AGConnPool pool = AGConnPool.create(
+                AGConnProp.serverUrl, SERVER_URL,
+                AGConnProp.username, USERNAME,
+                AGConnProp.password, PASSWORD,
+                AGConnProp.catalog, CATALOG_ID,
+                AGConnProp.repository, REPOSITORY_ID,
+                AGConnProp.session, AGConnProp.Session.DEDICATED,
+                AGPoolProp.shutdownHook, true,
+                AGPoolProp.maxActive, 10,
+                AGPoolProp.initialSize, 2);
+        
+        //To get a connection from pool
+        AGRepositoryConnection conn = pool.borrowConnection();
+        AGValueFactory vf = conn.getRepository().getValueFactory();                
+        println("pool getNumActive is: "+pool.getNumActive());
+        println("pool getNumIdle is: "+pool.getNumIdle());        
+                
+        try {        	
+        	URI alice = vf.createURI("http://example.org/people/alice");
+            URI bob = vf.createURI("http://example.org/people/bob");
+            URI name = vf.createURI("http://example.org/ontology/name");
+            URI person = vf.createURI("http://example.org/ontology/Person");
+            Literal bobsName = vf.createLiteral("Bob");
+            Literal alicesName = vf.createLiteral("Alice");
+            println("Triple count before inserts: " + 
+                    (conn.size()));
+            conn.add(alice, name, alicesName);            
+            conn.add(alice, RDF.TYPE, person);            
+            conn.add(bob, name, bobsName);            
+            conn.add(bob, RDF.TYPE, person);            
+            conn.commit();
+        } finally {
+                conn.close(); // or equivalently pool.returnObject(conn);
+                println("pool getNumActive is: "+pool.getNumActive());
+                println("pool getNumIdle is: "+pool.getNumIdle());        
+        }
+  
+       }
+    
+         
 
     /**
      * Usage: all
@@ -2743,7 +2793,7 @@ public class TutorialExamples {
             // for choosing by editing this code
             choices.add(1);
         } else if (args[0].equals("all")) {
-            for (int i = 1; i <= 23; i++) {
+            for (int i = 1; i <= 24; i++) {
                 choices.add(i);
             }
         } else {
@@ -2781,6 +2831,7 @@ public class TutorialExamples {
                 case 21: example21(); break;                                
                 case 22: example22(); break;
                 case 23: example23(); break;
+                case 24: example24(); break;                
                 default: println("Example" + choice + "() is not available in this release.");
                 }
             }
