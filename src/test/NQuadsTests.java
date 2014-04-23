@@ -21,15 +21,14 @@ import org.openrdf.model.URI;
 import com.franz.agraph.jena.AGGraph;
 import com.franz.agraph.jena.AGGraphMaker;
 import com.franz.agraph.jena.AGModel;
-import com.franz.agraph.repository.AGRDFFormat;
-import com.franz.openrdf.rio.nquads.NQuadsWriter;
+import org.openrdf.rio.RDFFormat;
 
 public class NQuadsTests extends AGAbstractTest {
 
     @Test
     @Category(TestSuites.Prepush.class)
     public void nquads_sesame_rfe10201() throws Exception {
-        conn.add(new File("src/test/example.nq"), null, AGRDFFormat.NQUADS);
+        conn.add(new File("src/test/example.nq"), null, RDFFormat.NQUADS);
         Assert.assertEquals("expected size 10", 10, conn.size());
         URI alice = vf.createURI("http://example.org/alice/foaf.rdf");
         Assert.assertEquals("expected size 7", 7, conn.size(alice));
@@ -57,7 +56,7 @@ public class NQuadsTests extends AGAbstractTest {
     public void sesameAddContextOverridesNQuadsContext() throws Exception {
     	URI bob = vf.createURI("http://example.org/bob/foaf.rdf");
     	// the add context is ignored -- it should override
-    	conn.add(new File("src/test/example.nq"), null, AGRDFFormat.NQUADS, bob);
+    	conn.add(new File("src/test/example.nq"), null, RDFFormat.NQUADS, bob);
     	Assert.assertEquals("expected size 10", 10, conn.size(bob));
     }
     

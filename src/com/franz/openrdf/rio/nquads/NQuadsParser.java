@@ -23,6 +23,8 @@ import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFHandlerException;
 import org.openrdf.rio.RDFParseException;
+import org.openrdf.rio.RioSetting;
+import org.openrdf.rio.helpers.NTriplesParserSettings;
 import org.openrdf.rio.helpers.RDFParserBase;
 import org.openrdf.rio.ntriples.NTriplesUtil;
 
@@ -35,7 +37,9 @@ import org.openrdf.rio.ntriples.NTriplesUtil;
  *
  * Modified from openrdf's NTriplesParser.
  * 
+ *  @deprecated Use {@link org.openrdf.rio.nquads.NQuadsParser} instead
  */
+@Deprecated
 public class NQuadsParser extends RDFParserBase {
 
 	/*-----------*
@@ -412,7 +416,7 @@ public class NQuadsParser extends RDFParserBase {
 			throwEOFException();
 		}
 		else if (c != ':') {
-			reportError("Expected ':', found: " + (char)c);
+			reportError("Expected ':', found: " + (char)c, NTriplesParserSettings.FAIL_ON_NTRIPLES_INVALID_LINES);
 		}
 
 		c = reader.read();
@@ -420,7 +424,7 @@ public class NQuadsParser extends RDFParserBase {
 			throwEOFException();
 		}
 		else if (!NTriplesUtil.isLetter(c)) {
-			reportError("Expected a letter, found: " + (char)c);
+			reportError("Expected a letter, found: " + (char)c, NTriplesParserSettings.FAIL_ON_NTRIPLES_INVALID_LINES);
 		}
 		name.append((char)c);
 
@@ -479,7 +483,7 @@ public class NQuadsParser extends RDFParserBase {
 				throwEOFException();
 			}
 			else if (c != '^') {
-				reportError("Expected '^', found: " + (char)c);
+				reportError("Expected '^', found: " + (char)c, NTriplesParserSettings.FAIL_ON_NTRIPLES_INVALID_LINES);
 			}
 
 			c = reader.read();
@@ -489,7 +493,7 @@ public class NQuadsParser extends RDFParserBase {
 				throwEOFException();
 			}
 			else if (c != '<') {
-				reportError("Expected '<', found: " + (char)c);
+				reportError("Expected '<', found: " + (char)c, NTriplesParserSettings.FAIL_ON_NTRIPLES_INVALID_LINES);
 			}
 
 			c = parseUriRef(c, datatype);
@@ -506,7 +510,7 @@ public class NQuadsParser extends RDFParserBase {
 			uri = NTriplesUtil.unescapeString(uri);
 		}
 		catch (IllegalArgumentException e) {
-			reportError(e.getMessage());
+			reportError(e.getMessage(), NTriplesParserSettings.FAIL_ON_NTRIPLES_INVALID_LINES);
 		}
 
 		return super.createURI(uri);
@@ -519,7 +523,7 @@ public class NQuadsParser extends RDFParserBase {
 			label = NTriplesUtil.unescapeString(label);
 		}
 		catch (IllegalArgumentException e) {
-			reportError(e.getMessage());
+			reportFatalError(e.getMessage());
 		}
 
 		if (lang.length() == 0) {
@@ -553,10 +557,10 @@ public class NQuadsParser extends RDFParserBase {
 	 * information to the error.
 	 */
 	@Override
-	protected void reportError(String msg)
+	protected void reportError(String msg, RioSetting<Boolean> settings)
 		throws RDFParseException
 	{
-		reportError(msg, lineNo, -1);
+		reportError(msg, lineNo, -1, settings);
 	}
 
 	/**

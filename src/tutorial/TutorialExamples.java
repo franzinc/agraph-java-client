@@ -31,6 +31,7 @@ import org.openrdf.query.BooleanQuery;
 import org.openrdf.query.GraphQuery;
 import org.openrdf.query.GraphQueryResult;
 import org.openrdf.query.QueryLanguage;
+import org.openrdf.query.QueryResultHandlerException;
 import org.openrdf.query.TupleQuery;
 import org.openrdf.query.TupleQueryResult;
 import org.openrdf.query.TupleQueryResultHandler;
@@ -231,6 +232,16 @@ public class TutorialExamples {
                     @Override
                         public void endQueryResult() {
                     }
+
+					@Override
+					public void handleBoolean(boolean arg0)
+							throws QueryResultHandlerException {
+					}
+
+					@Override
+					public void handleLinks(List<String> arg0)
+							throws QueryResultHandlerException {
+					}
                 });
         } finally {
             conn.close();
@@ -1147,6 +1158,7 @@ public class TutorialExamples {
         println("After loading, repository contains " + conn.size(context) +
                 " vcard triples in context '" + context + "'\n    and   " +
                 conn.size((Resource)null) + " kennedy triples in context 'null'.");
+        conn.commit();
         return conn;
     }
     
@@ -2784,7 +2796,7 @@ public class TutorialExamples {
 
     /**
      * Usage: all
-     * Usage: [1-22]+
+     * Usage: [1-24]+
      */
     public static void main(String[] args) throws Exception {
     	long now = System.currentTimeMillis();

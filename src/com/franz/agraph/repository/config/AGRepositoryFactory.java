@@ -53,7 +53,7 @@ public class AGRepositoryFactory implements RepositoryFactory {
 				result = server.createCatalog(agconfig.getCatalogId()).createRepository(agconfig.getRepositoryId());
 			} catch (RepositoryException e) {
 				throw new RepositoryConfigException(e);
-			}
+			}			
 		}
 		else {
 			throw new RepositoryConfigException("Invalid configuration class: " + config.getClass());

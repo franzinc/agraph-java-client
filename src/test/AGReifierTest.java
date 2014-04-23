@@ -104,14 +104,6 @@ public class AGReifierTest extends AbstractTestReifier {
 	}
 
 
-	@Override
-	public Graph getGraph(ReificationStyle style) {
-		GraphMaker maker = new AGGraphMaker(conn,style);
-		Graph graph = maker.createGraph("http://named" + graphId);
-		graphId++;
-		return graph;
-	}
-
 	/**
 	 * Override as AG doesn't test for reification clash.
 	 * 

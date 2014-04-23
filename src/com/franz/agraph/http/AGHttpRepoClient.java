@@ -70,7 +70,6 @@ import com.franz.agraph.http.storedproc.AGSerializer;
 import com.franz.agraph.repository.AGAbstractRepository;
 import com.franz.agraph.repository.AGMaterializer;
 import com.franz.agraph.repository.AGQuery;
-import com.franz.agraph.repository.AGRDFFormat;
 import com.franz.agraph.repository.AGSpinFunction;
 import com.franz.agraph.repository.AGSpinMagicProperty;
 import com.franz.agraph.repository.AGUpdate;
@@ -248,7 +247,7 @@ public class AGHttpRepoClient implements Closeable {
 	 * @return an RDFFormat, either NQUADS or TRIX
 	 */
 	public RDFFormat getDefaultRDFFormat() {
-		RDFFormat format = System.getProperty("com.franz.agraph.http.defaultRDFFormat","TRIX").equalsIgnoreCase("NQUADS") ? AGRDFFormat.NQUADS : RDFFormat.TRIX;
+		RDFFormat format = System.getProperty("com.franz.agraph.http.defaultRDFFormat","TRIX").equalsIgnoreCase("NQUADS") ? RDFFormat.NQUADS : RDFFormat.TRIX;
 		logger.debug("Defaulting to " + format.getDefaultMIMEType() + " for requests that return RDF statements.");
 		return format;
 	}
@@ -507,7 +506,15 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	public boolean isAutoCommit() throws AGHttpException {
-		return autoCommit; // TODO: let the server track this?
+		if (sessionRoot != null) {
+			String url = AGProtocol.getAutoCommitLocation(getRoot());
+			Header[] headers = {};
+			AGStringHandler handler = new AGStringHandler();
+			getHTTPClient().get(url, headers, new NameValuePair[0], handler);
+			return Boolean.valueOf(handler.getResult().toString());
+		}
+		else
+			return true;
 	}
 
 	/**
@@ -556,7 +563,7 @@ public class AGHttpRepoClient implements Closeable {
 		getHTTPClient().post(url, headers, new NameValuePair[0],
 					(RequestEntity) null, null);
 	}
-
+	
 	public void clearNamespaces() throws AGHttpException {
 		String url = Protocol.getNamespacesLocation(getRoot());
 		Header[] headers = {};
@@ -2049,6 +2056,6 @@ public class AGHttpRepoClient implements Closeable {
 	public void setMasqueradeAsUser(String user) throws RepositoryException {
 		useDedicatedSession(autoCommit);
 		getHTTPClient().setMasqueradeAsUser(user);
-	}
-	
+	}		
+
 }

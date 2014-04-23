@@ -17,14 +17,14 @@ import org.junit.experimental.categories.Category;
 import org.openrdf.query.QueryLanguage;
 
 import com.franz.agraph.repository.AGGraphQuery;
-import com.franz.agraph.repository.AGRDFFormat;
+import org.openrdf.rio.RDFFormat;
 
 public class AGGraphQueryTests extends AGAbstractTest {
 
     @Test
     @Category(TestSuites.Prepush.class)
     public void graphQuery_count_rfe10447() throws Exception {
-        conn.add(new File("src/test/example.nq"), null, AGRDFFormat.NQUADS);
+        conn.add(new File("src/test/example.nq"), null, RDFFormat.NQUADS);
         String queryString = "construct {?s ?p ?o} where {?s ?p ?o}";
         AGGraphQuery q = conn.prepareGraphQuery(QueryLanguage.SPARQL, queryString);
         Assert.assertEquals("expected size 10", 10, q.count());

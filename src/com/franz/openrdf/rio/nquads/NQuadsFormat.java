@@ -15,7 +15,9 @@ import java.nio.charset.Charset;
 /**
  * An {@link RDFFormat} for N-Quads.
  *
+ * @deprecated Use {@link org.openrdf.rio.RDFFormat#NQUADS} instead
  */
+@Deprecated
 public class NQuadsFormat extends RDFFormat {
     public static NQuadsFormat NQUADS = new NQuadsFormat();
 

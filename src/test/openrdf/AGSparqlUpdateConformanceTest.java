@@ -5,7 +5,7 @@ import java.util.Map;
 import junit.framework.Test;
 
 import org.openrdf.model.URI;
-import org.openrdf.query.parser.sparql.SPARQLUpdateConformanceTest;
+import org.openrdf.query.parser.sparql.manifest.SPARQLUpdateConformanceTest;
 import org.openrdf.repository.Repository;
 import org.openrdf.repository.contextaware.ContextAwareRepository;
 
@@ -35,7 +35,7 @@ public class AGSparqlUpdateConformanceTest extends SPARQLUpdateConformanceTest {
                         inputNamedGraphs, resultDefaultGraphURI, resultNamedGraphs);
             }
 
-        });
+        }, true, true, true, "move");
     }
 
     @Override

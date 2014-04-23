@@ -444,6 +444,16 @@ public class AGProtocol extends Protocol {
 		+ ". Or the session may have been idle for its lifetime setting and been collected - see AGRepositoryConnection.setSessionLifetime()";
 	
 	/**
+	 * Relative location of the begin service.
+	 */
+	public static final String BEGIN = "begin";
+	
+	/**
+	 * Relative location of the callimachus service.
+	 */
+	public static final String CALLIMACHUS = "callimachus";
+	
+	/**
 	 * Location of the root catalog service
 	 */
 	public static final String getRootCatalogURL(String serverURL) {

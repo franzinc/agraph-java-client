@@ -18,6 +18,48 @@ prepush: FORCE
 test-bigger: FORCE
 	ant test-bigger
 
+test-broken: FORCE
+	ant test-broken
+
+test-stress: FORCE
+	ant test-stress
+
+test-temp: FORCE
+	ant test-temp
+
+test-stress-events: FORCE
+	ant test-stress-events
+
+lubm-prolog: FORCE
+	ant lubm-prolog
+
+lubm-sparql: FORCE
+	ant lubm-sparql
+
+tutorial: FORCE
+	ant tutorial
+
+jena-tutorial: FORCE
+	ant jena-tutorial
+
+sparql-query-tests: FORCE
+	ant sparql-query-tests
+
+sparql-update-tests: FORCE
+	ant sparql-update-tests
+
+repository-connection-tests: FORCE
+	ant repository-connection-tests
+
+repository-tests: FORCE
+	ant repository-tests
+
+jena-compliance-tests: FORCE
+	ant jena-compliance-tests
+
+callimachus-tests: FORCE
+	ant  callimachus-tests
+
 build: FORCE
 	ant build
 
@@ -62,22 +104,23 @@ dist: FORCE
 	mkdir -p $(DIST)/lib
 	cp agraph.jar $(DIST)/lib/agraph-$(AGVERSION).jar
 	cp agraph-src.jar $(DIST)/lib/agraph-$(AGVERSION)-src.jar
-	cp lib/json.jar $(DIST)/lib/json.jar
-	cp lib/commons-pool-1.5.6.jar $(DIST)/lib/commons-pool-1.5.6.jar
+	cp lib/json.jar $(DIST)/lib/
+	cp lib/commons-io-2.4.jar $(DIST)/lib/
+	cp lib/commons-pool-1.5.6.jar $(DIST)/lib/
 	mkdir -p $(DIST)/lib/logging
-	cp lib/logging/*.jar $(DIST)/lib/logging
+	cp lib/logging/*.jar $(DIST)/lib/logging/
 	mkdir -p $(DIST)/lib/sesame
-	cp lib/sesame/commons-*.jar $(DIST)/lib/sesame
-	cp lib/sesame/commons-*.zip $(DIST)/lib/sesame
-	cp lib/sesame/openrdf-sesame-2.6.8-onejar*.jar $(DIST)/lib/sesame
-	mkdir -p $(DIST)/lib/jena
-	cp lib/jena/*.jar $(DIST)/lib/jena
+	cp lib/sesame/commons-*.jar $(DIST)/lib/sesame/
+	cp lib/sesame/commons-*.zip $(DIST)/lib/sesame/
+	cp lib/sesame/openrdf-sesame-2.7.11-onejar*.jar $(DIST)/lib/sesame/
+	mkdir -p $(DIST)/lib/jena/
+	cp lib/jena/*.jar $(DIST)/lib/jena/
 	rm $(DIST)/lib/jena/*-tests.jar
 	rm $(DIST)/lib/jena/*-test-sources.jar
 	mkdir -p $(DIST)/doc
-	cp src/tutorial/java-tutorial-40.html $(DIST)/doc
-	cp src/tutorial/jena-tutorial-40.html $(DIST)/doc
-	cp src/tutorial/*.jpg $(DIST)/doc
+	cp src/tutorial/java-tutorial-40.html $(DIST)/doc/
+	cp src/tutorial/jena-tutorial-40.html $(DIST)/doc/
+	cp src/tutorial/*.jpg $(DIST)/doc/
 	cp -r doc $(DIST)/javadoc
 	tar -c -h -z $(TAROPTS) -f $(TARNAME) -C DIST $(DISTDIR)
 ifdef DESTDIR

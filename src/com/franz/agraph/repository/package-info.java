@@ -8,7 +8,7 @@
 
 /**
  * Implementation of the
- * <a href="http://www.openrdf.org/" target="_top">OpenRDF</a> Sesame API 2.6.8
+ * <a href="http://www.openrdf.org/" target="_top">OpenRDF</a> Sesame API 2.7.11
  * with extensions for
  * <a href="http://www.franz.com/agraph/support/documentation/v4/agraph-introduction.html"
  * target="_top">AllegroGraph</a> features.
@@ -19,9 +19,9 @@
  * <p>See also:<ul>
  *   <li><a href="http://www.franz.com/agraph/support/documentation/v4/java-tutorial/java-tutorial-40.html"
  *          target="_top">Java Sesame API Tutorial for AllegroGraph</a></li>
- *   <li><a href="http://www.openrdf.org/doc/sesame2/2.6.8/users/index.html"
+ *   <li><a href="http://openrdf.callimachus.net/sesame/2.7/docs/users.docbook?view"
  *          target="_top">Sesame User Guide</a></li>
- *   <li><a href="http://www.openrdf.org/doc/sesame2/2.6.8/apidocs/"
+ *   <li><a href="http://openrdf.callimachus.net/sesame/2.7/apidocs/index.html"
  *          target="_top">Sesame Javadocs</a></li>
  * </p>
  * 

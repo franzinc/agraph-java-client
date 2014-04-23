@@ -14,7 +14,9 @@ import org.openrdf.rio.RDFParserFactory;
 /**
  * An {@link RDFParserFactory} for N-Quads parsers.
  * 
+ * @deprecated Use {@link org.openrdf.rio.nquads.NQuadsParserFactory} instead
  */
+@Deprecated
 public class NQuadsParserFactory implements RDFParserFactory {
 
 	/**

@@ -20,7 +20,6 @@ import com.franz.agraph.repository.AGTupleQuery;
 import com.franz.agraph.repository.AGValueFactory;
 import com.hp.hpl.jena.graph.Graph;
 import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.graph.Reifier;
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.graph.TripleMatch;
 import com.hp.hpl.jena.shared.AlreadyReifiedException;
@@ -29,14 +28,14 @@ import com.hp.hpl.jena.shared.ReificationStyle;
 import com.hp.hpl.jena.util.iterator.ExtendedIterator;
 import com.hp.hpl.jena.vocabulary.RDF;
 
-public class AGReifier implements Reifier {
+public class AGReifier {
 
 	private AGGraph graph;
 	
 	AGReifier(AGGraph graph) {
 		this.graph = graph;
 	}
-	@Override
+	
 	public Triple getTriple(Node n) {
 		String queryString = "construct {?s ?p ?o} where { ?st rdf:subject ?s . ?st rdf:predicate ?p . ?st rdf:object ?o . }";
 		AGRepositoryConnection conn = graph.getConnection();
@@ -63,12 +62,12 @@ public class AGReifier implements Reifier {
 		}
 	}
 
-	@Override
+	
 	public ExtendedIterator<Triple> find(TripleMatch m) {
 		return graph.graphBaseFind(m);
 	}
+	
 
-	@Override
 	public ExtendedIterator<Triple> findExposed(TripleMatch m) {
 		if (matchesReification(m)) {
 			if (m.getMatchPredicate()!=null) {
@@ -99,27 +98,26 @@ public class AGReifier implements Reifier {
 		}
 	}
 
-	@Override
+	
 	public ExtendedIterator<Triple> findEither(TripleMatch m, boolean showHidden) {
 		return showHidden ? Triple.None : find( m );
 	}
 
-	@Override
+	
 	public int size() {
 		return 0;
 	}
 
-	@Override
+	
 	public ReificationStyle getStyle() {
 		return ReificationStyle.Standard;
 	}
 
-	@Override
+	
 	public Graph getParentGraph() {
 		return graph;
 	}
 
-	@Override
 	public Node reifyAs(Node n, Triple t) {
 		Triple tn = getTriple(n);
 		if (tn!=null && !tn.equals(t)) {
@@ -171,7 +169,7 @@ public class AGReifier implements Reifier {
 		return n;
 	}
 
-	@Override
+	
 	public boolean hasTriple(Node n) {
 		boolean result;
 		String queryString = "ask { ?st rdf:type rdf:Statement . }";
@@ -188,7 +186,7 @@ public class AGReifier implements Reifier {
 		return result;
 	}
 
-	@Override
+	
 	public boolean hasTriple(Triple t) {
 		boolean result;
 		String queryString = "ask { ?st rdf:subject ?s . ?st rdf:predicate ?p . ?st rdf:object ?o . }";
@@ -207,7 +205,7 @@ public class AGReifier implements Reifier {
 		return result;
 	}
 
-	@Override
+	
 	public ExtendedIterator<Node> allNodes() {
 		String queryString = "select ?st where { ?st rdf:type rdf:Statement }";
 		AGRepositoryConnection conn = graph.getConnection();
@@ -222,7 +220,7 @@ public class AGReifier implements Reifier {
 		}
 	}
 
-	@Override
+	
 	public ExtendedIterator<Node> allNodes(Triple t) {
 		String queryString = "select ?st where { ?st rdf:type rdf:Statement . ?st rdf:subject ?s . ?st rdf:predicate ?p . ?st rdf:object ?o . }";
 		AGRepositoryConnection conn = graph.getConnection();
@@ -241,7 +239,7 @@ public class AGReifier implements Reifier {
 		}
 	}
 
-	@Override
+	
 	public void remove(Node n, Triple t) {
 		// TODO: do this in a single server request
         graph.delete( Triple.create( n, RDF.Nodes.subject, t.getSubject() ) );
@@ -250,7 +248,7 @@ public class AGReifier implements Reifier {
         graph.delete( Triple.create( n, RDF.Nodes.type, RDF.Nodes.Statement ) );
 	}
 
-	@Override
+	
 	public void remove(Triple t) {
 		// TODO: do this in a single server request?
 		String queryString = "select { ?st rdf:type rdf:Statement . ?st rdf:subject ?s . ?st rdf:predicate ?p . ?st rdf:object ?o . }";
@@ -271,17 +269,17 @@ public class AGReifier implements Reifier {
 		}
 	}
 
-	@Override
+	
 	public boolean handledAdd(Triple t) {
 		return false;
 	}
 
-	@Override
+	
 	public boolean handledRemove(Triple t) {
 		return false;
 	}
 
-	@Override
+	
 	public void close() {
 	}
 

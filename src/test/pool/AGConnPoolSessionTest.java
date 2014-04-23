@@ -151,30 +151,16 @@ public class AGConnPoolSessionTest extends Closer {
      */
     @Test
     @Category(TestSuites.Stress.class)
-    public void deleteDatatypeMapping() throws Exception {
-        // TODO refactor to not use the pool, reconnect each time
+    public void deleteDatatypeMapping() throws Exception {      
     	final int NUM = 20;
     	final int MINUTES = 1;
-    	final AGConnPool pool = closeLater( AGConnPool.create(
-    			AGConnProp.serverUrl, AGAbstractTest.findServerUrl(),
-    			AGConnProp.username, AGAbstractTest.username(),
-    			AGConnProp.password, AGAbstractTest.password(),
-    			AGConnProp.catalog, AGAbstractTest.CATALOG_ID,
-    			AGConnProp.repository, "pool.deleteDatatypeMapping",
-    			AGConnProp.session, AGConnProp.Session.SHARED,
-    			AGConnProp.sessionLifetime, TimeUnit.MINUTES.toSeconds(1),
-                AGPoolProp.shutdownHook, true,
-    			AGPoolProp.testOnBorrow, true,
-    			AGPoolProp.maxWait, TimeUnit.SECONDS.toMillis(30)
-    	));
 		AGServer server = closeLater(AGAbstractTest.newAGServer());
 		AGCatalog catalog = server.getCatalog(AGAbstractTest.CATALOG_ID);
 		final AGRepository repo = closeLater(catalog
-				.createRepository("pool.deleteDatatypeMapping"));
-		repo.setConnPool(pool);
+				.createRepository("pool.deleteDatatypeMapping"));				
 		AGRepositoryConnection conn = closeLater(repo.getConnection());
-		Assert.assertTrue(conn.toString(), conn.getHttpRepoClient().getRoot()
-				.contains(AGAbstractTest.findServerUrl()));
+		Assert.assertTrue(conn.toString(), conn.getHttpRepoClient().getRoot().contains(AGAbstractTest.findServerUrl()));
+
 		AGValueFactory vf = conn.getValueFactory();
 		for (int i = 0; i < NUM * 10; i++) {
 			conn.add(new File("src/tutorial/java-kennedy.ntriples"), ns,
@@ -212,8 +198,7 @@ public class AGConnPoolSessionTest extends Closer {
     		});
     	}
     	exec.awaitTermination(MINUTES, TimeUnit.MINUTES);
-    	log.debug("count=" + count);
-    	Assert.assertEquals(pool.toString(), 0, pool.getNumActive());
+    	log.debug("count=" + count);    	
     	if (!errors.isEmpty()) {
     		for (Throwable e : errors) {
     			log.error("error", e);

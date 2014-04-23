@@ -50,6 +50,7 @@ import org.openrdf.model.ValueFactory;
 import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryLanguage;
+import org.openrdf.query.QueryResultHandlerException;
 import org.openrdf.query.TupleQueryResult;
 import org.openrdf.query.TupleQueryResultHandler;
 import org.openrdf.query.TupleQueryResultHandlerException;
@@ -1104,6 +1105,12 @@ public class Events extends Closer {
                         }
                         public void endQueryResult() throws TupleQueryResultHandlerException {
                         }
+                        public void handleBoolean(boolean arg0)
+								throws QueryResultHandlerException {
+						}
+                        public void handleLinks(List<String> arg0)
+								throws QueryResultHandlerException {
+						}
                 }
 
         private int count(TupleQueryResult result) throws Exception {
@@ -1330,6 +1337,14 @@ public class Events extends Closer {
         }
         public void endQueryResult() throws TupleQueryResultHandlerException {
         }
+		@Override
+		public void handleBoolean(boolean arg0)
+				throws QueryResultHandlerException {
+		}
+		@Override
+		public void handleLinks(List<String> arg0)
+				throws QueryResultHandlerException {
+		}
     }
 
     class Pinger implements Runnable {

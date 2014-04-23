@@ -1,22 +1,52 @@
 package test.openrdf.repository;
 
+import static org.hamcrest.core.AnyOf.anyOf;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsEqual.equalTo;
+import static org.hamcrest.core.IsNull.notNullValue;
+import static org.hamcrest.core.IsNull.nullValue;
+import static org.junit.Assert.*;
+
+import info.aduna.iteration.CloseableIteration;
+import info.aduna.iteration.Iterations;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import org.apache.jena.atlas.iterator.Iter;
+import org.hamcrest.Matcher;
+import org.junit.Ignore;
 import org.junit.Test;
+
+import org.openrdf.model.Graph;
+import org.openrdf.model.Literal;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
+import org.openrdf.model.impl.GraphImpl;
+import org.openrdf.model.impl.LinkedHashModel;
 import org.openrdf.model.impl.StatementImpl;
+import org.openrdf.model.util.Namespaces;
 import org.openrdf.model.vocabulary.RDFS;
+import org.openrdf.model.vocabulary.XMLSchema;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.GraphQuery;
 import org.openrdf.query.GraphQueryResult;
@@ -30,6 +60,7 @@ import org.openrdf.query.impl.DatasetImpl;
 import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryConnectionTest;
 import org.openrdf.repository.RepositoryException;
+import org.openrdf.repository.RepositoryResult;
 import org.openrdf.repository.contextaware.ContextAwareConnection;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFParseException;
@@ -44,8 +75,9 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 	 */
 	public static final String TEST_DATA_DIR = "src/test/";
 	
-	public AGRepositoryConnectionTest(String name) {
-		super(name);
+	
+	public AGRepositoryConnectionTest() {		
+		super();
 	}
 
 	
@@ -69,6 +101,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 		super.testDefaultInsertContext();
 	}
 	
+	@Test
 	public void testDefaultInsertContextNull()
 			throws Exception
 		{
@@ -114,9 +147,11 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 			}
 		}
 
+	@Ignore
 	@Override
 	public void testExclusiveNullContext() throws Exception {
-		super.testExclusiveNullContext();
+		//super.testExclusiveNullContext();
+		//ignore
 	}
 
     /**
@@ -158,10 +193,10 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 		}
 	}
 
-	@Override
+	/*@Override
 	public void testGetNamespaces() throws Exception {
 		super.testGetNamespaces();
-	}
+	}*/
 	
 	@Override
 	public void testXmlCalendarZ() throws Exception {
@@ -708,5 +743,234 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 		}
 
     }
+    
+    @Override
+	public void testGetStatementsInMultipleContexts()
+		throws Exception
+	{
+		testCon.clear();
+
+		testCon.begin();
+		testCon.add(alice, name, nameAlice, context2);
+		testCon.add(alice, mbox, mboxAlice, context2);
+		testCon.add(context2, publisher, nameAlice);
+		testCon.commit();
+
+		// get statements with either no context or context2
+		CloseableIteration<? extends Statement, RepositoryException> iter = testCon.getStatements(null, null,
+				null, false, null, context2);
+
+		try {
+			int count = 0;
+			while (iter.hasNext()) {
+				count++;
+				Statement st = iter.next();
+				assertThat(st.getContext(), anyOf(is(nullValue(Resource.class)), is(equalTo((Resource)context2))));
+			}
+
+			assertEquals("there should be three statements", 3, count);
+		}
+		finally {
+			iter.close();
+		}
+
+		// get all statements with context1 or context2. Note that context1 and
+		// context2 are both known
+		// in the store because they have been created through the store's own
+		// value vf.
+		iter = testCon.getStatements(null, null, null, false, context1, context2);
+
+		try {
+			int count = 0;
+			while (iter.hasNext()) {
+				count++;
+				Statement st = iter.next();
+				// we should have _only_ statements from context2
+				assertThat(st.getContext(), is(equalTo((Resource)context2)));
+			}
+			assertEquals("there should be two statements", 2, count);
+		}
+		finally {
+			iter.close();
+		}
+
+		// get all statements with unknownContext or context2.
+		iter = testCon.getStatements(null, null, null, false, unknownContext, context2);
+
+		try {
+			int count = 0;
+			while (iter.hasNext()) {
+				count++;
+				Statement st = iter.next();
+				// we should have _only_ statements from context2
+				assertThat(st.getContext(), is(equalTo((Resource)context2)));
+			}
+			assertEquals("there should be two statements", 2, count);
+		}
+		finally {
+			iter.close();
+		}
+
+		// add statements to context1
+		testCon.begin();
+		testCon.add(bob, name, nameBob, context1);
+		testCon.add(bob, mbox, mboxBob, context1);
+		testCon.add(context1, publisher, nameBob);
+		testCon.commit();
+
+		iter = testCon.getStatements(null, null, null, false, context1);
+		try {
+			assertThat(iter, is(notNullValue()));
+			assertThat(iter.hasNext(), is(equalTo(true)));
+		}
+		finally {
+			iter.close();
+		}
+
+		// get statements with either no context or context2
+		iter = testCon.getStatements(null, null, null, false, null, context2);
+		try {
+			int count = 0;
+			while (iter.hasNext()) {
+				count++;
+				Statement st = iter.next();
+				// we should have _only_ statements from context2, or without
+				// context
+				assertThat(st.getContext(), anyOf(is(nullValue(Resource.class)), is(equalTo((Resource)context2))));
+			}
+			assertEquals("there should be four statements", 4, count);
+		}
+		finally {
+			iter.close();
+		}
+
+		// get all statements with context1 or context2
+		iter = testCon.getStatements(null, null, null, false, context1, context2);
+
+		try {
+			int count = 0;
+			while (iter.hasNext()) {
+				count++;
+				Statement st = iter.next();
+				assertThat(st.getContext(),
+						anyOf(is(equalTo((Resource)context1)), is(equalTo((Resource)context2))));
+			}
+			assertEquals("there should be four statements", 4, count);
+		}
+		finally {
+			iter.close();
+		}
+	}
+    
+    @Override
+	public void testOptionalFilter()
+		throws Exception
+	{
+		String optional = "{ ?s :p1 ?v1 OPTIONAL {?s :p2 ?v2 FILTER(?v1<3) } }";
+		URI s = vf.createURI("urn:test:s");
+		URI p1 = vf.createURI("urn:test:p1");
+		URI p2 = vf.createURI("urn:test:p2");
+		Value v1 = vf.createLiteral(1);
+		Value v2 = vf.createLiteral(2);
+		Value v3 = vf.createLiteral(3);
+		testCon.add(s, p1, v1);
+		testCon.add(s, p2, v2);
+		testCon.add(s, p1, v3);
+		String qry = "PREFIX :<urn:test:> SELECT ?s ?v1 ?v2 WHERE " + optional;
+		TupleQuery query = testCon.prepareTupleQuery(QueryLanguage.SPARQL, qry);
+		TupleQueryResult result = query.evaluate();
+		Set<List<Value>> set = new HashSet<List<Value>>();
+		while (result.hasNext()) {
+			BindingSet bindings = result.next();
+			set.add(Arrays.asList(bindings.getValue("v1"), bindings.getValue("v2")));
+		}
+		result.close();
+		assertThat(set, org.junit.internal.matchers.IsCollectionContaining.hasItem(Arrays.asList(v1, v2)));
+		assertThat(set, org.junit.internal.matchers.IsCollectionContaining.hasItem(Arrays.asList(v3, null)));
+	}
+    
+    @Override
+    public void testOrPredicate()
+    		throws Exception
+    	{
+    		String union = "{ :s ?p :o FILTER (?p = :p1 || ?p = :p2) }";
+    		URI s = vf.createURI("urn:test:s");
+    		URI p1 = vf.createURI("urn:test:p1");
+    		URI p2 = vf.createURI("urn:test:p2");
+    		URI o = vf.createURI("urn:test:o");
+    		testCon.add(s, p1, o);
+    		testCon.add(s, p2, o);
+    		String qry = "PREFIX :<urn:test:> SELECT ?p WHERE " + union;
+    		TupleQuery query = testCon.prepareTupleQuery(QueryLanguage.SPARQL, qry);
+    		TupleQueryResult result = query.evaluate();
+    		List<Value> list = new ArrayList<Value>();
+    		while (result.hasNext()) {
+    			BindingSet bindings = result.next();
+    			list.add(bindings.getValue("p"));
+    		}
+    		result.close();
+    		assertThat(list, (Matcher) org.junit.internal.matchers.IsCollectionContaining.hasItem(p1));
+    		assertThat(list, (Matcher) org.junit.internal.matchers.IsCollectionContaining.hasItem(p2));
+    	}
+
+	@Override
+	public void testGraphSerialization()
+		throws Exception
+	{
+		testCon.add(bob, name, nameBob);
+		testCon.add(alice, name, nameAlice);
+
+		Graph graph;
+		RepositoryResult<Statement> statements = testCon.getStatements(null, null, null, true);
+		try {
+			graph = new GraphImpl(Iterations.asList(statements));
+		}
+		finally {
+			statements.close();
+		}
+
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ObjectOutputStream out = new ObjectOutputStream(baos);
+		out.writeObject(graph);
+		out.close();
+
+		ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+		ObjectInputStream in = new ObjectInputStream(bais);
+		Graph deserializedGraph = (Graph)in.readObject();
+		in.close();
+
+		assertThat(deserializedGraph.isEmpty(), is(equalTo(false)));
+
+		for (Statement st : deserializedGraph) {
+			assertThat(graph, org.junit.internal.matchers.IsCollectionContaining.hasItem(st));
+			assertThat(testCon.hasStatement(st, true), is(equalTo(true)));
+		}
+	}
+	
+
+	@Override
+	public void testGetNamespaces()
+		throws Exception
+	{
+		setupNamespaces();
+		Map<String, String> map = Namespaces.asMap(Iterations.asSet(testCon.getNamespaces()));
+		assertThat(map.size(), is(equalTo(3)));
+		assertThat(map.keySet(), org.junit.internal.matchers.IsCollectionContaining.hasItems("example", "rdfs", "rdf"));
+		assertThat(map.get("example"), is(equalTo("http://example.org/")));
+		assertThat(map.get("rdfs"), is(equalTo("http://www.w3.org/2000/01/rdf-schema#")));
+		assertThat(map.get("rdf"), is(equalTo("http://www.w3.org/1999/02/22-rdf-syntax-ns#")));
+	}
+
+	private void setupNamespaces()
+		throws IOException, RDFParseException, RepositoryException
+	{
+		testCon.setNamespace("example", "http://example.org/");
+		testCon.setNamespace("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+		testCon.setNamespace("rdfs", "http://www.w3.org/2000/01/rdf-schema#");
+
+		// Translated from earlier RDF document. Is this line even necessary?
+		testCon.add(vf.createURI("http://example.org/", "Main"), vf.createURI("http://www.w3.org/2000/01/rdf-schema#", "label"),
+				vf.createLiteral("Main Node"));
+	}
 
 }

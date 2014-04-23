@@ -25,7 +25,7 @@ import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
 
 import com.franz.agraph.repository.AGMaterializer;
-import com.franz.agraph.repository.AGRDFFormat;
+import org.openrdf.rio.RDFFormat;
 
 public class AGMaterializerTests extends AGAbstractTest {
 
@@ -122,7 +122,7 @@ public class AGMaterializerTests extends AGAbstractTest {
     @Test
     @Category(TestSuites.Broken.class)
     public void materializeOverNamedGraphs() throws Exception {
-    	conn.add(new File("src/test/example.nq"), null, AGRDFFormat.NQUADS);
+    	conn.add(new File("src/test/example.nq"), null, RDFFormat.NQUADS);
     	conn.add(vf.createURI("http://xmlns.com/foaf/0.1/name"),RDFS.DOMAIN, OWL.INDIVIDUAL);
     	Assert.assertEquals("expected size 11", 11, conn.size());
     	conn.materialize(null);

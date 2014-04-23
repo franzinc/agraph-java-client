@@ -25,6 +25,7 @@ import org.openrdf.model.Literal;
 import org.openrdf.model.URI;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryLanguage;
+import org.openrdf.query.QueryResultHandlerException;
 import org.openrdf.query.TupleQueryResult;
 import org.openrdf.query.TupleQueryResultHandler;
 import org.openrdf.query.TupleQueryResultHandlerException;
@@ -150,6 +151,14 @@ public class StreamingTest extends AGAbstractTest {
         			}
         			public void endQueryResult() throws TupleQueryResultHandlerException {
         			}
+					@Override
+					public void handleBoolean(boolean arg0)
+							throws QueryResultHandlerException {
+					}
+					@Override
+					public void handleLinks(List<String> arg0)
+							throws QueryResultHandlerException {
+					}
         		});
         	} else {
         		TupleQueryResult results = qu.evaluate();

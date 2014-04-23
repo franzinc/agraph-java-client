@@ -21,15 +21,18 @@ import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFHandlerException;
-import org.openrdf.rio.RDFWriter;
+import org.openrdf.rio.helpers.RDFWriterBase;
 import org.openrdf.rio.ntriples.NTriplesUtil;
 
 /**
  * An implementation of the RDFWriter interface that writes RDF documents in
  * N-Quads format. The N-Quads format is defined 
  * <a href="http://sw.deri.org/2008/07/n-quads/">here</a>.
+ *
+ * @deprecated Use {@link org.openrdf.rio.nquads.NQuadsWriter} instead
  */
-public class NQuadsWriter implements RDFWriter {
+@Deprecated
+public class NQuadsWriter extends RDFWriterBase {
 
 	/*-----------*
 	 * Variables *

@@ -22,6 +22,7 @@ import com.franz.agraph.http.AGHttpRepoClient;
 import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.repository.AGAbstractRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
+import com.franz.util.Closer;
 
 import static test.Util.logTimeStamped;
 
@@ -29,58 +30,58 @@ public class SessionTests extends AGAbstractTest {
 
 	@Test
 	@Category(TestSuites.Prepush.class)
-	public void sessionUsingDedicatedPort() throws Exception {
+	public void sessionUsingDedicatedPort() throws Exception {	
 		int mainPort = getPort(conn);
-                String oldUse = System.setProperty("com.franz.agraph.http.useMainPortForSessions", "false");
-                String oldOverride = System.setProperty("com.franz.agraph.http.overrideServerUseMainPortForSessions", "true");
+		String oldUse = System.setProperty("com.franz.agraph.http.useMainPortForSessions", "false");
+		String oldOverride = System.setProperty("com.franz.agraph.http.overrideServerUseMainPortForSessions", "true");
 		conn.setAutoCommit(false);
 		int sessionPort = getPort(conn);
 		Assert.assertTrue("session port should be different from main port", mainPort!=sessionPort);
 		conn.add(OWL.INVERSEOF, OWL.INVERSEOF, OWL.INVERSEOF);
 		conn.commit();
-                if (oldUse != null) {
-                    System.setProperty("com.franz.agraph.http.useMainPortForSessions", oldUse);
-                } else {
-                    System.clearProperty("com.franz.agraph.http.useMainPortForSessions");
-                }
-                if (oldOverride != null) {
-                    System.setProperty("com.franz.agraph.http.overrideServerUseMainPortForSessions", oldOverride);
-                } else {
-                    System.clearProperty("com.franz.agraph.http.overrideServerUseMainPortForSessions");
-                }
+		if (oldUse != null) {
+			System.setProperty("com.franz.agraph.http.useMainPortForSessions", oldUse);
+		} else {
+			System.clearProperty("com.franz.agraph.http.useMainPortForSessions");
+		}
+		if (oldOverride != null) {
+			System.setProperty("com.franz.agraph.http.overrideServerUseMainPortForSessions", oldOverride);
+		} else {
+			System.clearProperty("com.franz.agraph.http.overrideServerUseMainPortForSessions");
+		}
 	}
 	
-    @Test
-    @Category(TestSuites.Prepush.class)
-    public void sessionUsingMainPort() throws Exception {
-    	int mainPort = getPort(conn);
-    	String oldUse = System.setProperty("com.franz.agraph.http.useMainPortForSessions", "true");
-    	String oldOverride = System.setProperty("com.franz.agraph.http.overrideServerUseMainPortForSessions", "true");
-    	conn.setAutoCommit(false);
-    	int sessionPort = getPort(conn);
-    	Assert.assertEquals("session port should be the same as main port", mainPort, sessionPort);
-    	conn.add(OWL.INVERSEOF, OWL.INVERSEOF, OWL.INVERSEOF);
-    	conn.commit();
-        if (oldUse != null) {
-            System.setProperty("com.franz.agraph.http.useMainPortForSessions", oldUse);
-        } else {
-            System.clearProperty("com.franz.agraph.http.useMainPortForSessions");
-        }
-        if (oldOverride != null) {
-            System.setProperty("com.franz.agraph.http.overrideServerUseMainPortForSessions", oldOverride);
-        } else {
-            System.clearProperty("com.franz.agraph.http.overrideServerUseMainPortForSessions");
-        }
-    }
-    
-    private int getPort(AGRepositoryConnection conn) throws AGHttpException, MalformedURLException {
-    	URL url = new URL(conn.getHttpRepoClient().getRoot());
-    	return url.getPort();
-    }
+	@Test
+	@Category(TestSuites.Prepush.class)
+	public void sessionUsingMainPort() throws Exception {
+		int mainPort = getPort(conn);
+		String oldUse = System.setProperty("com.franz.agraph.http.useMainPortForSessions", "true");
+		String oldOverride = System.setProperty("com.franz.agraph.http.overrideServerUseMainPortForSessions", "true");
+		conn.setAutoCommit(false);
+		int sessionPort = getPort(conn);
+		Assert.assertEquals("session port should be the same as main port", mainPort, sessionPort);
+		conn.add(OWL.INVERSEOF, OWL.INVERSEOF, OWL.INVERSEOF);
+		conn.commit();
+		if (oldUse != null) {
+			System.setProperty("com.franz.agraph.http.useMainPortForSessions", oldUse);
+			} else {
+				System.clearProperty("com.franz.agraph.http.useMainPortForSessions");
+				}
+		if (oldOverride != null) {
+			System.setProperty("com.franz.agraph.http.overrideServerUseMainPortForSessions", oldOverride);
+			} else {
+				System.clearProperty("com.franz.agraph.http.overrideServerUseMainPortForSessions");
+				}
+		}
 
-    @Test
-    @Category(TestSuites.Prepush.class)
-    public void sessionLifetime_rfe9436() throws Exception {
+	private int getPort(AGRepositoryConnection conn) throws AGHttpException, MalformedURLException {
+		URL url = new URL(conn.getHttpRepoClient().getRoot());
+		return url.getPort();
+		}
+
+	@Test
+	@Category(TestSuites.Prepush.class)
+	public void sessionLifetime_rfe9436() throws Exception {
 	// Seconds
 	int conn2Life = 5; 
 	/* This is how long past conn2Life we allow for the server to expire the session */

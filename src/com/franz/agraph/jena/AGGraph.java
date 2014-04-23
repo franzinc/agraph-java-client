@@ -33,15 +33,10 @@ import com.hp.hpl.jena.graph.Capabilities;
 import com.hp.hpl.jena.graph.Graph;
 import com.hp.hpl.jena.graph.GraphUtil;
 import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.graph.Reifier;
 import com.hp.hpl.jena.graph.TransactionHandler;
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.graph.TripleMatch;
 import com.hp.hpl.jena.graph.impl.GraphBase;
-import com.hp.hpl.jena.graph.impl.ReifierFragmentHandler;
-import com.hp.hpl.jena.graph.impl.ReifierFragmentsMap;
-import com.hp.hpl.jena.graph.impl.ReifierTripleMap;
-import com.hp.hpl.jena.graph.impl.SimpleReifier;
 import com.hp.hpl.jena.shared.AddDeniedException;
 import com.hp.hpl.jena.shared.DeleteDeniedException;
 import com.hp.hpl.jena.shared.PrefixMapping;
@@ -67,7 +62,7 @@ public class AGGraph extends GraphBase implements Graph, Closeable {
 	protected String entailmentRegime = "false";
 	
 	AGGraph(AGGraphMaker maker, Node graphNode) {
-		super(maker.getReificationStyle());
+		super();
 		this.maker = maker;
 		this.graphNode = graphNode;
 		conn = maker.getRepositoryConnection();
@@ -77,7 +72,7 @@ public class AGGraph extends GraphBase implements Graph, Closeable {
 	}
 
 	AGGraph(AGGraphMaker maker, Resource context, Resource... contexts) {
-		super(maker.getReificationStyle());
+		super();
 		this.maker = maker;
 		this.graphNode = null;
 		this.conn = maker.getRepositoryConnection();
@@ -277,97 +272,4 @@ public class AGGraph extends GraphBase implements Graph, Closeable {
 		}
 	}
 
-	@Override
-	protected Reifier constructReifier() {
-		if (!style.intercepts() && !style.conceals()) {
-			return new SimpleReifier( this, new EmptyReifierTripleMap(), new EmptyReifierFragmentsMap(), style );
-		} else if (style == ReificationStyle.Standard){
-			return new AGReifier( this );
-		} else {
-			return new SimpleReifier( this, style );
-		}
-	}
-	
-	class EmptyReifierTripleMap implements ReifierTripleMap {
-
-		@Override
-		public Triple getTriple(Node tag) {
-			return null;
-		}
-
-		@Override
-		public boolean hasTriple(Triple t) {
-			return false;
-		}
-
-		@Override
-		public Triple putTriple(Node key, Triple value) {
-			return null;
-		}
-
-		@Override
-		public void removeTriple(Node key) {
-		}
-
-		@Override
-		public void removeTriple(Node key, Triple value) {
-		}
-
-		@Override
-		public void removeTriple(Triple triple) {
-		}
-
-		@Override
-		public ExtendedIterator<Triple> find(TripleMatch m) {
-			return NullIterator.instance();
-		}
-
-		@Override
-		public int size() {
-			return 0;
-		}
-
-		@Override
-		public ExtendedIterator<Node> tagIterator() {
-			return NullIterator.instance();
-		}
-
-		@Override
-		public ExtendedIterator<Node> tagIterator(Triple t) {
-			return NullIterator.instance();
-		}
-
-		@Override
-		public void clear() {
-		}
-		
-	}
-	
-	class EmptyReifierFragmentsMap implements ReifierFragmentsMap {
-
-		@Override
-		public ExtendedIterator<Triple> find(TripleMatch m) {
-			return NullIterator.instance();
-		}
-
-		@Override
-		public int size() {
-			return 0;
-		}
-
-		@Override
-		public ReifierFragmentHandler getFragmentHandler(Triple fragment) {
-			return null;
-		}
-
-		@Override
-		public boolean hasFragments(Node tag) {
-			return false;
-		}
-
-		@Override
-		public void clear() {
-		}
-		
-	}
 }

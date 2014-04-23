@@ -335,7 +335,7 @@ public class ServerCodeTests extends AGAbstractTest {
 	}
 
     @Test
-    public void rfe10256_loadInitFile() throws Exception{
+    public void rfe10256_loadInitFile() throws Exception{    	   	
         serverCode.deleteInitFile(); // clean before test
         
     	serverCode.putInitFile(RULES_FILE);
@@ -365,7 +365,7 @@ public class ServerCodeTests extends AGAbstractTest {
     // rfe10257: support script param
     
     @Test
-    public void rfe10257_script() throws Exception{
+    public void rfe10257_script() throws Exception{    	    	
         serverCode.deleteInitFile(); // clean before test
         serverCode.deleteScript(RULES); // clean before test
         

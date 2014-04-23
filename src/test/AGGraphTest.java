@@ -8,8 +8,6 @@
 
 package test;
 
-import java.io.FileNotFoundException;
-
 import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -22,7 +20,8 @@ import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
 import com.hp.hpl.jena.graph.Graph;
-import com.hp.hpl.jena.graph.query.QueryHandler;
+import com.hp.hpl.jena.graph.GraphUtil;
+import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.graph.test.AbstractTestGraph;
 
 public class AGGraphTest extends AbstractTestGraph {
@@ -107,11 +106,22 @@ public class AGGraphTest extends AbstractTestGraph {
 	
 	@Override
 	public void testRemoveAll() {
-		super.testRemoveAll();
+		//super.testRemoveAll();
+		testRemoveAll( "" );
+        testRemoveAll( "a R b" );
+        testRemoveAll( "c S d; e:ff GGG hhhh; i J 27; Ell Em 'en'" );
 	}
 	
+	 public void testRemoveAll( String triples )
+	    {
+	        Graph g = getGraph();
+	        graphAdd( g, triples );
+	        g.clear();
+	        assertTrue( g.isEmpty() );
+	    }
+	 
 	@Override
-	public void testIsomorphismFile() throws FileNotFoundException {
+	public void testIsomorphismFile()  {
 		// TODO: this test is confused by blank node id's not being
 		// preserved; testIsomorphismFile uses a ModelCom via 
 		// ModelFactory.createModelForGraph, and its read method 
@@ -154,23 +164,25 @@ public class AGGraphTest extends AbstractTestGraph {
      */
 	@Override
     public void testContainsNode()
-        {
+    {
         Graph g = getGraph();
         graphAdd( g, "a P b; c Q d; a R 12" );
-        QueryHandler qh = g.queryHandler();
-        assertTrue( qh.containsNode( node( "a" ) ) );
-        assertTrue( qh.containsNode( node( "P" ) ) );
-        assertTrue( qh.containsNode( node( "b" ) ) );
-        assertTrue( qh.containsNode( node( "c" ) ) );
-        assertTrue( qh.containsNode( node( "Q" ) ) );
-        assertTrue( qh.containsNode( node( "d" ) ) );
-//        assertTrue( qh.containsNode( node( "10" ) ) );
-//        assertTrue( qh.containsNode( node( "11" ) ) );
-        assertTrue( qh.containsNode( node( "12" ) ) );
-    /* */
-        assertFalse( qh.containsNode( node( "x" ) ) );
-//        assertFalse( qh.containsNode( node( "_y" ) ) );
-        assertFalse( qh.containsNode( node( "99" ) ) );
-        }
+        assertTrue( containsNode( g, node( "a" ) ) );
+        assertTrue( containsNode( g, node( "P" ) ) );
+        assertTrue( containsNode( g, node( "b" ) ) );
+        assertTrue( containsNode( g, node( "c" ) ) );
+        assertTrue( containsNode( g, node( "Q" ) ) );
+        assertTrue( containsNode( g, node( "d" ) ) );       
+        assertTrue( containsNode( g, node( "R" ) ) );
+        assertTrue( containsNode( g, node( "12" ) ) );        
+        assertFalse( containsNode( g, node( "x" ) ) );
+        assertFalse( containsNode( g, node( "_y" ) ) );
+        assertFalse( containsNode( g, node( "99" ) ) );
+    }
+	
+	private boolean containsNode(Graph g, Node node)
+	    {
+	        return GraphUtil.containsNode(g, node) ;
+	    }
     
 }

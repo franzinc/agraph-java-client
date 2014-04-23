@@ -18,16 +18,13 @@ import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFHandlerException;
 import org.openrdf.rio.RDFParseException;
 import org.openrdf.rio.RDFWriter;
-import org.openrdf.rio.ntriples.NTriplesWriter;
-import org.openrdf.rio.rdfxml.RDFXMLWriter;
-import org.openrdf.rio.turtle.TurtleWriter;
+import org.openrdf.rio.nquads.NQuadsWriter;
 
 import com.franz.agraph.http.AGHttpRepoClient;
-import com.franz.agraph.repository.AGRDFFormat;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGValueFactory;
-import com.franz.openrdf.rio.nquads.NQuadsWriter;
 import com.franz.util.Closeable;
+import com.hp.hpl.jena.graph.GraphUtil;
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.rdf.model.AnonId;
 import com.hp.hpl.jena.rdf.model.Model;
@@ -36,6 +33,7 @@ import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.rdf.model.impl.ModelCom;
+import com.hp.hpl.jena.rdf.model.impl.StatementImpl;
 
 /**
  * Implements the Jena Model interface for AllegroGraph.
@@ -67,7 +65,7 @@ public class AGModel extends ModelCom implements Model, Closeable {
 		} else if (lang.contains("TURTLE")) {
 			format = RDFFormat.TURTLE;
 		} else if (lang.contains("QUADS")) {
-			format = AGRDFFormat.NQUADS;
+			format = RDFFormat.NQUADS;
 		} else {
 			// TODO: add other supported formats and improve this error message
 			throw new IllegalArgumentException("Unsupported format: " + lang + " (expected RDF/XML, N-TRIPLE, TURTLE, or NQUADS).");
@@ -175,13 +173,13 @@ public class AGModel extends ModelCom implements Model, Closeable {
 	
 	@Override 
 	public AGModel add( Statement [] statements ) {
-		getBulkUpdateHandler().add( AGStatement.asTriples( statements ) );
+		GraphUtil.add(getGraph(), StatementImpl.asTriples( statements ) );
 		return this;
     }
     
 	@Override 
 	public AGModel remove( Statement [] statements ) {
-		getBulkUpdateHandler().delete( AGStatement.asTriples( statements ) );        
+		GraphUtil.delete( getGraph(), StatementImpl.asTriples( statements ) ); 
 		return this;
     }
  
@@ -195,6 +193,7 @@ public class AGModel extends ModelCom implements Model, Closeable {
 		return AGStatement.toStatement( t, this );
 	}
 	
+		
 	/*
 	 * Override Reification methods
 	 */

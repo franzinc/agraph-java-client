@@ -10,12 +10,14 @@ package test.openrdf;
 
 import junit.framework.Test;
 
+import org.junit.experimental.categories.Category;
 import org.openrdf.query.Dataset;
-import org.openrdf.query.parser.sparql.SPARQLQueryTest;
+import org.openrdf.query.parser.sparql.manifest.SPARQLQueryTest;
 import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryException;
 
 import test.AGAbstractTest;
+import test.TestSuites;
 
 import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.repository.AGServer;
@@ -39,16 +41,16 @@ public class AGSparqlQueryTest extends SPARQLQueryTest {
 				return new AGSparqlQueryTest(testURI, name, queryFileURL, resultFileURL, dataSet,
 						laxCardinality, checkOrder);
 			}
-		});
+		}, true, true, true, null);
 	}
 
-	protected AGSparqlQueryTest(String testURI, String name, String queryFileURL, String resultFileURL,
+	private AGSparqlQueryTest(String testURI, String name, String queryFileURL, String resultFileURL,
 			Dataset dataSet, boolean laxCardinality)
 	{
 		this(testURI, name, queryFileURL, resultFileURL, dataSet, laxCardinality, false);
 	}
 
-	protected AGSparqlQueryTest(String testURI, String name, String queryFileURL, String resultFileURL,
+	private AGSparqlQueryTest(String testURI, String name, String queryFileURL, String resultFileURL,
 			Dataset dataSet, boolean laxCardinality, boolean checkOrder)
 	{
 		super(testURI, name, queryFileURL, resultFileURL, dataSet, laxCardinality, checkOrder);

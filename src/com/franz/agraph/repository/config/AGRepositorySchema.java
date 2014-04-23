@@ -37,7 +37,7 @@ public class AGRepositorySchema {
 	public final static URI CATALOGID;
 	
 	/** <tt>http://franz.com/agraph/repository/config#repositoryId</tt> */
-	public final static URI REPOSITORYID;
+	public final static URI REPOSITORYID;	
 	
 	static {
 		ValueFactory factory = ValueFactoryImpl.getInstance();
@@ -45,6 +45,6 @@ public class AGRepositorySchema {
 		USERNAME = factory.createURI(NAMESPACE, "username");
 		PASSWORD = factory.createURI(NAMESPACE, "password");
 		CATALOGID = factory.createURI(NAMESPACE, "catalogId");
-		REPOSITORYID = factory.createURI(NAMESPACE, "repositoryId");
+		REPOSITORYID = factory.createURI(NAMESPACE, "repositoryId");		
 	}
 }

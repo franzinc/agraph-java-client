@@ -1431,16 +1431,16 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
         // load data
         testCon.setAutoCommit(false);
         testCon.add(bob, name, nameBob, context1);
-        assertEquals(Arrays.asList(context1), testCon.getContextIDs().asList());
+        assertEquals(Arrays.asList(context1), Iterations.asList(testCon.getContextIDs()));
 
         testCon.remove(bob, name, nameBob, context1);
-        assertEquals(0, testCon.getContextIDs().asList().size());
+        assertEquals(0, Iterations.asList(testCon.getContextIDs()).size());
         testCon.setAutoCommit(true);
 
-        assertEquals(0, testCon.getContextIDs().asList().size());
+        assertEquals(0, Iterations.asList(testCon.getContextIDs()).size());
 
         testCon.add(bob, name, nameBob, context2);
-        assertEquals(Arrays.asList(context2), testCon.getContextIDs().asList());
+        assertEquals(Arrays.asList(context2), Iterations.asList(testCon.getContextIDs()));
     }
 
     @SuppressWarnings("deprecation")

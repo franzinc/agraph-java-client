@@ -173,7 +173,7 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 		}		
 		catch (QueryEvaluationException e) {
 			throw new QueryException(e);
-		}		
+		}
 		return new AGResultSet(result, model);
 	}
 
@@ -341,26 +341,37 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 
 
 	@Override
-	public void setTimeout(long arg0, TimeUnit arg1) {		
-		this.timeout = arg1.toMillis(arg0);		
+	public void setTimeout(long arg0, TimeUnit arg1) {
+		this.timeout = arg1.toMillis(arg0);
 	}
 
 
 	@Override
-	public void setTimeout(long arg0, long arg1) {		
-		setTimeout(arg0, TimeUnit.MILLISECONDS, arg1, TimeUnit.MILLISECONDS) ;		
+	public void setTimeout(long arg0, long arg1) {
+		setTimeout(arg0, TimeUnit.MILLISECONDS, arg1, TimeUnit.MILLISECONDS) ;
 	}
 
 
 	@Override
 	public void setTimeout(long timeout1, TimeUnit timeUnit1, long timeout2, TimeUnit timeUnit2) {		
-		this.timeout = asMillis(timeout1, timeUnit1) ;	}
+		this.timeout = asMillis(timeout1, timeUnit1) ;
+	}
 	
 	private long asMillis(long duration, TimeUnit timeUnit)
     {
         return (duration < 0 ) ? duration : timeUnit.toMillis(duration) ;
     }
 
+	@Override
+	public long getTimeout1() {
+		return 0;
+	}
+
+
+	@Override
+	public long getTimeout2() {
+		return 0;
+	}	
 	   
 	
 }

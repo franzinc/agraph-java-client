@@ -1,5 +1,9 @@
 package test.openrdf.repository;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.vocabulary.RDF;
@@ -21,10 +25,6 @@ public class AGRDFSchemaRepositoryConnectionTest extends AGRepositoryConnectionT
 	
 	private URI man;
 	
-	public AGRDFSchemaRepositoryConnectionTest(String name) {
-		super(name);
-	}
-
 	@Override
 	protected Repository createRepository() throws Exception {
 		return AGAbstractTest.sharedRepository();
@@ -41,6 +41,7 @@ public class AGRDFSchemaRepositoryConnectionTest extends AGRepositoryConnectionT
 		man = vf.createURI("http://example.org/Man");
 	}
 
+    @Test
 	public void testDomainInference()
 		throws Exception
 	{
@@ -50,6 +51,7 @@ public class AGRDFSchemaRepositoryConnectionTest extends AGRepositoryConnectionT
 		assertTrue(testCon.hasStatement(bob, RDF.TYPE, person, true));
 	}
 
+    @Test
 	public void testSubClassInference()
 		throws Exception
 	{
@@ -62,6 +64,7 @@ public class AGRDFSchemaRepositoryConnectionTest extends AGRepositoryConnectionT
 		assertTrue(testCon.hasStatement(alice, RDF.TYPE, person, true));
 	}
 
+    @Test
 	public void testMakeExplicit()
 		throws Exception
 	{
@@ -77,10 +80,12 @@ public class AGRDFSchemaRepositoryConnectionTest extends AGRepositoryConnectionT
 		assertTrue(testCon.hasStatement(alice, RDF.TYPE, person, true));
 	}
 
+    @Test
 	public void testExplicitFlag()
 		throws Exception
 	{
 		RepositoryResult<Statement> result = testCon.getStatements(RDF.TYPE, RDF.TYPE, null, true);
+		while(result.hasNext())
 		try {
 			assertTrue("result should not be empty", result.hasNext());
 		}
@@ -97,6 +102,7 @@ public class AGRDFSchemaRepositoryConnectionTest extends AGRepositoryConnectionT
 		}
 	}
 
+    @Test
 	public void testInferencerUpdates()
 		throws Exception
 	{
@@ -110,17 +116,18 @@ public class AGRDFSchemaRepositoryConnectionTest extends AGRepositoryConnectionT
 		assertFalse(testCon.hasStatement(bob, RDF.TYPE, RDFS.RESOURCE, true));
 	}
 
+    @Test
 	public void testInferencerQueryDuringTransaction()
 		throws Exception
 	{
 		testCon.setAutoCommit(false);
-
 		testCon.add(bob, name, nameBob);
 		assertTrue(testCon.hasStatement(bob, RDF.TYPE, RDFS.RESOURCE, true));
 
 		testCon.setAutoCommit(true);
 	}
 
+    @Test
 	public void testInferencerTransactionIsolation()
 		throws Exception
 	{
@@ -131,7 +138,7 @@ public class AGRDFSchemaRepositoryConnectionTest extends AGRepositoryConnectionT
 		assertFalse(testCon2.hasStatement(bob, RDF.TYPE, RDFS.RESOURCE, true));
 
 		testCon.setAutoCommit(true);
-
+		
 		assertTrue(testCon.hasStatement(bob, RDF.TYPE, RDFS.RESOURCE, true));
 		assertTrue(testCon2.hasStatement(bob, RDF.TYPE, RDFS.RESOURCE, true));
 	}

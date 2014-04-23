@@ -69,7 +69,7 @@ public class EncodableNamespaceTests extends AGAbstractTest {
 		}
 		namespaces = new ArrayList<AGFormattedNamespace>();
 		for (int i=0; i<10000; i++) {
-			namespaces.add(new AGFormattedNamespace("urn:franz-"+i+":","[0-1]{3}"));
+			namespaces.add(new AGFormattedNamespace("urn:franz-"+i+":","[0-1]{3}"));			
 		}
 		conn.registerEncodableNamespaces(namespaces);
 		Assert.assertEquals(10004, conn.listEncodableNamespaces().size());
@@ -111,5 +111,5 @@ public class EncodableNamespaceTests extends AGAbstractTest {
 		}
 		Assert.assertEquals(10003, conn.listEncodableNamespaces().size());
     }
-
+    
 }

@@ -18,7 +18,7 @@ import org.openrdf.model.Statement;
 import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.repository.RepositoryResult;
 
-import com.franz.agraph.repository.AGRDFFormat;
+import org.openrdf.rio.RDFFormat;
 import com.franz.agraph.repository.AGRepositoryConnection;
 
 public class DeleteDuplicatesTests extends AGAbstractTest {
@@ -29,9 +29,9 @@ public class DeleteDuplicatesTests extends AGAbstractTest {
 		Assert.assertEquals("expected false","false",repo.getDuplicateSuppressionPolicy());
 		repo.setDuplicateSuppressionPolicy("spog");
 		Assert.assertEquals("expected spog","spog",repo.getDuplicateSuppressionPolicy());
-		conn.add(new File("src/test/example.nq"), null, AGRDFFormat.NQUADS);
+		conn.add(new File("src/test/example.nq"), null, RDFFormat.NQUADS);
 		Assert.assertEquals("expected size 10", 10, conn.size());
-		conn.add(new File("src/test/example.nq"), null, AGRDFFormat.NQUADS);
+		conn.add(new File("src/test/example.nq"), null, RDFFormat.NQUADS);
 		Assert.assertEquals("expected size 15", 15, conn.size());
 		repo.setDuplicateSuppressionPolicy("spo");
 		Assert.assertEquals("expected spo","spo",repo.getDuplicateSuppressionPolicy());
@@ -42,9 +42,9 @@ public class DeleteDuplicatesTests extends AGAbstractTest {
     @Test
     @Category(TestSuites.Prepush.class)
     public void testSPOG() throws Exception {
-        conn.add(new File("src/test/example.nq"), null, AGRDFFormat.NQUADS);
+        conn.add(new File("src/test/example.nq"), null, RDFFormat.NQUADS);
         Assert.assertEquals("expected size 10", 10, conn.size());
-        conn.add(new File("src/test/example.nq"), null, AGRDFFormat.NQUADS);
+        conn.add(new File("src/test/example.nq"), null, RDFFormat.NQUADS);
         Assert.assertEquals("expected size 20", 20, conn.size());
 
 	RepositoryResult<Statement> result = conn.getDuplicateStatements("spog");
@@ -60,7 +60,7 @@ public class DeleteDuplicatesTests extends AGAbstractTest {
     @Test
     @Category(TestSuites.Prepush.class)
     public void testSPO() throws Exception {
-    	conn.add(new File("src/test/example.nq"), null, AGRDFFormat.NQUADS);
+    	conn.add(new File("src/test/example.nq"), null, RDFFormat.NQUADS);
     	Assert.assertEquals("expected size 10", 10, conn.size());
     	// add an spo duplicate
     	conn.add(vf.createURI("http://example.org/alice/foaf.rdf#me"),
@@ -83,7 +83,7 @@ public class DeleteDuplicatesTests extends AGAbstractTest {
     @Test
     @Category(TestSuites.Broken.class)
     public void testDefault() throws Exception {
-    	conn.add(new File("src/test/example.nq"), null, AGRDFFormat.NQUADS);
+    	conn.add(new File("src/test/example.nq"), null, RDFFormat.NQUADS);
     	Assert.assertEquals("expected size 10", 10, conn.size());
     	// add an spo duplicate
     	conn.add(vf.createURI("http://example.org/alice/foaf.rdf#me"),
@@ -98,11 +98,11 @@ public class DeleteDuplicatesTests extends AGAbstractTest {
     @Test
     @Category(TestSuites.Prepush.class)
     public void testCommit() throws Exception {
-    	conn.add(new File("src/test/example.nq"), null, AGRDFFormat.NQUADS);
+    	conn.add(new File("src/test/example.nq"), null, RDFFormat.NQUADS);
     	Assert.assertEquals("expected size 10", 10, conn.size());
     	AGRepositoryConnection conn2 = repo.getConnection();
     	conn.setAutoCommit(false);
-    	conn.add(new File("src/test/example.nq"), null, AGRDFFormat.NQUADS);
+    	conn.add(new File("src/test/example.nq"), null, RDFFormat.NQUADS);
     	Assert.assertEquals("expected size 20", 20, conn.size());
     	conn.deleteDuplicates("spog");
     	// Note: this doesn't result in 10 triples, due to blank nodes. 
@@ -116,9 +116,9 @@ public class DeleteDuplicatesTests extends AGAbstractTest {
     @Test
     @Category(TestSuites.Prepush.class)
     public void testRollback() throws Exception {
-    	conn.add(new File("src/test/example.nq"), null, AGRDFFormat.NQUADS);
+    	conn.add(new File("src/test/example.nq"), null, RDFFormat.NQUADS);
     	Assert.assertEquals("expected size 10", 10, conn.size());
-    	conn.add(new File("src/test/example.nq"), null, AGRDFFormat.NQUADS);
+    	conn.add(new File("src/test/example.nq"), null, RDFFormat.NQUADS);
     	Assert.assertEquals("expected size 20", 20, conn.size());
     	AGRepositoryConnection conn2 = repo.getConnection();
     	conn.setAutoCommit(false);
