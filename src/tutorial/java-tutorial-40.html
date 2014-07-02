@@ -393,10 +393,32 @@ This is the <strong>example4()</strong> function of TutorialExamples.java. It be
 <h3>Setup</h3>
 <p>Example5() begins by obtaining a connection object from example1(), and then clears the repository of all existing triples. </p>
 <pre class="input">    public static void example5() throws Exception {<br>        RepositoryConnection conn = example2(false);<br>        Repository myRepository = conn.getRepository();<br>        ValueFactory f = myRepository.getValueFactory();<br>        println(&quot;\nStarting example5().&quot;);<br>        conn.clear();</pre>
-<p>For sake of coding efficiency, it is good practice to create variables for namespace strings. We'll use this namespace again and again in the following lines. We have made the URIs in this example very short to keep the result displays compact.</p>
-<pre class="input">        String exns = &quot;http://people/&quot;;</pre>
-<p>The example creates new resources describing seven people, named alphabetically from Alice to Greg. These are URIs to use in the subject field of the triples. The example shows how to enter a full URI string, or alternately how to combine a namespace with a local resource name. </p>
-<pre class="input">        URI alice = f.createURI(&quot;http://people/alice&quot;);<br>        URI bob = f.createURI(&quot;http://people/bob&quot;);<br>        URI carol = f.createURI(&quot;http://people/carol&quot;);<br>        URI dave = f.createURI(&quot;http://people/dave&quot;);<br>        URI eric = f.createURI(&quot;http://people/eric&quot;);<br>        URI fred = f.createURI(&quot;http://people/fred&quot;);<br>        URI greg = f.createURI(&quot;http://people/greg&quot;);</pre>
+<p>
+For sake of coding efficiency, it is good practice to create variables
+for namespace strings. We'll use this namespace again and again in the
+following lines. We have made the URIs in this example very short to
+keep the result displays compact.
+</p>
+<pre class="input">
+        String exns = &quot;http://people/&quot;;
+</pre>
+<p>
+The example creates new resources describing seven people, named
+alphabetically from Alice to Greg. These are URIs to use in the
+subject field of the triples. The example shows how to enter a full
+URI string (Alice through Dave), or alternately how to combine a
+namespace with a local resource name (Eric through Greg).
+</p>
+<pre class="input">
+        URI alice = f.createURI(&quot;http://people/alice&quot;);
+        URI bob = f.createURI(&quot;http://people/bob&quot;);
+        URI carol = f.createURI(&quot;http://people/carol&quot;);
+        URI dave = f.createURI(&quot;http://people/dave&quot;);
+<br>
+        URI eric = f.createURI(exns, &quot;eric&quot;);
+        URI fred = f.createURI(exns, &quot;fred&quot;);
+        URI greg = f.createURI(exns &quot;greg&quot;);
+</pre>
 <h3>Numeric Literal Values </h3>
 <p>This section explores the behavior of numeric literals.</p>
 <h3>Asserting Numeric Data</h3>
@@ -709,8 +731,29 @@ This is the <strong>example4()</strong> function of TutorialExamples.java. It be
     <td>&quot;Rouge&quot;@fr </td>
   </tr>
 </table>
-<p>If you ask for a specific language, that's exactly what you are going to get, in all three types of queries. </p>
-<p>You may be wondering how to perform a string match where language and capitalization don't matter. You can do that with a SPARQL filter query using the <strong>str()</strong> function, which strips out the string portion of a literal, leaving behind the datatype or language tag. Then the <strong>lowercase()</strong> function eliminates case issues:</p>
+<p>
+If you ask for a specific language, that's exactly what you are going
+to get, in all three types of queries.
+</p>
+<p>
+You may be wondering how to perform a string match where language and
+capitalization don't matter. You can do that with a SPARQL filter
+query using the <strong>str()</strong> function, which returns the
+string portion of a literal, without the datatype or language tag. So
+applied to the following, <strong>str()</strong> returns
+&quot;Rouge&quot;:
+</p>
+<pre class="output">
+  &quot;Rouge&quot;^^&lt;http://www.w3.org/2001/XMLSchema#string&gt;
+<br>
+  &quot;Rouge&quot;
+<br>
+  &quot;Rouge&quot;@fr
+</pre>
+<p>
+Then the <strong>lowercase()</strong> function eliminates case
+issues:
+</p>
 <pre class="input">PREFIX fn: &lt;http://www.w3.org/2005/xpath-functions#&gt; 
 SELECT ?s ?p ?o 
 WHERE {?s ?p ?o . filter (fn:lower-case(str(?o)) = &quot;rouge&quot;)}</pre>
@@ -920,8 +963,12 @@ Now:<span class="output">&quot;1984-12-06T08:00:00Z&quot;</span></pre>
 <p>Note that we searched for &quot;1984-12-06T09:00:00+01:00&quot; but found &quot;1984-12-06T08:00:00Z&quot;. It is the same moment in time. </p>
 <h2 id="Importing Triples">Importing Triples (example6() and example7()) &nbsp;&nbsp;&nbsp;<a class="returnlink" href="#Contents">Return to Top</a></h2>
 <p>
-The Java Sesame API client can load triples in either RDF/XML format or  NTriples format.  The example below calls the connection object's <strong>add()</strong> method to load 
-an NTriples file, and <strong>addFile()</strong> to load  an RDF/XML file. Both methods work, but the best practice is to use addFile(). </p>
+The Java Sesame API client can load triples in either RDF/XML format
+or NTriples format.  The example below calls the connection
+object's <strong>add()</strong> method to load an NTriples file,
+and <strong>addFile()</strong> to load an RDF/XML file. Both methods
+work, but the best practice is to use <strong>addFile()</strong>.
+</p>
 <table width="769" border="2px" cellpadding="4px" style="border-collapse:collapse; border-color:#0000FF;">
   <tr>
     <td width="928"><strong>Note:</strong> If you get a &quot;file not found&quot; error while running this example, it means that Java is looking in the wrong directory for the data files to load. The usual explanation is that you have moved the TutorialExamples.java file to an unexpected directory. You can clear the issue by putting the data files in the same directory as TutorialExamples.java. </td>
@@ -945,10 +992,10 @@ an NTriples file, and <strong>addFile()</strong> to load  an RDF/XML file. Both 
 &lt;http://www.franz.com/simple#person1&gt; &lt;http://www.franz.com/simple#birth-place&gt; &lt;http://www.franz.com/simple#place5&gt; . 
 &lt;http://www.franz.com/simple#person1&gt; &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#type&gt; &lt;http://www.franz.com/simple#person&gt; . </pre>
 
-<p>Note that AllegroGraph can segregate triples into contexts (subgraphs) by treating them as quads, but the NTriples and RDF/XML formats can not include context information. They deal with triples only, so there is no place to store a fourth field in those formats. In the case of the add() call, we have omitted the context
+<p>Note that AllegroGraph can segregate triples into contexts (subgraphs) by treating them as quads, but the NTriples and RDF/XML formats can not include context information. They deal with triples only, so there is no place to store a fourth field in those formats. In the case of the <strong>add()</strong> call, we have omitted the context
   argument so the triples are loaded the default background graph (sometimes called the &quot;null context<em>.</em>&quot;) </p>
 <p>The
-  addFile() call includes an explicit context setting, so the fourth argument of
+  <strong>addFile()</strong> call includes an explicit context setting, so the fourth argument of
   each vcard triple will be the context named "/tutorial/vc_db_1_rdf".  </p>
 <p>The <strong>connection size()</strong> method takes an optional context argument.  With no
     argument, it returns the total number of triples in the repository.  Below, it returns the number
@@ -963,10 +1010,20 @@ an NTriples file, and <strong>addFile()</strong> to load  an RDF/XML file. Both 
 <pre class="input">        String baseURI = &quot;http://example.org/example/local&quot;;</pre>
 <p>The NTriples about the vcards will be added to a specific context, so naturally we need a URI to identify that context. </p>
 <pre class="input">        URI context = f.createURI(&quot;http://example.org#vcards&quot;);</pre>
-<p>In the next step we use addFile() to load the vcard triples into the #vcards context: </p>
-<pre class="input">        conn.add(new File(path1), baseURI, RDFFormat.RDFXML, context);</pre>
-<p>Then we use add() to load the Kennedy family tree into the null context: </p>
-<pre class="input">        conn.add(new File(path2), baseURI, RDFFormat.NTRIPLES);</pre>
+<p>
+In the next step we use <strong>addFile()</strong> to load the vcard
+triples into the #vcards context:
+</p>
+<pre class="input">
+        conn.add(new File(path1), baseURI, RDFFormat.RDFXML, context);
+</pre>
+<p>
+Then we use <strong>add()</strong> to load the Kennedy family tree
+into the null context:
+</p>
+<pre class="input">
+        conn.add(new File(path2), baseURI, RDFFormat.NTRIPLES);
+</pre>
 <p>Now we'll ask AllegroGraph to report on how many triples it sees in the null context and in the #vcards context: </p>
 <pre class="input">        println(&quot;After loading, repository contains &quot; + conn.size(context) +<br>                &quot; vcard triples in context '&quot; + context + &quot;'\n    and   &quot; +<br>                conn.size((Resource)null) + &quot; kennedy triples in context 'null'.&quot;);</pre>
 <p>The output of this report was:</p>
