@@ -14,7 +14,9 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.openrdf.model.Statement;
 import org.openrdf.model.vocabulary.RDF;
+import org.openrdf.repository.RepositoryResult;
 
 import com.franz.agraph.repository.AGRDFFormat;
 import com.franz.agraph.repository.AGRepositoryConnection;
@@ -44,6 +46,12 @@ public class DeleteDuplicatesTests extends AGAbstractTest {
         Assert.assertEquals("expected size 10", 10, conn.size());
         conn.add(new File("src/test/example.nq"), null, AGRDFFormat.NQUADS);
         Assert.assertEquals("expected size 20", 20, conn.size());
+
+	RepositoryResult<Statement> result = conn.getDuplicateStatements("spog");
+	int count = 0;
+	for ( ; result.hasNext() ; ++count ) result.next();
+	Assert.assertEquals("expected duplicate count 5", 5, count);
+	
         conn.deleteDuplicates("spog");
         // Note: this doesn't result in 10 triples, due to blank nodes. 
         Assert.assertEquals("expected size 15", 15, conn.size());
@@ -58,9 +66,16 @@ public class DeleteDuplicatesTests extends AGAbstractTest {
     	conn.add(vf.createURI("http://example.org/alice/foaf.rdf#me"),
     			RDF.TYPE,vf.createURI("http://xmlns.com/foaf/0.1/Person"));
     	Assert.assertEquals("expected size 11", 11, conn.size());
+
     	conn.deleteDuplicates("spog");
     	// there are no spog duplicates
     	Assert.assertEquals("expected size 11", 11, conn.size());
+
+	RepositoryResult<Statement> result = conn.getDuplicateStatements("spo");
+	int count = 0;
+	for ( ; result.hasNext() ; ++count ) result.next();
+	Assert.assertEquals("expected duplicate count 1", 1, count);
+
     	conn.deleteDuplicates("spo");
     	Assert.assertEquals("expected size 10", 10, conn.size());
     }

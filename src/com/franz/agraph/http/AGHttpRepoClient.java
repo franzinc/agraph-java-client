@@ -1633,7 +1633,7 @@ public class AGHttpRepoClient implements Closeable {
 		return getHTTPClient().getBlankNodes(getRoot(), blankNodeAmount);
 	}
 
-	/**
+/**
 	 * Deletes all duplicates from the store.
 	 * <p>
 	 * The comparisonMode determines what will be deemed a "duplicate".
@@ -1658,6 +1658,20 @@ public class AGHttpRepoClient implements Closeable {
 			params.add(new NameValuePair("mode", comparisonMode));
 		}
 		getHTTPClient().delete(url,headers,params.toArray(new NameValuePair[params.size()]), null);
+	}
+
+	public void getDuplicateStatements(String comparisonMode, RDFHandler handler) throws AGHttpException, RDFHandlerException{
+		String url = Protocol.getStatementsLocation(getRoot()) + "/duplicates";
+		Header[] headers = { new Header(ACCEPT_PARAM_NAME, getPreferredRDFFormat().getDefaultMIMEType()) };
+		List<NameValuePair> params = new ArrayList<NameValuePair>(2);
+		if (comparisonMode!=null) {
+			params.add(new NameValuePair("mode", comparisonMode));
+		}
+		// getHTTPClient().get(url,headers,params.toArray(new NameValuePair[params.size()]), null);
+		getHTTPClient().get(url,
+				    headers,
+				    params.toArray(new NameValuePair[params.size()]),
+				    new AGRDFHandler(getPreferredRDFFormat(),handler,getValueFactory(),getAllowExternalBlankNodeIds()));
 	}
 	
 	/**
