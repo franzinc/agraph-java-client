@@ -129,7 +129,7 @@ public class JenaTests extends AGAbstractTest {
 				qe.execSelect();
 				Assert.fail("query should have failed because of ?x");
 			} catch (QueryException e) {
-				if ( !(e.getMessage().contains("Variables do not intersect with query: ?x") || e.getMessage().contains("unknown variable in order expression: ?x")) ) {
+				if ( !(e.getMessage().contains("Variables do not intersect with query: ?x") || e.getMessage().contains("unknown variable in order expression: ?x") || e.getMessage().contains("Unknown variable used in order expression: ?x")) ) {
 					throw e;
 				}
 			}
