@@ -118,8 +118,8 @@ dist: FORCE
 	rm $(DIST)/lib/jena/*-tests.jar
 	rm $(DIST)/lib/jena/*-test-sources.jar
 	mkdir -p $(DIST)/doc
-	cp src/tutorial/java-tutorial-40.html $(DIST)/doc/
-	cp src/tutorial/jena-tutorial-40.html $(DIST)/doc/
+	cp src/tutorial/java-tutorial.html $(DIST)/doc/
+	cp src/tutorial/jena-tutorial.html $(DIST)/doc/
 	cp src/tutorial/*.jpg $(DIST)/doc/
 	cp -r doc $(DIST)/javadoc
 	tar -c -h -z $(TAROPTS) -f $(TARNAME) -C DIST $(DISTDIR)
