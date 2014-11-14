@@ -41,8 +41,8 @@ Supports SPARQL and Prolog queries.
 
 ### OpenRDF/Sesame
 
-[Sesame](http://www.openrdf.org/) 2.6.8,
-([API](http://www.openrdf.org/doc/sesame2/2.6.8/apidocs/))
+[Sesame](http://www.rdf4j.org/) 2.7.11,
+([API](http://rdf4j.org/sesame/2.7/apidocs/))
 
 The primary public package is
 <code>com.franz.agraph.repository</code>.
@@ -54,7 +54,7 @@ The primary public package is
 
 ### Jena
 
-[Jena](http://jena.sourceforge.net/) 2.6.2
+[Jena](http://jena.apache.org/) 2.11.1
 
 The primary public package is <code>com.franz.agraph.jena</code>.
 

@@ -173,8 +173,8 @@
                  version="true"
                  classpathref="classpath">
             <link href="http://download.oracle.com/javase/6/docs/api/" offline="true" packagelistLoc="lib/java"/>
-            <link href="http://openjena.org/javadoc/" offline="true" packagelistloc="lib/jena-2.6.2"/>
-            <link href="http://www.openrdf.org/doc/sesame2/2.6.8/apidocs/" offline="true" packagelistloc="lib/sesame"/>
+            <link href="http://jena.apache.org/documentation/javadoc/" offline="true" packagelistloc="lib/jena"/>
+            <link href="http://rdf4j.org/sesame/2.7/apidocs/" offline="true" packagelistloc="lib/sesame"/>
         </javadoc>
     </target>
     
