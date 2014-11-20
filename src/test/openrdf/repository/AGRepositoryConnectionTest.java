@@ -110,19 +110,19 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 			con.setInsertContext(defaultGraph);
 			con.add(vf.createURI("urn:test:s1"), vf.createURI("urn:test:p1"), vf.createURI("urn:test:o1"));
 			con.prepareUpdate("INSERT DATA { <urn:test:s2> <urn:test:p2> \"l2\" }").execute();
-			assertEquals(2, con.getStatements(null, null, null).asList().size());
-			assertEquals(2, con.getStatements(null, null, null, defaultGraph).asList().size());
+			assertEquals(2, Iterations.asList(con.getStatements(null, null, null)).size());
+			assertEquals(2, Iterations.asList(con.getStatements(null, null, null, defaultGraph)).size());
 			assertEquals(2, size(defaultGraph));
 			con.add(vf.createURI("urn:test:s3"), vf.createURI("urn:test:p3"), vf.createURI("urn:test:o3"), (Resource)null);
 			con.add(vf.createURI("urn:test:s4"), vf.createURI("urn:test:p4"), vf.createURI("urn:test:o4"), vf.createURI("urn:test:other"));
-			assertEquals(4, con.getStatements(null, null, null).asList().size());
-			assertEquals(3, con.getStatements(null, null, null, defaultGraph).asList().size());
-			assertEquals(4, testCon.getStatements(null, null, null, true).asList().size());
+			assertEquals(4, Iterations.asList(con.getStatements(null, null, null)).size());
+			assertEquals(3, Iterations.asList(con.getStatements(null, null, null, defaultGraph)).size());
+			assertEquals(4, Iterations.asList(testCon.getStatements(null, null, null, true)).size());
 			assertEquals(3, size(defaultGraph));
 			assertEquals(1, size(vf.createURI("urn:test:other")));
 			con.prepareUpdate("DELETE { ?s ?p ?o } WHERE { ?s ?p ?o }").execute();
-			assertEquals(0, con.getStatements(null, null, null).asList().size());
-			assertEquals(0, testCon.getStatements(null, null, null, true).asList().size());
+			assertEquals(0, Iterations.asList(con.getStatements(null, null, null)).size());
+			assertEquals(0, Iterations.asList(testCon.getStatements(null, null, null, true)).size());
 			assertEquals(0, size(defaultGraph));
 			assertEquals(0, size(vf.createURI("urn:test:other")));
 		}

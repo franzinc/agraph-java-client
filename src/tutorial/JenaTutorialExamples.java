@@ -448,8 +448,8 @@ public class JenaTutorialExamples {
 		} else {
 			println("\nWriting n-triples to: " + outputFile);
 		}
-		OutputStream output = (outputFile != null) ? new FileOutputStream(
-				outputFile) : System.out;
+		FileOutputStream fos = new FileOutputStream(outputFile);
+		OutputStream output = (outputFile != null) ? fos : System.out;
 		model.write(output, "N-TRIPLE");
 		output.close();
 		String outputFile2 = TEMPORARY_DIRECTORY + "JenaTutorialExamples.example8.rdf";
@@ -459,10 +459,12 @@ public class JenaTutorialExamples {
 		} else {
 			println("\nWriting RDF to: " + outputFile2);
 		}
-		output = (outputFile2 != null) ? new FileOutputStream(outputFile2)
-				: System.out;
+		FileOutputStream fos2 = new FileOutputStream(outputFile2);
+		output = (outputFile2 != null) ? fos2 : System.out;
 		model.write(output);
 		output.close();
+		fos.close();
+		fos2.close();
 	}
 
 	/**

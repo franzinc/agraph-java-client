@@ -1200,7 +1200,8 @@ public class TutorialExamples {
         } else {
             println("\nWriting n-triples to: " + outputFile);
         }
-        OutputStream output = (outputFile != null) ? new FileOutputStream(outputFile) : System.out;
+        FileOutputStream fos = new FileOutputStream(outputFile);
+        OutputStream output = (outputFile != null) ? fos : System.out;
         NTriplesWriter ntriplesWriter = new NTriplesWriter(output);
         conn.export(ntriplesWriter, context);
         String outputFile2 =  TEMPORARY_DIRECTORY + "TutorialExamples.example8.rdf";
@@ -1210,10 +1211,14 @@ public class TutorialExamples {
         } else {
             println("\nWriting RDF to: " + outputFile2);
         }
-        output = (outputFile2 != null) ? new FileOutputStream(outputFile2) : System.out;
+        FileOutputStream fos2 = new FileOutputStream(outputFile2);
+        output = (outputFile2 != null) ? fos2 : System.out;
         RDFXMLWriter rdfxmlfWriter = new RDFXMLWriter(output);
         conn.export(rdfxmlfWriter, context);
         output.write('\n');
+        output.close();
+        fos.close();
+        fos2.close();
     }
     
     /**
