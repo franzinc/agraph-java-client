@@ -107,7 +107,7 @@ public class AGServer implements Closeable {
 	 * SSLCertificate /path/agraph.cert
 	 * SSLCAFile /path/ca.cert
 	 * </pre></code>
-	 * For more details, see <a href="http://www.franz.com/agraph/support/documentation/v4/daemon-config.html#header2-10">Server configuration</a>.
+	 * For more details, see <a href="http://www.franz.com/agraph/support/documentation/v5/daemon-config.html#header2-10">Server configuration</a>.
 	 * <p>
 	 * @param httpClient the AGHTTPClient instance to use
 	 * @see #AGServer(String)
@@ -141,7 +141,7 @@ public class AGServer implements Closeable {
 	 * SSLCertificate /path/agraph.cert
 	 * SSLCAFile /path/ca.cert
 	 * </pre></code>
-	 * For more details, see <a href="http://www.franz.com/agraph/support/documentation/v4/daemon-config.html#header2-10">Server configuration</a>.
+	 * For more details, see <a href="http://www.franz.com/agraph/support/documentation/v5/daemon-config.html#header2-10">Server configuration</a>.
 	 * <p>
 	 * @param serverURL the URL of the server (trailing slashes are removed).
 	 * @see #AGServer(String, String, String)

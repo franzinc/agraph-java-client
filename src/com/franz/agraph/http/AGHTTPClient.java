@@ -458,10 +458,10 @@ implements Closeable {
 			// To test this exception, setup remote server and only open port to
 			// the main port, not the SessionPorts and run TutorialTest.example6()
 			throw new AGHttpException("Session port connection failure. Consult the Server Installation document for correct settings for SessionPorts. Url: " + url
-					+ ". Documentation: http://www.franz.com/agraph/support/documentation/v4/server-installation.html#sessionport", e);
+					+ ". Documentation: http://www.franz.com/agraph/support/documentation/v5/server-installation.html#sessionport", e);
 		} else {
 			throw new AGHttpException("Possible session port connection failure. Consult the Server Installation document for correct settings for SessionPorts. Url: " + url
-					+ ". Documentation: http://www.franz.com/agraph/support/documentation/v4/server-installation.html#sessionport", e);
+					+ ". Documentation: http://www.franz.com/agraph/support/documentation/v5/server-installation.html#sessionport", e);
 		}
 	}
 

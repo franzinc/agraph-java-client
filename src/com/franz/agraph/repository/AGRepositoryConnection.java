@@ -86,9 +86,9 @@ import com.franz.util.Closer;
  * <p>Sessions with AllegroGraph server are used for ACID transactions
  * and also for server code in InitFile and Scripts.
  * See more documentation for
- * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#sessions"
+ * <a href="http://www.franz.com/agraph/support/documentation/v5/http-protocol.html#sessions"
  *    target="_top">Sessions in the AllegroGraph HTTP Protocol</a> and
- * <a href="http://www.franz.com/agraph/support/documentation/v4/agraph-introduction.html#ACID"
+ * <a href="http://www.franz.com/agraph/support/documentation/v5/agraph-introduction.html#ACID"
  *    target="_top">ACID transactions</a> in the AllegroGraph Server documentation.</p>
  * 
  * <p>Operations such as
@@ -108,15 +108,15 @@ import com.franz.util.Closer;
  * <p>{@link #setSessionLoadInitFile(boolean) InitFiles}
  * and {@link #addSessionLoadScript(String) Scripts}
  * are loaded into the server only for sessions.  See
- * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#scripting"
+ * <a href="http://www.franz.com/agraph/support/documentation/v5/http-protocol.html#scripting"
  *    target="_top">Scripting in HTTP Protocol</a> and
- * <a href="http://www.franz.com/agraph/support/documentation/v4/agwebview.html"
+ * <a href="http://www.franz.com/agraph/support/documentation/v5/agwebview.html"
  *    target="_top">search for "InitFile" in WebView</a> for how to create initFiles.
  * </p>
  * 
  * <p>Starting a session causes http requests to use a new port, which
  * may cause an exception if the client can not access it.
- * See <a href="http://www.franz.com/agraph/support/documentation/v4/server-installation.html#sessionport"
+ * See <a href="http://www.franz.com/agraph/support/documentation/v5/server-installation.html#sessionport"
  * target="_top">Session Port Setup</a>.
  * </p>
  * 
@@ -143,10 +143,10 @@ import com.franz.util.Closer;
  * <h3><a name="mapping">Data-type and Predicate Mapping</a></h3>
  * 
  * <p>For more details, see the HTTP Protocol docs for
- * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#mapping"
+ * <a href="http://www.franz.com/agraph/support/documentation/v5/http-protocol.html#mapping"
  * target="_top">Type Mappings</a>
  * and the Lisp reference for
- * <a href="http://www.franz.com/agraph/support/documentation/v4/lisp-reference.html#ref-type-mapping"
+ * <a href="http://www.franz.com/agraph/support/documentation/v5/lisp-reference.html#ref-type-mapping"
  * target="_top">Data-type and Predicate Mapping</a>.
  * </p>
  * 
@@ -719,12 +719,12 @@ implements RepositoryConnection, Closeable {
 	 * Setting to true will create a dedicated server session.
 	 * 
 	 * See <a href="#sessions">session overview</a> and
-	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#post-session"
+	 * <a href="http://www.franz.com/agraph/support/documentation/v5/http-protocol.html#post-session"
 	 * target="_top">POST session</a> for more details.
 	 * 
 	 * <p>Starting a session causes http requests to use a new port, which
 	 * may cause an exception if the client can not access it.
-	 * See <a href="http://www.franz.com/agraph/support/documentation/v4/server-installation.html#sessionport"
+	 * See <a href="http://www.franz.com/agraph/support/documentation/v5/server-installation.html#sessionport"
 	 * target="_top">Session Port Setup</a>.
 	 * </p>
 	 * @deprecated As of release 2.7.0, use begin() instead.
@@ -746,7 +746,7 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * Commit the current transaction.
 	 * See <a href="#sessions">session overview</a> and
-	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#post-commit"
+	 * <a href="http://www.franz.com/agraph/support/documentation/v5/http-protocol.html#post-commit"
 	 * target="_top">POST commit</a> for more details.
 	 */
 	public void commit() throws RepositoryException {
@@ -756,7 +756,7 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * Roll back the current transaction (discard all changes made since last commit).
 	 * See <a href="#sessions">session overview</a> and
-	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#post-rollback"
+	 * <a href="http://www.franz.com/agraph/support/documentation/v5/http-protocol.html#post-rollback"
 	 * target="_top">POST rollback</a> for more details.
 	 */
 	public void rollback() throws RepositoryException {
@@ -789,7 +789,7 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * Closes the session if there is one started.
 	 * See <a href="#sessions">session overview</a> and
-	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#post-close-session"
+	 * <a href="http://www.franz.com/agraph/support/documentation/v5/http-protocol.html#post-close-session"
 	 * target="_top">POST close</a> for more details.
 	 */
 	@Override
@@ -1174,7 +1174,7 @@ implements RepositoryConnection, Closeable {
 	 * will result in the object being treated as {@code "24"^^xsd:int}.</p>
 	 * 
 	 * <p>See <a href="#mapping">mapping overview</a> and
-	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#post-put-predmapping"
+	 * <a href="http://www.franz.com/agraph/support/documentation/v5/http-protocol.html#post-put-predmapping"
 	 * target="_top">POST predicate mapping</a>.</p>
 	 * 
 	 * @param predicate the predicate URI
@@ -1190,7 +1190,7 @@ implements RepositoryConnection, Closeable {
 	 * Deletes any predicate mapping associated with the given predicate.
 	 * 
 	 * <p>See <a href="#mapping">mapping overview</a> and
-	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#delete-predmapping"
+	 * <a href="http://www.franz.com/agraph/support/documentation/v5/http-protocol.html#delete-predmapping"
 	 * target="_top">DELETE predicate mapping</a>.</p>
 	 * 
 	 * @param predicate the predicate
@@ -1206,10 +1206,10 @@ implements RepositoryConnection, Closeable {
 	 * Gets the predicate mappings defined for this connection.
 	 * 
 	 * <p>See <a href="#mapping">mapping overview</a> and
-	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#get-predmapping"
+	 * <a href="http://www.franz.com/agraph/support/documentation/v5/http-protocol.html#get-predmapping"
 	 * target="_top">GET predicate mapping</a>
 	 * and the Lisp reference for the
-	 * <a href="http://www.franz.com/agraph/support/documentation/v4/lisp-reference.html#function.predicate-mapping"
+	 * <a href="http://www.franz.com/agraph/support/documentation/v5/lisp-reference.html#function.predicate-mapping"
 	 * target="_top">predicate-mapping function</a>.
 	 * </p>
 	 * 
@@ -1236,7 +1236,7 @@ implements RepositoryConnection, Closeable {
 	 * will result in the object being treated as {@code "24"^^xsd:int}.</p>
 	 * 
 	 * <p>See <a href="#mapping">mapping overview</a> and
-	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#post-put-typemapping"
+	 * <a href="http://www.franz.com/agraph/support/documentation/v5/http-protocol.html#post-put-typemapping"
 	 * target="_top">POST type mapping</a>.</p>
 	 * 
 	 * @param datatype the user datatype
@@ -1252,7 +1252,7 @@ implements RepositoryConnection, Closeable {
 	 * Deletes any datatype mapping associated with the given datatype.
 	 * 
 	 * <p>See <a href="#mapping">mapping overview</a> and
-	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#delete-typemapping"
+	 * <a href="http://www.franz.com/agraph/support/documentation/v5/http-protocol.html#delete-typemapping"
 	 * target="_top">DELETE type mapping</a>.</p>
 	 * 
 	 * @param datatype the user datatype
@@ -1268,10 +1268,10 @@ implements RepositoryConnection, Closeable {
 	 * Gets the datatype mappings defined for this connection.
 	 * 
 	 * <p>See <a href="#mapping">mapping overview</a> and
-	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#get-typemapping"
+	 * <a href="http://www.franz.com/agraph/support/documentation/v5/http-protocol.html#get-typemapping"
 	 * target="_top">GET type mapping</a>
 	 * and the Lisp reference for the
-	 * <a href="http://www.franz.com/agraph/support/documentation/v4/lisp-reference.html#function.datatype-mapping"
+	 * <a href="http://www.franz.com/agraph/support/documentation/v5/lisp-reference.html#function.datatype-mapping"
 	 * target="_top">datatype-mapping function</a>.
 	 * 
 	 * @see #deleteDatatypeMapping(URI)
@@ -1290,7 +1290,7 @@ implements RepositoryConnection, Closeable {
 	 * This is equivalent to clearMappings(false).
 	 * 
 	 * <p>See <a href="#mapping">mapping overview</a> and
-	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#delete-all-mapping"
+	 * <a href="http://www.franz.com/agraph/support/documentation/v5/http-protocol.html#delete-all-mapping"
 	 * target="_top">DELETE all mapping</a> for more details.</p>
 	 * 
 	 * @see #getDatatypeMappings()
@@ -1310,7 +1310,7 @@ implements RepositoryConnection, Closeable {
 	 * in the store (there can be precision loss when encoding some literals).
 	 * 
 	 * <p>See <a href="#mapping">mapping overview</a> and
-	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#delete-all-mapping"
+	 * <a href="http://www.franz.com/agraph/support/documentation/v5/http-protocol.html#delete-all-mapping"
 	 * target="_top">DELETE all mapping</a> for more details.</p>
 	 * 
 	 * @see #getDatatypeMappings()
@@ -1323,16 +1323,16 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * Adds Prolog rules to be used on this connection.
 	 * 
-	 * See <a href="http://www.franz.com/agraph/support/documentation/v4/agraph-introduction.html#prolog"
+	 * See <a href="http://www.franz.com/agraph/support/documentation/v5/agraph-introduction.html#prolog"
 	 * target="_top">Prolog Lisp documentation</a>
-	 * and <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#post-functor"
+	 * and <a href="http://www.franz.com/agraph/support/documentation/v5/http-protocol.html#post-functor"
 	 * target="_top">Prolog functor registration</a>.
 	 * 
 	 * <p>Starts a session if one is not already started.
 	 * See <a href="#sessions">session overview</a> for more details.
 	 * Starting a session causes http requests to use a new port, which
 	 * may cause an exception if the client can not access it.
-	 * See <a href="http://www.franz.com/agraph/support/documentation/v4/server-installation.html#sessionport"
+	 * See <a href="http://www.franz.com/agraph/support/documentation/v5/server-installation.html#sessionport"
 	 * target="_top">Session Port Setup</a>.
 	 * </p>
 	 * 
@@ -1347,16 +1347,16 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * Adds Prolog rules to be used on this connection.
 	 * 
-	 * See <a href="http://www.franz.com/agraph/support/documentation/v4/agraph-introduction.html#prolog"
+	 * See <a href="http://www.franz.com/agraph/support/documentation/v5/agraph-introduction.html#prolog"
 	 * target="_top">Prolog Lisp documentation</a>
-	 * and <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#post-functor"
+	 * and <a href="http://www.franz.com/agraph/support/documentation/v5/http-protocol.html#post-functor"
 	 * target="_top">Prolog functor registration</a>.
 	 * 
 	 * <p>Starts a session if one is not already started.
 	 * See <a href="#sessions">session overview</a> for more details.
 	 * Starting a session causes http requests to use a new port, which
 	 * may cause an exception if the client can not access it.
-	 * See <a href="http://www.franz.com/agraph/support/documentation/v4/server-installation.html#sessionport"
+	 * See <a href="http://www.franz.com/agraph/support/documentation/v5/server-installation.html#sessionport"
 	 * target="_top">Session Port Setup</a>.
 	 * </p>
 	 * 
@@ -1370,7 +1370,7 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * Evaluates a Lisp form on the server, and returns the result as a String.
 	 * 
-	 * See <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#post-eval"
+	 * See <a href="http://www.franz.com/agraph/support/documentation/v5/http-protocol.html#post-eval"
 	 * target="_top">HTTP POST eval</a>.
 	 * 
 	 * @param lispForm the Lisp form to evaluate
@@ -1384,7 +1384,7 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * Evaluates a Lisp form on the server, and returns the result as a String.
 	 * 
-	 * See <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#post-eval"
+	 * See <a href="http://www.franz.com/agraph/support/documentation/v5/http-protocol.html#post-eval"
 	 * target="_top">HTTP POST eval</a>.
 	 * 
 	 * @param stream the Lisp form to evaluate
@@ -1438,8 +1438,8 @@ implements RepositoryConnection, Closeable {
 	 * session, if it is using one.  Such connections that are idle for its
 	 * session lifetime will be closed by the server.
 	 * 
-	 * <p>See <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#sessions">session overview</a> 
-	 * and <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#get-ping"
+	 * <p>See <a href="http://www.franz.com/agraph/support/documentation/v5/http-protocol.html#sessions">session overview</a> 
+	 * and <a href="http://www.franz.com/agraph/support/documentation/v5/http-protocol.html#get-ping"
 	 * target="_top">GET ping</a> for more details.</p>
 	 * 
 	 * @throws RepositoryException
@@ -1540,16 +1540,16 @@ implements RepositoryConnection, Closeable {
 	}
 	
 	/**
-	 * See <a href="http://www.franz.com/agraph/support/documentation/v4/lisp-reference.html#sna"
+	 * See <a href="http://www.franz.com/agraph/support/documentation/v5/lisp-reference.html#sna"
 	 * target="_top">Social network analysis Lisp documentation</a>
-	 * and <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#sna"
+	 * and <a href="http://www.franz.com/agraph/support/documentation/v5/http-protocol.html#sna"
 	 * target="_top">SNA generator registration</a>.
 	 * 
 	 * <p>Starts a session if one is not already started.
 	 * See <a href="#sessions">session overview</a> for more details.
 	 * Starting a session causes http requests to use a new port, which
 	 * may cause an exception if the client can not access it.
-	 * See <a href="http://www.franz.com/agraph/support/documentation/v4/server-installation.html#sessionport"
+	 * See <a href="http://www.franz.com/agraph/support/documentation/v5/server-installation.html#sessionport"
 	 * target="_top">Session Port Setup</a>.
 	 * </p>
 	 * 
@@ -1698,7 +1698,7 @@ implements RepositoryConnection, Closeable {
 	 * exception is thrown.</p>
 	 * 
 	 * <p>For more details, see
-	 * <a href="http://www.franz.com/agraph/support/documentation/v4/encoded-ids.html"
+	 * <a href="http://www.franz.com/agraph/support/documentation/v5/encoded-ids.html"
 	 * target="_top">Encoded IDs</a>.</p>
 	 *  
 	 * @param namespace a valid namespace, a URI ref
@@ -1800,7 +1800,7 @@ implements RepositoryConnection, Closeable {
 	 * This method does not create a session.
 	 * 
 	 * <p>See <a href="#sessions">session overview</a> and
-	 * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html#post-session"
+	 * <a href="http://www.franz.com/agraph/support/documentation/v5/http-protocol.html#post-session"
 	 * target="_top">POST session</a> for more details.</p>
 	 * 
 	 * @param lifetimeInSeconds the session lifetime, in seconds.

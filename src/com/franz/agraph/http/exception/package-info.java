@@ -8,7 +8,7 @@
 
 /**
  * AllegroGraph Java client HTTP layer exceptions for the
- * <a href="http://www.franz.com/agraph/support/documentation/v4/http-protocol.html">
+ * <a href="http://www.franz.com/agraph/support/documentation/v5/http-protocol.html">
  * AllegroGraph HTTP Protocol</a> in support of {@link com.franz.agraph.http}.
  * 
  */

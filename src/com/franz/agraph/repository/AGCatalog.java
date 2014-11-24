@@ -28,7 +28,7 @@ import com.franz.agraph.http.exception.AGHttpException;
  * Catalogs are locations on disk where AllegroGraph Server keeps its repositories.
  * 
  * <p>Catalogs are created by the
- * <a href="http://www.franz.com/agraph/support/documentation/v4/daemon-config.html#catalog">catalog
+ * <a href="http://www.franz.com/agraph/support/documentation/v5/daemon-config.html#catalog">catalog
  * server configuration</a>.</p>
  * 
  * <p>A catalog is a grouping of repositories.  The root catalog is the 

@@ -10,7 +10,7 @@ This [agraph-java-client](http://github.com/franzinc/agraph-java-client) provide
   * Adapter for Jena
 * Clojure client API
 
-[AllegroGraph Docs](http://www.franz.com/agraph/support/documentation/v4/)
+[AllegroGraph Docs](http://www.franz.com/agraph/support/documentation/v5/)
 
 
 ## Server Prerequisites
@@ -47,9 +47,9 @@ Supports SPARQL and Prolog queries.
 The primary public package is
 <code>com.franz.agraph.repository</code>.
 
-[Javadocs](http://www.franz.com/agraph/support/documentation/v4/javadoc/index.html)
+[Javadocs](http://www.franz.com/agraph/support/documentation/v5/javadoc/index.html)
 
-[Tutorial](http://www.franz.com/agraph/support/documentation/v4/java-tutorial/java-tutorial-40.html)
+[Tutorial](http://www.franz.com/agraph/support/documentation/v5/java-tutorial/java-tutorial.html)
 
 
 ### Jena
@@ -58,9 +58,9 @@ The primary public package is
 
 The primary public package is <code>com.franz.agraph.jena</code>.
 
-[Javadocs](http://www.franz.com/agraph/support/documentation/v4/javadoc/index.html)
+[Javadocs](http://www.franz.com/agraph/support/documentation/v5/javadoc/index.html)
 
-[Tutorial](http://www.franz.com/agraph/support/documentation/v4/java-tutorial/jena-tutorial-40.html)
+[Tutorial](http://www.franz.com/agraph/support/documentation/v5/java-tutorial/jena-tutorial.html)
 
 
 ## Clojure
