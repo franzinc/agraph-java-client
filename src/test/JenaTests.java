@@ -98,9 +98,10 @@ public class JenaTests extends AGAbstractTest {
     	}
     }
 
+    // cf. rfe13511
     @Test
     @Category(TestSuites.Prepush.class)
-    public void sparqlOrderByError_bug19157_rfe9971() throws Exception {
+    public void sparqlOrderByError_bug19157_rfe9971_no_check() throws Exception {
     	AGGraphMaker maker = closeLater( new AGGraphMaker(conn) );
     	AGGraph graph = closeLater( maker.getGraph() );
     	AGModel model = closeLater( new AGModel(graph) );
@@ -121,20 +122,40 @@ public class JenaTests extends AGAbstractTest {
 			qe.execSelect();
 			// extra var is ignored
 		}
+    }
+    
+    // cf. rfe13511
+    @Test
+    @Category(TestSuites.Prepush.class)
+    public void sparqlOrderByError_bug19157_rfe9971_yes_check() throws Exception {
+    	AGGraphMaker maker = closeLater( new AGGraphMaker(conn) );
+    	AGGraph graph = closeLater( maker.getGraph() );
+    	AGModel model = closeLater( new AGModel(graph) );
+    	
+		Resource bob = model.createResource("http://example.org/people/bob");
+		Resource dave = model.createResource("http://example.org/people/dave");
+		Property fatherOf = model.createProperty("http://example.org/ontology/fatherOf");
+		Property age = model.createProperty("http://example.org/ontology/age");
+		Literal three = model.createTypedLiteral(3);
+		
+		model.add(bob, fatherOf, dave);
+		model.add(dave, age, three);
+		
+		AGQuery query = AGQueryFactory.create("select ?s ?p ?o where { ?s ?p ?o . } order by ?z ?s");
 		{
 			query.setCheckVariables(true);
 			AGQueryExecution qe = closeLater( AGQueryExecutionFactory.create(query, model));
 			try {
 				qe.execSelect();
-				Assert.fail("query should have failed because of ?x");
+				Assert.fail("query should have failed because of ?z");
 			} catch (QueryException e) {
-				if ( !(e.getMessage().contains("Variables do not intersect with query: ?x") || e.getMessage().contains("unknown variable in order expression: ?x") || e.getMessage().contains("Unknown variable used in order expression: ?x")) ) {
+				if ( !(e.getMessage().contains("Variables do not intersect with query: ?z") || e.getMessage().contains("unknown variable in order expression: ?z") || e.getMessage().contains("Unknown variable used in order expression: ?z")) ) {
 					throw e;
 				}
 			}
 		}
     }
-    
+
     @Test
     @Category(TestSuites.Prepush.class)
     public void jenaGraphs_bug19491() throws Exception {
