@@ -78,10 +78,24 @@ import com.franz.util.Closer;
  * Implements the <a href="http://www.openrdf.org/">Sesame</a>
  * {@link RepositoryConnection} interface for AllegroGraph.
  * 
- * <p>By default, a connection is {@link #setAutoCommit(boolean) autoCommit}=true.
- * For ACID transactions, a session must be created.</p>
+ * <p>By default, a connection is in {@link #setAutoCommit(boolean)
+ * autoCommit} mode. Connections in this mode are said to be
+ * <i>shared</i>. Multiple shared connections may be serviced by the
+ * same server back-end process and they have no associated state,
+ * thus they do not support some functionality such as multi-step
+ * transactions and datatype mappings.</p>
+ *
+ * <p>Full functionality is offered by <i>dedicated</i> sessions at
+ * the cost of higher server resource requirements.</p>
+ *
+ * <p>Note that concurrent access to the same connection object of
+ * either kind is explicitly forbidden. The client must perform its
+ * own synchronization to ensure non-concurrent access. This is
+ * typically achieved by employing connection pooling (see {@link
+ * com.franz.agraph.pool.AGConnPool}) and having exactly one thread
+ * that uses each connection.</p>
  * 
- * <h3><a name="sessions">Session Overview</a></h3>
+ * <h3><a name="sessions">Dedicated Session Overview</a></h3>
  * 
  * <p>Sessions with AllegroGraph server are used for ACID transactions
  * and also for server code in InitFile and Scripts.
@@ -95,9 +109,10 @@ import com.franz.util.Closer;
  * {@link #setAutoCommit(boolean) setAutoCommit},
  * {@link #addRules(String) addRules}, and
  * {@link #registerSNAGenerator(String, List, List, List, String) registerSNAGenerator}
- * will spawn a dedicated session in order to perform their duties.
- * Adds and deletes during a session must be {@link #commit() committed}
- * or {@link #rollback() rolled back}.</p>
+ * will spawn a dedicated session (simply session, from now on) in
+ * order to perform their duties. Adds and deletes during a session
+ * must be {@link #commit() committed} or {@link #rollback() rolled
+ * back}.</p>
  * 
  * <p>A session expires when its idle {@link #setSessionLifetime(int) lifetime}
  * is exceeded, freeing up server resources.
