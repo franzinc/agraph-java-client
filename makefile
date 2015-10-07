@@ -1,5 +1,10 @@
 # Standard Franz make rules forward to ant targets.
 
+USRFIANT = $(shell if test -d /usr/fi/ant; then echo yes; fi)
+ifeq ($(USRFIANT),yes)
+export ANT_HOME = /usr/fi/ant
+endif
+
 # AGVERSION is supposed to be the branch name without the leading "v".
 AGVERSION ?= $(shell (git symbolic-ref -q HEAD 2>/dev/null || echo unknown) | sed 's,refs/heads/v,,')
 
