@@ -71,80 +71,109 @@ public class AGConnPoolClosingTest extends Closer {
     @Category(TestSuites.Stress.class)
     public void openAG() throws Exception {
     	final String repoName = "pool.openAG";
-		final AGConnPool pool = closeLater( AGConnPool.create(
-				AGConnProp.serverUrl, AGAbstractTest.findServerUrl(),
-				AGConnProp.username, AGAbstractTest.username(),
-				AGConnProp.password, AGAbstractTest.password(),
-				AGConnProp.catalog, AGAbstractTest.CATALOG_ID,
-				AGConnProp.repository, repoName,
-				AGConnProp.session, AGConnProp.Session.DEDICATED,
-				AGConnProp.sessionLifetime, TimeUnit.MINUTES.toSeconds(5),
-				AGPoolProp.shutdownHook, true,
-				AGPoolProp.initialSize, 2,
-				AGPoolProp.maxActive, 6,
-				AGPoolProp.maxWait, TimeUnit.SECONDS.toMillis(45),
-				AGPoolProp.maxIdle, 8
-				// AGPoolProp.minIdle, 2,
-				// AGPoolProp.timeBetweenEvictionRunsMillis, TimeUnit.MINUTES.toMillis(5),
-				// AGPoolProp.testWhileIdle, true
-		));
-		
-	Assert.assertEquals(pool.toString(), 0, pool.getNumActive());
+    	final AGConnPool pool = closeLater( AGConnPool.create(
+    			AGConnProp.serverUrl, AGAbstractTest.findServerUrl(),
+    			AGConnProp.username, AGAbstractTest.username(),
+    			AGConnProp.password, AGAbstractTest.password(),
+    			AGConnProp.catalog, AGAbstractTest.CATALOG_ID,
+    			AGConnProp.repository, repoName,
+    			AGConnProp.session, AGConnProp.Session.DEDICATED,
+    			AGConnProp.sessionLifetime, TimeUnit.MINUTES.toSeconds(5),
+    			AGPoolProp.shutdownHook, true,
+    			AGPoolProp.initialSize, 2,
+    			AGPoolProp.maxActive, 6,
+    			AGPoolProp.maxWait, TimeUnit.SECONDS.toMillis(45),
+    			AGPoolProp.maxIdle, 8
+    			// AGPoolProp.minIdle, 2,
+    			// AGPoolProp.timeBetweenEvictionRunsMillis, TimeUnit.MINUTES.toMillis(5),
+    			// AGPoolProp.testWhileIdle, true
+    	));
 
-	final int NUM = 10; // Number of workers
-	final int HOLD_TIME = 20; // seconds
+    	Assert.assertEquals(pool.toString(), 0, pool.getNumActive());
 
-	final AGServer server = AGAbstractTest.newAGServer();
-	AGCatalog catalog = server.getCatalog(AGAbstractTest.CATALOG_ID);
-	final AGRepository repo = closeLater(catalog.createRepository(repoName));
-	repo.setConnPool(pool);
+    	final int NUM = 10; // Number of workers
+    	final int HOLD_TIME = 5; // seconds
 
-        ExecutorService exec = Executors.newFixedThreadPool(NUM);
-        final List<Throwable> errors = new ArrayList<Throwable>();
-        for (int i = 0; i < NUM; i++) {
-			exec.execute(new Runnable() {
-				public void run() {
-					try {
-						AGRepositoryConnection conn = repo.getConnection();
-						try {
-							conn.size();
-							// Hold the connection for a while 
-							Thread.sleep(TimeUnit.SECONDS.toMillis(HOLD_TIME));
-							// Make sure it still works.
-							conn.size();
-						} finally {
-						    // Now return it to the pool.
-							conn.close();
-						}
-					} catch (Throwable e) {
-						errors.add(e);
-					}
-				}
-			});
-		}
-	/* Given the current configuration, 6 workers will be able to acquire a connection
-	   object.  The remaining 4 will block.  The original 6 will (in parallel)
-	   delay for HOLD_TIME seconds, return their connection to the pool, then terminate.
-	   The remaining 4 will them able to proceed.  So ultimately we will have two sets
-	   of delays, so that's how long we need to wait (plus some fudge to compensate for unexpected
-	   delays) */
-	final int WAIT_FUDGE = 5;
-        exec.awaitTermination(HOLD_TIME * 2 + WAIT_FUDGE, TimeUnit.SECONDS);
-        Assert.assertEquals(pool.toString(), 0, pool.getNumActive());
-        if (!errors.isEmpty()) {
-        	for (Throwable e : errors) {
-				log.error("error", e);
-			}
-        	Assert.fail("see log for details: " + errors.toString());
-        }
+    	final AGServer server = AGAbstractTest.newAGServer();
+    	AGCatalog catalog = server.getCatalog(AGAbstractTest.CATALOG_ID);
+    	final AGRepository repo = closeLater(catalog.createRepository(repoName));
+    	repo.setConnPool(pool);
 
-        close();
+    	ExecutorService exec = Executors.newFixedThreadPool(NUM);
+    	final List<Throwable> errors = new ArrayList<Throwable>();
+
+    	/* Start 10 worker threads, each of which will request a connection
+    	 * from the pool, perform a "size" request on it, sleep for 20 seconds,
+    	 * perform another "size" request, then return the connection to the pool.
+    	 */
+
+    	for (int i = 0; i < NUM; i++) {
+    		exec.execute(new Runnable() {
+    			public void run() {
+    				try {
+    					// FIXME: Figure out a way to have the workers identify themselves.
+    					//log.info("Worker connecting to repo");
+    					AGRepositoryConnection conn = repo.getConnection();
+    					//log.info("Worker got repo connection");
+    					try {
+    						//log.info("Worker performing first size operation");
+    						conn.size();
+    						//log.info("Worker sleeping for "+HOLD_TIME+" seconds");
+    						// Hold the connection for a while 
+    						Thread.sleep(TimeUnit.SECONDS.toMillis(HOLD_TIME));
+    						// Make sure it still works.
+    						//log.info("Worker performing second size operation");
+    						conn.size();
+    						//log.info("Worker terminating.");
+    					} finally {
+    						// Now return it to the pool.
+    						conn.close();
+    					}
+    				} catch (Throwable e) {
+    					errors.add(e);
+    				}
+    			}
+    		});
+    	}
+
+    	/* Given the current configuration, 6 workers will be able to acquire a connection
+	     * object.  The remaining 4 will block.  The original 6 will (in parallel)
+	     * delay for HOLD_TIME seconds, return their connection to the pool, then terminate.
+	     * The remaining 4 will then able to proceed.  So ultimately we will have two sets
+	     * of delays.  So, we wait for 2x HOLD_TIME plus an extra 30 seconds to be
+	     * friendly 
+	     */
+    	final int EXTRA_TIME  = 60;	
+    	final int WAIT_TIMEOUT = HOLD_TIME * 2 + EXTRA_TIME;
+    	exec.shutdown(); // Required before calling awaitTermination 
+    	/* Wait for all threads to terminate */
+    	if (!exec.awaitTermination(WAIT_TIMEOUT, TimeUnit.SECONDS)) {
+    		/* Timeout was reached before all threads terminated */
+    		Assert.fail("Not all worker threads terminated within "+WAIT_TIMEOUT+" seconds");
+    	}
+    	Assert.assertEquals(pool.toString(), 0, pool.getNumActive());
+    	
+    	/* Report any errors suffered by the worker threads */
+    	if (!errors.isEmpty()) {
+    		for (Throwable e : errors) {
+    			log.error("error", e);
+    		}
+    		Assert.fail("see log for details: " + errors.toString());
+    	}
+
+    	/* Close all registered closeLater items (which will be 'repo' and 'pool'). */
+    	close();
+    	
     	long start = System.nanoTime();
-        Map<String, String> sessions = Util.waitForSessions(server, repoName);
-        Assert.assertNull("Sessions alive " + TimeUnit.NANOSECONDS.toSeconds((System.nanoTime() - start)) + " seconds after closing: " + sessions, sessions);
-        close(server);
+    	/* Wait up to 30 seconds for all sessions accessing repoName to go away.
+    	 * Returns a map of the remaining sessions if the 30 second timeout is reached.
+    	 */
+    	Map<String, String> sessions = Util.waitForSessionsToGoAway(server, repoName);
+    	/* If everything went as planned, 'sessions' will be null */
+    	Assert.assertNull("Sessions alive " + TimeUnit.NANOSECONDS.toSeconds((System.nanoTime() - start)) + " seconds after closing: " + sessions, sessions);
+    	close(server);
     }
-    
+
 	private static List<String> netstatLinesToRegex(List<String> netstatBefore) throws Exception {
 		return Clj.map(new AFn() {
         	public Object invoke(Object netstatLine) {
@@ -241,7 +270,7 @@ public class AGConnPoolClosingTest extends Closer {
 
         final AGServer server = closeLater(AGAbstractTest.newAGServer());
         long start = System.nanoTime();
-        Map<String, String> sessions = Util.waitForSessions(server, repoName);
+        Map<String, String> sessions = Util.waitForSessionsToGoAway(server, repoName);
         Assert.assertNull("Sessions alive " + TimeUnit.NANOSECONDS.toSeconds((System.nanoTime() - start)) + " seconds after closing:\n" + sessions, sessions);
         close(server);
     }
@@ -290,7 +319,7 @@ public class AGConnPoolClosingTest extends Closer {
         
     	server = closeLater(AGAbstractTest.newAGServer());
     	long start = System.nanoTime();
-        Map<String, String> sessions = Util.waitForSessions(server, repoName);
+        Map<String, String> sessions = Util.waitForSessionsToGoAway(server, repoName);
         Assert.assertNull("Sessions alive " + TimeUnit.NANOSECONDS.toSeconds((System.nanoTime() - start)) + " seconds after closing: " + sessions, sessions);
         close(server);
     }

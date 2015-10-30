@@ -256,6 +256,11 @@ public class AGAbstractTest extends Closer {
 		return map;
 	}
 
+	/** Asks server for a list of active sessions.
+	 * @param server
+	 * @return a map of uri -> description pairs (both strings). 
+	 * @throws AGHttpException
+	 */
 	public static Map<String, String> sessions(AGServer server) throws AGHttpException {
 		String url = server.getServerURL() + "/" + AGProtocol.SESSION;
 		TupleQueryResult results = server.getHTTPClient().getTupleQueryResult(url);

@@ -349,15 +349,28 @@ public class Util {
 		});
 	}
 
-	public static Map<String, String> waitForSessions(final AGServer server, final String repoName) throws Exception {
+	/**
+	 * Waits up to 30 seconds for all sessions with repoName in the description to go away, polling once per 
+	 * second.
+	 * @param server
+	 * @param repoName
+	 * @return null if all sessions with repoName in the description have gone away within 30 seconds, otherwise returns
+	 * the last seen map of live sessions (uri/description pairs).
+	 * @throws Exception
+	 */
+	public static Map<String, String> waitForSessionsToGoAway(final AGServer server, final String repoName) throws Exception {
 		Map<String, String> sessions = Util.waitFor(TimeUnit.SECONDS, 1, 30, new Callable<Map<String, String>>() {
         	public Map<String, String> call() throws Exception {
+        		/* Ask server for a map of session uri/description entries */
         		Map<String, String> sessions = AGAbstractTest.sessions(server);
+        		/* Search for a session with repoName in its description */
 		        for (Entry<String, String> entry : sessions.entrySet()) {
 					if (entry.getValue().contains(repoName)) {
+						/* Found a session with repoName in its description.  Return the sessions map. */
 						return sessions;
 					}
 				}
+				/* Did not find a session with repoName in its description */
 		        return null;
 			}
 		});
