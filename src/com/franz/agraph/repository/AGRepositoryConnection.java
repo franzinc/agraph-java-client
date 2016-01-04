@@ -226,7 +226,7 @@ implements RepositoryConnection, Closeable {
 	}
 
 	/**
-	 * Returns the lower level HTTP/Storage layer for this connection.
+	 * Returns the lower level HTTP layer for this connection.
 	 * 
 	 */
 	public AGHttpRepoClient getHttpRepoClient() {
@@ -2172,7 +2172,17 @@ implements RepositoryConnection, Closeable {
 		return !getHttpRepoClient().isAutoCommit();
 	}
 	
-	
+	/**
+	 * Removes all statement(s) within the specified contexts.
+	 *
+	 * @param contexts
+	 *        The context(s) to remove the data from. Note that this parameter is
+	 *        a vararg and as such is optional. If no contexts are supplied the
+	 *        method operates on the entire repository.
+	 * @throws RepositoryException
+	 *         If the statement(s) could not be removed from the repository, for
+	 *         example because the repository is not writable.
+	 */
 	public void clear(Resource... contexts)
 			throws RepositoryException
 		{
