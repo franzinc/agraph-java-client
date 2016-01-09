@@ -339,7 +339,7 @@ reside in the background graph.
 <p>The connection object's <strong>prepareTupleQuery()</strong> method
   creates a query object that can be evaluated one or more times. (A &quot;tuple&quot; is an ordered sequence of data elements.)   The results are returned in a TupleQueryResult iterator that gives access to a sequence of bindingSets.</p>
 <pre class="input">            AGTupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);<br>            TupleQueryResult result = tupleQuery.evaluate();</pre>
-<p>Below we illustrate one (rather heavyweight) method for extracting the values
+<p>Below we illustrate one method for extracting the values
   from a binding set, indexed by the name of the corresponding column variable
 in the SELECT clause.</p>
 <pre class="input">            try {<br>                while (result.hasNext()) {<br>                    BindingSet bindingSet = result.next();<br>                    Value s = bindingSet.getValue(&quot;s&quot;);<br>                    Value p = bindingSet.getValue(&quot;p&quot;);<br>                    Value o = bindingSet.getValue(&quot;o&quot;);<br>                    System.out.format(&quot;%s %s %s\n&quot;, s, p, o);<br>                }</pre>
