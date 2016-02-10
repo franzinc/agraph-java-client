@@ -897,8 +897,8 @@ public class TutorialTests extends AGAbstractTest {
     @Test
     public void example21() throws Exception {
     	AGValueFactory vf = repo.getValueFactory();
-    	conn.add(new File("src/tutorial/java-lesmis.rdf"), null, RDFFormat.RDFXML);
-    	assertEquals("Loaded java-lesmis.rdf triples.", 916, conn.size());
+    	conn.add(new File("src/tutorial/lesmis.rdf"), null, RDFFormat.RDFXML);
+    	assertEquals("Loaded lesmis.rdf triples.", 916, conn.size());
     	
         // Create URIs for relationship predicates.
     	String lmns = "http://www.franz.com/lesmis#";
@@ -1165,13 +1165,13 @@ public class TutorialTests extends AGAbstractTest {
         AGRepositoryConnection conKennedy = getConnection();
         conKennedy.setAutoCommit(false);
         String baseURI = "http://example.org/example/local";
-        conLesmis.add(new File("src/tutorial/java-lesmis.rdf"), baseURI, RDFFormat.RDFXML);
-        assertEquals("Loaded java-lesmis.rdf triples via conn1.", 916, conLesmis.size());
+        conLesmis.add(new File("src/tutorial/lesmis.rdf"), baseURI, RDFFormat.RDFXML);
+        assertEquals("Loaded lesmis.rdf triples via conn1.", 916, conLesmis.size());
         
         conKennedy.add(new File("src/tutorial/java-kennedy.ntriples"), baseURI, RDFFormat.NTRIPLES);
         assertEquals("Loaded java-kennedy.ntriples via conn2.", 1214, conKennedy.size());
         
-        //        println("Since conn1 is in autoCommit mode, java-lesmis.rdf triples are committed " +
+        //        println("Since conn1 is in autoCommit mode, lesmis.rdf triples are committed " +
         //        		"and retrievable via conn2.  Since conn2 is not in autoCommit mode, and " +
         //        		"no commit() has yet been issued on conn2, kennedy.rdf triples are not " +
         //        		" retrievable via conn1.");

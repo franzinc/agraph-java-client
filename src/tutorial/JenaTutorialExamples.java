@@ -853,12 +853,12 @@ public class JenaTutorialExamples {
         AGModel model2 = new AGModel(maker2.getGraph());
         model2.begin();
         String baseURI = "http://example.org/example/local";
-        model1.read(new FileInputStream("src/tutorial/java-lesmis.rdf"), baseURI);
-        println("Loaded " + model1.size() + " java-lesmis.rdf triples via conn1.");
+        model1.read(new FileInputStream("src/tutorial/lesmis.rdf"), baseURI);
+        println("Loaded " + model1.size() + " lesmis.rdf triples via conn1.");
         model2.read(new FileInputStream("src/tutorial/java-kennedy.ntriples"), baseURI, "N-TRIPLE");
         println("Loaded " + model2.size() + " java-kennedy.ntriples via conn2.");
         
-        println("\nSince model1 is not in a transaction, java-lesmis.rdf triples are committed " +
+        println("\nSince model1 is not in a transaction, lesmis.rdf triples are committed " +
         		"and retrievable via model2.  Since model2 is in a transaction, and " +
         		"no commit() has yet been issued on model2, kennedy.rdf triples are not " +
         		" retrievable via model1.");

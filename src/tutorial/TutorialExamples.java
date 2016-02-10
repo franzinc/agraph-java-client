@@ -2012,8 +2012,8 @@ public class TutorialExamples {
     public static void example21() throws Exception {
     	AGRepositoryConnection conn = example1(false);
     	AGValueFactory vf = conn.getValueFactory();
-    	conn.add(new File("src/tutorial/java-lesmis.rdf"), null, RDFFormat.RDFXML);
-    	println("Loaded " + conn.size() + " java-lesmis.rdf triples.");
+    	conn.add(new File("src/tutorial/lesmis.rdf"), null, RDFFormat.RDFXML);
+    	println("Loaded " + conn.size() + " lesmis.rdf triples.");
     	
         // Create URIs for relationship predicates.
     	String lmns = "http://www.franz.com/lesmis#";
@@ -2485,12 +2485,12 @@ public class TutorialExamples {
         conn2.setSessionLifetime(120);
         conn2.setAutoCommit(false);
         String baseURI = "http://example.org/example/local";
-        conn1.add(new File("src/tutorial/java-lesmis.rdf"), baseURI, RDFFormat.RDFXML);
-        println("Loaded " + conn1.size() + " java-lesmis.rdf triples via conn1.");
+        conn1.add(new File("src/tutorial/lesmis.rdf"), baseURI, RDFFormat.RDFXML);
+        println("Loaded " + conn1.size() + " lesmis.rdf triples via conn1.");
         conn2.add(new File("src/tutorial/java-kennedy.ntriples"), baseURI, RDFFormat.NTRIPLES);
         println("Loaded " + conn2.size() + " java-kennedy.ntriples via conn2.");
         
-        println("\nSince conn1 is in autoCommit mode, java-lesmis.rdf triples are committed " +
+        println("\nSince conn1 is in autoCommit mode, lesmis.rdf triples are committed " +
         		"and retrievable via conn2.  Since conn2 is not in autoCommit mode, and " +
         		"no commit() has yet been issued on conn2, kennedy.rdf triples are not " +
         		" retrievable via conn1.");

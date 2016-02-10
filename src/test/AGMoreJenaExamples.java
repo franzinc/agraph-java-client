@@ -37,7 +37,7 @@ public class AGMoreJenaExamples extends JenaTutorialExamples {
     	AGGraphMaker maker = example1(false);
 		AGModel agmodel = new AGModel(maker.createGraph());
 		OntModel model = ModelFactory.createOntologyModel(new OntModelSpec(OntModelSpec.OWL_DL_MEM));
-        model.read(new FileInputStream("src/tutorial/java-lesmis.rdf"), null);
+        model.read(new FileInputStream("src/tutorial/lesmis.rdf"), null);
         println("Read " + model.size() + " lesmis.rdf triples.");
 		agmodel.add(model);
 		println("Add yields " + agmodel.size() + " triples in agmodel.");
