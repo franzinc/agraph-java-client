@@ -403,10 +403,6 @@ public class AGConnPoolClosingTest extends Closer {
         	query.evaluate(handler);
     	}
     	catch (QueryEvaluationException e) {
-    		//In failure situation the error message is expected to be similar in content to:
-    		//  org.openrdf.query.QueryEvaluationException: com.franz.agraph.http.exception.AGHttpException: Possible session port connection failure. Consult the Server Installation document for correct settings for SessionPorts. Url: http://localhost:29005/sessions/9475d245-3c15-d054-9e7b-000c293de094. Documentation: http://www.franz.com/agraph/support/documentation/v5/server-installation.html#sessionport
-    		//   at com.franz.agraph.repository.AGQuery.evaluate(AGQuery.java:287)
-    		
     		Assert.fail("HttpSessionManager no configured properly in com.franz.agraph.pool.AGConnFactory");
     	}
     	

@@ -41,7 +41,7 @@ import com.franz.util.Closer;
  * on which data is manipulated and queried.
  * <p>
  * AGServer provides methods for <a target="_top"
- *    href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#header2-223"
+ *    href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#get-user-permissions"
  *    >User (and Role) Management</a>.
  * <p> 
  * AGServer also provides {@link #federate(AGAbstractRepository...) federated} repositories.
@@ -107,7 +107,7 @@ public class AGServer implements Closeable {
 	 * SSLCertificate /path/agraph.cert
 	 * SSLCAFile /path/ca.cert
 	 * </pre></code>
-	 * For more details, see <a href="http://www.franz.com/agraph/support/documentation/v5/daemon-config.html#header2-10">Server configuration</a>.
+	 * For more details, see <a href="http://www.franz.com/agraph/support/documentation/current/daemon-config.html#client-index">Server configuration</a>.
 	 * <p>
 	 * @param httpClient the AGHTTPClient instance to use
 	 * @see #AGServer(String)
@@ -141,7 +141,7 @@ public class AGServer implements Closeable {
 	 * SSLCertificate /path/agraph.cert
 	 * SSLCAFile /path/ca.cert
 	 * </pre></code>
-	 * For more details, see <a href="http://www.franz.com/agraph/support/documentation/v5/daemon-config.html#header2-10">Server configuration</a>.
+	 * For more details, see <a href="http://www.franz.com/agraph/support/documentation/current/daemon-config.html#client-index">Server configuration</a>.
 	 * <p>
 	 * @param serverURL the URL of the server (trailing slashes are removed).
 	 * @see #AGServer(String, String, String)
@@ -532,7 +532,7 @@ public class AGServer implements Closeable {
 	 * Returns a list of permissions for a user.
 	 * <p>
 	 * Permissions are documented  
-	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#header2-223"
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#get-user-permissions"
 	 * target="_top">here</a>.
 	 * <p>
 	 * 
@@ -550,7 +550,7 @@ public class AGServer implements Closeable {
 	 * Includes the permission granted to roles that this user has.
 	 * <p>
 	 * Permissions are documented  
-	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#header2-223"
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#get-user-permissions"
 	 * target="_top">here</a>.
 	 * <p>
 	 * 
@@ -833,7 +833,7 @@ public class AGServer implements Closeable {
 	 * Returns a list of permissions for a role.
 	 * <p>
 	 * Permissions are documented  
-	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#header2-223"
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#get-role-permissions"
 	 * target="_top">here</a>.
 	 * <p>
 	 * 
