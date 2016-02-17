@@ -1,6 +1,6 @@
 # Franz AllegroGraph client API for Java and Clojure
 
-Client API to [Franz AllegroGraph](http://www.franz.com/agraph/)
+Client API to [Franz AllegroGraph](http://franz.com/agraph/)
 triple store database, version 4.
 
 This [agraph-java-client](http://github.com/franzinc/agraph-java-client) provides:
@@ -10,12 +10,12 @@ This [agraph-java-client](http://github.com/franzinc/agraph-java-client) provide
   * Adapter for Jena
 * Clojure client API
 
-[AllegroGraph Docs](http://www.franz.com/agraph/support/documentation/v5/)
+[AllegroGraph Docs](http://franz.com/agraph/support/documentation/current/)
 
 
 ## Server Prerequisites
 
-* [Download AllegroGraph](http://www.franz.com/agraph/downloads/)
+* [Download AllegroGraph](http://franz.com/agraph/downloads/)
   version 4
   * Requires Linux 64-bit or a Linux VM on Windows or Mac OS X
 * Install AllegroGraph
@@ -25,7 +25,7 @@ This [agraph-java-client](http://github.com/franzinc/agraph-java-client) provide
 
 ## Download options
 
-[Distribution from Franz](http://www.franz.com/agraph/allegrograph/clients.lhtml)
+[Distribution from Franz](http://franz.com/agraph/allegrograph/clients.lhtml)
 
 [Maven repository](http://clojars.org/groups/com.franz)
 
@@ -47,9 +47,9 @@ Supports SPARQL and Prolog queries.
 The primary public package is
 <code>com.franz.agraph.repository</code>.
 
-[Javadocs](http://www.franz.com/agraph/support/documentation/v5/javadoc/index.html)
+[Javadocs](http://franz.com/agraph/support/documentation/current/javadoc/index.html)
 
-[Tutorial](http://www.franz.com/agraph/support/documentation/v5/java-tutorial/java-tutorial.html)
+[Tutorial](http://franz.com/agraph/support/documentation/current/java-tutorial/java-tutorial.html)
 
 
 ### Jena
@@ -58,9 +58,9 @@ The primary public package is
 
 The primary public package is <code>com.franz.agraph.jena</code>.
 
-[Javadocs](http://www.franz.com/agraph/support/documentation/v5/javadoc/index.html)
+[Javadocs](http://franz.com/agraph/support/documentation/current/javadoc/index.html)
 
-[Tutorial](http://www.franz.com/agraph/support/documentation/v5/java-tutorial/jena-tutorial.html)
+[Tutorial](http://franz.com/agraph/support/documentation/current/java-tutorial/jena-tutorial.html)
 
 
 ## Clojure
@@ -100,7 +100,7 @@ For more help, see
 ### Usage with Ant
 
 The [agraph-java-client
-download](http://www.franz.com/agraph/allegrograph/clients.lhtml)
+download](http://franz.com/agraph/allegrograph/clients.lhtml)
 includes jar files for agraph-java-client and jars on which it depends.
 
 The agraph-clj.jar file can be created using ant
