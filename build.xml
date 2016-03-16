@@ -73,7 +73,9 @@
                debug="true"
                includes="**/*.java"
                includeAntRuntime="false"
-               classpathref="classpath"/>
+               classpathref="classpath">
+	  <!-- <compilerarg value="-Xlint:deprecation"/> -->
+	</javac>
     </target>
     
     <target name="jar"
