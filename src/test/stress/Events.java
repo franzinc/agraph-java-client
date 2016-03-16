@@ -113,7 +113,7 @@ public class Events extends Closer {
         
         static int PHASE = 1;
         
-        static int STATUS = 50;
+        static int STATUS = 500;
         
         static int VERBOSE = 0;
         
