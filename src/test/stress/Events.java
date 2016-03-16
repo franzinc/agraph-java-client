@@ -67,6 +67,7 @@ import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
 import com.franz.agraph.repository.AGStreamTupleQuery;
+import com.franz.agraph.repository.AGBooleanQuery;
 import com.franz.agraph.repository.AGTupleQuery;
 import com.franz.util.Closeable;
 import com.franz.util.Closer;
@@ -111,7 +112,7 @@ public class Events extends Closer {
         // The repository name
         static String REPOSITORY = "events_test";
         
-        static int PHASE = 1;
+        static int START_PHASE = 1;
         
         static int STATUS = 500;
         
@@ -123,7 +124,7 @@ public class Events extends Closer {
         
         static String PASSWORD = password();
         
-        static boolean MONITOR = true;
+        static boolean MONITOR = false;
 
         static boolean BULKMODE = false;
 
@@ -137,7 +138,8 @@ public class Events extends Closer {
         }
         
         static LOGT LOG = LOGT.ALL;
-        
+
+	/* FIXME: What do each of these mean? */
         public enum STREAM {
             NONE, PULL, HAND, PULH;
         }
@@ -198,8 +200,8 @@ public class Events extends Closer {
         public static void init(String[] args) throws Exception {
             Options options = new Options();
             options.addOption(new Option("h", "help", false, "print this message"));
-            options.addOption(OptionBuilder.withLongOpt("sparql")
-                    .withDescription("Use only sparql, no prolog [default is prolog]")
+            options.addOption(OptionBuilder.withLongOpt("delete-using-prolog")
+                    .withDescription("Use prolog to delete triples in phase 6.  Default is to use SPARQL")
                     .create());
             options.addOption(OptionBuilder.withLongOpt("open")
                     .withDescription("OPEN the repository and add to it [default is to SUPERSEDE]")
@@ -279,7 +281,7 @@ public class Events extends Closer {
                     .create());
             options.addOption(OptionBuilder.withLongOpt("phase")
                     .withArgName("1-6").hasArg()
-                    .withDescription("Run the test starting at phase 1-6 [default=" + PHASE + "]")
+                    .withDescription("Run the test starting at phase 1-6 [default=" + START_PHASE + "]")
                     .create());
             options.addOption(OptionBuilder.withLongOpt("monitor")
                     .withArgName("true|false").hasArg()
@@ -343,7 +345,7 @@ public class Events extends Closer {
             URL = cmdVal("url", URL);
             USERNAME = cmdVal("username", USERNAME);
             PASSWORD = cmdVal("password", PASSWORD);
-            PHASE = cmdVal("phase", PHASE);
+            START_PHASE = cmdVal("phase", START_PHASE);
             MONITOR = cmdVal("monitor", MONITOR);
             LOG = cmdVal("log", LOG);
             stream = cmdVal("stream", stream);
@@ -505,7 +507,7 @@ public class Events extends Closer {
 
     private static class ThreadVars {
         private static ThreadLocal<ValueFactory> valueFactory = new ThreadLocal<ValueFactory>();
-        private static ThreadLocal<RandomDate> dateMaker = new ThreadLocal<RandomDate>();
+        private static ThreadLocal<RandomDateMaker> dateMaker = new ThreadLocal<RandomDateMaker>();
         private static ThreadLocal<DatatypeFactory> datatypeFactory = new ThreadLocal<DatatypeFactory>() {
             protected DatatypeFactory initialValue() {
                 DatatypeFactory factory = null;
@@ -520,27 +522,36 @@ public class Events extends Closer {
         };
     }
     
-    private static class RandomDate {
+    /* This is a class which will return random (by way of getRandom)
+       GregorianCalendar's between a given start and end
+       GregorianCalendar */
+    private static class RandomDateMaker {
         public GregorianCalendar start, end;
-        int seconds;
+        int seconds; // The number of seconds in the range
         
-        public RandomDate(GregorianCalendar theStart, GregorianCalendar theEnd) {
+        public RandomDateMaker(GregorianCalendar theStart, GregorianCalendar theEnd) {
             assert theStart.before(theEnd);
             start = theStart;
             end = theEnd;
             seconds = (int) ((end.getTimeInMillis() - start.getTimeInMillis()) / 1000L); 
         }
-        
+
+	/* Return a random GregorianCalendar between the start and end GregorianCalendar's */
         public GregorianCalendar getRandom() {
             GregorianCalendar rand = (GregorianCalendar) start.clone();
             rand.setTimeInMillis(rand.getTimeInMillis() + RANDOM.nextInt(seconds)*1000L);
             return rand;
         }
         
-        public RandomDate next(int field, int val) {
+	/* Returns a new RandomDateMaker object representing a range
+	   of 30 days beyond the end of "this" date range.  
+
+	   WARNING: field and val are not actually used!! I don't know
+	   what their intended use was.  */
+        public RandomDateMaker next(int field, int val) {
             GregorianCalendar c = (GregorianCalendar) end.clone();
             c.add(Calendar.DAY_OF_YEAR, 30);
-            return new RandomDate(end, c);
+            return new RandomDateMaker(end, c);
         }
         
         @Override
@@ -551,17 +562,17 @@ public class Events extends Closer {
         
     }
     
-    static private final RandomDate BaselineRange = new RandomDate(new GregorianCalendar(2008, Calendar.JANUARY, 1),
+    static private final RandomDateMaker BaselineRange = new RandomDateMaker(new GregorianCalendar(2008, Calendar.JANUARY, 1),
             new GregorianCalendar(2008, Calendar.FEBRUARY, 1));
-    static private final RandomDate BulkRange = new RandomDate(BaselineRange.end,
+    static private final RandomDateMaker BulkRange = new RandomDateMaker(BaselineRange.end,
             new GregorianCalendar(2009, Calendar.JANUARY, 1));
-    static private final RandomDate SmallCommitsRange = new RandomDate(BulkRange.end,
+    static private final RandomDateMaker SmallCommitsRange = new RandomDateMaker(BulkRange.end,
             new GregorianCalendar(2009, Calendar.FEBRUARY, 1));
-    static private final RandomDate DeleteRangeOne = new RandomDate(BaselineRange.start,
-            new GregorianCalendar(2008, Calendar.JANUARY, 16));
-    static private final RandomDate DeleteRangeTwo = new RandomDate(DeleteRangeOne.end,
+    static private final RandomDateMaker DeleteRangeOne = new RandomDateMaker(BaselineRange.start,
+            new GregorianCalendar(2008, Calendar.JANUARY, 31));
+    static private final RandomDateMaker DeleteRangeTwo = new RandomDateMaker(DeleteRangeOne.end,
             BaselineRange.end);
-    static private final RandomDate FullDateRange = new RandomDate(BaselineRange.start,
+    static private final RandomDateMaker FullDateRange = new RandomDateMaker(BaselineRange.start,
             SmallCommitsRange.end);
 
     private static interface RandomCallback {
@@ -868,10 +879,10 @@ public class Events extends Closer {
         private long loopCount;
         private int eventsPerCommit;
         private int triplesPerCommit;
-        private final RandomDate dateMaker;
+        private final RandomDateMaker dateMaker;
         private final ConnectionHolder connHolder;
         
-        public Loader(int theId, long theTripleGoal, int theEventsPerCommit, RandomDate dateMaker) throws Exception {
+        public Loader(int theId, long theTripleGoal, int theEventsPerCommit, RandomDateMaker dateMaker) throws Exception {
             id = theId;
             this.dateMaker = dateMaker;
             triplesPerCommit = theEventsPerCommit * Defaults.EVENT_SIZE;
@@ -947,11 +958,11 @@ public class Events extends Closer {
         private int secondsToRun;
         private int id;
         private String timestamp;
-        private final RandomDate dateMaker;
+        private final RandomDateMaker dateMaker;
         private final QueryLanguage language;
         private ConnectionHolder connHolder;
         
-        public Querier(int theId, int theSecondsToRun, RandomDate dateMaker, QueryLanguage lang) throws Exception {
+        public Querier(int theId, int theSecondsToRun, RandomDateMaker dateMaker, QueryLanguage lang) throws Exception {
             id = theId;
             secondsToRun = theSecondsToRun;
             this.dateMaker = dateMaker;
@@ -1186,10 +1197,10 @@ public class Events extends Closer {
     
     class Deleter implements Callable<Object>, Closeable {
             
-        private final RandomDate range;
+        private final RandomDateMaker range;
         private ConnectionHolder connHolder;
         
-        public Deleter(RandomDate range) throws Exception {
+        public Deleter(RandomDateMaker range) throws Exception {
             this.range = range;
             connHolder = new ConnectionHolder();
         }
@@ -1198,13 +1209,13 @@ public class Events extends Closer {
             Thread.currentThread().setName("deleter(" + range + ")");
             connHolder.begin();
             String timestamp = NTriplesUtil.toNTriplesString(ThreadVars.valueFactory.get().createURI(Defaults.NS, "EventTimeStamp"));
-            int limit = (9 * (int) Math.pow(10,5))/Defaults.EVENT_SIZE;
             
             // interval is 1 day's worth of milliseconds.
             long interval = 24*60*60*1000;
             
             GregorianCalendar start, eod;
             start = range.start;
+	    /* eod: eod of day */
             eod = (GregorianCalendar) range.start.clone();
             eod.setTimeInMillis(eod.getTimeInMillis() + interval);
             
@@ -1213,16 +1224,23 @@ public class Events extends Closer {
             endNT = NTriplesUtil.toNTriplesString(CalendarToValue(eod));
             connHolder.end();
             
-            long events = 0;
-            long count = 0;
-            if (Defaults.VERBOSE > 0) {
-                trace("deleting %s to %s", start, eod);
-            }
-            
+	    DateFormat f = SimpleDateFormat.getDateInstance();
+
+	    if (Defaults.hasOption("delete-using-prolog")) {
+		trace("Deleting using Prolog");
+	    } else {
+		trace("Deleting using SPARQL");
+	    }
+
+	    /* Issue delete requests covering one day at a time */
             while (start.before(range.end)) {
-                if (Defaults.hasOption("sparql")) {
+		if (Defaults.VERBOSE > 0) {
+		    trace("deleting " + f.format(start.getTime()) +  " to " + f.format(eod.getTime()));
+		}
+	    
+                if (!Defaults.hasOption("delete-using-prolog")) {
                     queryString = String.format(
-                            "select ?s ?p ?o " +
+                            "delete { ?s ?p ?o } " +
                             "where { " +
                             "    ?s %s ?date . " +
                             "    filter ( ( ?date >= %s ) && ( ?date <= %s ) ) . " +
@@ -1233,41 +1251,26 @@ public class Events extends Closer {
                         trace(queryString);
                     }
                     connHolder.begin();
-                    AGTupleQuery query = connHolder.use().prepareTupleQuery(AGQueryLanguage.SPARQL, queryString);
-                    query = streamQuery(query);
-                    TupleQueryResult result = null;
-                    count = 0;
+		    AGBooleanQuery query = connHolder.use().prepareBooleanQuery(AGQueryLanguage.SPARQL, queryString);
                     try {
-                        long before = connHolder.use().size();
-                        if (Defaults.stream == Defaults.STREAM.HAND || Defaults.stream == Defaults.STREAM.PULH) {
-                                DeletingHandler handler = new DeletingHandler(connHolder.use());
-                                query.evaluate(handler);
-                            count = handler.count;
-                        } else {
-                            result = query.evaluate();
-                            while (result.hasNext()) {
-                                BindingSet bs = result.next();
-                                connHolder.use().remove(ThreadVars.valueFactory.get().createStatement(
-                                        (BNode)bs.getValue("s"),
-                                        (URI)bs.getValue("p"),
-                                        bs.getValue("o")));
-                                count++;
-                            }
-                        }
-                        long sizeDiff = before - connHolder.use().size();
-                        if (Defaults.VERBOSE > 0 && count != sizeDiff) {
-                            trace("delete counts differ: size-diff: %d, query-count: %d", count, sizeDiff);
-                        }
+			/* The result always appears to be true.  We don't get back useful information
+			   such as the number of triples that have been deleted */
+			boolean result = query.evaluate();
+
+			if (result != true) {
+			    trace("Got non-true response");
+			}
+
                     } catch (Exception e) {
                         errors++;
                         trace("Error executing query:\n%s\n", queryString);
                         e.printStackTrace();
-                        count = -1;
-                    } finally {
-                            Events.this.close(result);
                     }
                     connHolder.end();
                 } else {
+		    /* FIXME: What is this doing? */
+		    int limit = (9 * (int) Math.pow(10,5))/Defaults.EVENT_SIZE;
+
                     queryString = String.format("(select0 (?event)" +
                             "(:limit %d) (:count-only t)" +
                             "(q- ?event !%s (? !%s !%s))" +
@@ -1278,12 +1281,7 @@ public class Events extends Closer {
                     connHolder.begin();
                     AGTupleQuery tupleQuery = connHolder.use().prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
                     try {
-                        long before = connHolder.use().size();
-                        long count1 = tupleQuery.count();
-                        count = before - connHolder.use().size();
-                        if (Defaults.VERBOSE > 0 && count != count1) {
-                            trace("delete counts differ: size-diff: %d, query-count: %d", count, count1);
-                        }
+                        tupleQuery.count();
                     } catch (Exception e) {
                         errors++;
                         trace("Error executing query:\n%s\n", queryString);
@@ -1291,22 +1289,17 @@ public class Events extends Closer {
                     }
                     connHolder.end();
                 }
-                events += count;
-                
-                if (count == 0) {
-                    trace("Finished deleting %d triples, %tF.", events, start);
-                    start = eod;
-                    connHolder.begin();
-                    startNT = NTriplesUtil.toNTriplesString(CalendarToValue(start));
-                    eod = (GregorianCalendar) start.clone();
-                    eod.setTimeInMillis(eod.getTimeInMillis() + interval);
-                    endNT = NTriplesUtil.toNTriplesString(CalendarToValue(eod));
-                    connHolder.end();
-                }
+		
+		// Advance to the next day
+		start = eod;
+		connHolder.begin();
+		startNT = NTriplesUtil.toNTriplesString(CalendarToValue(start));
+		eod = (GregorianCalendar) start.clone();
+		eod.setTimeInMillis(eod.getTimeInMillis() + interval);
+		endNT = NTriplesUtil.toNTriplesString(CalendarToValue(eod));
+		connHolder.end();
             }
-            
-            trace("Found %d events (%d triples) to delete.", events, events * Defaults.EVENT_SIZE);
-            
+
             return -1;
         }
 
@@ -1511,7 +1504,7 @@ public class Events extends Closer {
             ExecutorService executor = Executors.newFixedThreadPool(Defaults.LOAD_WORKERS);
             
             /////////////////////////////////////////////////////////////////////// PHASE 1
-            if (Defaults.PHASE <= 1) {
+            if (Defaults.START_PHASE <= 1) {
                 start = System.currentTimeMillis();
                 trace("Phase 0 Begin: Launching child load workers.");
                 List<Callable<Object>> tasks = new ArrayList<Callable<Object>>(Defaults.LOAD_WORKERS);
@@ -1530,7 +1523,7 @@ public class Events extends Closer {
                 triplesEnd = conn.size();
                 triples = triplesEnd - triplesStart;
                 seconds = (end - start) / 1000.0;
-                trace("Phase 1 End: %d total triples added in %.1f seconds " +
+                trace("Phase 1 End: %d total triples added in %.3f seconds " +
                                 "(%.2f triples/second, %.2f commits/second). " +
                                 "Store contains %d triples.", triples, logtime(seconds),
                                 logtime(triples/seconds),
@@ -1542,7 +1535,7 @@ public class Events extends Closer {
             }
             
             /////////////////////////////////////////////////////////////////////// PHASE 2
-            if (Defaults.PHASE <= 2) {
+            if (Defaults.START_PHASE <= 2) {
                 triplesStart = triplesEnd;
                 List<Callable<Object>> tasks = new ArrayList<Callable<Object>>(Defaults.LOAD_WORKERS);
                 for (int task = 0; task < (Defaults.LOAD_WORKERS); task++) {
@@ -1556,7 +1549,7 @@ public class Events extends Closer {
                 triplesEnd = conn.size();
                 triples = triplesEnd - triplesStart;
                 seconds = (end - start) / 1000.0;
-                trace("Phase 2 End: %d total triples bulk-loaded in %.1f seconds " +
+                trace("Phase 2 End: %d total triples bulk-loaded in %.3f seconds " +
                                 "(%.2f triples/second, %.2f commits/second). " +
                                 "Store contains %d triples.", triples, seconds, triples/seconds,
                                 triples/Defaults.BULK_EVENTS/Defaults.EVENT_SIZE/seconds, triplesEnd);
@@ -1567,7 +1560,7 @@ public class Events extends Closer {
             }
             
             /////////////////////////////////////////////////////////////////////// PHASE 3
-            if (Defaults.PHASE <= 3) {
+            if (Defaults.START_PHASE <= 3) {
                 triplesStart = triplesEnd;
                 List<Callable<Object>> tasks = new ArrayList<Callable<Object>>(Defaults.LOAD_WORKERS);
                 for (int task = 0; task < Defaults.LOAD_WORKERS; task++) {
@@ -1582,7 +1575,7 @@ public class Events extends Closer {
                 triplesEnd = conn.size();
                 triples = triplesEnd - triplesStart;
                 seconds = (end - start) / 1000.0;
-                trace("Phase 3 End: %d total triples added in %.1f seconds " +
+                trace("Phase 3 End: %d total triples added in %.3f seconds " +
                                 "(%.2f triples/second, %.2f commits/second). " +
                                 "Store contains %d triples.", triples, seconds, triples/seconds,
                                 triples/Defaults.EVENT_SIZE/seconds, triplesEnd);
@@ -1594,14 +1587,13 @@ public class Events extends Closer {
             }
         }
         
-        /////////////////////////////////////////////////////////////////////// PHASE 4
-        if (Defaults.PHASE <= 4) {
-            if (Defaults.QUERY_WORKERS > 0 && Defaults.PHASE > 0) {
+        /////////////////////////////////////////////////////////////////////// PHASE 4 & 5
+        if (Defaults.START_PHASE <= 4) {
+            if (Defaults.QUERY_WORKERS > 0 && Defaults.START_PHASE > 0) {
                 long start = System.currentTimeMillis(), end;
                 double seconds;
 
                 trace("Phase 0 Begin: Launching child query workers.");
-
                 ExecutorService executor = Executors.newFixedThreadPool(Defaults.QUERY_WORKERS);
                 List<Callable<Object>> sparqlQueriers = new ArrayList<Callable<Object>>(Defaults.QUERY_WORKERS);
                 List<Callable<Object>> prologQueriers = new ArrayList<Callable<Object>>(Defaults.QUERY_WORKERS);
@@ -1614,6 +1606,7 @@ public class Events extends Closer {
                 end = System.currentTimeMillis();
                 seconds = (end - start) / 1000.0;
                 trace("Phase 0 End: Initial query_workers took " + seconds + " seconds.");
+
                 trace("Phase 4 Begin: Perform SPARQL queries with %d processes for %d %s.",
                       Defaults.QUERY_WORKERS,
                       Defaults.QUERY_SIZE == 0 ? Defaults.QUERY_TIME : Defaults.QUERY_SIZE,
@@ -1622,7 +1615,6 @@ public class Events extends Closer {
                 int queries = 0;
                 long triples = 0;
                 start = System.currentTimeMillis();
-                // sparql first, then prolog second
                 try {
                     List<Future<Object>> fs = executor.invokeAll(sparqlQueriers);
                     for (Future<Object> f : fs) {
@@ -1640,7 +1632,7 @@ public class Events extends Closer {
                 end = System.currentTimeMillis();
                 seconds = (end - start) / 1000.0;
                 trace("Phase 4 End: %d total triples returned over %d queries in " +
-                      "%.1f seconds (%.2f triples/second, %.2f queries/second, " +
+                      "%.3f seconds (%.2f triples/second, %.2f queries/second, " +
                       "%d triples/query) MemUsed %d.", triples, queries, logtime(seconds),
                       logtime(triples/seconds), logtime(queries/seconds), triples/queries,
                       ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getUsed());
@@ -1648,7 +1640,7 @@ public class Events extends Closer {
 
                 closeAll(sparqlQueriers);
 
-                trace("Phase 5 Begin: Perform SPARQL queries with %d processes for %d %s.",
+                trace("Phase 5 Begin: Perform Prolog queries with %d processes for %d %s.",
                       Defaults.QUERY_WORKERS,
                       Defaults.QUERY_SIZE == 0 ? Defaults.QUERY_TIME : Defaults.QUERY_SIZE,
                       Defaults.QUERY_SIZE == 0 ? "minutes" : "queries");
@@ -1656,7 +1648,6 @@ public class Events extends Closer {
                 queries = 0;
                 triples = 0;
                 start = System.currentTimeMillis();
-                // sparql first, then prolog second
                 try {
                     List<Future<Object>> fs = executor.invokeAll(prologQueriers);
                     for (Future<Object> f : fs) {
@@ -1674,18 +1665,19 @@ public class Events extends Closer {
                 end = System.currentTimeMillis();
                 seconds = (end - start) / 1000.0;
                 trace("Phase 5 End: %d total triples returned over %d queries in " +
-                      "%.1f seconds (%.2f triples/second, %.2f queries/second, " +
+                      "%.3f seconds (%.2f triples/second, %.2f queries/second, " +
                       "%d triples/query).", triples, queries, logtime(seconds),
                       logtime(triples/seconds), logtime(queries/seconds), triples/queries);
                 Monitor.stop(5, conn);
 
-                executor.shutdown();
                 closeAll(prologQueriers);
+
+                executor.shutdown();
             }
         }
         
-        /////////////////////////////////////////////////////////////////////// PHASE 5
-        if (Defaults.PHASE <= 6 && Defaults.DELETE_WORKERS > 0) {
+        /////////////////////////////////////////////////////////////////////// PHASE 6
+        if (Defaults.START_PHASE <= 6 && Defaults.DELETE_WORKERS > 0) {
             long triplesStart = conn.size();
             long start = System.currentTimeMillis(), end;
             double seconds;
@@ -1701,7 +1693,7 @@ public class Events extends Closer {
             end = System.currentTimeMillis();
             seconds = (end - start) / 1000.0;
             trace("Phase 0 End: Initial delete_workers took " + seconds + " seconds.");
-            trace("Phase 6 Begin: Shrink store by 1 month.");
+            trace("Phase 6 Begin: Delete events.");
             Monitor.start(6);
             start = System.currentTimeMillis();
             invokeAndGetAll(executor, tasks);
@@ -1709,20 +1701,20 @@ public class Events extends Closer {
             closeAll(tasks);
             executor.shutdown();
             long triplesEnd = conn.size();
-            long triples = triplesEnd - triplesStart;
+            long triples = triplesStart - triplesEnd;
             seconds = (end - start) / 1000.0;
-            trace("Phase 6 End: %d total triples deleted in %.1f seconds " +
-                  "(%.2f triples/second). Store contains %d triples.", triples,
-                  logtime(seconds), logtime(triples/seconds), triplesEnd);
+            trace("Phase 6 End: %d total triples deleted in %.3f seconds " +
+                  "(%.2f triples/second). Store contains %d triples.", 
+		  triples, logtime(seconds), logtime(triples/seconds), triplesEnd);
             Monitor.stop(6, conn);
         }
         
-        if (Defaults.PHASE <= 7 && Defaults.MIXED_RUNS != 0) {
+        if (Defaults.START_PHASE <= 7 && Defaults.MIXED_RUNS != 0) {
             Monitor.start(7);
-            RandomDate smallCommitsRange = SmallCommitsRange;
-            RandomDate fullDateRange = FullDateRange;
-            RandomDate deleteRangeOne = DeleteRangeOne;
-            RandomDate deleteRangeTwo = DeleteRangeTwo;
+            RandomDateMaker smallCommitsRange = SmallCommitsRange;
+            RandomDateMaker fullDateRange = FullDateRange;
+            RandomDateMaker deleteRangeOne = DeleteRangeOne;
+            RandomDateMaker deleteRangeTwo = DeleteRangeTwo;
             
             ExecutorService executor = Executors.newFixedThreadPool(Defaults.LOAD_WORKERS + Defaults.QUERY_WORKERS + 2);
             for (int run=0; run < Defaults.MIXED_RUNS || Defaults.MIXED_RUNS == -1; run++) {
@@ -1731,7 +1723,7 @@ public class Events extends Closer {
                 long added = 0;
                 long deleted = 0;
                 smallCommitsRange = smallCommitsRange.next(Calendar.DAY_OF_YEAR, 30);
-                fullDateRange = new RandomDate(deleteRangeTwo.end, smallCommitsRange.end);
+                fullDateRange = new RandomDateMaker(deleteRangeTwo.end, smallCommitsRange.end);
                 deleteRangeOne = deleteRangeTwo.next(Calendar.DAY_OF_YEAR, 15);
                 deleteRangeTwo = deleteRangeOne.next(Calendar.DAY_OF_YEAR, 15);
                 
@@ -1779,7 +1771,7 @@ public class Events extends Closer {
                 long end = System.currentTimeMillis();
                 double seconds = (end - start) / 1000.0;
                 trace("Phase 6 End: %d total triples returned over %d queries in " +
-                                "%.1f seconds (%.2f triples/second, %.2f queries/second, " +
+                                "%.3f seconds (%.2f triples/second, %.2f queries/second, " +
                                 "%d triples/query, %d triples added, %d deletes).", triples, queries,
                                 logtime(seconds), logtime(triples/seconds), logtime(queries/seconds),
                                 (queries==0 ? 0 : triples/queries), added, deleted);
