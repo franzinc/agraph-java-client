@@ -457,6 +457,76 @@ public class Events extends Closer {
         }
     }
 
+    private class Measure {
+    		String name;
+    		double value;
+    		
+    		Measure(String name, double value) {
+    			this.name=name;
+    			this.value=value;
+    		}
+    		
+    		@Override
+    		public String toString() {
+    			return "(" + this.name + " . " + this.value + ")";
+    		}
+    		
+    }
+    
+    private class PhaseMeasures {
+    		String phase;
+    		List<Measure> measures = new ArrayList<Measure>();
+    		
+    		PhaseMeasures(String phase) {
+    			this.phase=phase;
+    		}
+    		
+    		void add(Measure m) {
+    			measures.add(m);
+    		}
+    		
+    		@Override
+    		public String toString() {
+    			StringBuilder res = new StringBuilder();
+    			
+    			res.append("(\""+phase+"\" . (");
+    			for (Measure m : measures) {
+    				res.append(m.toString());
+    			}
+    			res.append("))");
+    			
+    			return res.toString();
+    		}
+    }
+    
+    List<PhaseMeasures> phaseMeasures = new ArrayList<PhaseMeasures>();
+    
+    PhaseMeasures addPhaseMeasures(String phase) {
+    	PhaseMeasures pm = new PhaseMeasures(phase);
+    	
+    	phaseMeasures.add(pm);
+    	return pm;
+    }
+    
+    String phaseMeasuresToString() {
+    	StringBuilder res = new StringBuilder();
+    	boolean first = true;
+    	
+    	res.append("(");
+    	for (PhaseMeasures pm : phaseMeasures) {
+    		if (first) {
+    			first=false;
+    		} else{
+    			res.append(" ");
+    		}
+    		res.append(pm.toString());
+    	}
+    	res.append(")");
+    	
+    	return res.toString();
+    }
+    
+    
     public class ConnectionHolder {
         private AGRepositoryConnection conn;
 
@@ -1523,6 +1593,7 @@ public class Events extends Closer {
                 triplesEnd = conn.size();
                 triples = triplesEnd - triplesStart;
                 seconds = (end - start) / 1000.0;
+                addPhaseMeasures("Phase 1 (small commits)").add(new Measure("seconds", seconds));
                 trace("Phase 1 End: %d total triples added in %.3f seconds " +
                                 "(%.2f triples/second, %.2f commits/second). " +
                                 "Store contains %d triples.", triples, logtime(seconds),
@@ -1549,6 +1620,7 @@ public class Events extends Closer {
                 triplesEnd = conn.size();
                 triples = triplesEnd - triplesStart;
                 seconds = (end - start) / 1000.0;
+                addPhaseMeasures("Phase 2 (big commits)").add(new Measure("seconds", seconds));
                 trace("Phase 2 End: %d total triples bulk-loaded in %.3f seconds " +
                                 "(%.2f triples/second, %.2f commits/second). " +
                                 "Store contains %d triples.", triples, seconds, triples/seconds,
@@ -1575,6 +1647,7 @@ public class Events extends Closer {
                 triplesEnd = conn.size();
                 triples = triplesEnd - triplesStart;
                 seconds = (end - start) / 1000.0;
+                addPhaseMeasures("Phase 3 (small commits)").add(new Measure("seconds", seconds));
                 trace("Phase 3 End: %d total triples added in %.3f seconds " +
                                 "(%.2f triples/second, %.2f commits/second). " +
                                 "Store contains %d triples.", triples, seconds, triples/seconds,
@@ -1631,6 +1704,7 @@ public class Events extends Closer {
                 }
                 end = System.currentTimeMillis();
                 seconds = (end - start) / 1000.0;
+                addPhaseMeasures("Phase 4 (SPARQL queries)").add(new Measure("seconds", seconds));
                 trace("Phase 4 End: %d total triples returned over %d queries in " +
                       "%.3f seconds (%.2f triples/second, %.2f queries/second, " +
                       "%d triples/query) MemUsed %d.", triples, queries, logtime(seconds),
@@ -1664,6 +1738,7 @@ public class Events extends Closer {
                 }
                 end = System.currentTimeMillis();
                 seconds = (end - start) / 1000.0;
+                addPhaseMeasures("Phase 5 (Prolog queries)").add(new Measure("seconds", seconds));
                 trace("Phase 5 End: %d total triples returned over %d queries in " +
                       "%.3f seconds (%.2f triples/second, %.2f queries/second, " +
                       "%d triples/query).", triples, queries, logtime(seconds),
@@ -1703,6 +1778,7 @@ public class Events extends Closer {
             long triplesEnd = conn.size();
             long triples = triplesStart - triplesEnd;
             seconds = (end - start) / 1000.0;
+            addPhaseMeasures("Phase 6 (deletes)").add(new Measure("seconds", seconds));
             trace("Phase 6 End: %d total triples deleted in %.3f seconds " +
                   "(%.2f triples/second). Store contains %d triples.", 
 		  triples, logtime(seconds), logtime(triples/seconds), triplesEnd);
@@ -1792,6 +1868,7 @@ public class Events extends Closer {
         
         trace("Test completed in %.1f total seconds - store contains %d triples (%d triples added/removed).",
                 logtime(totalSeconds), triplesEnd, triples);
+        trace("MEASURES: "+phaseMeasuresToString());
     }
     
     private <Type> void invokeAndGetAll(ExecutorService executor,
