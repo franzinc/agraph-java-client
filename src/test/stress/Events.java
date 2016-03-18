@@ -389,6 +389,7 @@ public class Events extends Closer {
         }
         formatter.format(format, values);
         System.out.println(sb.toString());
+        formatter.close();
     }
 
     private AGRepositoryConnection connect() throws RepositoryException {
@@ -1822,7 +1823,7 @@ public class Events extends Closer {
                 long start = System.currentTimeMillis();
                 try {
                     List<Future<Object>> fs = executor.invokeAll(tasks);
-                    for (Future f : fs) {
+                    for (Future<Object> f : fs) {
                         Object o = f.get();
                         if (o instanceof QueryResult) {
                             QueryResult queryResult = (QueryResult) o;
@@ -1875,7 +1876,7 @@ public class Events extends Closer {
             List<Callable<Type>> tasks) {
         try {
             List<Future<Type>> fs = executor.invokeAll(tasks);
-            for (Future f : fs) {
+            for (Future<Type> f : fs) {
                 f.get();
             }
         } catch (InterruptedException e) {
