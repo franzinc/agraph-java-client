@@ -1,5 +1,8 @@
 #!/bin/bash -eu
 
+# Report Java version first
+java -version
+
 java -cp classes:agraph.jar\
 :lib/commons-cli-1.2.jar\
 :lib/commons-pool-1.5.6.jar\
