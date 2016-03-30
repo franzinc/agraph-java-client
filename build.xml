@@ -73,6 +73,7 @@
                debug="true"
                includes="**/*.java"
                includeAntRuntime="false"
+	       compiler="modern"
                classpathref="classpath">
 	  <!-- <compilerarg value="-Xlint:deprecation"/> -->
 	</javac>
