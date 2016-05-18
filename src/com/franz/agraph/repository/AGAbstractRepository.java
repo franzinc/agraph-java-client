@@ -12,17 +12,22 @@ import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryException;
 import com.franz.util.Closeable;
 
+import java.util.concurrent.ScheduledExecutorService;
+
 /**
  * 
  */
 public interface AGAbstractRepository extends Repository, Closeable {
 
-	public String getSpec();
+	String getSpec();
 	
-	public AGValueFactory getValueFactory();
+	AGValueFactory getValueFactory();
 	
-	public AGRepositoryConnection getConnection() throws RepositoryException;
+	AGRepositoryConnection getConnection() throws RepositoryException;
+
+	AGRepositoryConnection getConnection(ScheduledExecutorService executor)
+			throws RepositoryException;
 	
-	public AGCatalog getCatalog();
+	AGCatalog getCatalog();
 
 }

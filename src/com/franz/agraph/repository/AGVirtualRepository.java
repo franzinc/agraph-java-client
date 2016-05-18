@@ -9,6 +9,7 @@
 package com.franz.agraph.repository;
 
 import java.io.File;
+import java.util.concurrent.ScheduledExecutorService;
 
 import org.openrdf.model.Resource;
 import org.openrdf.repository.RepositoryException;
@@ -82,15 +83,21 @@ public class AGVirtualRepository extends RepositoryBase implements AGAbstractRep
 		return vf;
 	}
 	
-	public AGRepositoryConnection getConnection() throws RepositoryException {
+	public AGRepositoryConnection getConnection(final ScheduledExecutorService executor)
+			throws RepositoryException {
 		AGHTTPClient client = server.getHTTPClient();
 		AGHttpRepoClient repoclient;
 		try {
-			repoclient = new AGHttpRepoClient(this, client, null, client.openSession(spec, true));
+			repoclient = new AGHttpRepoClient(
+					this, client, null, client.openSession(spec, true), executor);
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
 		return new AGRepositoryConnection(this, repoclient);
+	}
+
+	public AGRepositoryConnection getConnection() throws RepositoryException {
+		return this.getConnection(server.getExecutor());
 	}
 
 	/**

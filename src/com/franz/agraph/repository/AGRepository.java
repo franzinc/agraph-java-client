@@ -9,6 +9,8 @@
 package com.franz.agraph.repository;
 
 import java.io.File;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.NameValuePair;
@@ -33,7 +35,6 @@ import com.franz.agraph.pool.AGConnPool;
  * the {@link AGRepositoryConnection} returned by {@link #getConnection()}.
  */
 public class AGRepository extends RepositoryBase implements AGAbstractRepository {
-
 	private final AGCatalog catalog;
 	private final String repositoryID;
 	private final String catalogPrefixedRepositoryID;
@@ -44,7 +45,7 @@ public class AGRepository extends RepositoryBase implements AGAbstractRepository
 	/**
 	 * Creates an AGRepository instance for a repository having the given
 	 * repository id in the given catalog.
-	 * 
+	 *
 	 * <p>Preferred access is from {@link AGCatalog} methods
 	 * such as {@link AGCatalog#createRepository(String, boolean)}
 	 * or {@link AGCatalog#openRepository(String)}.
@@ -60,35 +61,35 @@ public class AGRepository extends RepositoryBase implements AGAbstractRepository
 
 	/**
 	 * Gets the catalog to which this repository belongs.
-	 * 
+	 *
 	 * @return the catalog.
 	 */
 	public AGCatalog getCatalog() {
 		return catalog;
 	}
-	
+
 	/**
 	 * Gets the repository id for this repository.
-	 * 
+	 *
 	 * @return the repository id.
 	 */
 	public String getRepositoryID() {
 		return repositoryID;
 	}
-	
+
 	public String getCatalogPrefixedRepositoryID() {
 		return catalogPrefixedRepositoryID;
 	}
-	
+
 	/**
 	 * The AllegroGraph URL of this repository.
-	 * 
+	 *
 	 * @return the URL of this repository.
 	 */
 	public String getRepositoryURL() {
 		return repositoryURL;
 	}
-	
+
 	public AGValueFactory getValueFactory() {
 		return vf;
 	}
@@ -106,14 +107,29 @@ public class AGRepository extends RepositoryBase implements AGAbstractRepository
 
 	/**
 	 * Create a connection to the repository.
+	 * @param executor Executor service used to schedule maintenance tasks,
+	 *                 such as calling ping() periodically.
+	 *                 Set to null to disable such tasks.
+	 *                 Call {@link #getConnection()} to use the default executor
+	 *                 specified by the server object.
+	 *                 This argument is ignored if connection pooling is used.
 	 */
-	public AGRepositoryConnection getConnection() throws RepositoryException {
+	public AGRepositoryConnection getConnection(ScheduledExecutorService executor)
+			throws RepositoryException {
 		if (pool!=null) {
 			return pool.borrowConnection();
 		} else {
-			AGHttpRepoClient repoclient = new AGHttpRepoClient(this, getCatalog().getHTTPClient(), repositoryURL, null);
+			AGHttpRepoClient repoclient = new AGHttpRepoClient(
+					this, getCatalog().getHTTPClient(), repositoryURL, null, executor);
 			return new AGRepositoryConnection(this, repoclient);
 		}
+	}
+
+	/**
+	 * Create a connection to the repository.
+	 */
+	public AGRepositoryConnection getConnection() throws RepositoryException {
+		return getConnection(catalog.getServer().getExecutor());
 	}
 
 	/**
@@ -164,7 +180,7 @@ public class AGRepository extends RepositoryBase implements AGAbstractRepository
 	}
 
 	/**
-	 * The dataDir is not currently applicable to AllegroGraph. 
+	 * The dataDir is not currently applicable to AllegroGraph.
 	 * @deprecated not applicable to AllegroGraph
 	 */
 	@Override
@@ -187,11 +203,11 @@ public class AGRepository extends RepositoryBase implements AGAbstractRepository
 
     /**
      * Sets the repository's bulkMode (defaults to false).
-     * 
-     * When in bulkMode, data can be added/loaded more quickly, but 
+     *
+     * When in bulkMode, data can be added/loaded more quickly, but
      * there is no guarantee of durability in the event of a crash.
      * The bulkMode setting persists when the repository is closed.
-     * 
+     *
      * @see #isBulkMode()
      */
 	public void setBulkMode(boolean bulkMode) throws RepositoryException {
@@ -211,7 +227,7 @@ public class AGRepository extends RepositoryBase implements AGAbstractRepository
 
 	/**
 	 * Returns the repository's bulkMode setting.
-	 *  
+	 *
 	 * @return a boolean indicating the bulkMode setting.
 	 * @see #setBulkMode(boolean)
 	 */
@@ -222,23 +238,23 @@ public class AGRepository extends RepositoryBase implements AGAbstractRepository
 			throw new RepositoryException(e);
 		}
 	}
-	
+
 	/**
 	 * Sets the repository's duplicate suppression policy.
-	 * 
-	 * This determines how/whether duplicates will be automatically removed at 
-	 * commit time.  
-	 *  
-	 * Legal policy names are "false" (turns automatic suppression off), 
-	 * "spo" (removes statements with the same s, p, and o), and "spog" 
+	 *
+	 * This determines how/whether duplicates will be automatically removed at
+	 * commit time.
+	 *
+	 * Legal policy names are "false" (turns automatic suppression off),
+	 * "spo" (removes statements with the same s, p, and o), and "spog"
 	 * (compares s, p, o, and g).
-	 * 
-	 * For on-demand duplicate deletion, see 
+	 *
+	 * For on-demand duplicate deletion, see
 	 * {@link AGRepositoryConnection#deleteDuplicates(String)}.
-	 * 
+	 *
 	 * See also the protocol documentation for
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#get-suppress-duplicates">suppressing duplicates</a>.
-	 * @param policy name of the suppression policy to use 
+	 * @param policy name of the suppression policy to use
 	 * @see #getDuplicateSuppressionPolicy()
 	 */
 	public void setDuplicateSuppressionPolicy(String policy) throws RepositoryException {
@@ -251,10 +267,10 @@ public class AGRepository extends RepositoryBase implements AGAbstractRepository
 			throw new RepositoryException(e);
 		}
 	}
-	
+
 	/**
 	 * Returns the repository's duplicate suppression policy.
-	 *  
+	 *
 	 * @return the policy name.
 	 * @see #setDuplicateSuppressionPolicy(String)
 	 */
@@ -267,35 +283,35 @@ public class AGRepository extends RepositoryBase implements AGAbstractRepository
 	}
 
 	/**
-	 * Sets the connection pool to use with this repository. 
+	 * Sets the connection pool to use with this repository.
 	 * <p>
 	 * Enables the repository to use a connection pool so that Sesame
-	 * apps can transparently benefit from connection pooling.  If pool 
-	 * is not null, getConnection() borrows a connection from the pool, 
+	 * apps can transparently benefit from connection pooling.  If pool
+	 * is not null, getConnection() borrows a connection from the pool,
 	 * and closing the connection returns it to the pool.  The pool is
 	 * closed when the Repository is shutdown.
-	 * 
+	 *
 	 * <p><code><pre>
 	 * Note that the AGConnPool parameters:
-	 *  
+	 *
 	 * 		AGConnProp.serverUrl, "http://localhost:10035",
 	 * 		AGConnProp.username, "test",
 	 * 		AGConnProp.password, "xyzzy",
 	 * 		AGConnProp.catalog, "/",
 	 * 		AGConnProp.repository, "my_repo",
-	 * 
+	 *
 	 * are currently assumed to match those of this repository.
 	 * </pre></code></p>
-	 * 
+	 *
 	 * @see AGConnPool
 	 */
 	public void setConnPool(AGConnPool pool) {
 		this.pool = pool;
 	}
-	
+
     /**
-     * Forces a checkpoint for this repository. 
-     * 
+     * Forces a checkpoint for this repository.
+     *
      * This is an internal and undocumented function.
      */
 	public void forceCheckpoint() throws RepositoryException {
@@ -304,10 +320,10 @@ public class AGRepository extends RepositoryBase implements AGAbstractRepository
 		NameValuePair[] data = {};
 		getHTTPClient().post(url,hdr,data,null,null);
 	}
-	
+
     /**
      * Waits until background db processes have gone idle.
-     * 
+     *
      * This is an internal and undocumented function.
      */
 	public void ensureDBIdle() throws RepositoryException {
@@ -316,5 +332,4 @@ public class AGRepository extends RepositoryBase implements AGAbstractRepository
 		NameValuePair[] data = {};
 		getHTTPClient().post(url,hdr,data,null,null);
 	}
-
 }

@@ -11,6 +11,7 @@ package test;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import com.franz.agraph.repository.AGRepository;
 import junit.framework.Assert;
 
 import org.junit.Test;
@@ -82,30 +83,31 @@ public class SessionTests extends AGAbstractTest {
 	@Test
 	@Category(TestSuites.Prepush.class)
 	public void sessionLifetime_rfe9436() throws Exception {
-	// Seconds
-	int conn2Life = 5; 
-	/* This is how long past conn2Life we allow for the server to expire the session */
-	int timeoutFudge = 2;
-	/* The +10 is to allow for delays due to system load.  Don't make it too big, otherwise
-	   the test will take unnecessarily long */
-	int connLife = conn2Life + timeoutFudge + 10; 
+		// Seconds
+		int conn2Life = 5;
+		/* This is how long past conn2Life we allow for the server to expire the session */
+		int timeoutFudge = 2;
+		/* The +10 is to allow for delays due to system load.  Don't make it too big, otherwise
+		   the test will take unnecessarily long */
+		int connLife = conn2Life + timeoutFudge + 10;
 
-	int conn3Life = 30;
-	
-	
-	AGAbstractRepository repo = conn.getRepository();
+		int conn3Life = 30;
 
-	        Assert.assertEquals("expected default session lifetime ", AGHttpRepoClient.getDefaultSessionLifetime(),conn.getSessionLifetime());
+		AGAbstractRepository repo = conn.getRepository();
+		// Pass null as the executor argument to disable the automatic pinger.
+		AGRepositoryConnection conn1 = repo.getConnection(null);
+
+		Assert.assertEquals("expected default session lifetime ", AGHttpRepoClient.getDefaultSessionLifetime(),conn.getSessionLifetime());
 		
-		conn.setSessionLifetime(connLife);
-		Assert.assertEquals("expected lifetime "+connLife, connLife, conn.getSessionLifetime());
+		conn1.setSessionLifetime(connLife);
+		Assert.assertEquals("expected lifetime "+connLife, connLife, conn1.getSessionLifetime());
 
-		AGRepositoryConnection conn2 = repo.getConnection();
+		AGRepositoryConnection conn2 = repo.getConnection(null);
 		Assert.assertEquals("expected default session lifetime ", AGHttpRepoClient.getDefaultSessionLifetime(),conn2.getSessionLifetime());
 		conn2.setSessionLifetime(conn2Life);
 		Assert.assertEquals("expected lifetime "+conn2Life, conn2Life, conn2.getSessionLifetime());
 		// Make sure changes to conn2's session lifetime do not affect conn.
-		Assert.assertEquals("expected lifetime "+connLife, connLife, conn.getSessionLifetime());
+		Assert.assertEquals("expected lifetime "+connLife, connLife, conn1.getSessionLifetime());
 
 		AGHttpRepoClient.setDefaultSessionLifetime(conn3Life);
 		Assert.assertEquals("expected default session lifetime "+conn3Life, conn3Life, AGHttpRepoClient.getDefaultSessionLifetime());
@@ -113,10 +115,10 @@ public class SessionTests extends AGAbstractTest {
 		Assert.assertEquals("expected session lifetime "+conn3Life, conn3Life, conn3.getSessionLifetime());
 		// Make sure the other connection lifetimes are still unaffected
 		Assert.assertEquals("expected lifetime "+conn2Life, conn2Life, conn2.getSessionLifetime());
-		Assert.assertEquals("expected lifetime "+connLife, connLife, conn.getSessionLifetime());
+		Assert.assertEquals("expected lifetime "+connLife, connLife, conn1.getSessionLifetime());
 
 		logTimeStamped("conn.setAutoCommit(false);");
-		conn.setAutoCommit(false);
+		conn1.setAutoCommit(false);
 		logTimeStamped("conn2.setAutoCommit(false);");
 		conn2.setAutoCommit(false);
 		
@@ -132,7 +134,7 @@ public class SessionTests extends AGAbstractTest {
 
 		// Reset conn's session timer
 		logTimeStamped("conn.ping();");
-		conn.ping(); 
+		conn1.ping();
 
 		/* Verify that conn's session timer was really reset.
 		   Up to this point we've already consumed at least
@@ -151,7 +153,7 @@ public class SessionTests extends AGAbstractTest {
 		
 		/* If the prior ping didn't really reset the session timer, this will fail */
 		logTimeStamped("conn.size();");
-		conn.size(); // fails if ping doesn't work
+		conn1.size(); // fails if ping doesn't work
 
 		// Verify that closing expired conn2's session throws an exception 
 		try {
@@ -163,6 +165,16 @@ public class SessionTests extends AGAbstractTest {
 
 		conn3.close();
 		// conn is closed in test tearDown
-    }
+	}
 
+	@Test
+	@Category(TestSuites.Prepush.class)
+	public void sessionLifetime_rfe14296() throws Exception {
+		int connLife = 2;
+		conn.setSessionLifetime(connLife);
+		int sleepTime = 2 * connLife * 1000;
+		logTimeStamped("Thread.sleep(" + sleepTime + ")");
+		Thread.sleep(sleepTime);
+		conn.size();   // should not fail
+	}
 }

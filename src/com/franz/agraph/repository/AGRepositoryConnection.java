@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
@@ -113,10 +114,18 @@ import com.franz.util.Closer;
  * order to perform their duties. Adds and deletes during a session
  * must be {@link #commit() committed} or {@link #rollback() rolled
  * back}.</p>
- * 
- * <p>A session expires when its idle {@link #setSessionLifetime(int) lifetime}
- * is exceeded, freeing up server resources.
- * A session lifetime may be extended by calling {@link #ping() ping}.
+ *
+ * <p>To conserve resources, the server will drop a session when
+ * its idle {@link #setSessionLifetime(int) lifetime} is exceeded.
+ * To avoid this, the client periodically sends a {@link #ping() ping}
+ * message to the server. This automated behavior can be controlled
+ * by changing the executor used to schedule maintenance tasks.
+ * This can be done either in the
+ * {@link AGServer#setExecutor(ScheduledExecutorService)} server}
+ * object or when creating a new connection with
+ * {@link AGRepository#getConnection(ScheduledExecutorService)}.</p>
+ *
+ * <p>
  * A session should be {@link #close() closed} when finished.
  * </p>
  * 
@@ -1450,8 +1459,9 @@ implements RepositoryConnection, Closeable {
 
 	/**
 	 * Instructs the server to extend the life of this connection's dedicated
-	 * session, if it is using one.  Such connections that are idle for its
-	 * session lifetime will be closed by the server.
+	 * session, if it is using one.  Sessions that are idle for more than the session
+	 * lifetime will be terminated by the server.
+	 * <p>Note that this method is called automatically before the timeout expires.</p>
 	 * 
 	 * <p>See <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#sessions">session overview</a> 
 	 * and <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#get-ping"

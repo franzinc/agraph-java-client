@@ -24,6 +24,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.NameValuePair;
@@ -78,7 +81,7 @@ import com.franz.util.Closeable;
 
 /**
  * The HTTP layer for interacting with AllegroGraph.
- * 
+ *
  * TODO: rename this class.
  */
 public class AGHttpRepoClient implements Closeable {
@@ -86,28 +89,28 @@ public class AGHttpRepoClient implements Closeable {
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	private static int defaultSessionLifetimeInSeconds = 3600;
-	
+
 	/**
-	 * Gets the default lifetime of sessions spawned by any instance 
+	 * Gets the default lifetime of sessions spawned by any instance
 	 * unless otherwise specified by {@link #setSessionLifetime(int)}
 	 */
 	public static long getDefaultSessionLifetime() {
 		return defaultSessionLifetimeInSeconds;
 	}
-	
+
 	/**
 	 * Sets the default lifetime of sessions spawned by any instance
 	 * when none is specified by {@link #setSessionLifetime(int)}
-	 * 
+	 *
 	 * Defaults to 3600 seconds (1 hour).
-	 * 
+	 *
 	 * @param lifetimeInSeconds
 	 */
 	public static void setDefaultSessionLifetime(int lifetimeInSeconds)
 	{
 		defaultSessionLifetimeInSeconds = lifetimeInSeconds;
 	}
-	
+
 	private int lifetimeInSeconds = defaultSessionLifetimeInSeconds;
 
 	// delay using a dedicated session until necessary
@@ -117,7 +120,7 @@ public class AGHttpRepoClient implements Closeable {
 	private String sessionRoot, repoRoot;
 	private boolean loadInitFile = false;
 	private List<String> scripts = null;
-	
+
 	// TODO: choose proper defaults
 	private TupleQueryResultFormat preferredTQRFormat = TupleQueryResultFormat.SPARQL;
 	private BooleanQueryResultFormat preferredBQRFormat = BooleanQueryResultFormat.TEXT;
@@ -129,16 +132,28 @@ public class AGHttpRepoClient implements Closeable {
 	public ConcurrentLinkedQueue<String> savedQueryDeleteQueue;
 
 	private boolean allowExternalBlankNodeIds = false;
-	
 
-    public AGHttpRepoClient(AGAbstractRepository repo, AGHTTPClient client, String repoRoot, String sessionRoot) {
+	// Used to create the pinger task
+	private final ScheduledExecutorService executor;
+	// Pinger task handle
+	private ScheduledFuture<?> pinger;
+
+    public AGHttpRepoClient(AGAbstractRepository repo, AGHTTPClient client,
+							String repoRoot, String sessionRoot,
+							ScheduledExecutorService executor) {
 		this.repo = repo;
 		this.sessionRoot = sessionRoot;
 		this.repoRoot = repoRoot;
 		this.client = client;
+		this.executor = executor;
 		savedQueryDeleteQueue = new ConcurrentLinkedQueue<String>();
 	}
-    
+
+	public AGHttpRepoClient(AGAbstractRepository repo, AGHTTPClient client,
+							String repoRoot, String sessionRoot) {
+		this(repo, client, repoRoot,sessionRoot, repo.getCatalog().getServer().getExecutor());
+	}
+
     @Override
     public String toString() {
 		return "{" + super.toString()
@@ -156,7 +171,7 @@ public class AGHttpRepoClient implements Closeable {
 
 	/**
 	 * Returns true if using the main server port for sessions.
-	 * 
+	 *
 	 * Gets System property com.franz.agraph.http.useMainPortForSessions
 	 * (defaults to false).
 	 */
@@ -164,7 +179,7 @@ public class AGHttpRepoClient implements Closeable {
 		boolean b = Boolean.parseBoolean(System.getProperty("com.franz.agraph.http.useMainPortForSessions","false"));
 		logger.debug("com.franz.agraph.http.useMainPortForSessions=" + b);
 		return b;
-	}	
+	}
 
 	private boolean overrideServerUseMainPortForSessions() {
 		boolean b = Boolean.parseBoolean(System.getProperty("com.franz.agraph.http.overrideServerUseMainPortForSessions","false"));
@@ -178,36 +193,36 @@ public class AGHttpRepoClient implements Closeable {
 
 	/**
 	 * Sets the 'lifetime' for a dedicated session spawned by this instance.
-	 * 
-	 * @param lifetimeInSeconds an integer number of seconds 
+	 *
+	 * @param lifetimeInSeconds an integer number of seconds
 	 */
 	public void setSessionLifetime(int lifetimeInSeconds) {
 		this.lifetimeInSeconds = lifetimeInSeconds;
 	}
-	
+
 	/**
 	 * Returns the 'lifetime' for a dedicated session spawned by this instance.
-	 * 
+	 *
 	 * @return lifetime in seconds
 	 */
 	public int getSessionLifetime() {
 		return lifetimeInSeconds;
 	}
-	
+
 	/**
 	 * Sets the 'loadInitFile' for a dedicated session spawned by this instance.
 	 */
 	public void setSessionLoadInitFile(boolean loadInitFile) {
 		this.loadInitFile = loadInitFile;
 	}
-	
+
 	/**
 	 * Returns the 'loadInitFile' for a dedicated session spawned by this instance.
 	 */
 	public boolean getSessionLoadInitFile() {
 		return loadInitFile;
 	}
-	
+
 	/**
 	 * Adds a 'script' for a dedicated session spawned by this instance.
 	 */
@@ -217,7 +232,7 @@ public class AGHttpRepoClient implements Closeable {
 		}
 		this.scripts.add(scriptName);
 	}
-	
+
 	public TupleQueryResultFormat getPreferredTQRFormat() {
 		return preferredTQRFormat;
 	}
@@ -238,12 +253,12 @@ public class AGHttpRepoClient implements Closeable {
 	/**
 	 * Gets the default RDFFormat to use in making requests that
 	 * return RDF statements; the format should support contexts.
-	 * 
+	 *
 	 * Gets System property com.franz.agraph.http.defaultRDFFormat
 	 * (NQUADS and TRIX are currently supported), defaults to TRIX
 	 * if the property is not present, and returns the corresponding
 	 * RDFFormat.
-	 * 
+	 *
 	 * @return an RDFFormat, either NQUADS or TRIX
 	 */
 	public RDFFormat getDefaultRDFFormat() {
@@ -251,13 +266,13 @@ public class AGHttpRepoClient implements Closeable {
 		logger.debug("Defaulting to " + format.getDefaultMIMEType() + " for requests that return RDF statements.");
 		return format;
 	}
-	
+
 	/**
 	 * Gets the RDFFormat to use in making requests that return
 	 * RDF statements.
-	 * 
+	 *
 	 * Defaults to the format returned by {@link #getDefaultRDFFormat()}
-	 * 
+	 *
 	 * @return an RDFFormat, either NQUADS or TRIX
 	 */
 	public RDFFormat getPreferredRDFFormat() {
@@ -267,10 +282,10 @@ public class AGHttpRepoClient implements Closeable {
 	/**
 	 * Sets the RDFFormat to use in making requests that return
 	 * RDF statements; the format should support contexts.
-	 * 
+	 *
 	 * AGRDFFormat.NQUADS and RDFFormat.TRIX are currently supported.
 	 * Defaults to the format returned by {@link #getDefaultRDFFormat()}
-	 * 
+	 *
 	 */
 	public void setPreferredRDFFormat(RDFFormat preferredRDFFormat) {
 		logger.debug("Defaulting to " + preferredRDFFormat.getDefaultMIMEType() + " for requests that return RDF statements.");
@@ -306,14 +321,55 @@ public class AGHttpRepoClient implements Closeable {
 			getHTTPClient().post(url, headers, params.toArray(new NameValuePair[params.size()]), null, handler);
 			usingDedicatedSession = true;
 			sessionRoot = adjustSessionUrlIfUsingMainPort(handler.getResult());
+			startPinger();
 			if (logger.isDebugEnabled())
 				logger.debug("openSession: {}", sessionRoot);
 		}
 	}
 
 	/**
+	 * Starts the periodic pinger task.
+	 * This should be invoked at most once.
+	 */
+	private void startPinger() {
+		assert pinger == null;
+
+		// Exit if disabled.
+		if (executor == null) { return; }
+
+		// Convert to ms, cut in half to avoid timeouts if the task
+		// is executed a bit later than expected.
+		final long delay = getSessionLifetime() * 1000 / 2;
+		// Randomize the initial delay
+		final long initialDelay = (long)(Math.random() * delay);
+		pinger = executor.scheduleWithFixedDelay(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					// Note - this will execute concurrently with other
+					// connection activity. This is ok, since
+					// AGHttpClient uses a connection pool to allow
+					// concurrent access.
+					ping();
+				} catch (final AGHttpException e) {
+					logger.error("Pinger exception", e);
+				}
+			}
+		}, initialDelay, delay, TimeUnit.MILLISECONDS);
+	}
+
+	/**
+	 * Cancel the periodic pinger task if it exists.
+	 */
+	private void stopPinger() {
+		if (pinger != null) {
+			pinger.cancel(false);
+		}
+	}
+
+	/**
 	 * Returns an appropriate session url to use.
-	 * 
+	 *
 	 * If the UseMainPortForSessions server configuration option
 	 * is false (the default), the server provides a session url
 	 * seizing a dedicated port to communicate with the
@@ -324,14 +380,14 @@ public class AGHttpRepoClient implements Closeable {
 	 * this flag is set, this method returns a modified session
 	 * url that allows the client to communicate via the main port
 	 * for this session.
-	 * 
+	 *
 	 * If the UseMainPortForSessions server configuration option
 	 * is true, then this does nothing as the session url provided
 	 * by the server already points to the main port.
-	 * 
-	 * @param dedicatedSessionUrl the dedicated session url from the server. 
+	 *
+	 * @param dedicatedSessionUrl the dedicated session url from the server.
 	 * @return an appropriate session url, possibly using main port instead.
-	 * 
+	 *
 	 * @throws AGHttpException
 	 */
 	private String adjustSessionUrlIfUsingMainPort(String dedicatedSessionUrl) throws AGHttpException {
@@ -367,10 +423,11 @@ public class AGHttpRepoClient implements Closeable {
 			return dedicatedSessionUrl;
 		}
 	}
-	
-	private void closeSession(String sessionRoot) throws 
+
+	private void closeSession(String sessionRoot) throws
 			AGHttpException {
 		if (sessionRoot != null && !getHTTPClient().isClosed()) {
+			stopPinger();
 			String url = AGProtocol.getSessionCloseLocation(sessionRoot);
 			Header[] headers = new Header[0];
 			NameValuePair[] params = new NameValuePair[0];
@@ -391,7 +448,7 @@ public class AGHttpRepoClient implements Closeable {
 		Header[] headers = { new Header(ACCEPT_PARAM_NAME,
 				getPreferredRDFFormat().getDefaultMIMEType()) };
 
-		
+
 		AGValueFactory vf = getValueFactory();
 		List<NameValuePair> params = new ArrayList<NameValuePair>(5);
 		if (subj != null) {
@@ -424,24 +481,24 @@ public class AGHttpRepoClient implements Closeable {
 							getValueFactory(),getAllowExternalBlankNodeIds()));
 	}
 
-	public void getStatements(RDFHandler handler, String... ids) throws RDFHandlerException, 
+	public void getStatements(RDFHandler handler, String... ids) throws RDFHandlerException,
 	AGHttpException {
 		String uri = Protocol.getStatementsLocation(getRoot())+"/id";
 		Header[] headers = { new Header(ACCEPT_PARAM_NAME,
 				getPreferredRDFFormat().getDefaultMIMEType()) };
-		
+
 		List<NameValuePair> params = new ArrayList<NameValuePair>(5);
 		for (String id : ids) {
 			params.add(new NameValuePair("id", id));
 		}
-		
+
 		getHTTPClient().get(
 					uri,
 					headers,
 					params.toArray(new NameValuePair[params.size()]),
 					new AGRDFHandler(getPreferredRDFFormat(),handler,getValueFactory(),getAllowExternalBlankNodeIds()));
 	}
-	
+
 	public void addStatements(Resource subj, URI pred, Value obj,
 			Resource... contexts) throws AGHttpException {
 		String uri = Protocol.getStatementsLocation(getRoot());
@@ -519,19 +576,19 @@ public class AGHttpRepoClient implements Closeable {
 
 	/**
 	 * Sets the commit period to use when uploading statements.
-	 * 
+	 *
 	 * Causes a commit to happen after every period=N added statements
-	 * inside a call to 
-	 * 
+	 * inside a call to
+	 *
 	 * {@link #upload(String, RequestEntity, String, boolean, String, URI, RDFFormat, Resource...)}
-	 * 
+	 *
 	 * Defaults to period=0, meaning that no commits are done in an upload.
-	 * 
-	 * Setting period>0 can be used to work around the fact that 
-	 * uploading a huge amount of statements in a single transaction 
+	 *
+	 * Setting period>0 can be used to work around the fact that
+	 * uploading a huge amount of statements in a single transaction
 	 * will require excessive amounts of memory.
-	 * 
-	 * @param period A non-negative integer. 
+	 *
+	 * @param period A non-negative integer.
 	 * @see #getUploadCommitPeriod()
 	 */
 	public void setUploadCommitPeriod(int period) {
@@ -540,16 +597,16 @@ public class AGHttpRepoClient implements Closeable {
 		}
 		uploadCommitPeriod = period;
 	}
-	
+
 	/**
 	 * Gets the commit period used when uploading statements.
-	 * 
+	 *
 	 * @see #setUploadCommitPeriod(int)
 	 */
 	public int getUploadCommitPeriod() {
 		return uploadCommitPeriod;
 	}
-	
+
 	public void commit() throws AGHttpException {
 		String url = getRoot() + "/" + AGProtocol.COMMIT;
 		Header[] headers = {};
@@ -563,7 +620,7 @@ public class AGHttpRepoClient implements Closeable {
 		getHTTPClient().post(url, headers, new NameValuePair[0],
 					(RequestEntity) null, null);
 	}
-	
+
 	public void clearNamespaces() throws AGHttpException {
 		String url = Protocol.getNamespacesLocation(getRoot());
 		Header[] headers = {};
@@ -611,7 +668,7 @@ public class AGHttpRepoClient implements Closeable {
 			throws RDFParseException, AGHttpException {
 		// Set Content-Length to -1 as we don't know it and don't want to cache"
 		String format = dataFormat.getDefaultMIMEType();
-		//TODO: needs rfe10230 
+		//TODO: needs rfe10230
 		if (format.contains("turtle")) format = "text/turtle";
 		RequestEntity entity = new InputStreamRequestEntity(contents, -1, format);
 		upload(entity, baseURI, overwrite, null, null, null, contexts);
@@ -648,14 +705,14 @@ public class AGHttpRepoClient implements Closeable {
 	throws AGHttpException {
 		uploadJSON(AGProtocol.getStatementsDeleteLocation(getRoot()), rows, contexts);
 	}
-	
+
 	public void load(URI source, String baseURI, RDFFormat dataFormat,
 			Resource... contexts) throws AGHttpException {
 		upload(null, baseURI, false, null, source, dataFormat, contexts);
 	}
 
 	public void load(String serverAbsolutePath, String baseURI,
-			RDFFormat dataFormat, Resource... contexts) throws 
+			RDFFormat dataFormat, Resource... contexts) throws
 			AGHttpException {
 		upload(null, baseURI, false, serverAbsolutePath, null, dataFormat,
 				contexts);
@@ -663,7 +720,7 @@ public class AGHttpRepoClient implements Closeable {
 
 	public void upload(RequestEntity reqEntity, String baseURI,
 			boolean overwrite, String serverSideFile, URI serverSideURL,
-			RDFFormat dataFormat, Resource... contexts) throws 
+			RDFFormat dataFormat, Resource... contexts) throws
 			AGHttpException {
 		String url = Protocol.getStatementsLocation(getRoot());
 		upload(url, reqEntity, baseURI, overwrite, serverSideFile, serverSideURL, dataFormat, contexts);
@@ -671,7 +728,7 @@ public class AGHttpRepoClient implements Closeable {
 
 	public void upload(String url, RequestEntity reqEntity, String baseURI,
 			boolean overwrite, String serverSideFile, URI serverSideURL,
-			RDFFormat dataFormat, Resource... contexts) throws 
+			RDFFormat dataFormat, Resource... contexts) throws
 			AGHttpException {
 		OpenRDFUtil.verifyContextNotNull(contexts);
 		List<Header> headers = new ArrayList<Header>(1);
@@ -715,7 +772,7 @@ public class AGHttpRepoClient implements Closeable {
 		}
 	}
 
-	public TupleQueryResult getContextIDs() throws 
+	public TupleQueryResult getContextIDs() throws
 			AGHttpException {
 		try {
 			TupleQueryResultBuilder builder = new TupleQueryResultBuilder();
@@ -740,7 +797,7 @@ public class AGHttpRepoClient implements Closeable {
 					new AGTQRHandler(getPreferredTQRFormat(), handler, getValueFactory(),getAllowExternalBlankNodeIds()));
 	}
 
-	public long size(Resource... contexts) throws 
+	public long size(Resource... contexts) throws
 			AGHttpException {
 		String url = Protocol.getSizeLocation(getRoot());
 		Header[] headers = {};
@@ -755,7 +812,7 @@ public class AGHttpRepoClient implements Closeable {
 		return handler.getResult();
 	}
 
-	public TupleQueryResult getNamespaces() throws 
+	public TupleQueryResult getNamespaces() throws
 			AGHttpException {
 		try {
 			TupleQueryResultBuilder builder = new TupleQueryResultBuilder();
@@ -780,7 +837,7 @@ public class AGHttpRepoClient implements Closeable {
 					new AGTQRHandler(getPreferredTQRFormat(), handler, getValueFactory(),getAllowExternalBlankNodeIds()));
 	}
 
-	public String getNamespace(String prefix) throws 
+	public String getNamespace(String prefix) throws
 			AGHttpException {
 		String url = Protocol.getNamespacePrefixLocation(getRoot(),
 				prefix);
@@ -817,7 +874,7 @@ public class AGHttpRepoClient implements Closeable {
 		getHTTPClient().delete(url, headers, new NameValuePair[0], null);
 	}
 
-	public void query(AGQuery q, boolean analyzeOnly, AGResponseHandler handler) throws 
+	public void query(AGQuery q, boolean analyzeOnly, AGResponseHandler handler) throws
 			AGHttpException {
 
 		String url = getRoot();
@@ -852,7 +909,7 @@ public class AGHttpRepoClient implements Closeable {
 		String planner = q.getPlanner();
 		Binding[] bindings = q.getBindingsArray();
 		String save = q.getName();
-		
+
 		List<NameValuePair> queryParams = new ArrayList<NameValuePair>(
 				bindings.length + 10);
 
@@ -894,12 +951,12 @@ public class AGHttpRepoClient implements Closeable {
 			if (q.getEngine() != null) {
 				queryParams.add(new NameValuePair("engine", q.getEngine()));
 			}
-			
+
 			if (sessionRoot!=null && save!=null) {
 				queryParams.add(new NameValuePair(AGProtocol.SAVE_PARAM_NAME,
 					save));
 			}
-		
+
 			if (ql==QueryLanguage.SPARQL && dataset != null) {
 				if (q instanceof AGUpdate) {
 					for (URI graphURI : dataset.getDefaultRemoveGraphs()) {
@@ -933,7 +990,7 @@ public class AGHttpRepoClient implements Closeable {
 			// Sesame's, confirm this.
 			// TODO: deal with prolog queries scoped to a graph for Jena
 		}
-		
+
 		for (int i = 0; i < bindings.length; i++) {
 			String paramName = Protocol.BINDING_PREFIX + bindings[i].getName();
 			String paramValue = Protocol.encodeValue(getStorableValue(bindings[i].getValue(),getValueFactory()));
@@ -944,9 +1001,9 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	/**
-	 * Free up any no-longer-needed saved queries as reported 
+	 * Free up any no-longer-needed saved queries as reported
 	 * by AGQuery finalizer.
-	 *  
+	 *
 	 * @throws AGHttpException
 	 */
 	private void processSavedQueryDeleteQueue() throws AGHttpException {
@@ -955,14 +1012,14 @@ public class AGHttpRepoClient implements Closeable {
 			deleteSavedQuery(queryName);
 		}
 	}
-	
+
 	public void deleteSavedQuery(String queryName) throws AGHttpException {
 		String url = AGProtocol.getSavedQueryLocation(getRoot(), queryName);
 		Header[] headers = {};
 		NameValuePair[] params = {};
 		getHTTPClient().delete(url, headers, params, null);
 	}
-	
+
 	public synchronized void close() throws AGHttpException {
 		if (sessionRoot != null) {
 			closeSession(sessionRoot);
@@ -971,8 +1028,8 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	/**
-	 * Creates a new freetext index with the given parameters.  
-	 * 
+	 * Creates a new freetext index with the given parameters.
+	 *
 	 * See also the protocol documentation for
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
 	 */
@@ -999,7 +1056,7 @@ public class AGHttpRepoClient implements Closeable {
 		if (!indexResources.equals("true")) {
 			// only need to send this if it's not "true"
 			params.add(new NameValuePair("indexResources", indexResources));
-			
+
 		}
 		if (indexFields != null) {
 			for (String field : indexFields) {
@@ -1029,15 +1086,15 @@ public class AGHttpRepoClient implements Closeable {
 				params.add(new NameValuePair("borderChars", border));
 			}
 		}
-		if (tokenizer != "default") {
+		if (!tokenizer.equals("default")) {
 			params.add(new NameValuePair("tokenizer", tokenizer));
 		}
 		getHTTPClient().put(url, new Header[0], params.toArray(new NameValuePair[params.size()]), null,null);
 	}
-	
+
 	/**
 	 * Delete the freetext index of the given name.
-	 * 
+	 *
 	 * @param index the name of the index
 	 * @throws AGHttpException
 	 */
@@ -1047,10 +1104,10 @@ public class AGHttpRepoClient implements Closeable {
 		NameValuePair[] params = {};
 		getHTTPClient().delete(url, headers, params, null);
 	}
-	
+
 	/**
 	 * Lists the free text indices defined on the repository.
-	 *  
+	 *
 	 * @return a list of index names
 	 * @throws AGHttpException
 	 */
@@ -1070,7 +1127,7 @@ public class AGHttpRepoClient implements Closeable {
 		getHTTPClient().get(url, new Header[0], new NameValuePair[0], handler);
 		return handler.getResult().split("\n");
 	}
-	
+
 	/**
 	 * Gets the configuration of the given index.
 	 */
@@ -1090,8 +1147,8 @@ public class AGHttpRepoClient implements Closeable {
 		getHTTPClient().get(url, new Header[0], new NameValuePair[0], handler);
 		return handler.getResult().split("\n");
 	}
-	
-	public void evalFreetextQuery(String pattern, String expression, String index, boolean sorted, int limit, int offset, AGResponseHandler handler) 
+
+	public void evalFreetextQuery(String pattern, String expression, String index, boolean sorted, int limit, int offset, AGResponseHandler handler)
 	throws AGHttpException {
 		String url = AGProtocol.getFreetextLocation(getRoot());
 		List<Header> headers = new ArrayList<Header>(5);
@@ -1124,7 +1181,7 @@ public class AGHttpRepoClient implements Closeable {
 					queryParams.toArray(new NameValuePair[queryParams.size()]),
 					null, handler);
 	}
-	
+
 	public void registerPredicateMapping(URI predicate, URI primitiveType)
 			throws AGHttpException {
 		String url = AGProtocol.getPredicateMappingLocation(getRoot());
@@ -1305,8 +1362,8 @@ public class AGHttpRepoClient implements Closeable {
 		getHTTPClient().post(url, headers, params, null, handler);
 		return handler.getResult();
 	}
-	
-	public void registerPolygon(String polygon, List<String> points) 
+
+	public void registerPolygon(String polygon, List<String> points)
 	throws AGHttpException {
 		if (points.size()<3) {
 			throw new IllegalArgumentException("A minimum of three points are required to register a polygon.");
@@ -1320,9 +1377,9 @@ public class AGHttpRepoClient implements Closeable {
 		}
 		getHTTPClient().put(url, headers, params.toArray(new NameValuePair[params.size()]), null, null);
 	}
-	
+
 	public void getGeoBox(String type_uri, String predicate_uri, float xmin, float xmax,
-			float ymin, float ymax, int limit, boolean infer, AGResponseHandler handler) 
+			float ymin, float ymax, int limit, boolean infer, AGResponseHandler handler)
 	throws AGHttpException {
 		String url = AGProtocol.getGeoBoxLocation(getRoot());
 		Header[] headers = { new Header(ACCEPT_PARAM_NAME,
@@ -1346,7 +1403,7 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	public void getGeoCircle(String type_uri, String predicate_uri, float x, float y,
-			float radius, int limit, boolean infer, AGResponseHandler handler) 
+			float radius, int limit, boolean infer, AGResponseHandler handler)
 	throws AGHttpException {
 		String url = AGProtocol.getGeoCircleLocation(getRoot());
 		Header[] headers = { new Header(ACCEPT_PARAM_NAME,
@@ -1368,7 +1425,7 @@ public class AGHttpRepoClient implements Closeable {
 					handler);
 	}
 
-	public void getGeoHaversine(String type_uri, String predicate_uri, float lat, float lon, float radius, String unit, int limit, boolean infer, AGResponseHandler handler) 
+	public void getGeoHaversine(String type_uri, String predicate_uri, float lat, float lon, float radius, String unit, int limit, boolean infer, AGResponseHandler handler)
 	throws AGHttpException {
 		String url = AGProtocol.getGeoHaversineLocation(getRoot());
 		Header[] headers = { new Header(ACCEPT_PARAM_NAME,
@@ -1389,8 +1446,8 @@ public class AGHttpRepoClient implements Closeable {
 					params.toArray(new NameValuePair[params.size()]),
 					handler);
 	}
-	
-	public void getGeoPolygon(String type_uri, String predicate_uri, String polygon, int limit, boolean infer, AGResponseHandler handler) 
+
+	public void getGeoPolygon(String type_uri, String predicate_uri, String polygon, int limit, boolean infer, AGResponseHandler handler)
 	throws AGHttpException {
 		String url = AGProtocol.getGeoPolygonLocation(getRoot());
 		Header[] headers = { new Header(ACCEPT_PARAM_NAME,
@@ -1409,8 +1466,8 @@ public class AGHttpRepoClient implements Closeable {
 					params.toArray(new NameValuePair[params.size()]),
 					handler);
 	}
-	
-	public void registerSNAGenerator(String generator, List<String> objectOfs, List<String> subjectOfs, List<String> undirecteds, String query) 
+
+	public void registerSNAGenerator(String generator, List<String> objectOfs, List<String> subjectOfs, List<String> undirecteds, String query)
 	throws AGHttpException {
 		useDedicatedSession(autoCommit);
 		String url = AGProtocol.getSNAGeneratorLocation(getRoot(), generator);
@@ -1430,8 +1487,8 @@ public class AGHttpRepoClient implements Closeable {
 		}
 		getHTTPClient().put(url, headers, params.toArray(new NameValuePair[params.size()]), null, null);
 	}
-	
-	public void registerSNANeighborMatrix(String matrix, String generator, List<String> group, int depth) 
+
+	public void registerSNANeighborMatrix(String matrix, String generator, List<String> group, int depth)
 	throws AGHttpException {
 		String url = AGProtocol.getSNANeighborMatrixLocation(getRoot(), matrix);
 		Header[] headers = {};
@@ -1446,10 +1503,10 @@ public class AGHttpRepoClient implements Closeable {
 
 	/**
 	 * Returns a list of indices for this repository.  When listValid is true,
-	 * return all possible valid index types for this store; when listValid is 
+	 * return all possible valid index types for this store; when listValid is
 	 * false, return only the current actively managed index types.
-	 *   
-	 * @param listValid true yields all valid types, false yields active types. 
+	 *
+	 * @param listValid true yields all valid types, false yields active types.
 	 * @return list of indices, never null
 	 * @throws AGHttpException
 	 */
@@ -1467,7 +1524,7 @@ public class AGHttpRepoClient implements Closeable {
     /**
      * Adds the given index to the list of actively managed indices.
      * This will take affect on the next commit.
-     * 
+     *
      * @param index a valid index type
      * @throws AGHttpException
      * @see #listIndices(boolean)
@@ -1478,11 +1535,11 @@ public class AGHttpRepoClient implements Closeable {
 		NameValuePair[] params = {};
 		getHTTPClient().put(url, headers, params, null, null);
 	}
-	
+
 	/**
 	 * Drops the given index from the list of actively managed indices.
 	 * This will take affect on the next commit.
-	 * 
+	 *
 	 * @param index a valid index type
 	 * @throws AGHttpException
 	 * @see #listIndices(boolean)
@@ -1493,7 +1550,7 @@ public class AGHttpRepoClient implements Closeable {
 		NameValuePair[] params = {};
 		getHTTPClient().delete(url, headers, params, null);
 	}
-	
+
 	public void registerEncodableNamespace(String namespace, String format)
 			throws AGHttpException {
 		String url = getRoot() + "/encodedIds/prefixes";
@@ -1505,7 +1562,7 @@ public class AGHttpRepoClient implements Closeable {
 					params.toArray(new NameValuePair[params.size()]), null,
 					null);
 	}
-	
+
 	public void unregisterEncodableNamespace(String namespace)
 			throws AGHttpException {
 		String url = getRoot() + "/encodedIds/prefixes";
@@ -1518,7 +1575,7 @@ public class AGHttpRepoClient implements Closeable {
 
 	/**
 	 * Enables the spogi cache in this repository.
-	 * 
+	 *
 	 * @param size the size of the cache, in triples.
 	 * @throws AGHttpException
 	 */
@@ -1529,36 +1586,36 @@ public class AGHttpRepoClient implements Closeable {
 		getHTTPClient().put(url, headers, params, null, null);
 	}
 
-	public void registerEncodableNamespaces(JSONArray formattedNamespaces) 
+	public void registerEncodableNamespaces(JSONArray formattedNamespaces)
 	throws AGHttpException {
 		String url = getRoot() + "/encodedIds/prefixes";
 		uploadJSON(url, formattedNamespaces);
 	}
-	
+
 	public TupleQueryResult getEncodableNamespaces() throws AGHttpException {
 		String url = getRoot()+"/encodedIds/prefixes";
 		return getHTTPClient().getTupleQueryResult(url);
 	}
-	
+
 	/**
 	 * Invoke a stored procedure on the AllegroGraph server.
 	 * The args must already be encoded, and the response is encoded.
-	 * 
+	 *
 	 * <p>Low-level access to the data sent to the server can be done with:
 	 * <code><pre>
 	 * {@link AGDeserializer#decodeAndDeserialize(String) AGDeserializer.decodeAndDeserialize}(
 	 *     {@link #callStoredProcEncoded(String, String, String) callStoredProcEncoded}(functionName, moduleName,
 	 *         {@link AGSerializer#serializeAndEncode(Object[]) AGSerializer.serializeAndEncode}(args)));
 	 * </code></pre></p>
-	 * 
+	 *
 	 * <p>If an error occurs in the stored procedure then result will
 	 * be a two element vector  with the first element being the string "_fail_"
 	 * and the second element being the error message (also a string).</p>
-	 * 
+	 *
 	 * <p>{@link #callStoredProc(String, String, Object...)}
 	 * does this encoding, decoding, and throws exceptions for error result.
 	 * </p>
-	 * 
+	 *
 	 * @param functionName stored proc lisp function, for example "addTwo"
 	 * @param moduleName lisp FASL file name, for example "example.fasl"
 	 * @param argsEncoded byte-encoded arguments to the stored proc
@@ -1576,20 +1633,20 @@ public class AGHttpRepoClient implements Closeable {
 		getHTTPClient().post(url, headers, params, null, handler);
 		return handler.getResult();
 	}
-	
+
 	/**
 	 * Invoke a stored procedure on the AllegroGraph server.
-	 * 
+	 *
 	 * <p>The input arguments and the return value can be:
 	 * {@link String}, {@link Integer}, null, byte[],
 	 * or Object[] or {@link List} of these (can be nested).</p>
-	 * 
+	 *
 	 * @param functionName stored proc lisp function, for example "addTwo"
 	 * @param moduleName lisp FASL file name, for example "example.fasl"
 	 * @param args arguments to the stored proc
 	 * @return return value of stored proc
 	 * @throws AGCustomStoredProcException for errors from stored proc.
-	 * 
+	 *
 	 * @see AGSerializer#serializeAndEncode(Object[])
 	 * @see AGDeserializer#decodeAndDeserialize(String)
 	 * @since v4.2
@@ -1611,7 +1668,7 @@ public class AGHttpRepoClient implements Closeable {
 
 	/**
 	 * Returns the size of the spogi cache.
-	 * 
+	 *
 	 * @return the size of the spogi cache, in triples.
 	 * @throws AGHttpException
 	 */
@@ -1626,7 +1683,7 @@ public class AGHttpRepoClient implements Closeable {
 
 	/**
 	 * Disables the spogi triple cache.
-	 * 
+	 *
 	 * @throws AGHttpException
 	 */
  	public void disableTripleCache() throws AGHttpException {
@@ -1644,17 +1701,17 @@ public class AGHttpRepoClient implements Closeable {
 	 * Deletes all duplicates from the store.
 	 * <p>
 	 * The comparisonMode determines what will be deemed a "duplicate".
-	 * <p>  
-	 * If comparisonMode is "spog", quad parts (s,p,o,g) will all be 
+	 * <p>
+	 * If comparisonMode is "spog", quad parts (s,p,o,g) will all be
 	 * compared when looking for duplicates.
 	 * <p>
-	 * If comparisonMode is "spo", only the (s,p,o) parts will be 
+	 * If comparisonMode is "spo", only the (s,p,o) parts will be
 	 * compared; the same triple in different graphs will thus be deemed
 	 * duplicates.
 	 * <p>
 	 * See also the protocol documentation for
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#delete-statements-duplicates">deleting duplicates</a>
-	 * @param comparisonMode determines what is a duplicate 
+	 * @param comparisonMode determines what is a duplicate
 	 * @throws AGHttpException
 	 */
 	public void deleteDuplicates(String comparisonMode) throws AGHttpException {
@@ -1680,14 +1737,14 @@ public class AGHttpRepoClient implements Closeable {
 				    params.toArray(new NameValuePair[params.size()]),
 				    new AGRDFHandler(getPreferredRDFFormat(),handler,getValueFactory(),getAllowExternalBlankNodeIds()));
 	}
-	
+
 	/**
 	 * Materializes inferred statements (generates and adds them to the store).
 	 * <p>
 	 * The materializer's configuration determines how statements are materialized.
-	 * 
-	 * @param materializer the materializer to use. 
-	 * @return the number of statements added. 
+	 *
+	 * @param materializer the materializer to use.
+	 * @return the number of statements added.
 	 * @throws AGHttpException
 	 * @see AGMaterializer#newInstance()
 	 */
@@ -1715,10 +1772,10 @@ public class AGHttpRepoClient implements Closeable {
 		getHTTPClient().put(url,headers,params.toArray(new NameValuePair[params.size()]),null,handler);
 		return handler.getResult();
 	}
-	
+
 	/**
 	 * Deletes materialized statements.
-	 * 
+	 *
 	 * @throws AGHttpException
 	 * returns the number of statements deleted.
 	 * @see #materialize(AGMaterializer)
@@ -1731,7 +1788,7 @@ public class AGHttpRepoClient implements Closeable {
 		getHTTPClient().delete(url,headers,params.toArray(new NameValuePair[params.size()]), handler);
 		return handler.getResult();
 	}
-	
+
 	public void optimizeIndices(Boolean wait, int level) throws AGHttpException {
 		String url = repoRoot + "/indices/optimize";
 		Header[] headers = {};
@@ -1766,14 +1823,14 @@ public class AGHttpRepoClient implements Closeable {
 	public String getSpinFunction(String uri) throws AGHttpException {
 		return getHTTPClient().getString(AGProtocol.spinURL(getRoot(), AGProtocol.SPIN_FUNCTION, uri));
 	}
-	
+
 	/**
 	 * @since v4.4
 	 */
 	public TupleQueryResult listSpinFunctions() throws AGHttpException {
 		return getHTTPClient().getTupleQueryResult(AGProtocol.spinURL(getRoot(), AGProtocol.SPIN_FUNCTION, null));
 	}
-	
+
 	/**
 	 * @since v4.4
 	 */
@@ -1802,19 +1859,19 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	/**
-	 * @since v4.4 
+	 * @since v4.4
 	 */
 	public String getSpinMagicProperty(String uri) throws AGHttpException {
 		return getHTTPClient().getString(AGProtocol.spinURL(getRoot(), AGProtocol.SPIN_MAGICPROPERTY, uri));
 	}
-	
+
 	/**
 	 * @since v4.4
 	 */
 	public TupleQueryResult listSpinMagicProperties() throws AGHttpException {
 		return getHTTPClient().getTupleQueryResult(AGProtocol.spinURL(getRoot(), AGProtocol.SPIN_MAGICPROPERTY, null));
 	}
-	
+
 	/**
 	 * @since v4.4
 	 */
@@ -1841,7 +1898,7 @@ public class AGHttpRepoClient implements Closeable {
 			}
 		}
 	}
-	
+
 	/**
 	 * Enables/Disables an option to support external blank nodes (experimental).
 	 * <p>
@@ -1850,58 +1907,58 @@ public class AGHttpRepoClient implements Closeable {
 	 * conn.getHttpRepoClient().setAllowExternalBlankNodeIds(true);
 	 * <p>
 	 * An external blank node is a blank node whose id is not generated
-	 * by AllegroGraph.  Applications should normally request new blank 
+	 * by AllegroGraph.  Applications should normally request new blank
 	 * nodes from AllegroGraph [via the AGValueFactory#createBNode()
-	 * method in the Sesame api, or via the AGModel#createResource() 
-	 * method in the Jena adapter]; this helps to avoid unintended 
+	 * method in the Sesame api, or via the AGModel#createResource()
+	 * method in the Jena adapter]; this helps to avoid unintended
 	 * blank node id collisions (particularly in a multi-user setting)
 	 * and enables blank nodes to be stored more efficiently, etc.
 	 * <p>
-	 * Previously, for applications that did use an external blank node id 
+	 * Previously, for applications that did use an external blank node id
 	 * [such as via AGValueFactory#createBNode("ex") in Sesame, or in Jena via
-	 * AGModel#createResource(AnonId.create("ex"))] or an external blank 
+	 * AGModel#createResource(AnonId.create("ex"))] or an external blank
 	 * node factory [such as ValueFactoryImpl#createBNode() in Sesame or
-	 * ResourceFactory#createResource() in Jena], there were some issues 
-	 * that arose.  When the application tried to add a statement such 
-	 * as [_:ex p a] over HTTP, the AllegroGraph server allocates a new 
-	 * blank node id to use in place of the external blank node id _:ex, 
-	 * so that the actual statement stored is something like 
-	 * [_:bF010696Fx1 p a].  
+	 * ResourceFactory#createResource() in Jena], there were some issues
+	 * that arose.  When the application tried to add a statement such
+	 * as [_:ex p a] over HTTP, the AllegroGraph server allocates a new
+	 * blank node id to use in place of the external blank node id _:ex,
+	 * so that the actual statement stored is something like
+	 * [_:bF010696Fx1 p a].
 	 * <p>
 	 * There are 2 issues with this:
 	 * <p>
 	 * 1) adding a second statement such as [_:ex q b] in a subsequent
-	 *    request will result in another new bnode id being allocated, 
-	 *    so that the statement stored might be [_:bF010696Fx2 q b], 
+	 *    request will result in another new bnode id being allocated,
+	 *    so that the statement stored might be [_:bF010696Fx2 q b],
 	 *    and the link between the two statements (that exists client
 	 *    side via blank node _:ex) is now lost.
 	 * <p>
 	 * 2) trying to get the statement [_:ex p a] will fail, because the
 	 *    actual statement stored is [_:bF010696Fx1 p a].
 	 * <p>
-	 * Note that these issues arise with external blank node ids because 
-	 * the server does not know their scope, and by default assumes that 
+	 * Note that these issues arise with external blank node ids because
+	 * the server does not know their scope, and by default assumes that
 	 * the scope is limited to the HTTP request in order to avoid blank
-	 * node conflicts.  When AG-allocated blank node ids are used instead, 
-	 * the two issues above do not arise (they are stored as is, and they 
+	 * node conflicts.  When AG-allocated blank node ids are used instead,
+	 * the two issues above do not arise (they are stored as is, and they
 	 * will be found as expected with a get).  In short, AG-allocated blank
-	 * nodes round-trip, external blank nodes do not.  
+	 * nodes round-trip, external blank nodes do not.
 	 * <p>
-	 * One workaround for this is to have applications declare that they 
-	 * want external blank nodes to round-trip.  An external blank node 
+	 * One workaround for this is to have applications declare that they
+	 * want external blank nodes to round-trip.  An external blank node
 	 * can exist for the life of an application, and that life can exceed
 	 * the life of an AllegroGraph server instance, so adding a statement
 	 * with an external blank node will need to persist the external blank
-	 * node's id somehow.  AllegroGraph doesn't currently allow storing blank 
-	 * nodes with an arbitrary external id, so this workaround converts them 
-	 * to URI's (of the form "urn:x-bnode:id" by default) for storage, and 
+	 * node's id somehow.  AllegroGraph doesn't currently allow storing blank
+	 * nodes with an arbitrary external id, so this workaround converts them
+	 * to URI's (of the form "urn:x-bnode:id" by default) for storage, and
 	 * recovers the blank nodes with correct ids when the values are retrieved
-	 * in queries, so that applications continue to transparently deal with 
+	 * in queries, so that applications continue to transparently deal with
 	 * BNodes and see the expected behavior w.r.t. issues 1) and 2) above.
 	 * <p>
 	 * When enabling the workaround described here, the application must
 	 * take responsibility for using an external blank node factory that
-	 * avoids blank node conflicts, and must also be willing to incur the 
+	 * avoids blank node conflicts, and must also be willing to incur the
 	 * additional costs of storing external blank nodes as URIs.  When the
 	 * workaround is disabled (allow=false, the default), the application
 	 * must avoid using external blank nodes with AG (using AG-allocated
@@ -1919,7 +1976,7 @@ public class AGHttpRepoClient implements Closeable {
 	public void setAllowExternalBlankNodeIds(boolean allow) {
 		allowExternalBlankNodeIds = allow;
 	}
-	
+
 	/**
 	 * @return true iff this HTTP/Storage layer allows external blank node ids.
 	 * @see #setAllowExternalBlankNodeIds(boolean)
@@ -1929,27 +1986,27 @@ public class AGHttpRepoClient implements Closeable {
 	public boolean getAllowExternalBlankNodeIds() {
 		return allowExternalBlankNodeIds;
 	}
-	
+
 	/**
 	 * Returns a storable Resource for the given Resource.
-	 * 
+	 *
 	 * The intent is that the returned resource can be stored in an
 	 * AG repository, will round-trip if added to and retrieved from
-	 * the repository, and that the given Resource can be cheaply 
-	 * recreated from the returned resource.  
-	 * 
+	 * the repository, and that the given Resource can be cheaply
+	 * recreated from the returned resource.
+	 *
 	 * This method simply returns the original resource when it is a
 	 * URI or a BNode with an AG generated blank node id (these can be
-	 * stored and will round-trip).  For external BNodes (with an id 
-	 * that does not look like it was generated by AG), a URI of the 
-	 * form "urn:x-bnode:id" is returned when the connection allows 
+	 * stored and will round-trip).  For external BNodes (with an id
+	 * that does not look like it was generated by AG), a URI of the
+	 * form "urn:x-bnode:id" is returned when the connection allows
 	 * external blank nodes; otherwise, an IllegalArgumentException is
 	 * thrown explaining the need to either avoid external blank nodes
 	 * or enable the workaround for external blank nodes.
-	 * 
+	 *
 	 * This method is intended for use within the AG client library,
 	 * not for use by applications.
-	 * 
+	 *
 	 * @param r a resource
 	 * @return a storable resource for the given resource
 	 * @see #getApplicationResource(Resource, AGValueFactory)
@@ -1967,27 +2024,27 @@ public class AGHttpRepoClient implements Closeable {
 		}
 		return storable;
 	}
-	
+
 	/**
 	 * Returns a storable Value for the given Value.
-	 * 
+	 *
 	 * The intent is that the returned value can be stored in an
 	 * AG repository, will round-trip if added to and retrieved from
-	 * the repository, and that the given Value can be cheaply 
-	 * recreated from the returned value.  
-	 * 
+	 * the repository, and that the given Value can be cheaply
+	 * recreated from the returned value.
+	 *
 	 * This method simply returns the original value when it is a URI,
 	 * Literal, or BNode with AG generated blank node id (these can be
-	 * stored and will round-trip).  For external BNodes (with an id 
-	 * that does not look like it was generated by AG), a URI of the 
-	 * form "urn:x-bnode:id" is returned when the connection allows 
+	 * stored and will round-trip).  For external BNodes (with an id
+	 * that does not look like it was generated by AG), a URI of the
+	 * form "urn:x-bnode:id" is returned when the connection allows
 	 * external blank nodes; otherwise, an IllegalArgumentException is
 	 * thrown explaining the need to either avoid external blank nodes
 	 * or enable the workaround for external blank nodes.
-	 * 
+	 *
 	 * This method is intended for use within the AG client library,
 	 * not for use by applications.
-	 * 
+	 *
 	 * @param v a value
 	 * @return a storable value for the given value
 	 * @see #getApplicationValue(Value, AGValueFactory)
@@ -2005,13 +2062,13 @@ public class AGHttpRepoClient implements Closeable {
 		}
 		return storable;
 	}
-	
+
 	/**
 	 * Returns the application Resource for a given stored resource.
-	 * 
+	 *
 	 * This method is intended for use within the AG client library,
 	 * not for use by applications.
-	 * 
+	 *
 	 * @param stored a stored resource
 	 * @return the application resource
 	 * @see #getStorableResource(Resource, AGValueFactory)
@@ -2024,13 +2081,13 @@ public class AGHttpRepoClient implements Closeable {
 		}
 		return app;
 	}
-	
+
 	/**
 	 * Returns the application Value for a given stored value.
-	 *  
+	 *
 	 * This method is intended for use within the AG client library,
 	 * not for use by applications.
-	 * 
+	 *
 	 * @param stored a stored value
 	 * @return the application value
 	 * @see #getStorableValue(Value, AGValueFactory)
@@ -2043,19 +2100,19 @@ public class AGHttpRepoClient implements Closeable {
 		}
 		return app;
 	}
-	
+
 	/**
 	 * Sets the AG user for X-Masquerade-As-User requests.
-	 * 
+	 *
 	 * For AG superusers only.  This allows AG superusers to run requests as
 	 * another user in a dedicated session.
-	 * 
-	 *  
+	 *
+	 *
 	 * @param user the user for X-Masquerade-As-User requests.
 	 */
 	public void setMasqueradeAsUser(String user) throws RepositoryException {
 		useDedicatedSession(autoCommit);
 		getHTTPClient().setMasqueradeAsUser(user);
-	}		
+	}
 
 }
