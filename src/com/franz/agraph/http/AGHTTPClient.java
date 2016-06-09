@@ -52,8 +52,12 @@ import com.franz.util.Closeable;
 import com.franz.util.Closer;
 
 /**
- * TODO: another pass over this class for response and error handling
- * replace RepositoryExceptions, this class shouldn't know about them.
+ * Class responsible for handling HTTP connections.
+ *
+ * Uses an unlimited pool of connections to allow safe, concurrent access.
+ *
+ * Also contains methods for accessing AG services that operate above
+ * the repository level - such as managing repositories.
  */
 public class AGHTTPClient
 implements Closeable {
@@ -130,26 +134,7 @@ implements Closeable {
 			post.setQueryString(params);
 			post.setRequestEntity(requestEntity);
 		}
-		try {
-			int httpCode = getHttpClient().executeMethod(post);
-			if (httpCode == HttpURLConnection.HTTP_OK) {
-				if (handler!=null) handler.handleResponse(post);
-			} else if (httpCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
-				throw new AGHttpException(new UnauthorizedException());
-			} else if (!is2xx(httpCode)) {
-				AGErrorHandler errHandler = new AGErrorHandler();
-				errHandler.handleResponse(post);
-				throw errHandler.getResult();
-			}
-		} catch (HttpException e) {
-			throw new AGHttpException(e);
-		} catch (IOException e) {
-			handleSessionConnectionError(e,url);
-		} finally {
-			if (handler == null || handler.releaseConnection()) {
-				releaseConnection(post);
-			}
-		}
+		executeMethod(url, post, handler);
 	}
 
 	/**
@@ -177,26 +162,7 @@ implements Closeable {
 		if (params != null) {
 			get.setQueryString(params);
 		}
-		try {
-			int httpCode = getHttpClient().executeMethod(get);
-			if (httpCode == HttpURLConnection.HTTP_OK) {
-				if (handler!=null) handler.handleResponse(get);
-			} else if (httpCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
-				throw new AGHttpException(new UnauthorizedException());
-			} else if (!is2xx(httpCode)) {
-				AGErrorHandler errHandler = new AGErrorHandler();
-				errHandler.handleResponse(get);
-				throw errHandler.getResult();
-			}
-		} catch (HttpException e) {
-			throw new AGHttpException(e);
-		} catch (IOException e) {
-			handleSessionConnectionError(e,url);
-		} finally {
-			if (handler == null || handler.releaseConnection()) {
-				releaseConnection(get);
-			}
-		}
+		executeMethod(url, get, handler);
 	}
 
 	public void delete(String url, Header[] headers, NameValuePair[] params, AGResponseHandler handler)
@@ -211,26 +177,7 @@ implements Closeable {
 		if (params != null) {
 			delete.setQueryString(params);
 		}
-		try {
-			int httpCode = getHttpClient().executeMethod(delete);
-			if (httpCode == HttpURLConnection.HTTP_OK) {
-				if (handler!=null) handler.handleResponse(delete);
-			} else if (httpCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
-				throw new AGHttpException(new UnauthorizedException());
-			} else if (!is2xx(httpCode)) {
-				AGErrorHandler errHandler = new AGErrorHandler();
-				errHandler.handleResponse(delete);
-				throw errHandler.getResult();
-			}
-		} catch (HttpException e) {
-			throw new AGHttpException(e);
-		} catch (IOException e) {
-			handleSessionConnectionError(e,url);
-		} finally {
-			if (handler == null || handler.releaseConnection()) {
-				releaseConnection(delete);
-			}
-		}
+		executeMethod(url, delete, handler);
 	}
 
 	public void put(String url, Header[] headers, NameValuePair[] params, RequestEntity requestEntity,AGResponseHandler handler) throws AGHttpException {
@@ -247,24 +194,28 @@ implements Closeable {
 		if (requestEntity != null) {
 			put.setRequestEntity(requestEntity);
 		}
+		executeMethod(url, put, handler);
+	}
+
+	private void executeMethod(final String url,
+							   final HttpMethod method,
+							   final AGResponseHandler handler) throws AGHttpException {
 		try {
-			int httpCode = getHttpClient().executeMethod(put);
+			int httpCode = getHttpClient().executeMethod(method);
 			if (httpCode == HttpURLConnection.HTTP_OK) {
-				if (handler!=null) handler.handleResponse(put);
+				if (handler!=null) handler.handleResponse(method);
 			} else if (httpCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
 				throw new AGHttpException(new UnauthorizedException());
 			} else if (!is2xx(httpCode)) {
 				AGErrorHandler errHandler = new AGErrorHandler();
-				errHandler.handleResponse(put);
+				errHandler.handleResponse(method);
 				throw errHandler.getResult();
 			}
-		} catch (HttpException e) {
-			throw new AGHttpException(e);
 		} catch (IOException e) {
-			handleSessionConnectionError(e,url);
+			throw new AGHttpException(e);
 		} finally {
 			if (handler == null || handler.releaseConnection()) {
-				releaseConnection(put);
+				releaseConnection(method);
 			}
 		}
 	}
@@ -452,17 +403,4 @@ implements Closeable {
 		post(url, headers, data, null, handler);
 		return handler.getResult().split("\n");
 	}
-
-	private void handleSessionConnectionError(IOException e, String url) throws AGHttpException {
-		if (e instanceof java.net.ConnectException) {
-			// To test this exception, setup remote server and only open port to
-			// the main port, not the SessionPorts and run TutorialTest.example6()
-			throw new AGHttpException("Session port connection failure. Consult the Server Installation document for correct settings for SessionPorts. Url: " + url
-					+ ". Documentation: http://www.franz.com/agraph/support/documentation/current/server-installation.html#sessionport", e);
-		} else {
-			throw new AGHttpException("Possible session port connection failure. Consult the Server Installation document for correct settings for SessionPorts. Url: " + url
-					+ ". Documentation: http://www.franz.com/agraph/support/documentation/current/server-installation.html#sessionport", e);
-		}
-	}
-
 }
