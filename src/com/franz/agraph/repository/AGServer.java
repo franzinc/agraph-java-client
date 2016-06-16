@@ -10,8 +10,7 @@ package com.franz.agraph.repository;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.*;
 
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.NameValuePair;
@@ -54,7 +53,7 @@ public class AGServer implements Closeable {
 
 	// A default, global executor service used to create pinger threads.
 	// Created lazily in  getSharedExecutorService().
-	private static ScheduledExecutorService sharedExecutor;
+	private static ScheduledThreadPoolExecutor sharedExecutor;
 
 	private final String serverURL;
 	private final AGHTTPClient httpClient;
@@ -64,6 +63,18 @@ public class AGServer implements Closeable {
 	private static synchronized ScheduledExecutorService getSharedExecutor() {
 		if (sharedExecutor == null) {
 			sharedExecutor = new ScheduledThreadPoolExecutor(THREAD_POOL_SIZE);
+			// This will make sure that the executor will not prevent
+			// the application from shutting down.
+			sharedExecutor.setThreadFactory(new ThreadFactory() {
+				@Override
+				public Thread newThread(final Runnable runnable) {
+					final Thread thread = Executors.defaultThreadFactory().newThread(runnable);
+					thread.setDaemon(true);
+					return thread;
+				}
+			});
+			// Note this requires Java 7
+			sharedExecutor.setRemoveOnCancelPolicy(true);
 		}
 		return sharedExecutor;
 	}
