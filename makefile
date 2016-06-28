@@ -1,78 +1,99 @@
-# Standard Franz make rules forward to ant targets.
+# Standard Franz make rules forward to Maven.
 
-USRFIANT = $(shell if test -d /usr/fi/ant; then echo yes; fi)
-ifeq ($(USRFIANT),yes)
-export ANT_HOME = /usr/fi/ant
-endif
+VERSION ?= $(shell mvn -q exec:exec -Dexec.executable="echo" -Dexec.args='$${project.version}' --non-recursive)
 
-# AGVERSION is supposed to be the branch name without the leading "v".
-AGVERSION ?= $(shell (git symbolic-ref -q HEAD 2>/dev/null || echo unknown) | sed 's,refs/heads/v,,')
+RELEASE_VERSION = $(VERSION:-SNAPSHOT=)
 
-ifeq ($(AGVERSION),unknown)
-$(error AGVERSION not defined)
-endif
+export AGRAPH_HOST ?= $(shell echo $${AGRAPH_HOST:-localhost})
+export AGRAPH_PORT ?= $(shell echo $${AGRAPH_PORT-`cat ../agraph/lisp/agraph.port 2> /dev/null || echo 10035`})
+
+# For tutorial
+example ?= all
+
+# Common arguments used with mvn exec:java
+MVN_EXEC_ARGS = -Dexec.cleanupDaemonThreads=false -Dexec.classpathScope=test
+
+# Shortcut to run mvn exec:java
+EXEC_JAVA = mvn exec:java $(MVN_EXEC_ARGS) 
+
+# Repo directory used to deploy the artifact locally, for use by the tutorials
+REPO = $(abspath repo)
 
 default: build
 
 clean: dist-clean
-	ant clean
+	mvn clean
 
-prepush: FORCE
-	ant prepush
+prepush: tutorial jena-tutorial attributes-tutorial
+	mvn test -Dtests.include=test.TestSuites\$$Prepush
 
-test-bigger: FORCE
-	ant test-bigger
+test-bigger: test-stress test-stress-events
 
 test-broken: FORCE
-	ant test-broken
+	mvn test -Dtests.include=test.TestSuites\$$Broken
 
 test-stress: FORCE
-	ant test-stress
-
-test-temp: FORCE
-	ant test-temp
+	mvn test -Dtests.include=test.TestSuites\$$Prepush,test.TestSuites\$$Stress
 
 test-stress-events: FORCE
-	ant test-stress-events
+	$(EXEC_JAVA) -Dexec.mainClass=test.stress.Events -Dexec.args="--catalog java-catalog --load 2 --query 2 --time 1 --size 100000"
 
 lubm-prolog: FORCE
-	ant lubm-prolog
+	mvn test-compile
+	$(EXEC_JAVA) -Dexec.mainClass=test.lubm.AGLubmProlog
 
 lubm-sparql: FORCE
-	ant lubm-sparql
+	mvn test-compile
+	$(EXEC_JAVA) -Dexec.mainClass=test.lubm.AGLubmSparql -Dexample=$(example)
 
-tutorial: FORCE
-	ant tutorial
+tutorial: local-deploy
+	cd tutorials/sesame && \
+	mvn compile -Dmaven.repo.local=$(REPO) && \
+	mvn exec:java -Dmaven.repo.local=$(REPO) -Dexec.args=$(example)
 
-jena-tutorial: FORCE
-	ant jena-tutorial
+jena-tutorial: local-deploy
+	cd tutorials/jena && \
+	mvn compile -Dmaven.repo.local=$(REPO) && \
+	mvn exec:java -Dmaven.repo.local=$(REPO) -Dexec.args=$(example)
+
+attributes-tutorial: local-deploy
+	cd tutorials/attributes && \
+	mvn compile -Dmaven.repo.local=$(REPO) && \
+	mvn exec:java -Dmaven.repo.local=$(REPO)
 
 sparql-query-tests: FORCE
-	ant sparql-query-tests
+	mvn test -Dtests.include=test.openrdf.AGSparqlQueryTest
 
 sparql-update-tests: FORCE
-	ant sparql-update-tests
+	mvn test -Dtests.include=test.openrdf.AGSparqlUpdateTest,test.openrdf.AGSparqlUpdateConformanceTest
 
 repository-connection-tests: FORCE
-	ant repository-connection-tests
+	mvn test -Dtests.include=test.openrdf.repository.AGRepositoryConnectionTest
 
 repository-tests: FORCE
-	ant repository-tests
+	mvn test -Dtests.include=test.openrdf.repository.AGAllRepositoryTests
 
 jena-compliance-tests: FORCE
-	ant jena-compliance-tests
+	mvn test -Dtests.include=test.AGGraphMakerTest,\
+	  test.AGGraphTest,\
+	  test.AGModelTest,\
+	  test.AGPrefixMappingTest,\
+	  test.AGResultSetTest,\
+	  test.AGReifierTest
 
-callimachus-tests: FORCE
-	ant  callimachus-tests
+local-deploy: FORCE
+	mvn install -DskipTests=true -Dmaven.repo.local=$(REPO)
 
 build: FORCE
-	ant build
+	mvn compile
 
 javadoc: FORCE
-	ant javadoc
+    # Note: if we do not call 'validate' explicitly, the plugin that
+    # computes the current year will run too late.
+	mvn validate javadoc:javadoc
 
 srcjar: FORCE
-	ant srcjar
+	mvn source:jar
 
 tags: FORCE
 	rm -f TAGS
@@ -81,59 +102,18 @@ tags: FORCE
 ###############################################################################
 ## distribution building
 
-## this is brittle, clean it up post-m2.
-
-TUTORIAL_FILES = *.ntriples *.rdf *.txt *.nqx *TutorialExamples.java *AttributesExample.java
-
-ifdef CUSTOMER_DIST
-DISTDIR = agraph-$(AGVERSION)-client-java
-DIST = DIST/$(DISTDIR)
-TARNAME = DIST/$(DISTDIR).tar.gz
-TAROPTS = --owner=root --group=root 
-else
-DISTDIR = .
-DIST = DIST
-TARNAME = agraph-$(AGVERSION)-client-java.tar.gz
-TAROPTS = 
-endif
+TARNAME=agraph-java-client-${RELEASE_VERSION}.tar.gz
 
 dist: FORCE
-	ant -DDIST=$(DIST) dist-init
-	sed 's|SERVER_VERSION|$(AGVERSION)|g' templates/.project > $(DIST)/.project
-	sed 's|agraph-VERSION|agraph-$(AGVERSION)|g' templates/.classpath > $(DIST)/.classpath
-	mkdir -p $(DIST)/src/tutorial
-	for f in $(TUTORIAL_FILES); do \
-	    echo copying src/tutorial/$$f...; \
-	    cp src/tutorial/$$f $(DIST)/src/tutorial; \
-	done
-	mkdir -p $(DIST)/lib
-	cp agraph.jar $(DIST)/lib/agraph-$(AGVERSION).jar
-	cp agraph-src.jar $(DIST)/lib/agraph-$(AGVERSION)-src.jar
-	cp lib/json.jar $(DIST)/lib/
-	cp lib/commons-io-2.4.jar $(DIST)/lib/
-	cp lib/commons-pool-1.5.6.jar $(DIST)/lib/
-	mkdir -p $(DIST)/lib/logging
-	cp lib/logging/*.jar $(DIST)/lib/logging/
-	mkdir -p $(DIST)/lib/sesame
-	cp lib/sesame/commons-*.jar $(DIST)/lib/sesame/
-	cp lib/sesame/commons-*.zip $(DIST)/lib/sesame/
-	cp lib/sesame/openrdf-sesame-2.7.11-onejar*.jar $(DIST)/lib/sesame/
-	mkdir -p $(DIST)/lib/jena/
-	cp lib/jena/*.jar $(DIST)/lib/jena/
-	rm $(DIST)/lib/jena/*-tests.jar
-	rm $(DIST)/lib/jena/*-test-sources.jar
-	mkdir -p $(DIST)/doc
-	cp src/tutorial/java-tutorial.html $(DIST)/doc/
-	cp src/tutorial/jena-tutorial.html $(DIST)/doc/
-	cp src/tutorial/*.jpg $(DIST)/doc/
-	cp -r doc $(DIST)/javadoc
-	cp README.md $(DIST)/README.md
-	tar -c -h -z $(TAROPTS) -f $(TARNAME) -C DIST $(DISTDIR)
+	sed -i.old 's/<version>\([0-9.]*\)-SNAPSHOT/<version>\1/' pom.xml 
+	-mvn -DskipTests=true package
+	mv pom.xml.old pom.xml
 ifdef DESTDIR
-	cp -p $(TARNAME) $(DESTDIR)
+	mkdir -p $(DESTDIR)
+	cp -p target/$(TARNAME) $(DESTDIR)/$(TARNAME)
 endif
 
 dist-clean: FORCE
-	rm -fr DIST *.tar.gz
+	rm -fr target
 
 FORCE:

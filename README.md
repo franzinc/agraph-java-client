@@ -1,33 +1,29 @@
-# Franz AllegroGraph client API for Java and Clojure
+# Franz AllegroGraph client API for Java
 
 Client API to [Franz AllegroGraph](http://franz.com/agraph/)
-triple store database, version 4.
+triple store database.
 
 This [agraph-java-client](http://github.com/franzinc/agraph-java-client) provides:
 
 * Java client API
   * Adapter for Sesame
   * Adapter for Jena
-* Clojure client API
-
+  
 [AllegroGraph Docs](http://franz.com/agraph/support/documentation/current/)
 
 
 ## Server Prerequisites
 
 * [Download AllegroGraph](http://franz.com/agraph/downloads/)
-  version 4
   * Requires Linux 64-bit or a Linux VM on Windows or Mac OS X
 * Install AllegroGraph
-* Java version 1.6.0 or higher, and any operating system should work
+* Java version 8 or higher, and any operating system should work
   with these jars
 
 
 ## Download options
 
 [Distribution from Franz](http://franz.com/agraph/allegrograph/clients.lhtml)
-
-[Maven repository](http://clojars.org/groups/com.franz)
 
 [Git repository](http://github.com/franzinc/agraph-java-client)
 
@@ -63,93 +59,71 @@ The primary public package is <code>com.franz.agraph.jena</code>.
 [Tutorial](http://franz.com/agraph/support/documentation/current/java-tutorial/jena-tutorial.html)
 
 
-## Clojure
-
-Uses [Clojure](http://clojure.org) 1.4
-
-The tutorial included is similar to the Python and Java tutorials.
-The comment section at the top of the file gives instructions to get
-started.
-
-* clojure/test/com/franz/agraph/tutorial.clj
-
-
-### Usage with Leiningen or Maven
-
-Add to your leiningen project.clj dependencies:
-
-    [com.franz/agraph-clj "4.7"]
-
-See [agraph-clj on clojars](http://clojars.org/com.franz/agraph-clj)
-
-This in turn depends on agraph-java-client, apache httpclient, jena,
-sesame, and others, which lein will download.
-
-To download dependencies into your lib directory:
-
-    lein deps
-
-To start a REPL:
-
-    lein repl
-
-For more help, see
-[Leiningen](http://github.com/technomancy/leiningen/tree/stable).
-
-
-### Usage with Ant
+### Usage
 
 The [agraph-java-client
 download](http://franz.com/agraph/allegrograph/clients.lhtml)
 includes jar files for agraph-java-client and jars on which it depends.
 
-The agraph-clj.jar file can be created using ant
+Programs that use the API should include all JAR files from the lib/ directory of the distribution on their classpath.
 
-    ant build
+It is also possible to use the JAR file as a Maven artifact. To do this, first install it into your local repository (it is located in ~/.m2/):
 
-Alternatively, add the agraph-java-client/clojure/src directory to
-your classpath. Clojure will compile as needed.
+    mvn install:install-file -Dfile=lib/agraph-java-client-*.jar -DpomFile=pom.xml
 
+Then reference that in your Maven project
+
+    <dependency>
+      <groupId>com.franz</groupId>
+      <artifactId>agraph-java-client</artifactId>
+      <version>1.0.0</version>
+      <scope>compile</scope>
+    </dependency>
+
+For Gradle, use this
+
+    compile group: 'com.franz', name: 'agraph-java-client', version: '1.0.0'
+
+Apache Ivy syntax:
+
+    <dependency org="com.franz" name="agraph-java-client" rev="1.0.0"/>
+
+SBT (Scala):
+
+    libraryDependencies += "com.franz" % "agraph-java-client" % "1.0.0"
+
+Leiningen (Clojure):
+
+    [com.franz/agraph-java-client "1.0.0"]
+
+Note that when using the API through Maven all dependencies are downloaded from the central repository - JARs included in the distribution are not used.
 
 ## Development
 
-For Ant users, the Java library includes build.xml. The following
-command line will build the agraph-java-client jar:
+### Testing
 
-    ant build
+Use this command to run the default testsuite. This assumes that AllegroGraph is listening on the local machine on the default port (10035).
 
-For Maven users, the Java library includes pom.xml and an Ant target
-to install. A pom-sesame.xml is also included because
-openrdf-sesame-onejar is not available in another public maven repo.
-Both agraph-java-client and openrdf-sesame-onejar are available
-on [Clojars](http://clojars.org/groups/com.franz).
-The following command line will build and install the jars for
-agraph-java-client and openrdf-sesame-onejar to your local maven
-directory (~/.m2/).
+    mvn test
 
-    ant mvn-install
+To include long running tests, do
 
-The Clojure library includes a project.clj for use with Leiningen.
-It depends on the agraph-java-client, so you will need to use the
-mvn-install command above before using lein. The following command
-line will install all dependencies in agraph-java-client/clojure/lib/.
+    mvn test -Dtests.include=test.TestSuites\$Prepush,test.TestSuites\$Stress   
 
-    lein deps
+### Distribution
 
-Alternatively, for Ant users, the Clojure library includes a
-build.xml and libs/clojure-1.4.0.jar.
+To build a distribution zip, do
 
-    ant build
-
+    mvn package    
 
 ## Tutorials
 
-There are three tutorials located in src/tutorial/ that can be
+There are three tutorials located in tutorials/ that can be
 compiled and run. They are:
 
-  TutorialExamples.java     - Example usage of the AG Sesame interface
-  JenaTutorialExamples.java - Example usage of the AG Jena interface
-  AttributesExample.java    - Example usage of AG Triple Attributes
+  sesame/        - Example usage of the AG Sesame interface
+  jena/          - Example usage of the AG Jena interface
+  attributes/    - Example usage of AG Triple Attributes
 
 ### PREREQUISITES
 
@@ -160,7 +134,7 @@ The class for each tutorial declares a number of variables near the
 top of its respective class definition, which provide the
 information necessary to communicate with AllegroGraph. If necessary,
 modify these variables to match the settings for your server before
-compiling each source file.
+compiling each tutorial.
 
 By default, each tutorial looks for AllegroGraph on localhost at port
 10035. Each will create a repository named after the respective
@@ -176,32 +150,29 @@ correspond to your server configuration as well.
 
 ### Compiling Tutorials
 
-From the current directory the following commands can be used to compile each tutorial.
+Each tutorial is a separate Maven project. To compile the tutorials
+first install the AllegroGraph Java client into your local repository.
+This process is described in the 'Usage' section. Then run the
+following command in the directory containing the tutorial:
 
-  javac -cp 'lib/*:lib/sesame/*' src/tutorial/TutorialExamples.java
-  javac -cp 'lib/*:lib/jena/*:lib/sesame/*' src/tutorial/JenaTutorialExamples.java 
-  javac -cp 'lib/*:lib/sesame/*' src/tutorial/AttributesExample.java
-
+     mvn compile
 
 ### Running Tutorials
 
-To run the Sesame and Jena tutorials, use the following command
-lines. The argument 'all' indicates that all examples should be
-run. You may also specify any number of integer arguments to indicate
-which specific examples to run. If no args are passed, the default is
-to run all examples.
+To run one of the tutorials, use the following command line:
 
-<code>java -cp 'src:lib/*:lib/sesame/*:lib/logging/commons-logging-1.1.1.jar:lib/logging/slf4j-api-1.6.4.jar:lib/logging/log4j-1.2.16.jar:lib/logging/slf4j-log4j12-1.6.4.jar' tutorial/TutorialExamples all</code>
+    mvn java:exec
 
-or 
+in the directory containing the tutorial you wish to run.
 
-<code>java -cp 'src:lib/*:lib/jena/*::lib/sesame/*:lib/logging/commons-logging-1.1.1.jar:lib/logging/slf4j-api-1.6.4.jar:lib/logging/log4j-1.2.16.jar:lib/logging/slf4j-log4j12-1.6.4.jar' tutorial/JenaTutorialExamples all</code>
+Sesame and Jena tutorials contain multiple, numbered examples.
+It is possible to run just the specified examples by passing
+their numbers as arguments in the following way:
 
+   mvn java:exec -Dexec.args="1 2 3 5 8 13 21"
 
-To run the Attributes Example, use the following command line. The AttributesExample class accepts no arguments:
-
-<code>java -cp 'src:lib/*:lib/sesame/*:lib/logging/commons-logging-1.1.1.jar:lib/logging/slf4j-api-1.6.4.jar:lib/logging/log4j-1.2.16.jar:lib/logging/slf4j-log4j12-1.6.4.jar' tutorial/AttributesExample</code>
-
+The argument 'all' indicates that all examples should be
+run.
 
 ## License
 
@@ -210,4 +181,3 @@ All rights reserved. This program and the accompanying materials
 are made available under the terms of the Eclipse Public License v1.0
 which accompanies this distribution, and is available at
 [http://www.eclipse.org/legal/epl-v10.html](http://www.eclipse.org/legal/epl-v10.html)
-

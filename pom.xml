@@ -1,173 +1,457 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
-    <modelVersion>4.0.0</modelVersion>
-    <groupId>com.franz</groupId>
-    <artifactId>agraph-java-client</artifactId>
-    <version>@AGRAPH_VERSION@</version>
-    <name>agraph-java-client</name>
-    <description>Java client API for Franz AllegroGraph v4</description>
-    <licenses>
-        <license>
-            <name>Eclipse Public License 1.0</name>
-            <url>http://opensource.org/licenses/eclipse-1.0.php</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
-    <repositories>
-        <repository>
-            <id>central</id>
-            <url>http://repo1.maven.org/maven2</url>
-        </repository>
-        <!-- <repository> -->
-        <!--     <releases> -->
-        <!--         <enabled>true</enabled> -->
-        <!--     </releases> -->
-        <!--     <snapshots> -->
-        <!--         <enabled>false</enabled> -->
-        <!--     </snapshots> -->
-        <!--     <id>aduna-opensource.releases</id> -->
-        <!--     <name>Aduna Open Source - Maven releases</name> -->
-        <!--     <url>http://repo.aduna-software.org/maven2/releases</url> -->
-        <!-- </repository> -->
-    </repositories>
-    <dependencies>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.8.1</version>
-            <scope>test</scope>
-        </dependency>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.franz</groupId>
+  <artifactId>agraph-java-client</artifactId>
+  <version>1.0.1-SNAPSHOT</version>
+  <name>agraph-java-client</name>
+  <description>Java client API for Franz AllegroGraph</description>
 
-        <dependency>
-            <groupId>com.franz</groupId>
-            <artifactId>openrdf-sesame-onejar</artifactId>
-            <version>2.7.11</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>com.hp.hpl.jena</groupId>
-            <artifactId>jena</artifactId>
-            <version>2.11.1</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.hp.hpl.jena</groupId>
-                    <artifactId>iri</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>antlr</groupId>
-                    <artifactId>antlr</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.hp.hpl.jena</groupId>
-                    <artifactId>concurrent-jena</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.ibm.icu</groupId>
-                    <artifactId>icu4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>xerces</groupId>
-                    <artifactId>xercesImpl</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>xerces</groupId>
-                    <artifactId>xmlParserAPIs</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+  <licenses>
+    <license>
+      <name>Eclipse Public License 1.0</name>
+      <url>http://opensource.org/licenses/eclipse-1.0.php</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
 
-        <dependency>
-            <groupId>com.hp.hpl.jena</groupId>
-            <artifactId>json-jena</artifactId> 
-            <version>1.0</version>
-        </dependency>
+  <scm>
+    <url>https://github.com/franzinc/agraph-java-client</url>
+    <connection>scm:git:git://github.com/franzinc/agraph-java-client.git</connection>
+    <developerConnection>scm:git:git@github.com:franzinc/agraph-java-client.git</developerConnection>
+  </scm>
 
-        <dependency>
-            <groupId>com.hp.hpl.jena</groupId>
-            <artifactId>arq</artifactId>
-            <version>2.11.1</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.6.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-jcl</artifactId>
-            <version>1.6.1</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>commons-httpclient</groupId>
-            <artifactId>commons-httpclient</artifactId>
-            <version>3.1</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>commons-codec</groupId>
-                    <artifactId>commons-codec</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>commons-logging</groupId>
-            <artifactId>commons-logging</artifactId>
-            <version>1.1.1</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-            <version>1.3</version>
-        </dependency>
-        <dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-			<version>2.4</version>
-		</dependency>
-        
-        
-    </dependencies>
+  <organization>
+    <name>Franz Inc.</name>
+    <url>http://franz.com/</url>
+  </organization>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <tests.include>test.TestSuites$Prepush</tests.include>
+    <tests.exclude />
+    <!-- All Sesame deps use the same version. -->
+    <sesame.version>2.7.11</sesame.version>
+    <!-- Same thing applies to Jena. -->
+    <jena.version>2.11.1</jena.version>
+  </properties>
+
+  <!--Use a separate profile for release deployment. -->
+  <profiles>
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <!-- Use GPG signatures when publishing.
+               Credentials are configured in settings.xml. -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.6</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+  <build>
+    <!-- Get the current year. Just 18 lines of XML! -->
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>buildnumber-maven-plugin</artifactId>
+        <version>1.4</version>
+        <executions>
+          <execution>
+            <phase>validate</phase>
+            <goals>
+              <goal>create-timestamp</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <timestampFormat>YYYY</timestampFormat>
+          <timestampPropertyName>year</timestampPropertyName>
+        </configuration>
+      </plugin>
+
+      <!-- Compiler settings. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.5.1</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
+      
+      <!-- Common test settings. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.19.1</version>
+        <configuration>
+          <reportFormat>plain</reportFormat>
+          <useFile>false</useFile>
+          <excludes>
+            <exclude>${tests.exclude}</exclude>
+          </excludes>
+          <includes>
+            <include>${tests.include}</include>
+          </includes>
+          <systemPropertyVariables>
+            <org.apache.commons.logging.Log>
+              org.apache.commons.logging.impl.SimpleLog
+            </org.apache.commons.logging.Log>
+            <org.apache.commons.logging.Log>
+              org.apache.commons.logging.impl.SimpleLog
+            </org.apache.commons.logging.Log>
+            <org.apache.commons.logging.simplelog.defaultlog>
+              info
+            </org.apache.commons.logging.simplelog.defaultlog>
+            <org.apache.commons.logging.simplelog.log.org>
+              info
+            </org.apache.commons.logging.simplelog.log.org>
+            <org.apache.commons.logging.simplelog.log.httpclient>
+              info
+            </org.apache.commons.logging.simplelog.log.httpclient>
+            <org.apache.commons.logging.simplelog.showlogname>
+              true
+            </org.apache.commons.logging.simplelog.showlogname>
+            <org.apache.commons.logging.simplelog.showdatetime>
+              true
+            </org.apache.commons.logging.simplelog.showdatetime>
+            <AGRAPH_HOST>${env.AGRAPH_HOST}</AGRAPH_HOST>
+            <AGRAPH_PORT>${env.AGRAPH_PORT}</AGRAPH_PORT>
+            <AGRAPH_ROOT>${env.root}</AGRAPH_ROOT>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+
+      <!-- JAR configuration (manifest + meta-inf). -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.0.2</version>
+        <configuration>
+          <archive>
+            <index>true</index>
+            <manifest>
+              <addClasspath>true</addClasspath>
+            </manifest>
+            <manifestEntries>
+              <Implementation-Title>AllegroGraph Java Client</Implementation-Title>
+              <Implementation-Version>${project.version}</Implementation-Version>
+              <Implementation-Vendor>Franz, Inc.</Implementation-Vendor>
+              <Implementation-URL>http://www.franz.com/agraph/</Implementation-URL>
+              <Built-At>${maven.build.timestamp}</Built-At>
+            </manifestEntries>
+          </archive>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Source JAR -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>3.0.1</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Javadoc settings. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.10.4</version>
+        <configuration>
+          <author>true</author>
+          <destDir>doc</destDir>
+          <doctitle>Franz, Inc. AllegroGraph Java Client ${project.version} Javadoc</doctitle>
+          <footer>Copyright &amp;copy; 2008-${year} Franz Inc.</footer>
+          <header>Franz Inc, AllegroGraph Java Client</header>
+          <nodeprecated>false</nodeprecated>
+          <nodeprecatedlist>false</nodeprecatedlist>
+          <noindex>false</noindex>
+          <nonavbar>false</nonavbar>
+          <notree>false</notree>
+          <offlineLinks>
+            <offlineLink>
+              <url>http://download.oracle.com/javase/8/docs/api/</url>
+              <location>${basedir}/lib/java</location>
+            </offlineLink>
+            <offlineLink>
+              <!-- Can't use ${sesame.version}, there are no docs for 2.7.11 -->
+              <url>http://archive.rdf4j.org/sesame-2.7.12/</url>
+              <location>${basedir}/lib/sesame</location>
+            </offlineLink>
+            <offlineLink>
+              <!-- Apache only hosts the very latest version. -->
+              <url>http://www.atetric.com/atetric/javadoc/org.apache.jena/jena-core/${jena.version}/</url>
+              <location>${basedir}/lib/jena</location>
+            </offlineLink>
+          </offlineLinks>
+          <overview>${basedir}/src/main/javadoc/overview.html</overview>
+          <reportOutputDirectory>${basedir}</reportOutputDirectory>
+          <show>public</show>
+          <source>1.8</source>
+          <splitindex>true</splitindex>
+          <use>true</use>
+          <version>true</version>
+        </configuration>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Distribution building. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.6</version>
+        <configuration>
+          <attach>false</attach>
+        </configuration>
+        <executions>
+          <execution>
+            <id>jar-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <appendAssemblyId>false</appendAssemblyId>
+              <descriptors>
+                <descriptor>src/assembly/dist.xml</descriptor>
+              </descriptors>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-report-plugin</artifactId>
+        <version>2.19.1</version>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+        <version>3.0.4</version>
+        <configuration>
+          <effort>Max</effort>
+          <threshold>Low</threshold>
+          <xmlOutput>true</xmlOutput>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.17</version>
+        <!-- TODO: Checkstyle config file. -->
+        <!--<configuration>
+          <configLocation>checkstyle.xml</configLocation>
+        </configuration>-->
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>checkstyle</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+    </plugins>
+  </reporting>
+
+  <!-- Get dependencies from the central repository only. -->
+  <repositories>
+    <repository>
+      <id>central</id>
+      <url>http://repo1.maven.org/maven2</url>
+    </repository>
+  </repositories>
+
+  <!-- Deploy to the OSSRH Nexus Repository Manager.
+       Access credentials are configured in settings.xml.
+       See https://books.sonatype.com/nexus-book/reference/usertoken.html -->
+  <distributionManagement>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+    <repository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.8.1</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.openrdf.sesame</groupId>
+      <artifactId>sesame-sparql-testsuite</artifactId>
+      <version>${sesame.version}</version>
+      <scope>test</scope>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.openrdf.sesame</groupId>
+      <artifactId>sesame-store-testsuite</artifactId>
+      <version>${sesame.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.jena</groupId>
+      <artifactId>jena-core</artifactId>
+      <version>${jena.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.jena</groupId>
+      <artifactId>jena-arq</artifactId>
+      <version>${jena.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.openrdf.sesame</groupId>
+      <artifactId>sesame-runtime</artifactId>
+      <version>${sesame.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.openrdf.sesame</groupId>
+      <artifactId>sesame-rio-nquads</artifactId>
+      <version>${sesame.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.openrdf.sesame</groupId>
+      <artifactId>sesame-rio-rdfxml</artifactId>
+      <version>${sesame.version}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.apache.jena</groupId>
+      <artifactId>jena-core</artifactId>
+      <version>${jena.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.hp.hpl.jena</groupId>
+      <artifactId>json-jena</artifactId> 
+      <version>1.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.jena</groupId>
+      <artifactId>jena-arq</artifactId>
+      <version>${jena.version}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.6.4</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>commons-httpclient</groupId>
+      <artifactId>commons-httpclient</artifactId>
+      <version>3.1</version>
+      <exclusions>
+        <exclusion>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>commons-codec</groupId>
+          <artifactId>commons-codec</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    
+    <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging</artifactId>
+      <version>1.1.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-cli</groupId>
+      <artifactId>commons-cli</artifactId>
+      <version>1.2</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>1.3</version>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.4</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.directory.studio</groupId>
+      <artifactId>org.apache.commons.pool</artifactId>
+      <version>1.6</version>
+    </dependency>
+
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>servlet-api</artifactId>
+      <version>2.5</version>
+    </dependency>
+    
+  </dependencies>
 </project>

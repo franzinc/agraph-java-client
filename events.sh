@@ -3,8 +3,5 @@
 # Report Java version first
 java -version
 
-# Compute the actual classpath and save it in a file (./classpath).
-ant -q classpath
-
-# Run the test, place compiled files (./classes) on the classpath.
-java -cp "classes:$(cat classpath)" test.stress.Events $*
+# Compile code (including tests) and run the main class.
+mvn test-compile exec:java -Dexec.classpathScope="test" -Dexec.args="$*" -Dexec.mainClass=test.stress.Events

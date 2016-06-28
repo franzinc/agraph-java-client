@@ -1,6 +1,7 @@
-/classpath
+.idea/
 *.iml
 bin
+/repo
 .*sw*
 *.class
 classes
@@ -13,7 +14,7 @@ DIST
 /doc
 temp.*
 tmp
-/target/
+target
 JenaTutorialExamples.*.nt
 JenaTutorialExamples.*.rdf
 TutorialExamples.*.nt
