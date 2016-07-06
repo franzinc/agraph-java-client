@@ -34,6 +34,7 @@ import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.openrdf.OpenRDFUtil;
 import org.openrdf.http.protocol.Protocol;
@@ -78,6 +79,7 @@ import com.franz.agraph.repository.AGSpinMagicProperty;
 import com.franz.agraph.repository.AGUpdate;
 import com.franz.agraph.repository.AGValueFactory;
 import com.franz.util.Closeable;
+import com.hp.hpl.jena.sparql.resultset.JSONResultsKW;
 
 /**
  * The HTTP layer for interacting with AllegroGraph.
@@ -1132,7 +1134,7 @@ public class AGHttpRepoClient implements Closeable {
 	 * Gets the configuration of the given index.
 	 */
 	public JSONObject getFreetextIndexConfiguration(String index)
-			throws AGHttpException {
+			throws AGHttpException, JSONException {
 		String url = AGProtocol.getFreetextIndexLocation(getRoot(), index);
 		AGJSONHandler handler = new AGJSONHandler();
 		getHTTPClient().get(url, new Header[0], new NameValuePair[0],
@@ -2115,4 +2117,94 @@ public class AGHttpRepoClient implements Closeable {
 		getHTTPClient().setMasqueradeAsUser(user);
 	}
 
+	/**
+	 * HTTP client layer function for requesting that AG define a new attribute. Only parameters
+	 * explicitly set by the client will be passed to the request.
+	 * 
+	 * @param name
+	 * @param allowedValues
+	 * @param ordered
+	 * @param minimum
+	 * @param maximum
+	 * @throws AGHttpException
+	 */
+	public void addAttributeDefinition(String name, List<String> allowedValues, boolean ordered, long minimum, long maximum)
+	throws AGHttpException
+	{
+		String url = AGProtocol.getAttributeDefinitionLocation(getRoot());
+		Header[] headers = {};
+		List<NameValuePair> params = new ArrayList<NameValuePair>(5);
+		
+		params.add(new NameValuePair(AGProtocol.NAME_PARAM_NAME, name));
+		params.add(new NameValuePair(AGProtocol.ORDERED_PARAM_NAME, Boolean.toString(ordered)));
+		
+		if (minimum >= 0) {
+			params.add(new NameValuePair(AGProtocol.MINIMUM_PARAM_NAME, Long.toString(minimum)));
+		}
+		
+		if (maximum >= 0) {
+			params.add( new NameValuePair(AGProtocol.MAXIMUM_PARAM_NAME, Long.toString(maximum)));
+		}
+		
+		if (allowedValues != null) {
+			for (String value : allowedValues) {
+				params.add(new NameValuePair(AGProtocol.ALLOWED_VALUE_PARAM_NAME, value));
+			}
+		}
+		
+		getHTTPClient().post(url, headers, params.toArray(new NameValuePair[params.size()]), null, null);
+	}
+	
+	/**
+	 * HTTP client layer function for requesting that AG deletes an existing attribute.
+	 * 
+	 * @param name
+	 * @throws AGHttpException
+	 */
+	public void deleteAttributeDefinition(String name) throws AGHttpException
+	{
+		String url = AGProtocol.getAttributeDefinitionLocation(getRoot());
+		Header[] headers = {};
+		NameValuePair[] params = { new NameValuePair(AGProtocol.NAME_PARAM_NAME, name) };
+		
+		getHTTPClient().delete(url, headers, params, null);
+	}
+	
+	/**
+	 * Fetch all attribute definitions.
+	 * 
+	 * @return JSONArray containing a JSONObject for each attribute.
+	 * @throws AGHttpException
+	 */
+	public JSONArray getAttributeDefinition()
+			throws AGHttpException, JSONException
+	{
+		return getAttributeDefinition(null);
+	}
+	
+	/**
+	 * Fetch the attribute definition named by NAME. Return all definitions if NAME is null.
+	 * 
+	 * @param name of the attribute
+	 * @return JSONArray containing a JSONObject for the attribute found.
+	 * 	Returns all attributes if NAME is null.
+	 * @throws AGHttpException
+	 */
+	public JSONArray getAttributeDefinition(String name)
+			throws AGHttpException, JSONException
+	{
+		String url = AGProtocol.getAttributeDefinitionLocation(getRoot());
+		Header[] headers = {};
+		List<NameValuePair> params = null;
+		AGJSONHandler handler = new AGJSONHandler();
+		
+		if (name != null) {
+			params = new ArrayList<NameValuePair>(1);
+			params.add(new NameValuePair(AGProtocol.NAME_PARAM_NAME, name));
+		}
+		
+		getHTTPClient().get(url, headers, (params != null ? params.toArray(new NameValuePair[params.size()]) : null), handler);
+		
+		return handler.getArrayResult();
+	}
 }

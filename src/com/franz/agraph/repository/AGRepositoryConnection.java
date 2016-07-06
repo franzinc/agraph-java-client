@@ -1162,7 +1162,8 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * Gets the configuration of the specified free text index.
 	 */
-	public AGFreetextIndexConfig getFreetextIndexConfig(String indexName) throws RepositoryException {
+	public AGFreetextIndexConfig getFreetextIndexConfig(String indexName)
+			throws RepositoryException, JSONException {
 		return new AGFreetextIndexConfig(getHttpRepoClient().getFreetextIndexConfiguration(indexName));
 	}
 	
@@ -2145,7 +2146,7 @@ implements RepositoryConnection, Closeable {
 	 * @param user the user for X-Masquerade-As-User requests.
 	 */
 	public void setMasqueradeAsUser(String user) throws RepositoryException {
-		repoclient.setMasqueradeAsUser(user);
+		getHttpRepoClient().setMasqueradeAsUser(user);
 	}
 
 	/**
@@ -2198,5 +2199,153 @@ implements RepositoryConnection, Closeable {
 		{
 			remove(null, null, null, contexts);
 		}
-
+	
+	/**
+	 * Builder class for defining a new attribute definition. After instantiation,
+	 * use the setter methods to build up the attribute definition. The {@code add}
+	 * method will submit the definition to AG.
+	 * 
+	 * The object can be discarded once {@code add} is called.
+	 *
+	 */
+	
+	public class AttributeDefinition {
+		// required
+		private String name;
+		
+		// optional
+		private List<String> allowedValues; // empty list means any string is acceptable
+		private boolean ordered = false;
+		private long minimum = -1;
+		private long maximum = -1;
+		
+		/**
+		 * Constructor
+		 * 
+		 * @param name of the attribute
+		 */
+		public AttributeDefinition (String name) {
+			this.name = name;
+		}
+		
+		/**
+		 * Overwrite current setting of allowedValues with the argument List.
+		 * 
+		 * @param values, a {@code List<String>} of allowed values.
+		 * 
+		 * @return this
+		 */
+		public AttributeDefinition allowedValues(List<String> values)
+		{
+			allowedValues = values;
+			return this;
+		}
+		
+		/**
+		 * Add an allowed value to the current list of allowed values for this attribute definition
+		 * 
+		 * @param value
+		 * @return this
+		 */
+		public AttributeDefinition allowedValue(String value)
+		{
+			if (allowedValues == null) {
+				allowedValues = new ArrayList<String>(5);
+				allowedValues.add(value);
+			} else {
+				allowedValues.add(value);
+			}
+			
+			return this;
+		}
+		
+		/**
+		 * Specifies whether the values allowed by this attribute definition are ordered.
+		 * 
+		 * @param value
+		 * @return this
+		 */
+		public AttributeDefinition ordered(boolean value)
+		{
+			ordered = value;
+			return this;
+		}
+		
+		/**
+		 * The minimum number of times this attribute must be provided for a triple.
+		 * 
+		 * @param value
+		 * @return this
+		 */
+		public AttributeDefinition minimum(long value) throws Exception
+		{
+			if(value < 0) {
+				throw new Exception("minimum must be a non-negative integer.");
+			}
+			minimum = value;
+			return this;
+		}
+		
+		/**
+		 * The maximum number of times this attribute can be provided with a triple.
+		 * 
+		 * @param value
+		 * @return this
+		 */
+		public AttributeDefinition maximum(long value) throws Exception
+		{
+			if (value < 0) {
+				throw new Exception("maximum must be greater than 0.");
+			}
+			maximum = value;
+			return this;
+		}
+		
+		/**
+		 * Pass the current attribute definition to AllegroGraph for defining.
+		 * 
+		 * @return this
+		 * @throws AGHttpException
+		 */
+		public AttributeDefinition add() throws AGHttpException
+		{
+			AGRepositoryConnection.this.getHttpRepoClient().addAttributeDefinition(name, allowedValues, ordered, minimum, maximum);
+			return this;
+		}
+	}
+	
+	
+	/**
+	 * Delete an existing triple attribute definition.
+	 * 
+	 * @param name - The name of the defined attribute to delete.
+	 * @throws RepositoryException
+	 * 
+	 */
+	public void deleteAttributeDefinition(String name) throws RepositoryException
+	{
+		getHttpRepoClient().deleteAttributeDefinition(name);
+	}
+	
+	/**
+	 * Return a list of all attributes defined for the current connection.
+	 * 
+	 * @return JSONArray of Triple Attribute definitions.
+	 */
+	public JSONArray getAttributeDefinitions()
+			throws RepositoryException, JSONException {
+		return getHttpRepoClient().getAttributeDefinition();
+	}
+	
+	/**
+	 * Return the definition of the attribute named by NAME.
+	 * 
+	 * @param name
+	 * @return JSONArray of all found definitions
+	 * @throws RepositoryException
+	 */
+	public JSONArray getAttributeDefinition(String name)
+			throws RepositoryException, JSONException {
+		return getHttpRepoClient().getAttributeDefinition(name);
+	}
 }

@@ -454,6 +454,20 @@ public class AGProtocol extends Protocol {
 	public static final String CALLIMACHUS = "callimachus";
 	
 	/**
+	 * Relative location of the attribute definition service
+	 */
+	public static final String DEFINE_ATTRIBUTE_LOCATION = "attributes/definitions";
+	
+	/**
+	 * attribute request parameters
+	 */
+	public static final String NAME_PARAM_NAME = "name",
+			ORDERED_PARAM_NAME = "ordered",
+			ALLOWED_VALUE_PARAM_NAME = "allowed-values",
+			MAXIMUM_PARAM_NAME = "maximum-number",
+			MINIMUM_PARAM_NAME = "minimum-number";
+	
+	/**
 	 * Location of the root catalog service
 	 */
 	public static final String getRootCatalogURL(String serverURL) {
@@ -629,6 +643,10 @@ public class AGProtocol extends Protocol {
 		} catch (URIException e) {
 			throw new AGHttpException(e);
 		}
+	}
+	
+	public static String getAttributeDefinitionLocation(String root) {
+		return root + "/" + AGProtocol.DEFINE_ATTRIBUTE_LOCATION;
 	}
 	
 }
