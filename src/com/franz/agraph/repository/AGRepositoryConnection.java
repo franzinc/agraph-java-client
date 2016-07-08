@@ -251,7 +251,18 @@ implements RepositoryConnection, Closeable {
 	protected void addWithoutCommit(Resource subject, URI predicate,
 			Value object, Resource... contexts) throws RepositoryException {
 		Statement st = new StatementImpl(subject, predicate, object);
-		JSONArray rows = encodeJSON(st,contexts);
+		JSONArray rows = encodeJSON(st, null, contexts);
+		try {
+			getHttpRepoClient().uploadJSON(rows);
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		}
+	}
+	
+	protected void addWithoutCommit(Resource subject, URI predicate,
+			Value object, JSONObject attributes, Resource... contexts) throws RepositoryException {
+		Statement st = new StatementImpl(subject, predicate, object);
+		JSONArray rows = encodeJSON(st, attributes, contexts);
 		try {
 			getHttpRepoClient().uploadJSON(rows);
 		} catch (AGHttpException e) {
@@ -271,7 +282,23 @@ implements RepositoryConnection, Closeable {
 		OpenRDFUtil.verifyContextNotNull(contexts);
 		JSONArray rows = new JSONArray();
 		for (Statement st : statements) {
-			JSONArray rows_st = encodeJSON(st);
+			JSONArray rows_st = encodeJSON(st, null, contexts);
+			append(rows, rows_st);
+		}
+		try {
+			getHttpRepoClient().uploadJSON(rows, contexts);
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		}
+	}
+	
+	public void add(Iterable<? extends Statement> statements,
+			JSONObject attributes,
+			Resource... contexts) throws RepositoryException {
+		OpenRDFUtil.verifyContextNotNull(contexts);
+		JSONArray rows = new JSONArray();
+		for (Statement st : statements) {
+			JSONArray rows_st = encodeJSON(st, attributes, contexts);
 			append(rows, rows_st);
 		}
 		try {
@@ -297,7 +324,23 @@ implements RepositoryConnection, Closeable {
 		OpenRDFUtil.verifyContextNotNull(contexts);
 		JSONArray rows = new JSONArray();
 		while (statementIter.hasNext()) {
-			append(rows, encodeJSON(statementIter.next(),contexts));
+			append(rows, encodeJSON(statementIter.next(), null, contexts));
+		}
+		try {
+			getHttpRepoClient().uploadJSON(rows);
+		} catch (AGHttpException e) {
+			throw new RepositoryException(e);
+		}
+	}
+	
+	public <E extends Exception> void add(
+			Iteration<? extends Statement, E> statementIter,
+			JSONObject attributes,
+			Resource... contexts) throws RepositoryException, E {
+		OpenRDFUtil.verifyContextNotNull(contexts);
+		JSONArray rows = new JSONArray();
+		while (statementIter.hasNext()) {
+			append(rows, encodeJSON(statementIter.next(), attributes, contexts));
 		}
 		try {
 			getHttpRepoClient().uploadJSON(rows);
@@ -306,25 +349,42 @@ implements RepositoryConnection, Closeable {
 		}
 	}
 
-	private JSONArray encodeJSON(Statement st, Resource... contexts) {
+	private JSONArray encodeJSON(Statement st, JSONObject attributes, Resource... contexts) {
 		JSONArray rows = new JSONArray();
+		String attrs = null;
+		
+		if (attributes != null) {
+			attrs = attributes.toString();
+		}
+		
 		if (contexts.length==0) {
-			JSONArray row = new JSONArray().put(
-					encodeValueForStorageJSON(st.getSubject())).put(
-							encodeValueForStorageJSON(st.getPredicate())).put(
-									encodeValueForStorageJSON(st.getObject()));
-			if (st.getContext() != null) {
+			JSONArray row = new JSONArray().put(encodeValueForStorageJSON(st.getSubject()))
+										   .put(encodeValueForStorageJSON(st.getPredicate()))
+										   .put(encodeValueForStorageJSON(st.getObject()));
+			// there are no contexts passed in, but a context may be encoded in the row.
+			if(st.getContext() != null) {
 				row.put(encodeValueForStorageJSON(st.getContext()));
+			} else {
+				row.put(null);
+			}
+			if (attrs != null) {
+				row.put(attrs);
 			}
 			rows.put(row);
 		} else {
 			for (Resource c: contexts) {
-				JSONArray row = new JSONArray().put(
-						encodeValueForStorageJSON(st.getSubject())).put(
-								encodeValueForStorageJSON(st.getPredicate())).put(
-										encodeValueForStorageJSON(st.getObject()));
+				JSONArray row = new JSONArray().put(encodeValueForStorageJSON(st.getSubject()))
+											   .put(encodeValueForStorageJSON(st.getPredicate()))
+											   .put(encodeValueForStorageJSON(st.getObject()));
+				// contexts passed in as argument to encodeJSON supersede any context that may
+				// be specified in the row itself. A context of null refers to the default Graph.
 				if (c != null) {
 					row.put(encodeValueForStorageJSON(c));
+				} else {
+					row.put(null);
+				}
+				if (attrs != null) {
+					row.put(attrs);
 				}
 				rows.put(row);
 			}
@@ -630,6 +690,13 @@ implements RepositoryConnection, Closeable {
 			OpenRDFUtil.verifyContextNotNull(contexts);
 			addWithoutCommit(subject, predicate, object, contexts);
 		}
+	 
+	 public void add(Resource subject, URI predicate, Value object, JSONObject attributes, Resource... contexts)
+				throws RepositoryException
+		{
+			OpenRDFUtil.verifyContextNotNull(contexts);
+			addWithoutCommit(subject, predicate, object, attributes, contexts);
+		}
 	
 	/**
 	 * Removes the statement(s) with the specified subject, predicate and object
@@ -670,6 +737,13 @@ implements RepositoryConnection, Closeable {
 				addWithoutCommit(st, contexts);			
 			}
 	 
+	 public void add(Statement st, JSONObject attributes, Resource... contexts)
+				throws RepositoryException
+			{
+				OpenRDFUtil.verifyContextNotNull(contexts);
+				addWithoutCommit(st, attributes, contexts);			
+			}
+	 
 	 protected void addWithoutCommit(Statement st, Resource... contexts)
 				throws RepositoryException
 			{
@@ -678,6 +752,16 @@ implements RepositoryConnection, Closeable {
 				}
 
 				addWithoutCommit(st.getSubject(), st.getPredicate(), st.getObject(), contexts);
+			}
+	 
+	 protected void addWithoutCommit(Statement st, JSONObject attributes, Resource... contexts)
+				throws RepositoryException
+			{
+				if (contexts.length == 0 && st.getContext() != null) {
+					contexts = new Resource[] { st.getContext() };
+				}
+
+				addWithoutCommit(st.getSubject(), st.getPredicate(), st.getObject(), attributes, contexts);
 			}
 	 
 	 protected void removeWithoutCommit(Statement st, Resource... contexts)
@@ -721,7 +805,7 @@ implements RepositoryConnection, Closeable {
 		OpenRDFUtil.verifyContextNotNull(contexts);
 		JSONArray rows = new JSONArray();
 		for (Statement st : statements) {
-			append(rows, encodeJSON(st,contexts));
+			append(rows, encodeJSON(st, null, contexts));
 		}
 		getHttpRepoClient().deleteJSON(rows);
 	}
@@ -732,7 +816,7 @@ implements RepositoryConnection, Closeable {
 		OpenRDFUtil.verifyContextNotNull(contexts);
 		JSONArray rows = new JSONArray();
 		while (statements.hasNext()) {
-			append(rows, encodeJSON(statements.next(),contexts));
+			append(rows, encodeJSON(statements.next(), null, contexts));
 		}
 		getHttpRepoClient().deleteJSON(rows);
 	}

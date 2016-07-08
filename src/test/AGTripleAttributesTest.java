@@ -11,16 +11,20 @@ package test;
 import junit.framework.Assert;
 
 import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 // import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.openrdf.model.Literal;
+import org.openrdf.model.URI;
+import org.openrdf.model.vocabulary.RDF;
 // import org.junit.rules.ExpectedException;
-
-
-
+import org.openrdf.repository.RepositoryException;
 
 import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.repository.AGRepositoryConnection;
+import com.franz.agraph.repository.AGValueFactory;
 import com.franz.agraph.repository.AGRepositoryConnection.AttributeDefinition;
 
 import java.util.ArrayList;
@@ -239,4 +243,54 @@ public class AGTripleAttributesTest extends AGAbstractTest {
 		} catch (AGHttpException e) {
 		}
 	}
+	
+	@Category(TestSuites.Prepush.class)
+	@Test
+	public void testAddTriplesWithAttributes() throws Exception {
+		AGRepositoryConnection conn = getConnection();
+		AGValueFactory vf = conn.getRepository().getValueFactory();
+
+		// define an interesting couple of attributes.
+		AttributeDefinition def1 = conn.new AttributeDefinition("canWork")
+											.allowedValue("AR")
+											.allowedValue("CH")
+											.allowedValue("BR")
+											.allowedValue("VZ");
+		
+		AttributeDefinition def2 = conn.new AttributeDefinition("gameImportance")
+											.allowedValue("Group")
+											.allowedValue("Quarter")
+											.allowedValue("Semi")
+											.allowedValue("Final")
+											.ordered(true);
+		
+		def1.add();
+		def2.add();
+		
+		// create some resources...
+		URI ref1 = vf.createURI("http://example.org/fifa/refs/CrookedReferee");
+        URI ref2 = vf.createURI("http://example.org/fifa/refs/HonestReferee");
+        URI ref = vf.createURI("http://example.org/ontology/HeadReferee");
+        URI c1 = vf.createURI("http://example.org/fifa/copa_america");
+        URI c2 = vf.createURI("http://example.org/fifa/copa_mundial");
+        
+		// and some attributes
+        JSONObject attr1 = new JSONObject("{ canWork: AR, gameImportance: Semi, canWork: BR }");
+        JSONObject attr2 = new JSONObject("{ canWork: AR, canWork: CH, canWork: BR, canWork: VZ, gameImportance: Final }");
+        
+        conn.add(ref1, RDF.TYPE, ref, attr1, c1);
+        conn.add(ref2, RDF.TYPE, ref, attr2, c1, c2);
+        
+        // add a triple with an undefined attribute
+        JSONObject badAttrs = new JSONObject("{ canWork: AR, canwork: CH, nationality: AR }");
+        
+        try {
+        	conn.add(ref2, RDF.TYPE, ref, badAttrs);
+        	throw new Exception("no exception when adding an undefined attribute");
+        } catch (RepositoryException e) {
+        }
+	}
+	
+	// TODO: Add test where maximum is exceeded.
+	// TODO: Add test where minimum is not met.
 }

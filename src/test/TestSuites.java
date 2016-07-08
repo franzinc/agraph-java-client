@@ -40,7 +40,8 @@ public class TestSuites {
      */
     @RunWith(Categories.class)
     @IncludeCategory(Temp.class)
-    @SuiteClasses( { TutorialTests.class,
+    @SuiteClasses( { AGTripleAttributesTest.class,
+    	TutorialTests.class,
         QuickTests.class,
         AGRepositoryConnectionTests.class,
         JenaTests.class,
