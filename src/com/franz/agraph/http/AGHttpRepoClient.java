@@ -2207,4 +2207,37 @@ public class AGHttpRepoClient implements Closeable {
 		
 		return handler.getArrayResult();
 	}
+	
+	public void addStaticAttributeFilter(String filter) throws AGHttpException {
+		String url = AGProtocol.getStaticFilterLocation(getRoot());
+		Header[] headers = {};
+		NameValuePair[] params = { new NameValuePair(AGProtocol.FILTER_PARAM_NAME, filter) };
+
+		getHTTPClient().post(url, headers, params, null, null);
+	}
+	
+	public String getStaticAttributeFilter() throws AGHttpException {
+		String url = AGProtocol.getStaticFilterLocation(getRoot());
+		Header[] headers = {};
+		NameValuePair[] params = null;
+		AGStringHandler handler = new AGStringHandler();
+		String result;
+		
+		getHTTPClient().get(url, headers, params, handler);
+		
+		result = handler.getResult();
+		
+		if (result.equals("nil")) {
+			result = null;
+		}
+		return result;
+	}
+	
+	public void deleteStaticAttributeFilter() throws AGHttpException {
+		String url = AGProtocol.getStaticFilterLocation(getRoot());
+		Header[] headers = {};
+		NameValuePair[] params = null;
+		
+		getHTTPClient().delete(url, headers, params, null);
+	}
 }

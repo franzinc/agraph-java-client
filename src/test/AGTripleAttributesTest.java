@@ -293,4 +293,62 @@ public class AGTripleAttributesTest extends AGAbstractTest {
 	
 	// TODO: Add test where maximum is exceeded.
 	// TODO: Add test where minimum is not met.
+	
+	
+	@Category(TestSuites.Prepush.class)
+	@Test
+	public void testStaticAttributeFiltersBasic() throws Exception {
+		AGRepositoryConnection conn = getConnection();
+		
+		setupStaticAttributeFilters();
+		
+		String filter = new String("(and (attribute>= user.access-level triple.access-level)\n"
+                + "(attribute-contains-one-of user.department triple.department)\n"
+                + "(attribute-contains-all-of user.token triple.token))");
+		
+		// no filter defined yet, should get null
+		String result = conn.getStaticAttributeFilter();
+		Assert.assertNull("non-null result fetching StaticFilter before one defined. Got '" + result + "'", result);
+		
+		// add a filter
+		conn.addStaticAttributeFilter(filter);
+		
+		// get filter
+		String returnedFilter = conn.getStaticAttributeFilter();
+		Assert.assertEquals(filter, returnedFilter);
+		
+		// delete filter
+		conn.deleteStaticAttributeFilter();
+		result = conn.getStaticAttributeFilter();
+		Assert.assertNull("non-null result after deleting staticFilter. Got '" + result + "'", result);
+		
+	}
+	
+	private void setupStaticAttributeFilters() throws Exception {
+		
+		AGRepositoryConnection conn = getConnection();
+		
+		conn.new AttributeDefinition("access-level")
+				.allowedValue("low")
+				.allowedValue("medium")
+				.allowedValue("high")
+				.ordered(true)
+				.minimum(1)
+				.add();
+		
+		conn.new AttributeDefinition("department")
+				.allowedValue("tech")
+				.allowedValue("hr")
+				.allowedValue("sales")
+				.allowedValue("accounting")
+				.add();
+		
+		conn.new AttributeDefinition("token")
+				.allowedValue("A").allowedValue("B")
+				.allowedValue("C").allowedValue("D")
+				.allowedValue("E").allowedValue("F")
+				.add();
+
+	}
+	
 }

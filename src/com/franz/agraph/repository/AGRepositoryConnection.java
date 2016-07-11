@@ -2432,4 +2432,34 @@ implements RepositoryConnection, Closeable {
 			throws RepositoryException, JSONException {
 		return getHttpRepoClient().getAttributeDefinition(name);
 	}
+	
+	/**
+	 * Define a static attribute filter on the current repository.
+	 * 
+	 * @param filter, a string representing a static attribute filter definition.
+	 * @throws RepositoryException
+	 */
+	public void addStaticAttributeFilter(String filter) throws RepositoryException {
+		getHttpRepoClient().addStaticAttributeFilter(filter);
+	}
+	
+	/**
+	 * Fetch the string representation of the static attribute filter defined on this
+	 * repository
+	 * 
+	 * @return String, or null if no static filter is defined.
+	 * @throws RepositoryException
+	 */
+	public String getStaticAttributeFilter() throws RepositoryException {
+		return getHttpRepoClient().getStaticAttributeFilter();
+	}
+	
+	/**
+	 * Delete the static attribute filter defined on this repository.
+	 * 
+	 * @throws RepositoryException
+	 */
+	public void deleteStaticAttributeFilter() throws RepositoryException {
+		getHttpRepoClient().deleteStaticAttributeFilter();
+	}
 }

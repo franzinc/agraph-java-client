@@ -468,6 +468,13 @@ public class AGProtocol extends Protocol {
 			MINIMUM_PARAM_NAME = "minimum-number";
 	
 	/**
+	 * Relative location of static attribute filter service
+	 */
+	public static final String STATIC_FILTER_LOCATION = "attributes/staticFilter";
+	
+	public static final String FILTER_PARAM_NAME = "filter";
+	
+	/**
 	 * Location of the root catalog service
 	 */
 	public static final String getRootCatalogURL(String serverURL) {
@@ -647,6 +654,10 @@ public class AGProtocol extends Protocol {
 	
 	public static String getAttributeDefinitionLocation(String root) {
 		return root + "/" + AGProtocol.DEFINE_ATTRIBUTE_LOCATION;
+	}
+	
+	public static String getStaticFilterLocation(String root) {
+		return root + "/" + AGProtocol.STATIC_FILTER_LOCATION;
 	}
 	
 }
