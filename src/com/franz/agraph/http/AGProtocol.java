@@ -475,6 +475,10 @@ public class AGProtocol extends Protocol {
 	public static final String FILTER_PARAM_NAME = "filter";
 	
 	/**
+	 * Override header for supplying user attributes with a store-based request.
+	 */
+	public static final String USER_ATTRIBUTE_HEADER = "x-user-attributes";
+	/**
 	 * Location of the root catalog service
 	 */
 	public static final String getRootCatalogURL(String serverURL) {

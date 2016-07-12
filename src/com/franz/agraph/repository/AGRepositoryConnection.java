@@ -2462,4 +2462,16 @@ implements RepositoryConnection, Closeable {
 	public void deleteStaticAttributeFilter() throws RepositoryException {
 		getHttpRepoClient().deleteStaticAttributeFilter();
 	}
+	
+	public String getUserAttributes() {
+		return getHttpRepoClient().getUserAttributes();
+	}
+	
+	public void setUserAttributes(String value) {
+		getHttpRepoClient().setUserAttributes(value);
+	}
+	
+	public void setUserAttributes(JSONObject value) {
+		setUserAttributes(value.toString());
+	}
 }

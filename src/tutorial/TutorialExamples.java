@@ -11,11 +11,16 @@ package tutorial;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import junit.framework.Assert;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
@@ -38,6 +43,7 @@ import org.openrdf.query.TupleQueryResultHandler;
 import org.openrdf.query.impl.DatasetImpl;
 import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryConnection;
+import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.ntriples.NTriplesWriter;
@@ -52,11 +58,13 @@ import com.franz.agraph.repository.AGFreetextIndexConfig;
 import com.franz.agraph.repository.AGFreetextQuery;
 import com.franz.agraph.repository.AGGraphQuery;
 import com.franz.agraph.repository.AGQueryLanguage;
+import com.franz.agraph.repository.AGRDFFormat;
 import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
 import com.franz.agraph.repository.AGTupleQuery;
 import com.franz.agraph.repository.AGValueFactory;
+
 
 public class TutorialExamples {
 
@@ -2797,11 +2805,160 @@ public class TutorialExamples {
   
        }
     
-         
+    /**
+     * A novel, nestable class for defining a scope over which user attributes are set
+     * on an AGRepositoryConnection.
+     * 
+     * A UserAttributeContext can be used with a try-with-resources statement to automate
+     * the saving, setting and restoring of userAttributes on an AGRepositoryConnection
+     * object. It is intended as an aid to help ensure a specific set of user attributes
+     * are not leaked outside the scope of their intended use.
+     * 
+     * Any request made between instantiation of this class and a call to the close()
+     * method will automatically have an x-user-attributes header added to each request
+     * sent to via the AGRepositoryConnection object passed as an argument to one of
+     * the constructors. While the context instance is live, and before close() is called,
+     * the AGRepositoryConnection can be use directly, or referenced via the `conn' field
+     * of the context itself.
+     * 
+     * See example25() for sample code demonstrating its use.
+     *
+     */
+    private static class UserAttributesContext implements AutoCloseable {
+		public AGRepositoryConnection conn;
+		private String oldUserAttrs;
+		
+		/**
+		 * Instantiate a UserAttributesContext object. Saves any existing userAttributes
+		 * set on the argument connection object via connection.getUserAttributes() and then
+		 * calls connection.setUserAttributes(attrs).
+		 * 
+		 * @param connection, an instance of AGRepositoryConnection
+		 * @param attrs, a String representing a JSON object comprising a collection of
+		 * 		attribute/value pairs.
+		 */
+		UserAttributesContext(AGRepositoryConnection connection, String attrs) {
+			conn = connection;
+			oldUserAttrs = conn.getUserAttributes();
+			conn.setUserAttributes(attrs);
+		}
+		
+		/**
+		 * Instantiate a UserAttributesContext object. Saves any existing userAttributes
+		 * set on the argument connection object via connection.getUserAttributes() and then
+		 * calls connection.setUserAttributes(attrs).
+		 * 
+		 * @param connection, an instance of AGRepositoryConnection
+		 * @param attrs, a JSONObject comprising a collection of attribute/value pairs.
+		 *
+		 */
+		UserAttributesContext(AGRepositoryConnection connection, JSONObject attrs) {
+			conn = connection;
+			oldUserAttrs = conn.getUserAttributes();
+			conn.setUserAttributes(attrs);
+		}
+		
+		/**
+		 * restore, via conn.setUserAttributes() the user attributes that were defined on 
+		 * the AGRepositoryConnection object passed to the constructor of this instance.
+		 */
+		public void close() {
+			conn.setUserAttributes(oldUserAttrs);
+		}
+	}
+    
+    /**
+     * Count the number of results in a RepositoryResult<Statement> set.
+     * @param results
+     * @return int, the number of statements in the RepositoryResult.
+     * @throws RepositoryException
+     */
+    private static int countResults(RepositoryResult<Statement> results) throws RepositoryException {
+    	int count = 0;
+    	if (results != null) {
+    		while (results.hasNext()) {
+    			results.next();
+    			count++;
+    		}
+    	}
+    	return count;
+    }
+    public static void example25() throws Exception {
+    	
+        println("\nStarting example25().");
+
+    	AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
+        AGCatalog catalog = server.getCatalog(CATALOG_ID);
+        catalog.deleteRepository(REPOSITORY_ID);
+        AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);
+        myRepository.initialize();
+        AGRepositoryConnection conn = myRepository.getConnection();
+        closeBeforeExit(conn);
+        conn.clear();
+				
+		String filter = new String("(attribute-contains-all-of user.color triple.color)");
+		
+		// no filter defined yet, should get null
+		String result = conn.getStaticAttributeFilter();
+		Assert.assertNull("non-null result fetching StaticFilter before one defined. Got '" + result + "'", result);
+		
+		// define attribute that is used in the incoming data set.
+		conn.new AttributeDefinition("color").add();
+		
+		// import data
+		String input = "src/tutorial/sample.nqx";
+	
+		try (FileInputStream in = new FileInputStream(input)) {
+    		conn.add(in, null, AGRDFFormat.NQX);
+		}
+
+		// verify user attributes are currently null.
+		Assert.assertNull("User Attributes non-null prior to being set", conn.getUserAttributes());
+		
+		// add a filter
+		conn.addStaticAttributeFilter(filter);
+				
+		// Establish a context for a particular set of user attribute values.
+		String userAttributes1 = new String("{ color: blue }");
+		JSONObject userAttributes2 = new JSONObject()
+						.put("color", new JSONArray().put("red"));
+		
+		try (UserAttributesContext ctxt = new UserAttributesContext(conn, userAttributes1)) {
+			RepositoryResult<Statement> results = conn.getStatements(null, null, null, false);
+			
+			println("Got " + countResults(results) + " results out of " + conn.size()
+					+ " based on the user attributes "
+					+ conn.getUserAttributes());
+			
+			try (UserAttributesContext innerCtxt = new UserAttributesContext(conn, userAttributes2)) {
+				results = conn.getStatements(null, null, null, false);
+				
+				println("Got " + countResults(results) + " results out of " + conn.size()
+						+ " based on the user attributes "
+						+ conn.getUserAttributes()	);	
+			} // inner context exit
+			
+			// verify ctxt userAttributes are restored.
+			Assert.assertEquals("Unepxected user attributes after exit from inner context", userAttributes1, conn.getUserAttributes());
+		} // outer context exit
+		
+		// verify user attributes are still null
+		Assert.assertNull("User Attributes non-null after context closed", conn.getUserAttributes());
+		
+		// veryify user attributes are unset on throw
+		try {
+			try (UserAttributesContext ctxt = new UserAttributesContext(conn, userAttributes1)) {
+				throw new Exception("throw out of try-with-resources");
+			}
+		} catch (Exception e) {
+			Assert.assertNull("User attributes non-null after throw from try-with-resources" , conn.getUserAttributes());
+		}
+		println("\nFinished example25().");
+	}
 
     /**
      * Usage: all
-     * Usage: [1-24]+
+     * Usage: [1-25]+
      */
     public static void main(String[] args) throws Exception {
     	long now = System.currentTimeMillis();
@@ -2810,7 +2967,7 @@ public class TutorialExamples {
             // for choosing by editing this code
             choices.add(1);
         } else if (args[0].equals("all")) {
-            for (int i = 1; i <= 24; i++) {
+            for (int i = 1; i <= 25; i++) {
                 choices.add(i);
             }
         } else {
@@ -2823,32 +2980,33 @@ public class TutorialExamples {
                 println("\n** Running example " + choice);
                 switch(choice) {
                 case 1: example1(true); break;
-                case 2: example2(true); break;            
+                case 2: example2(true); break;
                 case 3:
                 	example3();
                 	example3a();
                 	break;
-                case 4: example4(); break;                        
-                case 5: example5(); break;                                    
-                case 6: example6(); break;    
+                case 4: example4(); break;
+                case 5: example5(); break;
+                case 6: example6(); break;
                 case 7: example7(); break;
-                case 8: example8(); break;            
-                case 9: example9(); break;    
+                case 8: example8(); break;
+                case 9: example9(); break;
                 case 10: example10(); break;
-                case 11: example11(); break;            
-                case 12: example12(); break;                        
-                case 13: example13(); break;                                    
-                case 14: example14(); break;                                    
-                case 15: example15(); break;                                    
-                case 16: example16(); break;                                    
-                case 17: example17(); break;                                    
-                case 18: example18(); break;                                    
-                case 19: example19(); break;                                    
-                case 20: example20(); break;                                    
-                case 21: example21(); break;                                
+                case 11: example11(); break;
+                case 12: example12(); break;
+                case 13: example13(); break;
+                case 14: example14(); break;
+                case 15: example15(); break;
+                case 16: example16(); break;
+                case 17: example17(); break;
+                case 18: example18(); break;
+                case 19: example19(); break;
+                case 20: example20(); break;
+                case 21: example21(); break;
                 case 22: example22(); break;
                 case 23: example23(); break;
-                case 24: example24(); break;                
+                case 24: example24(); break;
+                case 25: example25(); break;
                 default: println("Example" + choice + "() is not available in this release.");
                 }
             }

@@ -244,7 +244,7 @@ public class AGTripleAttributesTest extends AGAbstractTest {
 		}
 	}
 	
-	@Category(TestSuites.Prepush.class)
+	@Category(TestSuites.Temp.class)
 	@Test
 	public void testAddTriplesWithAttributes() throws Exception {
 		AGRepositoryConnection conn = getConnection();
@@ -275,14 +275,14 @@ public class AGTripleAttributesTest extends AGAbstractTest {
         URI c2 = vf.createURI("http://example.org/fifa/copa_mundial");
         
 		// and some attributes
-        JSONObject attr1 = new JSONObject("{ canWork: AR, gameImportance: Semi, canWork: BR }");
-        JSONObject attr2 = new JSONObject("{ canWork: AR, canWork: CH, canWork: BR, canWork: VZ, gameImportance: Final }");
+        JSONObject attr1 = new JSONObject("{ canWork: [ AR, BR ], gameImportance: Semi }");
+        JSONObject attr2 = new JSONObject("{ canWork: [ AR, CH, BR, VZ ], gameImportance: Final }");
         
         conn.add(ref1, RDF.TYPE, ref, attr1, c1);
         conn.add(ref2, RDF.TYPE, ref, attr2, c1, c2);
         
         // add a triple with an undefined attribute
-        JSONObject badAttrs = new JSONObject("{ canWork: AR, canwork: CH, nationality: AR }");
+        JSONObject badAttrs = new JSONObject("{ canWork: [ AR, CH ], nationality: AR }");
         
         try {
         	conn.add(ref2, RDF.TYPE, ref, badAttrs);
@@ -350,5 +350,37 @@ public class AGTripleAttributesTest extends AGAbstractTest {
 				.add();
 
 	}
-	
+
+	@Category(TestSuites.Temp.class)
+	@Test
+	public void testPassingUserAttributesHeader() throws Exception {
+		// make sure no old attribute definitions are lurking.
+		cat.deleteRepository(REPO_ID);
+		cat.createRepository(REPO_ID);
+		AGRepositoryConnection conn = getConnection();
+		
+		JSONObject userAttrs = new JSONObject("{ access-level: medium, token: [ A, B, F ], department: sales }");
+		
+		conn.setUserAttributes(userAttrs);
+		
+		// attributes aren't defined yet. should error.
+		// this test is sufficient to verify that the header is being passed correctly.
+		try {
+			conn.size();
+			throw new Exception("No exception thrown when passing undefined user-attributes.");
+		} catch (AGHttpException e) {
+		}
+		
+		// clear userAttributes
+		conn.setUserAttributes((String)null);
+		// if header is sent despite clearing userAttributes, an exception should be thrown.
+		conn.size();
+		
+		conn.setUserAttributes(userAttrs);
+
+		setupStaticAttributeFilters();
+		// should not error.
+		conn.size();
+		
+	}
 }
