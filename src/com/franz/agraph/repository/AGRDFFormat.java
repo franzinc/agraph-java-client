@@ -14,7 +14,12 @@ import org.openrdf.rio.RDFFormat;
 
 public class AGRDFFormat extends RDFFormat {
 
-	public static RDFFormat NQUADS = new AGRDFFormat("N-Quads","text/x-nquads",Charset.forName("US-ASCII"),"nq",false,true);
+	public static RDFFormat NQUADS = 
+			new AGRDFFormat("N-Quads","text/x-nquads",Charset.forName("UTF8"),
+							"nq",false,true);
+	public static RDFFormat NQX = 
+			new AGRDFFormat("NQX", "application/x-extended-nquads",
+							Charset.forName("UTF8"), "nqx", false, true);
 	
 	public AGRDFFormat(String name, String mimeType, Charset charset,
 			String fileExtension, boolean supportsNamespaces,

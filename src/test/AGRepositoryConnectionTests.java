@@ -44,7 +44,9 @@ import test.RepositoryConnectionTest.RepositoryConnectionTests;
 import test.TestSuites.NonPrepushTest;
 
 import com.franz.agraph.repository.AGCatalog;
+import com.franz.agraph.repository.AGRDFFormat;
 import com.franz.agraph.repository.AGRepository;
+import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
 
 public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
@@ -568,6 +570,22 @@ public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
 		assertTrue("bib should be known in context1", testCon.hasStatement(
 				null, name, nameBob, false, context1));
 
-	} 
+	}
+    
+    @Test
+    public void testAddNQXFile() throws Exception {
+    	// add file sample.nqx to repository, no context
+    	
+    	AGRepository repo = (AGRepository)createRepository();
+    	AGRepositoryConnection conn = repo.getConnection();
+    	
+    	// define all attributes used in the import data set.
+    	conn.new AttributeDefinition("color").add();
+    	
+    	try (InputStream in = new FileInputStream(TEST_DIR_PREFIX + "sample.nqx")) {
+    		conn.add(in, null, AGRDFFormat.NQX);
+    	}
+    }
+    
 
 }
