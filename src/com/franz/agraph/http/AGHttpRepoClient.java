@@ -2227,7 +2227,7 @@ public class AGHttpRepoClient implements Closeable {
 		
 		result = handler.getResult();
 		
-		if (result.equals("nil")) {
+		if (result != null && result.trim().length() == 0) {
 			result = null;
 		}
 		return result;
