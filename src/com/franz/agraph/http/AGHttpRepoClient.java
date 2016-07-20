@@ -700,7 +700,8 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	public void upload(final Reader contents, String baseURI,
-			final RDFFormat dataFormat, boolean overwrite, Resource... contexts)
+			final RDFFormat dataFormat, boolean overwrite, 
+			JSONObject attributes, Resource... contexts)
 			throws RDFParseException, AGHttpException {
 		final Charset charset = dataFormat.hasCharset() ? dataFormat
 				.getCharset() : Charset.forName("UTF-8");
@@ -713,10 +714,6 @@ public class AGHttpRepoClient implements Closeable {
 
 			public String getContentType() {
 				String format = dataFormat.getDefaultMIMEType();
-				// TODO: needs rfe10230
-				if (format.contains("turtle")) {
-					format = "text/turtle";
-				}
 				return  format + "; charset="
 						+ charset.name();
 			}
@@ -732,24 +729,30 @@ public class AGHttpRepoClient implements Closeable {
 			}
 		};
 
-		upload(entity, baseURI, overwrite, null, null, null, contexts);
+		upload(entity, baseURI, overwrite, null, null, null, attributes, contexts);
 	}
 
 	public void upload(InputStream contents, String baseURI,
-			RDFFormat dataFormat, boolean overwrite, Resource... contexts)
+			RDFFormat dataFormat, boolean overwrite,
+			JSONObject attributes, Resource... contexts)
 			throws RDFParseException, AGHttpException {
 		// Set Content-Length to -1 as we don't know it and don't want to cache"
 		String format = dataFormat.getDefaultMIMEType();
-		//TODO: needs rfe10230
-		if (format.contains("turtle")) format = "text/turtle";
 		RequestEntity entity = new InputStreamRequestEntity(contents, -1, format);
-		upload(entity, baseURI, overwrite, null, null, null, contexts);
+		upload(entity, baseURI, overwrite, null, null, null, attributes, contexts);
 	}
 
 	public void sendRDFTransaction(InputStream rdftransaction) throws AGHttpException {
 		RequestEntity entity = new InputStreamRequestEntity(rdftransaction, -1,
 				"application/x-rdftransaction");
-		upload(entity, null, false, null, null, null);
+		upload(entity, null, false, null, null, null, null);
+	}
+	
+	public void sendRDFTransaction(InputStream rdftransaction, JSONObject attributes)
+			throws AGHttpException {
+		RequestEntity entity = new InputStreamRequestEntity(rdftransaction, -1,
+				"application/x-rdftransaction");
+		upload(entity, null, false, null, null, null, attributes);
 	}
 
 	public void uploadJSON(JSONArray rows, Resource... contexts)
@@ -780,36 +783,57 @@ public class AGHttpRepoClient implements Closeable {
 
 	public void load(URI source, String baseURI, RDFFormat dataFormat,
 			Resource... contexts) throws AGHttpException {
-		upload(null, baseURI, false, null, source, dataFormat, contexts);
+		upload(null, baseURI, false, null, source, dataFormat, null, contexts);
+	}
+	
+	public void load(URI source, String baseURI, RDFFormat dataFormat,
+			JSONObject attributes, Resource... contexts) throws AGHttpException {
+		upload(null, baseURI, false, null, source, dataFormat,
+				attributes, contexts);
 	}
 
 	public void load(String serverAbsolutePath, String baseURI,
 			RDFFormat dataFormat, Resource... contexts) throws
 			AGHttpException {
 		upload(null, baseURI, false, serverAbsolutePath, null, dataFormat,
-				contexts);
+				null, contexts);
+	}
+	
+	public void load(String serverAbsolutePath, String baseURI,
+			RDFFormat dataFormat, JSONObject attributes,
+			Resource... contexts) throws AGHttpException {
+		upload(null, baseURI, false, serverAbsolutePath, null, dataFormat,
+				attributes, contexts);
 	}
 
 	public void upload(RequestEntity reqEntity, String baseURI,
 			boolean overwrite, String serverSideFile, URI serverSideURL,
-			RDFFormat dataFormat, Resource... contexts) throws
-			AGHttpException {
+			RDFFormat dataFormat, JSONObject attributes,
+			Resource... contexts) throws AGHttpException {
 		String url = Protocol.getStatementsLocation(getRoot());
-		upload(url, reqEntity, baseURI, overwrite, serverSideFile, serverSideURL, dataFormat, contexts);
+		upload(url, reqEntity, baseURI, overwrite, serverSideFile, serverSideURL,
+				dataFormat, attributes, contexts);
+	}
+	
+	/*
+	 * This method is called by the uploadJSON methods, which already have attributes
+	 * built into the input stream passed as part of the reqEntity.
+	 */
+	public void upload(String url, RequestEntity reqEntity, String baseURI,
+			boolean overwrite, String serverSideFile, URI serverSideURL,
+			RDFFormat dataFormat, Resource... contexts) throws AGHttpException {
+		upload(url, reqEntity, baseURI, overwrite, serverSideFile, serverSideURL,
+				dataFormat, null, contexts);
 	}
 
 	public void upload(String url, RequestEntity reqEntity, String baseURI,
 			boolean overwrite, String serverSideFile, URI serverSideURL,
-			RDFFormat dataFormat, Resource... contexts) throws
-			AGHttpException {
+			RDFFormat dataFormat, JSONObject attributes,
+			Resource... contexts) throws AGHttpException {
 		OpenRDFUtil.verifyContextNotNull(contexts);
 		List<Header> headers = new ArrayList<Header>(1);
 		if (dataFormat != null) {
 			String format = dataFormat.getDefaultMIMEType();
-			// TODO: needs rfe10230
-			if (format.contains("turtle")) {
-				format = "text/turtle";
-			}
 			headers.add(new Header("Content-Type", format));
 		}
 		List<NameValuePair> params = new ArrayList<NameValuePair>(5);
@@ -832,6 +856,9 @@ public class AGHttpRepoClient implements Closeable {
 		if (serverSideURL != null) {
 			params.add(new NameValuePair(AGProtocol.URL_PARAM_NAME,
 					serverSideURL.stringValue()));
+		}
+		if (attributes != null) {
+			params.add(new NameValuePair(AGProtocol.ATTRIBUTES_PARAM_NAME, attributes.toString()));
 		}
 		if (!overwrite) {
 			post(url, headers, params,

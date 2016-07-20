@@ -17,15 +17,18 @@ import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.openrdf.model.Literal;
+import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.vocabulary.RDF;
 // import org.junit.rules.ExpectedException;
 import org.openrdf.repository.RepositoryException;
 
 import com.franz.agraph.http.exception.AGHttpException;
+import com.franz.agraph.jena.AGStatement;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGValueFactory;
 import com.franz.agraph.repository.AGRepositoryConnection.AttributeDefinition;
+import com.hp.hpl.jena.vocabulary.RDFS;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -278,8 +281,13 @@ public class AGTripleAttributesTest extends AGAbstractTest {
         JSONObject attr1 = new JSONObject("{ canWork: [ AR, BR ], gameImportance: Semi }");
         JSONObject attr2 = new JSONObject("{ canWork: [ AR, CH, BR, VZ ], gameImportance: Final }");
         
+        // Triple construction API
         conn.add(ref1, RDF.TYPE, ref, attr1, c1);
         conn.add(ref2, RDF.TYPE, ref, attr2, c1, c2);
+        
+        // Statement API
+        Statement stmt1 = vf.createStatement(ref1, vf.createURI(RDFS.label.getURI()), vf.createLiteral("Don't trust this ref."));
+        conn.add(stmt1);
         
         // add a triple with an undefined attribute
         JSONObject badAttrs = new JSONObject("{ canWork: [ AR, CH ], nationality: AR }");
@@ -351,7 +359,7 @@ public class AGTripleAttributesTest extends AGAbstractTest {
 
 	}
 
-	@Category(TestSuites.Temp.class)
+	@Category(TestSuites.Prepush.class)
 	@Test
 	public void testPassingUserAttributesHeader() throws Exception {
 		// make sure no old attribute definitions are lurking.

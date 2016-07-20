@@ -21,6 +21,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 
+import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.experimental.categories.Categories;
 import org.junit.experimental.categories.Categories.ExcludeCategory;
@@ -584,6 +585,31 @@ public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
     	
     	try (InputStream in = new FileInputStream(TEST_DIR_PREFIX + "sample.nqx")) {
     		conn.add(in, null, AGRDFFormat.NQX);
+    	}
+    }
+    
+    @Test
+    public void testClientImportWithAttributes() throws Exception {
+    	AGRepository repo = (AGRepository)createRepository();
+    	AGRepositoryConnection conn = repo.getConnection();
+    	
+    	// assume attributes already defined.
+    	
+    	// load ntriples w/ default attributes
+    	try (InputStream in = new FileInputStream(TEST_DIR_PREFIX + "default-graph.nt")) {
+    		conn.add(in, null, RDFFormat.NTRIPLES, new JSONObject("{ color: blue }"));
+    	}
+    	
+    	// load turtle w/ default attributes
+    	try (InputStream in = new FileInputStream(TEST_DIR_PREFIX + "default-graph.ttl")) {
+    		conn.add(in, null, RDFFormat.TURTLE, new JSONObject("{ color: green }"));
+    	}
+    	
+    	conn.clear();
+    	
+    	// load turtle w/ default attributes
+    	try (InputStream in = new FileInputStream(TEST_DIR_PREFIX + "rdftransaction.xml")) {
+    		conn.sendRDFTransaction(in, new JSONObject("{ color: red }"));
     	}
     }
     

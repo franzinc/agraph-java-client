@@ -459,13 +459,18 @@ public class AGProtocol extends Protocol {
 	public static final String DEFINE_ATTRIBUTE_LOCATION = "attributes/definitions";
 	
 	/**
-	 * attribute request parameters
+	 * attribute definition request parameters
 	 */
 	public static final String NAME_PARAM_NAME = "name",
 			ORDERED_PARAM_NAME = "ordered",
 			ALLOWED_VALUE_PARAM_NAME = "allowed-values",
 			MAXIMUM_PARAM_NAME = "maximum-number",
 			MINIMUM_PARAM_NAME = "minimum-number";
+	
+	/**
+	 * Used by the /statements service
+	 */
+	public static final String ATTRIBUTES_PARAM_NAME = "attributes";
 	
 	/**
 	 * Relative location of static attribute filter service

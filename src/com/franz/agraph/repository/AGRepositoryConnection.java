@@ -413,15 +413,15 @@ implements RepositoryConnection, Closeable {
 	 *        The contexts to add the data to. Note that this parameter is a
 	 *        vararg and as such is optional. If no contexts are specified, the
 	 *        data is added to any context specified in the actual data file, or
-	 *        if the data contains no context, it is added without context. If
-	 *        one or more contexts are specified the data is added to these
+	 *        if the data contains no context, it is added to the default context.
+	 *        If one or more contexts are specified the data is added to these
 	 *        contexts, ignoring any context information in the data itself.
 	 * @throws IOException
 	 *         If an I/O error occurred while reading from the file.
 	 * @throws UnsupportedRDFormatException
 	 *         If no parser is available for the specified RDF format.
 	 * @throws RDFParseException
-	 *         If an error was found while parsing the RDF data.
+	 *         If an error occurred while parsing the RDF data.
 	 * @throws RepositoryException
 	 *         If the data could not be added to the repository, for example
 	 *         because the repository is not writable.
@@ -429,22 +429,64 @@ implements RepositoryConnection, Closeable {
 	public void add(File file, String baseURI, RDFFormat dataFormat, Resource... contexts)
 	 		throws IOException, RDFParseException, RepositoryException
 	 	{
-	 		if (baseURI == null) {
-	 			// default baseURI to file
-	 			baseURI = file.toURI().toString();
-	 		}
-	 		if (dataFormat == null) {
-	 			dataFormat = Rio.getParserFormatForFileName(file.getName());
-	 		}
-	 		
-	 		InputStream in = new FileInputStream(file);
-	 		try {
-	 			add(in, baseURI, dataFormat, contexts);
-	 		}
-	 		finally {
-	 			in.close();
-	 		}
+	 		add(file, baseURI, dataFormat, null, contexts);
 	 	}
+	
+	/**
+	 * Adds RDF data from the specified file to a specific contexts in the
+	 * repository.
+	 *
+	 * @param file
+	 *        A file containing RDF data.
+	 * @param baseURI
+	 *        The base URI against which any relative URIs in the data are
+	 *        resolved. This defaults to the value of
+	 *        {@link java.io.File#toURI() file.toURI()} if the value is set to
+	 *        <tt>null</tt>.
+	 * @param dataFormat
+	 *        The serialization format of the data.
+	 * @param attributes
+	 * 		  A JSONObject of attribute bindings that will be added to each statement
+	 * 		  imported from `file'. For RDFFormats that support the specification of
+	 *        attributes (like NQX) these attributes will be applied to statements
+	 *        that do not already specify attributes.
+	 * @param contexts
+	 *        The contexts to add the data to. Note that this parameter is a
+	 *        vararg and as such is optional. If no contexts are specified, the
+	 *        data is added to any context specified in the actual data file, or
+	 *        if the data contains no context, it is added to the default context.
+	 *        If one or more contexts are specified the data is added to these
+	 *        contexts, ignoring any context information in the data itself.
+	 * @throws IOException
+	 *         If an I/O error occurred while reading from the file.
+	 * @throws UnsupportedRDFormatException
+	 *         If no parser is available for the specified RDF format.
+	 * @throws RDFParseException
+	 *         If an error occurred while parsing the RDF data.
+	 * @throws RepositoryException
+	 *         If the data could not be added to the repository, for example
+	 *         because the repository is not writable.
+	 */
+	public void add(File file, String baseURI, RDFFormat dataFormat,
+			JSONObject attributes, Resource... contexts)
+	 		throws IOException, RDFParseException, RepositoryException
+	 		{
+		 		if (baseURI == null) {
+		 			// default baseURI to file
+		 			baseURI = file.toURI().toString();
+		 		}
+		 		if (dataFormat == null) {
+		 			dataFormat = Rio.getParserFormatForFileName(file.getName());
+		 		}
+		 		
+		 		InputStream in = new FileInputStream(file);
+		 		try {
+		 			add(in, baseURI, dataFormat, attributes, contexts);
+		 		}
+		 		finally {
+		 			in.close();
+		 		}
+		 	}
 	
 	/**
 	 * Adds the RDF data that can be found at the specified URL to the
@@ -468,12 +510,50 @@ implements RepositoryConnection, Closeable {
 	 * @throws UnsupportedRDFormatException
 	 *         If no parser is available for the specified RDF format.
 	 * @throws RDFParseException
-	 *         If an error was found while parsing the RDF data.
+	 *         If an error occurred while parsing the RDF data.
 	 * @throws RepositoryException
 	 *         If the data could not be added to the repository, for example
 	 *         because the repository is not writable.
 	 */
 	public void add(URL url, String baseURI, RDFFormat dataFormat, Resource... contexts)
+	 		throws IOException, RDFParseException, RepositoryException {
+		add(url, baseURI, dataFormat, null, contexts);
+	}
+	
+	/**
+	 * Adds the RDF data that can be found at the specified URL to the
+	 * repository, optionally to one or more named contexts.
+	 *
+	 * @param url
+	 *        The URL of the RDF data.
+	 * @param baseURI
+	 *        The base URI against which any relative URIs in the data are
+	 *        resolved. This defaults to the value of {@link
+	 *        java.net.URL#toExternalForm() url.toExternalForm()} if the value is
+	 *        set to <tt>null</tt>.
+	 * @param dataFormat
+	 *        The serialization format of the data.
+	 * @param attributes
+	 * 		  A JSONObject of attribute bindings that will be added to each statement
+	 * 		  imported from `url'. For RDFFormats that support the specification of
+	 *        attributes (like NQX) these attributes will be applied to statements
+	 *        that do not already specify attributes.
+	 * @param contexts
+	 *        The contexts to add the data to. If one or more contexts are
+	 *        specified the data is added to these contexts, ignoring any context
+	 *        information in the data itself.
+	 * @throws IOException
+	 *         If an I/O error occurred while reading from the URL.
+	 * @throws UnsupportedRDFormatException
+	 *         If no parser is available for the specified RDF format.
+	 * @throws RDFParseException
+	 *         If an error occurred while parsing the RDF data.
+	 * @throws RepositoryException
+	 *         If the data could not be added to the repository, for example
+	 *         because the repository is not writable.
+	 */
+	public void add(URL url, String baseURI, RDFFormat dataFormat,
+			JSONObject attributes, Resource... contexts)
 	 		throws IOException, RDFParseException, RepositoryException
 	 	{
 	 		if (baseURI == null) {
@@ -514,7 +594,7 @@ implements RepositoryConnection, Closeable {
 	 		}
 	 		
 	 		try {
-	 			add(in, baseURI, dataFormat, contexts);
+	 			add(in, baseURI, dataFormat, attributes, contexts);
 	 		}
 	 		finally {
 	 			in.close();
@@ -543,7 +623,7 @@ implements RepositoryConnection, Closeable {
 		 * @throws UnsupportedRDFormatException
 		 *         If no parser is available for the specified RDF format.
 		 * @throws RDFParseException
-		 *         If an error was found while parsing the RDF data.
+		 *         If an error occurred while parsing the RDF data.
 		 * @throws RepositoryException
 		 *         If the data could not be added to the repository, for example
 		 *         because the repository is not writable.
@@ -551,7 +631,45 @@ implements RepositoryConnection, Closeable {
 	  public void add(InputStream in, String baseURI, RDFFormat dataFormat, Resource... contexts)
 	 		throws IOException, RDFParseException, RepositoryException
 	 	{
-	 		if (!in.markSupported()) {
+	 		add(in, baseURI, dataFormat, null, contexts);
+	 	}
+	  
+	  /**
+		 * Adds RDF data from an InputStream to the repository, optionally to one or
+		 * more named contexts.
+		 *
+		 * @param in
+		 *        An InputStream from which RDF data can be read.
+		 * @param baseURI
+		 *        The base URI against which any relative URIs in the data are
+		 *        resolved.
+		 * @param dataFormat
+		 *        The serialization format of the data.
+		 * @param attributes
+		 * 		  A JSONObject of attribute bindings that will be added to each statement
+		 * 		  imported from `in'. For RDFFormats that support the specification of
+		 *        attributes (like NQX) these attributes will be applied to statements
+		 *        that do not already specify attributes.
+		 * @param contexts
+		 *        The contexts to add the data to. If one or more contexts are
+		 *        supplied the method ignores contextual information in the actual
+		 *        data. If no contexts are supplied the contextual information in the
+		 *        input stream is used, if no context information is available the
+		 *        data is added without any context.
+		 * @throws IOException
+		 *         If an I/O error occurred while reading from the input stream.
+		 * @throws UnsupportedRDFormatException
+		 *         If no parser is available for the specified RDF format.
+		 * @throws RDFParseException
+		 *         If an error occurred while parsing the RDF data.
+		 * @throws RepositoryException
+		 *         If the data could not be added to the repository, for example
+		 *         because the repository is not writable.
+		 */
+	  public void add(InputStream in, String baseURI, RDFFormat dataFormat,
+			  JSONObject attributes, Resource... contexts)
+	 		throws IOException, RDFParseException, RepositoryException {
+		  if (!in.markSupported()) {
 	 			in = new BufferedInputStream(in, 1024);
 	 		}
 	 		
@@ -562,9 +680,9 @@ implements RepositoryConnection, Closeable {
 	 			add(new GZIPInputStream(in), baseURI, dataFormat, contexts);
 	 		}
 	 		else {
-	 			addInputStreamOrReader(in, baseURI, dataFormat, contexts);
+	 			addInputStreamOrReader(in, baseURI, dataFormat, attributes, contexts);
 	 		}
-	 	}
+	  }
 	 
 	 private void addZip(InputStream in, String baseURI, RDFFormat dataFormat, Resource... contexts)
 	 		throws IOException, RDFParseException, RepositoryException
@@ -652,7 +770,7 @@ implements RepositoryConnection, Closeable {
 		 * @throws UnsupportedRDFormatException
 		 *         If no parser is available for the specified RDF format.
 		 * @throws RDFParseException
-		 *         If an error was found while parsing the RDF data.
+		 *         If an error occurred while parsing the RDF data.
 		 * @throws RepositoryException
 		 *         If the data could not be added to the repository, for example
 		 *         because the repository is not writable.
@@ -660,9 +778,48 @@ implements RepositoryConnection, Closeable {
 	 public void add(Reader reader, String baseURI, RDFFormat dataFormat, Resource... contexts)
 	 		throws IOException, RDFParseException, RepositoryException
 	 	{
-	 		addInputStreamOrReader(reader, baseURI, dataFormat, contexts);
+	 		addInputStreamOrReader(reader, baseURI, dataFormat, null, contexts);
 	 	}
 	 
+	 /**
+		 * Adds RDF data from a Reader to the repository, optionally to one or more
+		 * named contexts. <b>Note: using a Reader to upload byte-based data means
+		 * that you have to be careful not to destroy the data's character encoding
+		 * by enforcing a default character encoding upon the bytes. If possible,
+		 * adding such data using an InputStream is to be preferred.</b>
+		 *
+		 * @param reader
+		 *        A Reader from which RDF data can be read.
+		 * @param baseURI
+		 *        The base URI against which any relative URIs in the data are 
+		 *        resolved.
+		 * @param dataFormat
+		 *        The serialization format of the data.
+		 * @param attributes
+		 *        A JSONObject of attribute bindings that will be added to each statement
+		 * 		  imported from `reader'. For RDFFormats that support the specification of
+		 *        attributes (like NQX) these attributes will be applied to statements
+		 *        that do not already specify attributes.
+		 * @param contexts
+		 *        The contexts to add the data to. If one or more contexts are
+		 *        specified the data is added to these contexts, ignoring any context
+		 *        information in the data itself.
+		 * @throws IOException
+		 *         If an I/O error occurred while reading from the reader.
+		 * @throws UnsupportedRDFormatException
+		 *         If no parser is available for the specified RDF format.
+		 * @throws RDFParseException
+		 *         If an error occurred while parsing the RDF data.
+		 * @throws RepositoryException
+		 *         If the data could not be added to the repository, for example
+		 *         because the repository is not writable.
+		 */
+	 public void add(Reader reader, String baseURI, RDFFormat dataFormat,
+			 JSONObject attributes, Resource... contexts)
+	 		throws IOException, RDFParseException, RepositoryException
+	 	{
+	 		addInputStreamOrReader(reader, baseURI, dataFormat, attributes, contexts);
+	 	}
 	 
 	 /**
 		 * Adds a statement with the specified subject, predicate and object to this
@@ -677,9 +834,9 @@ implements RepositoryConnection, Closeable {
 		 * @param contexts
 		 *        The contexts to add the data to. Note that this parameter is a
 		 *        vararg and as such is optional. If the data contains no context,
-		 *        it is added without context. If one or more contexts are specified
-		 *         the data is added to these
-		 *        contexts, ignoring any context information in the data itself.
+		 *        it is added to the default context. If one or more contexts are
+		 *        specified the data is added to these contexts, ignoring any context
+		 *        information in the data itself.
 		 * @throws RepositoryException
 		 *         If the data could not be added to the repository, for example
 		 *         because the repository is not writable.
@@ -773,32 +930,37 @@ implements RepositoryConnection, Closeable {
 
 				removeWithoutCommit(st.getSubject(), st.getPredicate(), st.getObject(), contexts);
 			}
-		
-	protected void addInputStreamOrReader(Object inputStreamOrReader,
-			String baseURI, RDFFormat dataFormat, Resource... contexts)
-			throws IOException, RDFParseException, RepositoryException {
+	 
+	 /*
+	  * This method appears to be implemented in Sesame in some future release. When
+	  * we upgrade, we'll need to implement a second method w/o attributes in its
+	  * method signature in order to remain API compliant.
+	  */
+	 protected void addInputStreamOrReader(Object inputStreamOrReader,
+				String baseURI, RDFFormat dataFormat, 
+				JSONObject attributes, Resource... contexts)
+				throws IOException, RDFParseException, RepositoryException {
 
-		if (inputStreamOrReader instanceof InputStream) {
-			try {
-				getHttpRepoClient().upload(((InputStream) inputStreamOrReader),
-					baseURI, dataFormat, false, contexts);
-			} catch (AGMalformedDataException e) {
-				throw new RDFParseException(e);
+			if (inputStreamOrReader instanceof InputStream) {
+				try {
+					getHttpRepoClient().upload(((InputStream) inputStreamOrReader),
+						baseURI, dataFormat, false, attributes, contexts);
+				} catch (AGMalformedDataException e) {
+					throw new RDFParseException(e);
+				}
+			} else if (inputStreamOrReader instanceof Reader) {
+				try {
+					getHttpRepoClient().upload(((Reader) inputStreamOrReader), baseURI,
+						dataFormat, false, attributes, contexts);
+				} catch (AGMalformedDataException e) {
+					throw new RDFParseException(e);
+				}
+			} else {
+				throw new IllegalArgumentException(
+						"inputStreamOrReader must be an InputStream or a Reader, is a: "
+								+ inputStreamOrReader.getClass());
 			}
-		} else if (inputStreamOrReader instanceof Reader) {
-			try {
-				getHttpRepoClient().upload(((Reader) inputStreamOrReader), baseURI,
-					dataFormat, false, contexts);
-			} catch (AGMalformedDataException e) {
-				throw new RDFParseException(e);
-			}
-		} else {
-			throw new IllegalArgumentException(
-					"inputStreamOrReader must be an InputStream or a Reader, is a: "
-							+ inputStreamOrReader.getClass());
 		}
-	}
-
 	
 	public void remove(Iterable<? extends Statement> statements,
 			Resource... contexts) throws RepositoryException {
@@ -1521,6 +1683,30 @@ implements RepositoryConnection, Closeable {
 			Resource... contexts) throws RepositoryException {
 		getHttpRepoClient().load(source, baseURI, dataFormat, contexts);
 	}
+	
+	/**
+	 * Instructs the server to fetch and load data from the specified URI.
+	 * 
+	 * @param source
+	 *            the URI to fetch and load.
+	 * @param baseURI
+	 *            the base URI for the source document.
+	 * @param dataFormat
+	 *            the RDF data format for the source document.
+	 * @param attributes
+	 * 		  A JSONObject of attribute bindings that will be added to each statement
+	 * 		  imported from `source'. For RDFFormats that support the specification of
+	 *        attributes (like NQX) these attributes will be applied to statements
+	 *        that do not already specify attributes.
+	 * @param contexts
+	 *            zero or more contexts into which data will be loaded.
+	 * @throws RepositoryException
+	 */
+	public void load(URI source, String baseURI, RDFFormat dataFormat,
+			JSONObject attributes, Resource... contexts)
+					throws RepositoryException {
+		getHttpRepoClient().load(source, baseURI, dataFormat, attributes, contexts);
+	}
 
 	/**
 	 * Instructs the server to load data from the specified server-side path.
@@ -1542,6 +1728,31 @@ implements RepositoryConnection, Closeable {
 					contexts);
 	}
 
+	/**
+	 * Instructs the server to load data from the specified server-side path.
+	 * 
+	 * @param absoluteServerPath
+	 *            the path to the server-side source file.
+	 * @param baseURI
+	 *            the base URI for the source document.
+	 * @param dataFormat
+	 *            the RDF data format for the source document.
+	 * @param attributes
+	 * 		  A JSONObject of attribute bindings that will be added to each statement
+	 * 		  imported from `absoluteServerPath'. For RDFFormats that support the
+	 * 		  specification of attributes (like NQX) these attributes will be applied
+	 * 		  to statements that do not already specify attributes.
+	 * @param contexts
+	 *            zero or more contexts into which data will be loaded.
+	 * @throws RepositoryException
+	 */
+	public void load(String absoluteServerPath, String baseURI,
+			RDFFormat dataFormat, JSONObject attributes,
+			Resource... contexts) throws RepositoryException {
+		getHttpRepoClient().load(absoluteServerPath, baseURI, dataFormat,
+					attributes, contexts);
+	}
+	
 	/**
 	 * Instructs the server to extend the life of this connection's dedicated
 	 * session, if it is using one.  Sessions that are idle for more than the session
@@ -1771,6 +1982,24 @@ implements RepositoryConnection, Closeable {
 		}
 	}
 
+	/**
+	 * send an RDFTransaction, including attributes.
+	 * 
+	 * @param rdftransaction a stream in application/x-rdftransaction format
+	 * @param attributes a JSONObject of attribute bindings that will be added
+	 * 		to each triple imported from `rdftransaction'.
+	 * @throws RepositoryException
+	 * @throws RDFParseException
+	 * @throws IOException
+	 */
+	public void sendRDFTransaction(InputStream rdftransaction, JSONObject attributes)
+			throws RepositoryException, RDFParseException, IOException {
+		try {
+			getHttpRepoClient().sendRDFTransaction(rdftransaction, attributes);
+		} catch (AGMalformedDataException e) {
+			throw new RDFParseException(e);
+		}
+	}
 	/**
 	 * Registers an encodable namespace having the specified format.
 	 * 
