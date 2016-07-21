@@ -2277,7 +2277,7 @@ public class AGHttpRepoClient implements Closeable {
 		return handler.getArrayResult();
 	}
 	
-	public void addStaticAttributeFilter(String filter) throws AGHttpException {
+	public void setStaticAttributeFilter(String filter) throws AGHttpException {
 		String url = AGProtocol.getStaticFilterLocation(getRoot());
 
 		NameValuePair[] params = { new NameValuePair(AGProtocol.FILTER_PARAM_NAME, filter) };

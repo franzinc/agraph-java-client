@@ -310,8 +310,8 @@ public class AGTripleAttributesTest extends AGAbstractTest {
 		String result = conn.getStaticAttributeFilter();
 		Assert.assertNull("non-null result fetching StaticFilter before one defined. Got '" + result + "'", result);
 		
-		// add a filter
-		conn.addStaticAttributeFilter(filter);
+		// Set a filter
+		conn.setStaticAttributeFilter(filter);
 		
 		// get filter
 		String returnedFilter = conn.getStaticAttributeFilter();

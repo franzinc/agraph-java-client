@@ -2917,8 +2917,8 @@ public class TutorialExamples {
 			throw new Exception("User Attributes non-null prior to being set");
 		}
 		
-		// add a filter
-		conn.addStaticAttributeFilter(filter);
+		// Set a filter
+		conn.setStaticAttributeFilter(filter);
 				
 		// Establish a context for a particular set of user attribute values.
 		String userAttributes1 = new String("{ color: blue }");

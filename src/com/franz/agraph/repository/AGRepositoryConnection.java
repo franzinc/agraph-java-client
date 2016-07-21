@@ -2434,13 +2434,13 @@ implements RepositoryConnection, Closeable {
 	}
 	
 	/**
-	 * Define a static attribute filter on the current repository.
+	 * Establish a static attribute filter on the current repository.
 	 * 
-	 * @param filter, a string representing a static attribute filter definition.
+	 * @param filter a String representing a static attribute filter definition.
 	 * @throws RepositoryException
 	 */
-	public void addStaticAttributeFilter(String filter) throws RepositoryException {
-		getHttpRepoClient().addStaticAttributeFilter(filter);
+	public void setStaticAttributeFilter(String filter) throws RepositoryException {
+		getHttpRepoClient().setStaticAttributeFilter(filter);
 	}
 	
 	/**
