@@ -17,8 +17,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import junit.framework.Assert;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.openrdf.model.Literal;
@@ -2900,7 +2898,9 @@ public class TutorialExamples {
 		
 		// no filter defined yet, should get null
 		String result = conn.getStaticAttributeFilter();
-		Assert.assertNull("non-null result fetching StaticFilter before one defined. Got '" + result + "'", result);
+		if (result != null) {
+			throw new Exception("non-null result fetching StaticFilter before one defined. Got '" + result + "'");
+		}
 		
 		// define attribute that is used in the incoming data set.
 		conn.new AttributeDefinition("color").add();
@@ -2913,7 +2913,9 @@ public class TutorialExamples {
 		}
 
 		// verify user attributes are currently null.
-		Assert.assertNull("User Attributes non-null prior to being set", conn.getUserAttributes());
+		if (conn.getUserAttributes() != null) {
+			throw new Exception("User Attributes non-null prior to being set");
+		}
 		
 		// add a filter
 		conn.addStaticAttributeFilter(filter);
@@ -2939,19 +2941,25 @@ public class TutorialExamples {
 			} // inner context exit
 			
 			// verify ctxt userAttributes are restored.
-			Assert.assertEquals("Unepxected user attributes after exit from inner context", userAttributes1, conn.getUserAttributes());
+			if (! conn.getUserAttributes().contentEquals(userAttributes1)) {
+				throw new Exception("Unexpected user attributes after exit from inner context");
+			}
 		} // outer context exit
 		
 		// verify user attributes are still null
-		Assert.assertNull("User Attributes non-null after context closed", conn.getUserAttributes());
+		if (conn.getUserAttributes() != null) {
+			throw new Exception("User Attributes non-null after context closed");
+		}
 		
-		// veryify user attributes are unset on throw
+		// verify user attributes are unset on throw
 		try {
 			try (UserAttributesContext ctxt = new UserAttributesContext(conn, userAttributes1)) {
 				throw new Exception("throw out of try-with-resources");
 			}
 		} catch (Exception e) {
-			Assert.assertNull("User attributes non-null after throw from try-with-resources" , conn.getUserAttributes());
+			if (conn.getUserAttributes() != null) {
+				throw new Exception("User attributes non-null after throw from try-with-resources");
+			}
 		}
 		println("\nFinished example25().");
 	}
