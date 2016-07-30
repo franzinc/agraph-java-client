@@ -22,6 +22,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledExecutorService;
@@ -336,41 +337,52 @@ public class AGHttpRepoClient implements Closeable {
 		return headers.toArray(new Header[headers.size()]);
 	}
 	
-	/**
-	 *  TODO: allow null params be passed to the below routines, so we can delete
-	 *  all the empty params declarations in the API functions on this class, as
-	 *  we did with the headers.
-	 */
-
-	protected void get(String url, List<Header> headers, NameValuePair[] params,
-			AGResponseHandler handler) throws AGHttpException {
-		
-		getHTTPClient().get(url, prepareHeaders(headers), params, handler);
+	private static NameValuePair[] emptyParams = new NameValuePair[0];
+	
+	private NameValuePair[] prepareParams(Collection<? extends NameValuePair> params) {
+		if (params != null) {
+			return params.toArray(new NameValuePair[params.size()]);
+		}
+		return emptyParams;
 	}
 	
-	protected void post(String url, List<Header> headers, NameValuePair[] params,
+	protected void get(String url, List<Header> headers,
+			Collection<? extends NameValuePair> params,
+			AGResponseHandler handler) throws AGHttpException {
+		
+		getHTTPClient().get(url, prepareHeaders(headers), prepareParams(params),
+				handler);
+	}
+	
+	protected void post(String url, List<Header> headers,
+			Collection<? extends NameValuePair> params,
 			RequestEntity requestEntity, AGResponseHandler handler) throws AGHttpException {
 		
-		getHTTPClient().post(url, prepareHeaders(headers), params, requestEntity, handler);
+		getHTTPClient().post(url, prepareHeaders(headers), prepareParams(params),
+				requestEntity, handler);
 	}
 	
-	protected void put(String url, List<Header> headers, NameValuePair[] params,
+	protected void put(String url, List<Header> headers,
+			Collection<? extends NameValuePair> params,
 			RequestEntity requestEntity,AGResponseHandler handler) throws AGHttpException{
 		
-		getHTTPClient().put(url, prepareHeaders(headers), params, requestEntity, handler);
+		getHTTPClient().put(url, prepareHeaders(headers), prepareParams(params),
+				requestEntity, handler);
 	}
 	
-	protected void delete(String url, List<Header> headers, NameValuePair[] params,
+	protected void delete(String url, List<Header> headers,
+			Collection<? extends NameValuePair> params,
 			AGResponseHandler handler) throws AGHttpException {
 		
-		getHTTPClient().delete(url, prepareHeaders(headers), params, handler);
+		getHTTPClient().delete(url, prepareHeaders(headers), prepareParams(params),
+				handler);
 	}
 	
 	private void useDedicatedSession(boolean autoCommit)
 			throws AGHttpException {
 		if (sessionRoot == null) {
 			String url = getSessionURL(getRoot());
-			List<NameValuePair> params = new ArrayList<NameValuePair>(2);
+			List<NameValuePair> params = new ArrayList<NameValuePair>(3);
 			params.add(new NameValuePair(AGProtocol.LIFETIME_PARAM_NAME,
 					Integer.toString(lifetimeInSeconds)));
 			params.add(new NameValuePair(AGProtocol.AUTOCOMMIT_PARAM_NAME,
@@ -383,7 +395,7 @@ public class AGHttpRepoClient implements Closeable {
 				}
 			}
 			AGStringHandler handler = new AGStringHandler();
-			post(url, null, params.toArray(new NameValuePair[params.size()]), null, handler);
+			post(url, null, params, null, handler);
 			usingDedicatedSession = true;
 			sessionRoot = adjustSessionUrlIfUsingMainPort(handler.getResult());
 			startPinger();
@@ -494,9 +506,8 @@ public class AGHttpRepoClient implements Closeable {
 		if (sessionRoot != null && !getHTTPClient().isClosed()) {
 			stopPinger();
 			String url = AGProtocol.getSessionCloseLocation(sessionRoot);
-			NameValuePair[] params = new NameValuePair[0];
 			try {
-				post(url, null, params, null, null);
+				post(url, null, null, null, null);
 				if (logger.isDebugEnabled())
 					logger.debug("closeSession: {}", url);
 			} finally {
@@ -539,8 +550,7 @@ public class AGHttpRepoClient implements Closeable {
 		params.add(new NameValuePair(Protocol.INCLUDE_INFERRED_PARAM_NAME,
 				includeInferred));
 
-		get(uri, headers,
-			params.toArray(new NameValuePair[params.size()]),
+		get(uri, headers, params,
 			new AGRDFHandler(getPreferredRDFFormat(), handler,
 			getValueFactory(),getAllowExternalBlankNodeIds()));
 	}
@@ -558,8 +568,7 @@ public class AGHttpRepoClient implements Closeable {
 			params.add(new NameValuePair("id", id));
 		}
 
-		get(uri, headers,
-			params.toArray(new NameValuePair[params.size()]),
+		get(uri, headers, params,
 			new AGRDFHandler(getPreferredRDFFormat(),handler,getValueFactory(),getAllowExternalBlankNodeIds()));
 	}
 
@@ -588,9 +597,7 @@ public class AGHttpRepoClient implements Closeable {
 			params.add(new NameValuePair(Protocol.CONTEXT_PARAM_NAME,
 					encodedContext));
 		}
-		post(uri, headers,
-			 params.toArray(new NameValuePair[params.size()]), null,
-			 null);
+		post(uri, headers, params, null, null);
 	}
 
 	public void deleteStatements(Resource subj, URI pred, Value obj,
@@ -614,16 +621,17 @@ public class AGHttpRepoClient implements Closeable {
 			params.add(new NameValuePair(Protocol.CONTEXT_PARAM_NAME,
 					encodedContext));
 		}
-		delete(url, null,
-			   params.toArray(new NameValuePair[params.size()]), null);
+		delete(url, null, params, null);
 	}
 
 	public void setAutoCommit(boolean autoCommit) throws AGHttpException {
 		useDedicatedSession(autoCommit);
 		String url = AGProtocol.getAutoCommitLocation(getRoot());
 
-		NameValuePair[] params = { new NameValuePair(AGProtocol.ON_PARAM_NAME,
-				Boolean.toString(autoCommit)) };
+		List<NameValuePair> params = new ArrayList<NameValuePair>(1);
+		
+		params.add(new NameValuePair(AGProtocol.ON_PARAM_NAME,
+									 Boolean.toString(autoCommit)));
 		post(url, null, params, null, null);
 		this.autoCommit = autoCommit; // TODO: let the server track this?
 	}
@@ -633,7 +641,7 @@ public class AGHttpRepoClient implements Closeable {
 			String url = AGProtocol.getAutoCommitLocation(getRoot());
 
 			AGStringHandler handler = new AGStringHandler();
-			get(url, null, new NameValuePair[0], handler);
+			get(url, null, null, handler);
 			return Boolean.valueOf(handler.getResult().toString());
 		}
 		else
@@ -676,19 +684,19 @@ public class AGHttpRepoClient implements Closeable {
 	public void commit() throws AGHttpException {
 		String url = getRoot() + "/" + AGProtocol.COMMIT;
 
-		post(url, null, new NameValuePair[0], (RequestEntity) null, null);
+		post(url, null, null, (RequestEntity) null, null);
 	}
 
 	public void rollback() throws AGHttpException {
 		String url = getRoot() + "/" + AGProtocol.ROLLBACK;
 
-		post(url, null, new NameValuePair[0], (RequestEntity) null, null);
+		post(url, null, null, (RequestEntity) null, null);
 	}
 
 	public void clearNamespaces() throws AGHttpException {
 		String url = Protocol.getNamespacesLocation(getRoot());
 
-		delete(url, null, new NameValuePair[0], null);
+		delete(url, null, null, null);
 	}
 
 	public void upload(final Reader contents, String baseURI,
@@ -826,8 +834,7 @@ public class AGHttpRepoClient implements Closeable {
 					serverSideURL.stringValue()));
 		}
 		if (!overwrite) {
-			post(url, headers,
-				 params.toArray(new NameValuePair[params.size()]),
+			post(url, headers, params,
 				 reqEntity, null);
 		} else {
 			// TODO: overwrite
@@ -856,7 +863,7 @@ public class AGHttpRepoClient implements Closeable {
 		headers.add(new Header(ACCEPT_PARAM_NAME,
 							   getPreferredTQRFormat().getDefaultMIMEType()));
 		
-		get(url, headers, new NameValuePair[0],
+		get(url, headers, null,
 			new AGTQRHandler(getPreferredTQRFormat(), handler, getValueFactory(),getAllowExternalBlankNodeIds()));
 	}
 
@@ -865,10 +872,10 @@ public class AGHttpRepoClient implements Closeable {
 		String url = Protocol.getSizeLocation(getRoot());
 
 		String[] encodedContexts = Protocol.encodeContexts(contexts);
-		NameValuePair[] contextParams = new NameValuePair[encodedContexts.length];
+		List<NameValuePair> contextParams = new ArrayList<NameValuePair>(encodedContexts.length);
 		for (int i = 0; i < encodedContexts.length; i++) {
-			contextParams[i] = new NameValuePair(Protocol.CONTEXT_PARAM_NAME,
-					encodedContexts[i]);
+			contextParams.add(new NameValuePair(Protocol.CONTEXT_PARAM_NAME,
+							  encodedContexts[i]));
 		}
 		AGLongHandler handler = new AGLongHandler();
 		get(url, null, contextParams, handler);
@@ -896,7 +903,7 @@ public class AGHttpRepoClient implements Closeable {
 		headers.add(new Header(ACCEPT_PARAM_NAME,
 							   getPreferredTQRFormat().getDefaultMIMEType()));
 		
-		get(url, headers, new NameValuePair[0],
+		get(url, headers, null,
 			new AGTQRHandler(getPreferredTQRFormat(), handler, getValueFactory(),getAllowExternalBlankNodeIds()));
 	}
 
@@ -907,7 +914,7 @@ public class AGHttpRepoClient implements Closeable {
 
 		AGStringHandler handler = new AGStringHandler();
 		try {
-			get(url, null, new NameValuePair[0], handler);
+			get(url, null, null, handler);
 		} catch (AGHttpException e) {
 			if (!e.getMessage().equals("Not found.")) {
 				throw e;
@@ -921,9 +928,8 @@ public class AGHttpRepoClient implements Closeable {
 		String url = Protocol.getNamespacePrefixLocation(getRoot(),
 				prefix);
 
-		NameValuePair[] params = {};
 		try {
-			put(url, null, params,
+			put(url, null, null,
 				new StringRequestEntity(name, "text/plain", "UTF-8"),null);
 		} catch (UnsupportedEncodingException e) {
 			throw new RuntimeException(e);
@@ -934,7 +940,7 @@ public class AGHttpRepoClient implements Closeable {
 		String url = Protocol.getNamespacePrefixLocation(getRoot(),
 				prefix);
 
-		delete(url, null, new NameValuePair[0], null);
+		delete(url, null, null, null);
 	}
 
 	public void query(AGQuery q, boolean analyzeOnly, AGResponseHandler handler) throws
@@ -957,9 +963,7 @@ public class AGHttpRepoClient implements Closeable {
 			queryParams.add(new NameValuePair("analyzeIndicesUsed",
 				Boolean.toString(analyzeOnly)));
 		}
-		post(url, headers,
-			 queryParams.toArray(new NameValuePair[queryParams.size()]),
-			 null, handler);
+		post(url, headers, queryParams, null, handler);
 		if (sessionRoot!=null && q.getName()!=null) {
 			q.setPrepared(true);
 		}
@@ -1079,8 +1083,7 @@ public class AGHttpRepoClient implements Closeable {
 	public void deleteSavedQuery(String queryName) throws AGHttpException {
 		String url = AGProtocol.getSavedQueryLocation(getRoot(), queryName);
 		
-		NameValuePair[] params = {};
-		delete(url, null, params, null);
+		delete(url, null, null, null);
 	}
 
 	public synchronized void close() throws AGHttpException {
@@ -1152,7 +1155,7 @@ public class AGHttpRepoClient implements Closeable {
 		if (!tokenizer.equals("default")) {
 			params.add(new NameValuePair("tokenizer", tokenizer));
 		}
-		put(url, null, params.toArray(new NameValuePair[params.size()]), null,null);
+		put(url, null, params, null,null);
 	}
 
 	/**
@@ -1164,8 +1167,7 @@ public class AGHttpRepoClient implements Closeable {
 	public void deleteFreetextIndex(String index) throws AGHttpException {
 		String url = AGProtocol.getFreetextIndexLocation(getRoot(), index);
 
-		NameValuePair[] params = {};
-		delete(url, null, params, null);
+		delete(url, null, null, null);
 	}
 
 	/**
@@ -1198,7 +1200,7 @@ public class AGHttpRepoClient implements Closeable {
 			throws AGHttpException, JSONException {
 		String url = AGProtocol.getFreetextIndexLocation(getRoot(), index);
 		AGJSONHandler handler = new AGJSONHandler();
-		get(url, null, new NameValuePair[0], handler);
+		get(url, null, null, handler);
 		return handler.getResult();
 	}
 
@@ -1206,7 +1208,7 @@ public class AGHttpRepoClient implements Closeable {
 	throws AGHttpException {
 		String url = AGProtocol.getFreetextIndexLocation(getRoot(), index) + "/predicates";
 		AGStringHandler handler = new AGStringHandler();
-		get(url, null, new NameValuePair[0], handler);
+		get(url, null, null, handler);
 		return handler.getResult().split("\n");
 	}
 
@@ -1239,9 +1241,7 @@ public class AGHttpRepoClient implements Closeable {
 		if (offset>0) {
 			queryParams.add(new NameValuePair("offset",Integer.toString(offset)));
 		}
-		post(url, headers,
-			 queryParams.toArray(new NameValuePair[queryParams.size()]),
-			 null, handler);
+		post(url, headers, queryParams, null, handler);
 	}
 
 	public void registerPredicateMapping(URI predicate, URI primitiveType)
@@ -1250,10 +1250,10 @@ public class AGHttpRepoClient implements Closeable {
 		String pred_nt = NTriplesUtil.toNTriplesString(predicate);
 		String primtype_nt = NTriplesUtil.toNTriplesString(primitiveType);
 
-		NameValuePair[] params = {
-				new NameValuePair(AGProtocol.FTI_PREDICATE_PARAM_NAME, pred_nt),
-				new NameValuePair(AGProtocol.ENCODED_TYPE_PARAM_NAME,
-						primtype_nt) };
+		List<NameValuePair> params = new ArrayList<NameValuePair>(2);
+		params.add(new NameValuePair(AGProtocol.FTI_PREDICATE_PARAM_NAME, pred_nt));
+		params.add(new NameValuePair(AGProtocol.ENCODED_TYPE_PARAM_NAME,
+									 primtype_nt));
 		post(url, null, params, null, null);
 	}
 
@@ -1262,17 +1262,16 @@ public class AGHttpRepoClient implements Closeable {
 		String url = AGProtocol.getPredicateMappingLocation(getRoot());
 		String pred_nt = NTriplesUtil.toNTriplesString(predicate);
 
-		NameValuePair[] params = { new NameValuePair(
-				AGProtocol.FTI_PREDICATE_PARAM_NAME, pred_nt) };
+		List<NameValuePair> params = new ArrayList<NameValuePair>(1);
+		params.add(new NameValuePair(AGProtocol.FTI_PREDICATE_PARAM_NAME, pred_nt));
 		delete(url, null, params, null);
 	}
 
 	public String[] getPredicateMappings() throws AGHttpException {
 		String url = AGProtocol.getPredicateMappingLocation(getRoot());
 
-		NameValuePair[] params = new NameValuePair[0];
 		AGStringHandler handler = new AGStringHandler();
-		get(url, null, params, handler);
+		get(url, null, null, handler);
 		String result = handler.getResult();
 		if (result.equals("")) {
 			return new String[0];
@@ -1287,10 +1286,10 @@ public class AGHttpRepoClient implements Closeable {
 		String datatype_nt = NTriplesUtil.toNTriplesString(datatype);
 		String primtype_nt = NTriplesUtil.toNTriplesString(primitiveType);
 
-		NameValuePair[] params = {
-				new NameValuePair(AGProtocol.TYPE_PARAM_NAME, datatype_nt),
-				new NameValuePair(AGProtocol.ENCODED_TYPE_PARAM_NAME,
-						primtype_nt) };
+		List<NameValuePair> params = new ArrayList<NameValuePair>(2);
+		params.add(new NameValuePair(AGProtocol.TYPE_PARAM_NAME, datatype_nt));
+		params.add(new NameValuePair(AGProtocol.ENCODED_TYPE_PARAM_NAME,
+						primtype_nt));
 		post(url, null, params, null, null);
 	}
 
@@ -1298,17 +1297,16 @@ public class AGHttpRepoClient implements Closeable {
 		String url = AGProtocol.getDatatypeMappingLocation(getRoot());
 		String datatype_nt = NTriplesUtil.toNTriplesString(datatype);
 
-		NameValuePair[] params = { new NameValuePair(
-				AGProtocol.TYPE_PARAM_NAME, datatype_nt) };
+		List<NameValuePair> params = new ArrayList<NameValuePair>(1);
+		params.add(new NameValuePair(AGProtocol.TYPE_PARAM_NAME, datatype_nt));
 		delete(url, null, params, null);
 	}
 
 	public String[] getDatatypeMappings() throws AGHttpException {
 		String url = AGProtocol.getDatatypeMappingLocation(getRoot());
 
-		NameValuePair[] params = new NameValuePair[0];
 		AGStringHandler handler = new AGStringHandler();
-		get(url, null, params, handler);
+		get(url, null, null, handler);
 		String result = handler.getResult();
 		if (result.equals("")) {
 			return new String[0];
@@ -1327,8 +1325,7 @@ public class AGHttpRepoClient implements Closeable {
 			url = url+"/all";
 		}
 
-		NameValuePair[] params = {};
-		delete(url, null, params, null);
+		delete(url, null, null, null);
 	}
 
 	public void addRules(String rules) throws AGHttpException {
@@ -1346,10 +1343,9 @@ public class AGHttpRepoClient implements Closeable {
 		useDedicatedSession(isAutoCommit());
 		String url = AGProtocol.getFunctorLocation(getRoot());
 
-		NameValuePair[] params = {};
 		RequestEntity entity = new InputStreamRequestEntity(rulestream, -1,
 					null);
-		post(url, null, params, entity, null);
+		post(url, null, null, entity, null);
 	}
 
 	public String evalInServer(String lispForm) throws AGHttpException {
@@ -1368,11 +1364,10 @@ public class AGHttpRepoClient implements Closeable {
 	public String evalInServer(InputStream stream) throws AGHttpException {
 		String url = AGProtocol.getEvalLocation(getRoot());
 
-		NameValuePair[] params = {};
 		AGStringHandler handler = new AGStringHandler();
 		RequestEntity entity = new InputStreamRequestEntity(stream, -1,
 					null);
-		post(url, null, params, entity, handler);
+		post(url, null, null, entity, handler);
 		return handler.getResult();
 	}
 
@@ -1380,7 +1375,7 @@ public class AGHttpRepoClient implements Closeable {
 		if (usingDedicatedSession) {
 			String url = AGProtocol.getSessionPingLocation(getRoot());
 
-			get(url, null, new NameValuePair[0], null);
+			get(url, null, null, null);
 		}
 	}
 
@@ -1388,7 +1383,7 @@ public class AGHttpRepoClient implements Closeable {
 		String url = AGProtocol.getGeoTypesLocation(getRoot());
 
 		AGStringHandler handler = new AGStringHandler();
-		get(url, null, new NameValuePair[0], handler);
+		get(url, null, null, handler);
 		return handler.getResult().split("\n");
 	}
 
@@ -1396,13 +1391,14 @@ public class AGHttpRepoClient implements Closeable {
 			float ymin, float ymax) throws AGHttpException {
 		String url = AGProtocol.getGeoTypesCartesianLocation(getRoot());
 
-		NameValuePair[] params = {
-				new NameValuePair(AGProtocol.STRIP_WIDTH_PARAM_NAME, Float.toString(stripWidth)),
-				new NameValuePair(AGProtocol.XMIN_PARAM_NAME, Float.toString(xmin)),
-				new NameValuePair(AGProtocol.XMAX_PARAM_NAME, Float.toString(xmax)),
-				new NameValuePair(AGProtocol.YMIN_PARAM_NAME, Float.toString(ymin)),
-				new NameValuePair(AGProtocol.YMAX_PARAM_NAME, Float.toString(ymax))
-				};
+		List<NameValuePair> params = new ArrayList<NameValuePair>(5);
+		params.add(new NameValuePair(AGProtocol.STRIP_WIDTH_PARAM_NAME,
+									 Float.toString(stripWidth)));
+		params.add(new NameValuePair(AGProtocol.XMIN_PARAM_NAME, Float.toString(xmin)));
+		params.add(new NameValuePair(AGProtocol.XMAX_PARAM_NAME, Float.toString(xmax)));
+		params.add(new NameValuePair(AGProtocol.YMIN_PARAM_NAME, Float.toString(ymin)));
+		params.add(new NameValuePair(AGProtocol.YMAX_PARAM_NAME, Float.toString(ymax)));
+
 		AGStringHandler handler = new AGStringHandler();
 		post(url, null, params, null, handler);
 		return handler.getResult();
@@ -1412,14 +1408,15 @@ public class AGHttpRepoClient implements Closeable {
 			float latmax, float longmax) throws AGHttpException {
 		String url = AGProtocol.getGeoTypesSphericalLocation(getRoot());
 
-		NameValuePair[] params = {
-				new NameValuePair(AGProtocol.STRIP_WIDTH_PARAM_NAME, Float.toString(stripWidth)),
-				new NameValuePair(AGProtocol.UNIT_PARAM_NAME, unit),
-				new NameValuePair(AGProtocol.LATMIN_PARAM_NAME, Float.toString(latmin)),
-				new NameValuePair(AGProtocol.LONGMIN_PARAM_NAME, Float.toString(longmin)),
-				new NameValuePair(AGProtocol.LATMAX_PARAM_NAME, Float.toString(latmax)),
-				new NameValuePair(AGProtocol.LONGMAX_PARAM_NAME, Float.toString(longmax))
-		};
+		List<NameValuePair> params = new ArrayList<NameValuePair>(5);
+		params.add(new NameValuePair(AGProtocol.STRIP_WIDTH_PARAM_NAME,
+									 Float.toString(stripWidth)));
+		params.add(new NameValuePair(AGProtocol.UNIT_PARAM_NAME, unit));
+		params.add(new NameValuePair(AGProtocol.LATMIN_PARAM_NAME, Float.toString(latmin)));
+		params.add(new NameValuePair(AGProtocol.LONGMIN_PARAM_NAME, Float.toString(longmin)));
+		params.add(new NameValuePair(AGProtocol.LATMAX_PARAM_NAME, Float.toString(latmax)));
+		params.add(new NameValuePair(AGProtocol.LONGMAX_PARAM_NAME, Float.toString(longmax)));
+
 		AGStringHandler handler = new AGStringHandler();
 		post(url, null, params, null, handler);
 		return handler.getResult();
@@ -1437,7 +1434,7 @@ public class AGHttpRepoClient implements Closeable {
 		for (String point: points) {
 			params.add(new NameValuePair(AGProtocol.POINT_PARAM_NAME, point));
 		}
-		put(url, null, params.toArray(new NameValuePair[params.size()]), null, null);
+		put(url, null, params, null, null);
 	}
 
 	public void getGeoBox(String type_uri, String predicate_uri, float xmin, float xmax,
@@ -1460,9 +1457,7 @@ public class AGHttpRepoClient implements Closeable {
 		if (0!=limit) {
 			params.add(new NameValuePair(AGProtocol.LIMIT_PARAM_NAME, Integer.toString(limit)));
 		}
-		get(url, headers,
-			params.toArray(new NameValuePair[params.size()]),
-			handler);
+		get(url, headers, params, handler);
 	}
 
 	public void getGeoCircle(String type_uri, String predicate_uri, float x, float y,
@@ -1484,9 +1479,7 @@ public class AGHttpRepoClient implements Closeable {
 		if (0!=limit) {
 			params.add(new NameValuePair(AGProtocol.LIMIT_PARAM_NAME, Integer.toString(limit)));
 		}
-		get(url, headers,
-			params.toArray(new NameValuePair[params.size()]),
-			handler);
+		get(url, headers, params, handler);
 	}
 
 	public void getGeoHaversine(String type_uri, String predicate_uri, float lat, float lon, float radius, String unit, int limit, boolean infer, AGResponseHandler handler)
@@ -1507,9 +1500,7 @@ public class AGHttpRepoClient implements Closeable {
 		if (0!=limit) {
 			params.add(new NameValuePair(AGProtocol.LIMIT_PARAM_NAME, Integer.toString(limit)));
 		}
-		get(url, headers,
-			params.toArray(new NameValuePair[params.size()]),
-			handler);
+		get(url, headers, params, handler);
 	}
 
 	public void getGeoPolygon(String type_uri, String predicate_uri, String polygon, int limit, boolean infer, AGResponseHandler handler)
@@ -1528,9 +1519,7 @@ public class AGHttpRepoClient implements Closeable {
 		if (0!=limit) {
 			params.add(new NameValuePair(AGProtocol.LIMIT_PARAM_NAME, Integer.toString(limit)));
 		}
-		get(url, headers,
-			params.toArray(new NameValuePair[params.size()]),
-			handler);
+		get(url, headers, params, handler);
 	}
 
 	public void registerSNAGenerator(String generator, List<String> objectOfs, List<String> subjectOfs, List<String> undirecteds, String query)
@@ -1551,7 +1540,7 @@ public class AGHttpRepoClient implements Closeable {
 		if (query!=null) {
 			params.add(new NameValuePair(AGProtocol.QUERY_PARAM_NAME, query));
 		}
-		put(url, null, params.toArray(new NameValuePair[params.size()]), null, null);
+		put(url, null, params, null, null);
 	}
 
 	public void registerSNANeighborMatrix(String matrix, String generator, List<String> group, int depth)
@@ -1564,7 +1553,7 @@ public class AGHttpRepoClient implements Closeable {
 			params.add(new NameValuePair(AGProtocol.GROUP_PARAM_NAME, node));
 		}
 		params.add(new NameValuePair(AGProtocol.DEPTH_PARAM_NAME, Integer.toString(depth)));
-		put(url, null, params.toArray(new NameValuePair[params.size()]), null, null);
+		put(url, null, params, null, null);
 	}
 
 	/**
@@ -1579,8 +1568,8 @@ public class AGHttpRepoClient implements Closeable {
 	public List<String> listIndices(boolean listValid) throws AGHttpException {
 		String url = AGProtocol.getIndicesURL(getRoot());
 
-		NameValuePair[] data = { new NameValuePair("listValid", Boolean
-				.toString(listValid)) };
+		List<NameValuePair> data = new ArrayList<NameValuePair>(1);
+		data.add(new NameValuePair("listValid", Boolean.toString(listValid)));
 
 		AGStringHandler handler = new AGStringHandler();
 		get(url, null, data, handler);
@@ -1598,8 +1587,7 @@ public class AGHttpRepoClient implements Closeable {
 	public void addIndex(String index) throws AGHttpException {
 		String url = AGProtocol.getIndicesURL(getRoot())+"/"+index;
 
-		NameValuePair[] params = {};
-		put(url, null, params, null, null);
+		put(url, null, null, null, null);
 	}
 
 	/**
@@ -1613,8 +1601,7 @@ public class AGHttpRepoClient implements Closeable {
 	public void dropIndex(String index) throws AGHttpException {
 		String url = AGProtocol.getIndicesURL(getRoot())+"/"+index;
 
-		NameValuePair[] params = {};
-		delete(url, null, params, null);
+		delete(url, null, null, null);
 	}
 
 	public void registerEncodableNamespace(String namespace, String format)
@@ -1624,9 +1611,7 @@ public class AGHttpRepoClient implements Closeable {
 		List<NameValuePair> params = new ArrayList<NameValuePair>(2);
 		params.add(new NameValuePair("prefix", namespace));
 		params.add(new NameValuePair("format", format));
-		post(url, null,
-			 params.toArray(new NameValuePair[params.size()]), null,
-			 null);
+		post(url, null, params, null, null);
 	}
 
 	public void unregisterEncodableNamespace(String namespace)
@@ -1635,8 +1620,7 @@ public class AGHttpRepoClient implements Closeable {
 
 		List<NameValuePair> params = new ArrayList<NameValuePair>(2);
 		params.add(new NameValuePair("prefix", namespace));
-		delete(url, null,
-			   params.toArray(new NameValuePair[params.size()]), null);
+		delete(url, null, params, null);
 	}
 
 	/**
@@ -1648,7 +1632,8 @@ public class AGHttpRepoClient implements Closeable {
 	public void enableTripleCache(long size) throws AGHttpException {
 		String url = getRoot()+"/tripleCache";
 
-		NameValuePair[] params = {new NameValuePair("size", Long.toString(size))};
+		List<NameValuePair> params = new ArrayList<NameValuePair>(1);
+		params.add(new NameValuePair("size", Long.toString(size)));
 		put(url, null, params, null, null);
 	}
 
@@ -1694,10 +1679,10 @@ public class AGHttpRepoClient implements Closeable {
 	throws AGHttpException {
 		String url = AGProtocol.getStoredProcLocation(getRoot())+"/"+functionName;
 		List<Header> headers = new ArrayList<Header>(1);
-		
 		headers.add(new Header("x-scripts", moduleName));
 		
-		NameValuePair[] params = { new NameValuePair("spargstr", argsEncoded) };
+		List<NameValuePair> params = new ArrayList<NameValuePair>(1);
+		params.add(new NameValuePair("spargstr", argsEncoded));
 		AGStringHandler handler = new AGStringHandler();
 		post(url, headers, params, null, handler);
 		return handler.getResult();
@@ -1744,9 +1729,8 @@ public class AGHttpRepoClient implements Closeable {
 	public long getTripleCacheSize() throws AGHttpException {
 		String url = getRoot()+"/tripleCache";
 
-		NameValuePair[] data = {};
 		AGLongHandler handler = new AGLongHandler();
-		get(url, null, data, handler);
+		get(url, null, null, handler);
 		return handler.getResult();
 	}
 
@@ -1758,8 +1742,7 @@ public class AGHttpRepoClient implements Closeable {
  	public void disableTripleCache() throws AGHttpException {
 		String url = getRoot()+"/tripleCache";
 
-		NameValuePair[] params = {};
-		delete(url, null, params, null);
+		delete(url, null, null, null);
 	}
 
 	public String[] getBlankNodes(int blankNodeAmount) throws AGHttpException {
@@ -1790,7 +1773,7 @@ public class AGHttpRepoClient implements Closeable {
 		if (comparisonMode!=null) {
 			params.add(new NameValuePair("mode", comparisonMode));
 		}
-		delete(url, null, params.toArray(new NameValuePair[params.size()]), null);
+		delete(url, null, params, null);
 	}
 
 	public void getDuplicateStatements(String comparisonMode, RDFHandler handler) throws AGHttpException, RDFHandlerException{
@@ -1804,8 +1787,7 @@ public class AGHttpRepoClient implements Closeable {
 			params.add(new NameValuePair("mode", comparisonMode));
 		}
 
-		get(url, headers,
-			params.toArray(new NameValuePair[params.size()]),
+		get(url, headers, params,
 			new AGRDFHandler(getPreferredRDFFormat(),handler,getValueFactory(),getAllowExternalBlankNodeIds()));
 	}
 
@@ -1840,7 +1822,7 @@ public class AGHttpRepoClient implements Closeable {
 			}
 		} // else, using the server's default materializer
 		AGLongHandler handler = new AGLongHandler();
-		put(url, null, params.toArray(new NameValuePair[params.size()]),null,handler);
+		put(url, null, params, null, handler);
 		return handler.getResult();
 	}
 
@@ -1856,15 +1838,16 @@ public class AGHttpRepoClient implements Closeable {
 
 		List<NameValuePair> params = new ArrayList<NameValuePair>(2);
 		AGLongHandler handler = new AGLongHandler();
-		delete(url, null, params.toArray(new NameValuePair[params.size()]), handler);
+		delete(url, null, params, handler);
 		return handler.getResult();
 	}
 
 	public void optimizeIndices(Boolean wait, int level) throws AGHttpException {
 		String url = repoRoot + "/indices/optimize";
 
-		NameValuePair[] params = { new NameValuePair("wait", Boolean.toString(wait)),
-		                           new NameValuePair("level", Integer.toString(level))};
+		List<NameValuePair> params = new ArrayList<NameValuePair>(2);
+		params.add(new NameValuePair("wait", Boolean.toString(wait)));
+		params.add(new NameValuePair("level", Integer.toString(level)));
 
 		post(url, null, params, null, null);
 	}
@@ -1872,7 +1855,8 @@ public class AGHttpRepoClient implements Closeable {
 	public void optimizeIndices(Boolean wait) throws AGHttpException {
 		String url = repoRoot + "/indices/optimize";
 
-		NameValuePair[] params = { new NameValuePair("wait", Boolean.toString(wait)) };
+		List<NameValuePair> params = new ArrayList<NameValuePair>(1);
+		params.add(new NameValuePair("wait", Boolean.toString(wait)));
 		post(url, null, params, null, null);
 	}
 
@@ -1880,10 +1864,12 @@ public class AGHttpRepoClient implements Closeable {
 	 * @since v4.4
 	 */
 	private void putSpinX(String x, AGSpinFunction fn) throws AGHttpException {
-		NameValuePair[] params = new NameValuePair[(fn.getArguments() == null ? 0 : fn.getArguments().length) + 1];
-		params[0] = new NameValuePair(AGProtocol.SPIN_QUERY, fn.getQuery());
+		List<NameValuePair> params = new ArrayList<NameValuePair>(
+				(fn.getArguments() == null ? 0 : fn.getArguments().length) + 1);
+		
+		params.add(new NameValuePair(AGProtocol.SPIN_QUERY, fn.getQuery()));
 		for (int i = 0; fn.getArguments() != null && i < fn.getArguments().length; i++) {
-			params[i+1] = new NameValuePair(AGProtocol.SPIN_ARGUMENTS, fn.getArguments()[i]);
+			params.add(new NameValuePair(AGProtocol.SPIN_ARGUMENTS, fn.getArguments()[i]));
 		}
 		put(AGProtocol.spinURL(getRoot(), x, fn.getUri()), null, params, null, null);
 	}
@@ -2221,7 +2207,7 @@ public class AGHttpRepoClient implements Closeable {
 			}
 		}
 		
-		post(url, null, params.toArray(new NameValuePair[params.size()]), null, null);
+		post(url, null, params, null, null);
 	}
 	
 	/**
@@ -2234,7 +2220,8 @@ public class AGHttpRepoClient implements Closeable {
 	{
 		String url = AGProtocol.getAttributeDefinitionLocation(getRoot());
 
-		NameValuePair[] params = { new NameValuePair(AGProtocol.NAME_PARAM_NAME, name) };
+		List<NameValuePair> params = new ArrayList<NameValuePair>(1);
+		params.add(new NameValuePair(AGProtocol.NAME_PARAM_NAME, name));
 		
 		delete(url, null, params, null);
 	}
@@ -2272,7 +2259,7 @@ public class AGHttpRepoClient implements Closeable {
 			params.add(new NameValuePair(AGProtocol.NAME_PARAM_NAME, name));
 		}
 		
-		get(url, null, (params != null ? params.toArray(new NameValuePair[params.size()]) : null), handler);
+		get(url, null, params, handler);
 		
 		return handler.getArrayResult();
 	}
@@ -2280,7 +2267,8 @@ public class AGHttpRepoClient implements Closeable {
 	public void setStaticAttributeFilter(String filter) throws AGHttpException {
 		String url = AGProtocol.getStaticFilterLocation(getRoot());
 
-		NameValuePair[] params = { new NameValuePair(AGProtocol.FILTER_PARAM_NAME, filter) };
+		List<NameValuePair> params = new ArrayList<NameValuePair>(1);
+		params.add(new NameValuePair(AGProtocol.FILTER_PARAM_NAME, filter));
 
 		post(url, null, params, null, null);
 	}
@@ -2288,11 +2276,10 @@ public class AGHttpRepoClient implements Closeable {
 	public String getStaticAttributeFilter() throws AGHttpException {
 		String url = AGProtocol.getStaticFilterLocation(getRoot());
 
-		NameValuePair[] params = null;
 		AGStringHandler handler = new AGStringHandler();
 		String result;
 		
-		get(url, null, params, handler);
+		get(url, null, null, handler);
 		
 		result = handler.getResult();
 		
@@ -2304,10 +2291,8 @@ public class AGHttpRepoClient implements Closeable {
 	
 	public void deleteStaticAttributeFilter() throws AGHttpException {
 		String url = AGProtocol.getStaticFilterLocation(getRoot());
-
-		NameValuePair[] params = null;
 		
-		delete(url, null, params, null);
+		delete(url, null, null, null);
 	}
 	
 	/**
