@@ -267,8 +267,12 @@ public class AGTripleAttributesTest extends AGAbstractTest {
 											.allowedValue("Final")
 											.ordered(true);
 		
+		// And one uninteresting attribute.
+		AttributeDefinition def3 = conn.new AttributeDefinition("note");
+
 		def1.add();
 		def2.add();
+		def3.add();
 		
 		// create some resources...
 		URI ref1 = vf.createURI("http://example.org/fifa/refs/CrookedReferee");
@@ -277,8 +281,8 @@ public class AGTripleAttributesTest extends AGAbstractTest {
         URI c1 = vf.createURI("http://example.org/fifa/copa_america");
         URI c2 = vf.createURI("http://example.org/fifa/copa_mundial");
         
-		// and some attributes
-        JSONObject attr1 = new JSONObject("{ canWork: [ AR, BR ], gameImportance: Semi }");
+	// and some attributes, including some which are null
+        JSONObject attr1 = new JSONObject("{ canWork: [ AR, BR, null ], gameImportance: Semi, note: null }");
         JSONObject attr2 = new JSONObject("{ canWork: [ AR, CH, BR, VZ ], gameImportance: Final }");
         
         // Triple construction API
