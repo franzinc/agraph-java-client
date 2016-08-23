@@ -247,7 +247,7 @@ public class AGTripleAttributesTest extends AGAbstractTest {
 		}
 	}
 	
-	@Category(TestSuites.Temp.class)
+	@Category(TestSuites.Prepush.class)
 	@Test
 	public void testAddTriplesWithAttributes() throws Exception {
 		AGRepositoryConnection conn = getConnection();

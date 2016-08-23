@@ -83,7 +83,7 @@ tags: FORCE
 
 ## this is brittle, clean it up post-m2.
 
-TUTORIAL_FILES = *.ntriples *.rdf *.txt *.nqx *TutorialExamples.java
+TUTORIAL_FILES = *.ntriples *.rdf *.txt *.nqx *TutorialExamples.java *AttributesExample.java
 
 ifdef CUSTOMER_DIST
 DISTDIR = agraph-$(AGVERSION)-client-java
