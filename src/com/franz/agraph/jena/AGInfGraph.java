@@ -77,7 +77,7 @@ public class AGInfGraph extends AGGraph implements InfGraph {
 	}
 	
 	@Override
-	Dataset getDataset() {
+	protected Dataset getDataset() {
 		// use the whole underlying repository, it is designed to
 		// contain just the right set of graphs.
 		DatasetImpl dataset = new DatasetImpl();

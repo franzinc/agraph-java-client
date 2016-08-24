@@ -27,6 +27,8 @@ import com.franz.agraph.jena.AGQueryExecution;
 import com.franz.agraph.jena.AGQueryExecutionFactory;
 import com.franz.agraph.jena.AGQueryFactory;
 import com.hp.hpl.jena.sparql.vocabulary.FOAF;
+import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.rdf.model.Property;
 
 public class SparqlUpdateTests extends AGAbstractTest {
 
@@ -104,6 +106,76 @@ public class SparqlUpdateTests extends AGAbstractTest {
 		}
         Assert.assertTrue("Robert should be there", model.contains(model.createResource("http://example.org/bob/foaf.rdf#me"), FOAF.name, model.createLiteral("Robert")));
         Assert.assertFalse("Bob should not be there", model.contains(model.createResource("http://example.org/bob/foaf.rdf#me"), FOAF.name, model.createLiteral("Bob")));
-   }
-    
+	}
+	
+	@Test
+	@Category(TestSuites.Prepush.class)
+	public void testJenaDeleteWithoutGraphs() throws Exception {
+		AGGraphMaker maker = closeLater( new AGGraphMaker(conn) );
+		AGGraph graph = closeLater( maker.getGraph() );
+		AGModel model = closeLater( new AGModel(graph) );
+		Resource subject = model.createResource("http://franz.com/s");
+		Property predicate = model.createProperty("http://franz.com/p");
+		String object = "object";
+
+		model.add(subject, predicate, object);
+
+		Assert.assertTrue("Triple should be there",
+		                  model.contains(subject, predicate, object));
+
+		String queryString = "DELETE { ?s ?p ?o } WHERE { ?s ?p ?o }";
+		AGQuery query = AGQueryFactory.create(queryString);
+		AGQueryExecution qe = AGQueryExecutionFactory.create(query, model);
+		try {
+			qe.execUpdate();
+		} finally {
+			qe.close();
+		}
+		Assert.assertFalse("Triple should not be there",
+		                   model.contains(subject, predicate, object));
+	}
+
+	@Test
+	@Category(TestSuites.Prepush.class)
+	public void testJenaDeleteUsingGraphs() throws Exception {
+		AGGraphMaker maker = closeLater( new AGGraphMaker(conn) );
+		AGGraph defaultGraph = closeLater( maker.getGraph() );
+		AGGraph g1 = closeLater( maker.createGraph("http://franz.com/g1") );
+		AGGraph g2 = closeLater( maker.createGraph("http://franz.com/g2") );
+		AGGraph defaultAndG1 = closeLater( maker.createUnion(defaultGraph, g1) );
+		
+		AGModel defaultModel = closeLater( new AGModel(defaultGraph) );
+		AGModel model1 = closeLater( new AGModel(g1) );
+		AGModel model2 = closeLater( new AGModel(g2) );
+		AGModel defaultAndM1 = closeLater( new AGModel(defaultAndG1) );
+		
+		Resource subject = defaultModel.createResource("http://franz.com/s");
+		Property predicate = defaultModel.createProperty("http://franz.com/p");
+		String o1 = "1";
+		String o2 = "2";
+		String o3 = "3";
+
+		defaultModel.add(subject, predicate, o1);
+		model1.add(subject, predicate, o2);
+		model2.add(subject, predicate, o3);
+		
+		// Check queries
+		Assert.assertTrue("Triple 2 should be visible in graph DEFAULT + G1",
+		                  defaultAndM1.contains(subject, predicate, o2));
+
+		String queryString = "DELETE { ?s ?p ?o } WHERE { ?s ?p ?o }";
+		AGQuery query = AGQueryFactory.create(queryString);
+		AGQueryExecution qe = AGQueryExecutionFactory.create(query, defaultAndM1);
+		try {
+			qe.execUpdate();
+		} finally {
+			qe.close();
+		}
+		Assert.assertFalse("Triple 1 should not be there",
+		                   defaultModel.contains(subject, predicate, o1));
+		Assert.assertFalse("Triple 2 should not be there",
+		                   model1.contains(subject, predicate, o2));
+		Assert.assertTrue("Triple 3 should still be there",
+		                  model2.contains(subject, predicate, o3));
+	}
 }

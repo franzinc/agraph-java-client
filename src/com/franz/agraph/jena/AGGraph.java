@@ -9,6 +9,7 @@
 package com.franz.agraph.jena;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.openrdf.http.protocol.UnauthorizedException;
 import org.openrdf.model.Resource;
@@ -169,14 +170,23 @@ public class AGGraph extends GraphBase implements Graph, Closeable {
 		return b.toString();
 	}
 
-	Dataset getDataset() {
-		DatasetImpl dataset = new DatasetImpl();
-		for (Resource c : contexts) {
-			if (c == null) {
-				dataset.addDefaultGraph(null);
-			} else if (c instanceof URI) {
-				dataset.addDefaultGraph((URI) c);
-				dataset.addNamedGraph((URI) c);
+	protected Dataset getDataset() {
+		final DatasetImpl dataset = new DatasetImpl();
+		// If we have any non-default contexts, construct a dataset.
+		// Otherwise just use an empty dataset.
+		// This is preferable since using 'null' to specify
+		// the default graph is not supported by older versions
+		// of AllegroGraph.
+		if (Arrays.stream(contexts).anyMatch(x -> x != null)) {
+			for (Resource c : contexts) {
+				if (c == null) {
+					// null means "the default graph".
+					// This will not work in AG < 6.1.1
+					dataset.addDefaultGraph(null);
+				} else if (c instanceof URI) {
+					dataset.addDefaultGraph((URI) c);
+					dataset.addNamedGraph((URI) c);
+				}
 			}
 		}
 		return dataset;
