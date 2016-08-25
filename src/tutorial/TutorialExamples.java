@@ -11,7 +11,6 @@ package tutorial;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -1152,7 +1151,8 @@ public class TutorialExamples {
         AGRepositoryConnection conn = myRepository.getConnection();
         closeBeforeExit(conn);
         conn.clear();
-        conn.setAutoCommit(false);  // dedicated session
+        
+        conn.begin();  // start a transaction
         ValueFactory f = myRepository.getValueFactory();
         String path1 = "src/tutorial/java-vcards.rdf";    
         String path2 = "src/tutorial/java-kennedy.ntriples";            
@@ -1630,7 +1630,10 @@ public class TutorialExamples {
     public static void example14() throws Exception {
         RepositoryConnection conn = example2(false);
         ValueFactory f = conn.getValueFactory();
-        conn.setAutoCommit(false);
+        /* Start a transaction so that the query results below
+         * are based off the same consistent view of the repository
+         */
+        conn.begin();
         URI alice = f.createURI("http://example.org/people/alice");
         URI bob = f.createURI("http://example.org/people/bob");
         String queryString = "select ?s ?p ?o where { ?s ?p ?o} ";
@@ -1649,6 +1652,7 @@ public class TutorialExamples {
             println(result.next());
         }
         result.close();
+        conn.rollback();
     }
 
     /**
@@ -2490,7 +2494,7 @@ public class TutorialExamples {
         AGRepositoryConnection conn2 = myRepository.getConnection();
         closeBeforeExit(conn2);
         conn2.setSessionLifetime(120);
-        conn2.setAutoCommit(false);
+        conn2.begin();
         String baseURI = "http://example.org/example/local";
         conn1.add(new File("src/tutorial/lesmis.rdf"), baseURI, RDFFormat.RDFXML);
         println("Loaded " + conn1.size() + " lesmis.rdf triples via conn1.");
@@ -2527,6 +2531,7 @@ public class TutorialExamples {
                 1, conn2.getStatements(null, null, valjean, false));
         // Reload and Commit
         println("\nReload java-kennedy.ntriples into conn2.");
+        conn2.begin(); // start a new transaction
         conn2.add(new File("src/tutorial/java-kennedy.ntriples"), baseURI, RDFFormat.NTRIPLES);
         println("There are now " + conn1.size() + " triples visible on conn1.");
         println("There are now " + conn2.size() + " triples visible on conn2.");
@@ -2540,7 +2545,6 @@ public class TutorialExamples {
                 1, conn1.getStatements(null, null, kennedy, false));
         printRows("\nUsing getStatements() on conn2; should find Kennedys:",
                 1, conn2.getStatements(null, null, kennedy, false));
-
         printRows("\nUsing getStatements() on conn2; should find Valjean:",
                 1, conn2.getStatements(null, null, valjean, false));
     }
