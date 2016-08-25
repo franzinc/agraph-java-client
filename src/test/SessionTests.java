@@ -155,14 +155,6 @@ public class SessionTests extends AGAbstractTest {
 		logTimeStamped("conn.size();");
 		conn1.size(); // fails if ping doesn't work
 
-		// Verify that closing expired conn2's session throws an exception 
-		try {
-			conn2.close();
-			Assert.fail("closing expired conn2 session should throw an exception");
-		} catch (RepositoryException e) {
-			// TODO: want a more specific exception here?
-		}
-
 		conn3.close();
 		// conn is closed in test tearDown
 	}

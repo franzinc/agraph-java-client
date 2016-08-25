@@ -121,6 +121,8 @@ public class AGHttpRepoClient implements Closeable {
 	private boolean usingDedicatedSession = false;
 	private boolean autoCommit = true;
 	private int uploadCommitPeriod = 0;
+	// If sessionRoot is set, this is a dedicated session client
+	// repoRoot just points to the main SD port URL.
 	private String sessionRoot, repoRoot;
 	private boolean loadInitFile = false;
 	private List<String> scripts = null;
@@ -130,6 +132,7 @@ public class AGHttpRepoClient implements Closeable {
 	private BooleanQueryResultFormat preferredBQRFormat = BooleanQueryResultFormat.TEXT;
 	private RDFFormat preferredRDFFormat = getDefaultRDFFormat();
 
+	// client is inherited from the AGServer instance from which this instance was created.
 	private AGHTTPClient client;
 	private AGAbstractRepository repo;
 
@@ -147,8 +150,9 @@ public class AGHttpRepoClient implements Closeable {
 	 * Assumes that AGHttpRepoClient only delivers requests to repo-based REST services in AG.
 	 * 
 	 * If this assumption is violated, then we rely on the server to ignore the header, or
-	 * those services will need to be updated to bypass the local class method
-	 * executors (get/post/put/delete) and invoke the AGHTTPClient methods instead.
+	 * the methods implementing these requests will need to be updated to bypass the local
+	 * class method executors (get/post/put/delete) and invoke the AGHTTPClient methods
+	 * directly as those will not insert the x-user-attributes header.
 	 */
 	private String userAttributes;
 	
@@ -510,6 +514,8 @@ public class AGHttpRepoClient implements Closeable {
 				post(url, null, null, null, null);
 				if (logger.isDebugEnabled())
 					logger.debug("closeSession: {}", url);
+			} catch (AGHttpException c) {
+				// Assume that the session was already closed.
 			} finally {
 				sessionRoot = null;
 			}

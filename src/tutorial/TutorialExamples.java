@@ -2829,6 +2829,8 @@ public class TutorialExamples {
     	
         println("\nStarting example25().");
 
+        // clear any existing connections to the repository we're about to delete.
+        closeAll();
     	AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
         AGCatalog catalog = server.getCatalog(CATALOG_ID);
         catalog.deleteRepository(REPOSITORY_ID);
