@@ -329,8 +329,7 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 
 	@Override
 	public Query getQuery() {
-		Query queryObj = QueryFactory.create(query.getQueryString());			
-		return queryObj; 
+		return QueryFactory.create(query.getQueryString());
 	}
 
 

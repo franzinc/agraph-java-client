@@ -53,7 +53,7 @@ public class AGServer implements Closeable {
 	private static final int THREAD_POOL_SIZE = 4;
 
 	// A default, global executor service used to create pinger threads.
-	// Created lazily in  getSharedExecutorService().
+	// Created lazily in getSharedExecutorService().
 	private static ScheduledThreadPoolExecutor sharedExecutor;
 
 	private final String serverURL;
@@ -118,23 +118,23 @@ public class AGServer implements Closeable {
 	 * Creates an instance for interacting with an AllegroGraph server.
 	 *<p>
 	 * Attempts X.509 server and client authentication when no username and
-	 * password have been set in the httpClient, and properties such as
-	 * <p><code><pre>
+	 * password have been set in the httpClient, and properties such as</p>
+	 * <pre>{@code 
 	 * javax.net.ssl.keyStore,
 	 * javax.net.ssl.keyStorePassword,
 	 * javax.net.ssl.keyStoreType, and
 	 * javax.net.ssl.trustStore
-	 * </pre></code>
-	 * have been set appropriately.
+	 * }</pre>
+	 * <p>have been set appropriately.</p>
 	 * <p>
-	 * Also set SSL directives in the server's config file, e.g:
-	 * <p><code><pre>
+	 * Also set SSL directives in the server's config file, e.g:</p>
+	 * <pre>{@code
 	 * SSLPort 10036
 	 * SSLClientAuthRequired true
 	 * SSLClientAuthUsernameField CN
 	 * SSLCertificate /path/agraph.cert
 	 * SSLCAFile /path/ca.cert
-	 * </pre></code>
+	 * }</pre>
 	 * For more details, see <a href="http://www.franz.com/agraph/support/documentation/current/daemon-config.html#client-index">Server configuration</a>.
 	 * <p>
 	 * @param httpClient the AGHTTPClient instance to use
@@ -150,27 +150,28 @@ public class AGServer implements Closeable {
 	 * Creates an instance for interacting with an AllegroGraph server.
 	 * <p>
 	 * Uses a new default AGHTTPClient instance having the given serverURL.
-	 * <p>
-	 * Attempts X.509 server and client authentication when properties
-	 * such as
-	 * <p><code><pre>
+	 * </p>
+	 * <p>Attempts X.509 server and client authentication when properties
+	 * such as</p>
+	 * <pre>{@code
 	 * javax.net.ssl.keyStore,
 	 * javax.net.ssl.keyStorePassword,
 	 * javax.net.ssl.keyStoreType, and
 	 * javax.net.ssl.trustStore
-	 * </pre></code>
-	 * have been set appropriately.
+	 * }</pre>
+	 * <p>have been set appropriately.</p>
 	 * <p>
-	 * Also set SSL directives in the server's config file, e.g:
-	 * <p><code><pre>
+	 * Also set SSL directives in the server's config file, e.g:</p>
+	 * <pre>{@code
 	 * SSLPort 10036
 	 * SSLClientAuthRequired true
 	 * SSLClientAuthUsernameField CN
 	 * SSLCertificate /path/agraph.cert
 	 * SSLCAFile /path/ca.cert
-	 * </pre></code>
-	 * For more details, see <a href="http://www.franz.com/agraph/support/documentation/current/daemon-config.html#client-index">Server configuration</a>.
-	 * <p>
+	 * }</pre>
+	 * <p>For more details, see <a href="http://www.franz.com/agraph/support/documentation/current/daemon-config.html#client-index">Server configuration</a>.
+	 * </p>
+         *
 	 * @param serverURL the URL of the server (trailing slashes are removed).
 	 * @see #AGServer(String, String, String)
 	 * @see #AGServer(AGHTTPClient)
@@ -236,7 +237,7 @@ public class AGServer implements Closeable {
 	 * Returns a List of catalog ids known to this AllegroGraph server.
 	 *
 	 * @return List of catalog ids.
-	 * @throws OpenRDFException
+	 * @throws AGHttpException
 	 */
 	public List<String> listCatalogs() throws AGHttpException {
 		String url = AGProtocol.getNamedCatalogsURL(serverURL);

@@ -180,7 +180,7 @@ implements PoolableObjectFactory {
 	}
 
 	@Override
-	public <Obj extends Object> Obj handleCloseException(Obj o, Throwable e) {
+	public <Obj> Obj handleCloseException(Obj o, Throwable e) {
 		if (e.getCause() instanceof java.net.ConnectException && e.getCause().getMessage().equals("Connection refused")) {
 			// squelch this (debug instead of warn) because it's common that the session has timed out
 			log.debug("ignoring error with close (probably session timeout): " + o, e);

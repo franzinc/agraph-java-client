@@ -99,14 +99,14 @@ public enum AGConnProp {
 		TX;
 		
 		static Session valueOfCaseInsensitive(String name, Session defaultVal) {
-			Session s = Session.valueOf(name);
-			if (s == null) {
-				s = Session.valueOf(name.toUpperCase());
-			}
-			if (s == null) {
-				return defaultVal;
-			} else {
-				return s;
+			try {
+				return Session.valueOf(name);
+			} catch (final IllegalArgumentException e) {
+				try {
+					return Session.valueOf(name.toUpperCase());
+				} catch (final IllegalArgumentException e2) {
+					return defaultVal;
+				}
 			}
 		}
 	}

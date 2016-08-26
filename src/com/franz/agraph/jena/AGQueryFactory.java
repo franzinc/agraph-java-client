@@ -24,8 +24,7 @@ public class AGQueryFactory {
     }
 
 	public static AGQuery create(QueryLanguage language, String queryString) {
-		AGQuery query = new AGQuery(language, queryString);
-		return query ;
+		return new AGQuery(language, queryString);
 	}
 
 }

@@ -21,11 +21,14 @@ import com.franz.agraph.http.AGHttpRepoClient;
 import com.franz.agraph.http.exception.AGHttpException;
 import com.hp.hpl.jena.graph.Node;
 
+import java.util.regex.Pattern;
+
 /**
  * Implements the Sesame ValueFactory interface for AllegroGraph.
  * 
  */
 public class AGValueFactory extends ValueFactoryImpl {
+	private static final Pattern AG_BNODE_ID_PATTERN = Pattern.compile("\\Ab[0-9A-Fa-f]{8}x\\d+\\z");
 
 	private final AGRepository repository;
 	private final AGRepositoryConnection conn;
@@ -152,7 +155,7 @@ public class AGValueFactory extends ValueFactoryImpl {
 	 */
 	@Override
 	public BNode createBNode() {
-		if (repository instanceof AGRepository) {
+		if (repository != null) {
 			return createBNode(null);
 		} else {
 			return super.createBNode();
@@ -192,13 +195,12 @@ public class AGValueFactory extends ValueFactoryImpl {
 	}
 
 	/**
-	 * Return true iff id looks like an AG blank node id.
+	 * Returns true iff id looks like an AG blank node id.
 	 * 
 	 * AG blank node ids currently have the following form:
 	 * 
-	 * bF010696Fx1
-	 * 
-	 * The printing is _:b[store ID in hex]x[blank node number].
+	 * b[store ID in hex]x[blank node number].
+	 *
 	 * There is nothing sacrosanct about this but it is unlikely
 	 * to change.
 	 *  
@@ -206,19 +208,7 @@ public class AGValueFactory extends ValueFactoryImpl {
 	 * @return true iff id looks like an AG blank node id
 	 */
 	public boolean isAGBlankNodeId(String id) {
-		boolean startsWithB = id.startsWith("b");
-		if (!startsWithB) return false;
-		// store id's are currently 8 chars
-		boolean storeIdThenX = id.length()>9 ? id.charAt(9)=='x' : false;
-		if (!storeIdThenX) return false;
-		boolean endsWithNumber;
-		try {
-			Long.parseLong(id.substring(10));
-			endsWithNumber = true;
-		} catch (NumberFormatException e) {
-			endsWithNumber = false;
-		}
-		return endsWithNumber;
+		return AG_BNODE_ID_PATTERN.matcher(id).matches();
 	}
 
 	public boolean isURIForExternalBlankNode(Value v) {

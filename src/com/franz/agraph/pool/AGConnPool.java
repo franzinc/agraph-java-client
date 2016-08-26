@@ -34,7 +34,7 @@ import com.franz.util.Closer;
  * The recommended way to create a pool is by {@link #create(Object...)}
  * or by configuring a {@link AGConnPoolJndiFactory} with your appserver.
  * 
- * <p><code><pre>
+ * <pre>{@code
  * 	AGConnPool pool = AGConnPool.create(
  * 		AGConnProp.serverUrl, "http://localhost:10035",
  * 		AGConnProp.username, "test",
@@ -54,7 +54,7 @@ import com.franz.util.Closer;
  * 		// or equivalently
  * 		pool.returnObject(conn);
  * 	}
- * </pre></code></p>
+ * }</pre>
  * 
  * <p>This pool delegates the pooling implementation to another
  * pool (a {@link GenericObjectPool}).
@@ -332,6 +332,7 @@ implements ObjectPool, Closeable {
 			close();
 			log.warn("Finalizing with open connections, please close the pool properly. " + this);
 		}
+		super.finalize();
 	}
 	
 	@Override

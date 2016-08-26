@@ -151,7 +151,7 @@ public class AGVirtualRepository extends RepositoryBase implements AGAbstractRep
 	
 	public static String reasoningSpec(String repoSpec, String reasoner, Resource inferredGraph) {
 		String reasoningSpec = repoSpec + "[" + reasoner;
-		if (null!=inferredGraph && !inferredGraph.equals("")) {
+		if (inferredGraph != null) {
 			reasoningSpec += ("#<" + inferredGraph.stringValue() + ">");
 		}
 		return reasoningSpec + "]";

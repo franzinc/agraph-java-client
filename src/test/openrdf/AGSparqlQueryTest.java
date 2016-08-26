@@ -41,7 +41,7 @@ public class AGSparqlQueryTest extends SPARQLQueryTest {
 				return new AGSparqlQueryTest(testURI, name, queryFileURL, resultFileURL, dataSet,
 						laxCardinality, checkOrder);
 			}
-		}, true, true, true, null);
+		}, true, true, true);
 	}
 
 	private AGSparqlQueryTest(String testURI, String name, String queryFileURL, String resultFileURL,

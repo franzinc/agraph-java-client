@@ -256,7 +256,7 @@ public class AGFreetextIndexConfig {
 	}
 	
 	public String toString() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append("<AGFreetextIndexConfig predicates: ").append(predicates);
 		sb.append(", indexLiterals: ").append(indexLiterals);
 		sb.append(", indexLiteralTypes: ").append(indexLiteralTypes);

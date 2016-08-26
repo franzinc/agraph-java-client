@@ -99,7 +99,7 @@ public class AGSerializer {
 		
 	}
 	
-	void serializeInteger(int i) {
+	private void serializeInteger(int i) {
 		// i is non negative
 		while (true) {
 			byte lower = (byte) (i & 0x7f);
@@ -116,8 +116,5 @@ public class AGSerializer {
 			}
 			i = rest;
 		}
-		
-		return;
-		
 	}
 }

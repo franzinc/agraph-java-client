@@ -64,7 +64,7 @@ public class AGGraphMaker implements GraphMaker, Closeable {
 	@Override
 	public AGGraph getGraph() {
 		if (defaultGraph==null) {
-			defaultGraph = new AGGraph(this, (Node)null);
+			defaultGraph = new AGGraph(this, null);
 		}
 		return defaultGraph;
 	}

@@ -553,8 +553,8 @@ public class NQuadsParser extends RDFParserBase {
 	}
 
 	/**
-	 * Overrides {@link RDFParserBase#reportError(String)}, adding line number
-	 * information to the error.
+	 * Overrides {@link RDFParserBase#reportError(String, RioSetting)},
+	 * adding line number information to the error.
 	 */
 	@Override
 	protected void reportError(String msg, RioSetting<Boolean> settings)

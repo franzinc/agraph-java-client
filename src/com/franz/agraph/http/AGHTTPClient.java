@@ -73,7 +73,7 @@ implements Closeable {
 	private boolean isClosed = false;
 
 	private MultiThreadedHttpConnectionManager mManager = null;
-	
+
 	public AGHTTPClient(String serverURL) {
 		this(serverURL, null);
 	}

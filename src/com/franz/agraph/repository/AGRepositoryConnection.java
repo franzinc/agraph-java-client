@@ -144,25 +144,28 @@ import com.franz.util.Closer;
  * target="_top">Session Port Setup</a>.
  * </p>
  * 
- * <p>Methods that start a session if not already started:<ul>
+ * <p>Methods that start a session if not already started:</p>
+ * <ul>
  * <li>{@link #setAutoCommit(boolean)}</li>
  * <li>{@link #addRules(String)}</li>
  * <li>{@link #addRules(InputStream)}</li>
  * <li>{@link #registerSNAGenerator(String, List, List, List, String)}</li>
  * </ul>
  * 
- * Methods that affect a session in use:<ul>
+ * <p>Methods that affect a session in use:</p>
+ * <ul>
  * <li>{@link #commit()}</li>
  * <li>{@link #rollback()}</li>
  * <li>{@link #ping()}</li>
  * <li>{@link #close()}</li>
  * </ul>
  * 
- * Methods to configure a session before it is started:<ul>
+ * <p>Methods to configure a session before it is started:</p>
+ * <ul>
  * <li>{@link #setSessionLifetime(int)} and {@link #getSessionLifetime()}</li>
  * <li>{@link #setSessionLoadInitFile(boolean)}</li>
  * <li>{@link #addSessionLoadScript(String)}</li>
- * </ul></p>
+ * </ul>
  * 
  * <h3><a name="mapping">Data-type and Predicate Mapping</a></h3>
  * 
@@ -174,7 +177,8 @@ import com.franz.util.Closer;
  * target="_top">Data-type and Predicate Mapping</a>.
  * </p>
  * 
- * <p>Methods for type mappings:<ul>
+ * <p>Methods for type mappings:</p>
+ * <ul>
  * <li>{@link #clearMappings()}</li>
  * <li>{@link #getDatatypeMappings()}</li>
  * <li>{@link #registerDatatypeMapping(URI, URI)}</li>
@@ -182,7 +186,7 @@ import com.franz.util.Closer;
  * <li>{@link #getPredicateMappings()}</li>
  * <li>{@link #registerPredicateMapping(URI, URI)}</li>
  * <li>{@link #deletePredicateMapping(URI)}</li>
- * </ul></p>
+ * </ul>
  * 
  * @since v4.0
  */
@@ -1883,7 +1887,7 @@ implements RepositoryConnection, Closeable {
 	 * target="_top">Session Port Setup</a>.
 	 * </p>
 	 * 
-	 * @param generator
+	 * @param generator Generator name.
 	 * @param objectOfs
 	 * @param subjectOfs
 	 * @param undirecteds

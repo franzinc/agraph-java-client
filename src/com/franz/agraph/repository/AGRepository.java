@@ -290,8 +290,9 @@ public class AGRepository extends RepositoryBase implements AGAbstractRepository
 	 * is not null, getConnection() borrows a connection from the pool,
 	 * and closing the connection returns it to the pool.  The pool is
 	 * closed when the Repository is shutdown.
-	 *
-	 * <p><code><pre>
+	 * </p>
+	 * 
+         * <pre>{@code
 	 * Note that the AGConnPool parameters:
 	 *
 	 * 		AGConnProp.serverUrl, "http://localhost:10035",
@@ -301,7 +302,7 @@ public class AGRepository extends RepositoryBase implements AGAbstractRepository
 	 * 		AGConnProp.repository, "my_repo",
 	 *
 	 * are currently assumed to match those of this repository.
-	 * </pre></code></p>
+	 * }</pre>
 	 *
 	 * @see AGConnPool
 	 */

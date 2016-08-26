@@ -58,15 +58,15 @@ import com.franz.util.Closeable;
  * <a href="http://tomcat.apache.org/tomcat-7.0-doc/jndi-resources-howto.html#Adding_Custom_Resource_Factories"
  * >Tomcat HOW-TO create custom resource factories</a>:
  * In /WEB-INF/web.xml:
- * <code><pre>
- * &lt;resource-env-ref&gt;
- *     &lt;description&gt;AllegroGraph connection pool&lt;/description&gt;
- *     &lt;resource-env-ref-name&gt;connection-pool/agraph&lt;/resource-env-ref-name&gt;
- *     &lt;resource-env-ref-type&gt;com.franz.agraph.pool.AGConnPool&lt;/resource-env-ref-type&gt;
- * &lt;/resource-env-ref&gt;
- * </pre></code>
+ * <pre>{@code
+ * <resource-env-ref>
+ *     <description>AllegroGraph connection pool</description>
+ *     <resource-env-ref-name>connection-pool/agraph</resource-env-ref-name>
+ *     <resource-env-ref-type>com.franz.agraph.pool.AGConnPool</resource-env-ref-type>
+ * </resource-env-ref>
+ * }</pre>
  * Your code:
- * <code><pre>
+ * <pre>{@code
  * Context initCtx = new InitialContext();
  * Context envCtx = (Context) initCtx.lookup("java:comp/env");
  * AGConnPool pool = (AGConnPool) envCtx.lookup("connection-pool/agraph");
@@ -79,12 +79,12 @@ import com.franz.util.Closeable;
  *     // or equivalently
  *     pool.returnObject(conn);
  * }
- * </pre></code>
+ * }</pre>
  * Tomcat's resource factory:
- * <code><pre>
- * &lt;Context ...&gt;
+ * <pre>{@code
+ * <Context ...>
  *     ...
- *     &lt;Resource name="connection-pool/agraph"
+ *     <Resource name="connection-pool/agraph"
  *               auth="Container"
  *               type="com.franz.agraph.pool.AGConnPool"
  *               factory="com.franz.agraph.pool.AGConnPoolJndiFactory"
@@ -98,11 +98,10 @@ import com.franz.util.Closeable;
  *               initialSize="5"
  *               maxIdle="10"
  *               maxActive="40"
- *               maxWait="60000"/&gt;
+ *               maxWait="60000"/>
  *     ...
- * &lt;/Context&gt;
- * </pre></code>
- * </p>
+ * </Context>
+ * }</pre>
  * 
  * <p>Closing the connection pool is important because server sessions will
  * stay active until {@link AGConnProp#sessionLifetime}.
@@ -143,7 +142,7 @@ public class AGConnPoolJndiFactory implements ObjectFactory {
 
 	/**
 	 * @param values enum values
-	 * @return map suitable for {@link #createPool(Map, Map)}
+	 * @return map suitable for {@link AGConnPool#create(Map, Map)}
 	 */
 	private static Map<? extends Enum, String> refToMap(Reference ref, Enum[] values) {
 		Map<Enum, String> props = new HashMap<Enum, String>();

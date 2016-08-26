@@ -208,9 +208,7 @@ public class AGTQRStreamer extends AGResponseHandler {
 								close();
 								return false;
 							}
-							else if ("binding".equals(xml.getLocalName())) {
-							}
-							else {
+							else if (!"binding".equals(xml.getLocalName())) {
 								log.warn("unknown elem end: " + xml.getLocalName());
 							}
 						} else if (event == XMLStreamConstants.END_DOCUMENT) {

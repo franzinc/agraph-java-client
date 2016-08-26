@@ -41,7 +41,7 @@ public class AGInfGraph extends AGGraph implements InfGraph {
 	AGVirtualRepository infRepo;
 	
 	AGInfGraph(AGReasoner reasoner, AGGraph rawGraph) {
-		super(rawGraph.getGraphMaker(), rawGraph.getGraphContext(), new Resource[0]);
+		super(rawGraph.getGraphMaker(), rawGraph.getGraphContext());
 		this.reasoner = reasoner;
 		this.rawGraph = rawGraph;
 		entailmentRegime = reasoner.getEntailmentRegime();
@@ -80,8 +80,7 @@ public class AGInfGraph extends AGGraph implements InfGraph {
 	protected Dataset getDataset() {
 		// use the whole underlying repository, it is designed to
 		// contain just the right set of graphs.
-		DatasetImpl dataset = new DatasetImpl();
-		return dataset;
+		return new DatasetImpl();
 	}
 
 	@Override

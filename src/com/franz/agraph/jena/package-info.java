@@ -13,12 +13,13 @@
  * <a href="http://www.franz.com/agraph/support/documentation/current/agraph-introduction.html">AllegroGraph</a>
  * features.
  * 
- * <p>See also:<ul>
+ * <p>See also:</p>
+ * <ul>
  *   <li><a href="http://www.franz.com/agraph/support/documentation/current/java-tutorial/jena-tutorial.html">Java
  *     Jena API Tutorial for AllegroGraph</a></li>
  *   <li><a href="http://jena.apache.org/tutorials/rdf_api.html">Jena Introduction</a></li>
  *   <li><a href="http://jena.apache.org/documentation/javadoc/jena/">Jena Javadocs</a></li>
- * </ul></p>
+ * </ul>
  * 
  * @since v4.0
  */

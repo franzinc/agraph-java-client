@@ -69,7 +69,7 @@ public class Closer implements Closeable {
 	@Override
 	public void close() {
 		try {
-			while (toClose.isEmpty() == false) {
+			while (!toClose.isEmpty()) {
 				close( toClose.get(0) );
 			}
 		} catch (IndexOutOfBoundsException e) {

@@ -31,13 +31,13 @@ import com.franz.agraph.http.handler.AGTQRStreamer;
  * are called.
  * </p>
  * 
- * <p>Usage:
- * <code><pre>
+ * <p>Usage:</p>
+ * <pre>{@code
  * AGTupleQuery query = conn.prepareTupleQuery(QueryLanguage.SPARQL, "SELECT ...");
  * query = new AGStreamTupleQuery(query);
  * TupleQueryResult results = query.evaluate();
  * ...
- * </pre></code></p>
+ * }</pre>
  * 
  * @see AGRepositoryConnection#prepareTupleQuery(org.openrdf.query.QueryLanguage, String)
  * @since v4.3

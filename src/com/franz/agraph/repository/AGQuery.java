@@ -342,10 +342,11 @@ public abstract class AGQuery extends AbstractQuery {
 
 	
 	@Override
-	protected void finalize() {
+	protected void finalize() throws Throwable {
 		if (saveName!=null) { 
 			httpCon.getHttpRepoClient().savedQueryDeleteQueue.add(saveName);
 		}
+		super.finalize();
 	}
 
 	/**

@@ -16,15 +16,15 @@
  * <p>Initiate a connection to an AllegroGraph server starting with
  * {@link com.franz.agraph.repository.AGServer#AGServer(String, String, String)}.</p>
  * 
- * <p>See also:<ul>
+ * <p>See also:</p>
+ * <ul>
  *   <li><a href="http://www.franz.com/agraph/support/documentation/current/java-tutorial/java-tutorial.html"
  *          target="_top">Java Sesame API Tutorial for AllegroGraph</a></li>
  *   <li><a href="http://openrdf.callimachus.net/sesame/2.7/docs/users.docbook?view"
  *          target="_top">Sesame User Guide</a></li>
  *   <li><a href="http://openrdf.callimachus.net/sesame/2.7/apidocs/index.html"
  *          target="_top">Sesame Javadocs</a></li>
- * </p>
- * 
+ * </ul>
  * @since v4.0
  */
 package com.franz.agraph.repository;

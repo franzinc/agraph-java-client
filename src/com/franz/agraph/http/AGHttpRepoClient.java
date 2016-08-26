@@ -106,7 +106,7 @@ public class AGHttpRepoClient implements Closeable {
 	 *
 	 * Defaults to 3600 seconds (1 hour).
 	 *
-	 * @param lifetimeInSeconds
+	 * @param lifetimeInSeconds Number of seconds before the session times out.
 	 */
 	public static void setDefaultSessionLifetime(int lifetimeInSeconds)
 	{
@@ -504,7 +504,7 @@ public class AGHttpRepoClient implements Closeable {
 		}
 	}
 
-	private void closeSession(String sessionRoot) throws
+	private void closeSession() throws
 			AGHttpException {
 		if (sessionRoot != null && !getHTTPClient().isClosed()) {
 			stopPinger();
@@ -663,7 +663,7 @@ public class AGHttpRepoClient implements Closeable {
 	 *
 	 * Defaults to period=0, meaning that no commits are done in an upload.
 	 *
-	 * Setting period>0 can be used to work around the fact that
+	 * Setting period &gt; 0 can be used to work around the fact that
 	 * uploading a huge amount of statements in a single transaction
 	 * will require excessive amounts of memory.
 	 *
@@ -992,8 +992,7 @@ public class AGHttpRepoClient implements Closeable {
 		}
 		List<NameValuePair> queryParams = getQueryMethodParameters(q);
 		if (analyzeOnly) {
-			queryParams.add(new NameValuePair("analyzeIndicesUsed",
-				Boolean.toString(analyzeOnly)));
+			queryParams.add(new NameValuePair("analyzeIndicesUsed", "true"));
 		}
 		post(url, headers, queryParams, null, handler);
 		if (sessionRoot!=null && q.getName()!=null) {
@@ -1120,8 +1119,7 @@ public class AGHttpRepoClient implements Closeable {
 
 	public synchronized void close() throws AGHttpException {
 		if (sessionRoot != null) {
-			closeSession(sessionRoot);
-			sessionRoot = null;
+			closeSession();
 		}
 	}
 
@@ -1148,8 +1146,7 @@ public class AGHttpRepoClient implements Closeable {
 			}
 		} else {
 			// only need to send this if it's false
-			params.add(new NameValuePair("indexLiterals", Boolean
-					.toString(indexLiterals)));
+			params.add(new NameValuePair("indexLiterals", "false"));
 		}
 		if (!indexResources.equals("true")) {
 			// only need to send this if it's not "true"
@@ -1264,8 +1261,8 @@ public class AGHttpRepoClient implements Closeable {
 		if (index!=null) {
 			queryParams.add(new NameValuePair("index",index));
 		}
-		if (sorted!=false) {
-			queryParams.add(new NameValuePair("sorted",Boolean.toString(sorted)));
+		if (sorted) {
+			queryParams.add(new NameValuePair("sorted", "true"));
 		}
 		if (limit>0) {
 			queryParams.add(new NameValuePair("limit",Integer.toString(limit)));
@@ -1684,12 +1681,12 @@ public class AGHttpRepoClient implements Closeable {
 	 * Invoke a stored procedure on the AllegroGraph server.
 	 * The args must already be encoded, and the response is encoded.
 	 *
-	 * <p>Low-level access to the data sent to the server can be done with:
-	 * <code><pre>
+	 * <p>Low-level access to the data sent to the server can be done with:</p>
+	 * <pre>{@code
 	 * {@link AGDeserializer#decodeAndDeserialize(String) AGDeserializer.decodeAndDeserialize}(
-	 *     {@link #callStoredProcEncoded(String, String, String) callStoredProcEncoded}(functionName, moduleName,
+	 *     callStoredProcEncoded(functionName, moduleName,
 	 *         {@link AGSerializer#serializeAndEncode(Object[]) AGSerializer.serializeAndEncode}(args)));
-	 * </code></pre></p>
+	 * }</pre>
 	 *
 	 * <p>If an error occurs in the stored procedure then result will
 	 * be a two element vector  with the first element being the string "_fail_"
