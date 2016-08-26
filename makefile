@@ -127,6 +127,7 @@ dist: FORCE
 	cp src/tutorial/jena-tutorial.html $(DIST)/doc/
 	cp src/tutorial/*.jpg $(DIST)/doc/
 	cp -r doc $(DIST)/javadoc
+	cp README.md $(DIST)/README.md
 	tar -c -h -z $(TAROPTS) -f $(TARNAME) -C DIST $(DISTDIR)
 ifdef DESTDIR
 	cp -p $(TARNAME) $(DESTDIR)

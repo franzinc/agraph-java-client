@@ -2915,10 +2915,7 @@ public class TutorialExamples {
     public static void main(String[] args) throws Exception {
     	long now = System.currentTimeMillis();
         List<Integer> choices = new ArrayList<Integer>();
-        if (args.length == 0) {
-            // for choosing by editing this code
-            choices.add(1);
-        } else if (args[0].equals("all")) {
+        if (args.length == 0 || args[0].equals("all")) {
             for (int i = 1; i <= 25; i++) {
                 choices.add(i);
             }

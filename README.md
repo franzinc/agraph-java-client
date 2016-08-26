@@ -142,9 +142,70 @@ build.xml and libs/clojure-1.4.0.jar.
     ant build
 
 
+## Tutorials
+
+There are three tutorials located in src/tutorial/ that can be
+compiled and run. They are:
+
+  TutorialExamples.java     - Example usage of the AG Sesame interface
+  JenaTutorialExamples.java - Example usage of the AG Jena interface
+  AttributesExample.java    - Example usage of AG Triple Attributes
+
+### PREREQUISITES
+
+An AllegroGraph server must be up and running in order to run the
+tutorials.
+
+The class for each tutorial declares a number of variables near the
+top of its respective class definition, which provide the
+information necessary to communicate with AllegroGraph. If necessary,
+modify these variables to match the settings for your server before
+compiling each source file.
+
+By default, each tutorial looks for AllegroGraph on localhost at port
+10035. Each will create a repository named after the respective
+tutorial in the "java-catalog" catalog.
+
+In order for the tutorial to run successfully, you must ensure that
+the "java-catalog" catalog has been defined in your agraph.cfg prior
+to starting AG, or change the value of CATALOG_ID to name a catalog
+that exists on your server. Use the empty string ("") or null to
+indicate the root catalog. All other variables must be updated to
+correspond to your server configuration as well.
+
+
+### Compiling Tutorials
+
+From the current directory the following commands can be used to compile each tutorial.
+
+  javac -cp 'lib/*:lib/sesame/*' src/tutorial/TutorialExamples.java
+  javac -cp 'lib/*:lib/jena/*:lib/sesame/*' src/tutorial/JenaTutorialExamples.java 
+  javac -cp 'lib/*:lib/sesame/*' src/tutorial/AttributesExample.java
+
+
+### Running Tutorials
+
+To run the Sesame and Jena tutorials, use the following command
+lines. The argument 'all' indicates that all examples should be
+run. You may also specify any number of integer arguments to indicate
+which specific examples to run. If no args are passed, the default is
+to run all examples.
+
+<code>java -cp 'src:lib/*:lib/sesame/*:lib/logging/commons-logging-1.1.1.jar:lib/logging/slf4j-api-1.6.4.jar:lib/logging/log4j-1.2.16.jar:lib/logging/slf4j-log4j12-1.6.4.jar' tutorial/TutorialExamples all</code>
+
+or 
+
+<code>java -cp 'src:lib/*:lib/jena/*::lib/sesame/*:lib/logging/commons-logging-1.1.1.jar:lib/logging/slf4j-api-1.6.4.jar:lib/logging/log4j-1.2.16.jar:lib/logging/slf4j-log4j12-1.6.4.jar' tutorial/JenaTutorialExamples all</code>
+
+
+To run the Attributes Example, use the following command line. The AttributesExample class accepts no arguments:
+
+<code>java -cp 'src:lib/*:lib/sesame/*:lib/logging/commons-logging-1.1.1.jar:lib/logging/slf4j-api-1.6.4.jar:lib/logging/log4j-1.2.16.jar:lib/logging/slf4j-log4j12-1.6.4.jar' tutorial/AttributesExample</code>
+
+
 ## License
 
-Copyright (c) 2008-2012 Franz Inc.
+Copyright (c) 2008-2016 Franz Inc.
 All rights reserved. This program and the accompanying materials
 are made available under the terms of the Eclipse Public License v1.0
 which accompanies this distribution, and is available at
