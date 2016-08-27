@@ -173,13 +173,13 @@
                  nonavbar="false"
                  notree="false"
                  packagenames="com.franz.agraph.jena,com.franz.agraph.repository,com.franz.agraph.repository.config,com.franz.openrdf.rio.nquads,com.franz.util,com.franz.agraph.pool"
-                 source="1.6"
+                 source="1.8"
                  sourcepath="src"
                  splitindex="true"
                  use="true"
                  version="true"
                  classpathref="classpath">
-            <link href="http://download.oracle.com/javase/6/docs/api/" offline="true" packagelistLoc="lib/java"/>
+            <link href="http://download.oracle.com/javase/8/docs/api/" offline="true" packagelistLoc="lib/java"/>
             <link href="http://jena.apache.org/documentation/javadoc/" offline="true" packagelistloc="lib/jena"/>
             <link href="http://rdf4j.org/sesame/2.7/apidocs/" offline="true" packagelistloc="lib/sesame"/>
         </javadoc>
