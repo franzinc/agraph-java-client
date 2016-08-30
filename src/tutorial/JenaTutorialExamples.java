@@ -51,7 +51,7 @@ import com.hp.hpl.jena.vocabulary.RDFS;
 
 public class JenaTutorialExamples {
 
-	public static String SERVER_URL = "http://localhost:10035";
+    public static String SERVER_URL = "http://localhost:10035";
 	public static String CATALOG_ID = "java-catalog";
 	public static String REPOSITORY_ID = "jenatutorial";
 	public static String USERNAME = "test";
@@ -1019,6 +1019,7 @@ public class JenaTutorialExamples {
 	 * Usage: all Usage: [1-9,11-13,17-19,22-24]+
 	 */
 	public static void main(String[] args) throws Exception {
+        long now = System.currentTimeMillis();
 		List<Integer> choices = new ArrayList<Integer>();
 		if (args.length == 0) {
 			// for choosing by editing this code
@@ -1106,6 +1107,8 @@ public class JenaTutorialExamples {
 			}
 		} finally {
 			closeAll();
+            println("Elapsed time: " + (System.currentTimeMillis() - now)
+                    / 1000.00 + " seconds.");
 		}
 	}
 

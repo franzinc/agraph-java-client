@@ -234,6 +234,15 @@ implements RepositoryConnection, Closeable {
 		return repository;
 	}
 
+    /**
+     * Returns the AGServer object associated with this connection.
+     * 
+     * @return AGServer
+     */
+    public AGServer getServer() {
+        return getRepository().getCatalog().getServer();
+    }
+
 	/**
 	 * Returns the lower level HTTP layer for this connection.
 	 * 

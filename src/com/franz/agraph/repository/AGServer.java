@@ -21,6 +21,7 @@ import org.openrdf.model.Value;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.TupleQueryResult;
+import org.openrdf.repository.RepositoryException;
 
 import com.franz.agraph.http.AGHTTPClient;
 import com.franz.agraph.http.AGProtocol;
@@ -891,4 +892,128 @@ public class AGServer implements Closeable {
 	public void setExecutor(ScheduledExecutorService executor) {
 		this.executor = executor;
 	}
+	
+    /**
+     * Creates/replaces a repository in the specified catalog
+     * 
+     * @param reponame  name of the repository to create
+     * @param catalog  AGCatalog instance where the repository will be created.
+     * @param strict  if true, throw an exception if the repository exists.
+     * @return AGRepository  an initialized repository instance for the newly
+     *         created repository.
+     * @throws RepositoryException
+     */
+    public AGRepository createRepository(String reponame, AGCatalog catalog,
+            boolean strict) throws RepositoryException {
+        AGRepository repo = catalog.createRepository(reponame.trim(), strict);
+        repo.initialize();
+
+        return repo;
+    }
+
+    /**
+     * Creates/replaces a repository in the specified catalog
+     * 
+     * @param reponame  name of the repository to create
+     * @param catname  name of the catalog in which to create the repository
+     * @param strict  if true, throw an exception if the repository exists.
+     * @return AGRepository  an initialized repository instance for the newly
+     *         created repository.
+     * @throws RepositoryException
+     */
+    public AGRepository createRepository(String reponame, String catname,
+            boolean strict) throws RepositoryException {
+
+        // check for rootCatalog'ness.
+        if (catname == null || catname.trim().isEmpty()) {
+            return createRepository(reponame, rootCatalog, strict);
+        }
+
+        AGCatalog cat = getCatalog(catname);
+        if (cat == null) {
+            throw new RepositoryException("Unable to create repository "
+                    + catname + "/" + reponame + " because " + catname
+                    + " does not exist.");
+        }
+
+        return createRepository(reponame, cat, strict);
+    }
+
+    /**
+     * Creates/replaces a repository in the specified catalog
+     * 
+     * @param reponame  name of the repository to create
+     * @param catname  name of the catalog in which to create the repository
+     * @return AGRepository  an initialized repository instance for the newly
+     *         created repository.
+     * @throws RepositoryException
+     */
+    public AGRepository createRepository(String reponame, String catname)
+            throws RepositoryException {
+        return createRepository(reponame, catname, false);
+    }
+
+    /**
+     * Creates/replaces a repository in the root catalog.
+     * 
+     * @param reponame  name of the repository to create.
+     * @return AGRepository  an initialized repository instance for the newly
+     *         created repository.
+     * @throws RepositoryException
+     */
+    public AGRepository createRepository(String reponame)
+            throws RepositoryException {
+        return createRepository(reponame, rootCatalog, false);
+    }
+
+    /**
+     * Creates/replaces a repository in the specified catalog
+     * 
+     * @param repoName  name of the repository to create
+     * @param catalogName  name of the catalog where repoName will be created
+     * @param serverURL  URL at which the AG server is found
+     * @param username  name of the authenticating user, or null
+     * @param password  password (plaintext) of the authenticating user, or null
+     * @return AGRepository  an initialized repository instance for the newly
+     *         created repository.
+     * @throws RepositoryException
+     */
+    public static AGRepository createRepository(String repoName,
+            String catalogName, String serverURL, String username,
+            String password) throws RepositoryException {
+        return new AGServer(serverURL, username, password).createRepository(
+                repoName, catalogName);
+    }
+
+    /**
+     * Creates/replaces a repository in the specified catalog
+     * 
+     * @param reponame  name of the repository to create
+     * @param catname  name of the catalog in which to create the repository
+     * @param strict  if true, throw an exception if the repository exists.
+     * @return AGRepositoryConnection  a connection to the newly created and
+     *         initialized repository
+     * @throws RepositoryException
+     */
+    public AGRepositoryConnection createRepositoryConnection(String reponame, String catname,
+            boolean strict) throws RepositoryException {
+        return createRepository(reponame, catname, strict).getConnection();
+    }
+    /**
+     * Creates/replaces a repository in the specified catalog
+     * 
+     * @param repoName  name of the repository to create
+     * @param catalogName  name of the catalog where repoName will be created
+     * @param serverURL  URL at which the AG server is found
+     * @param username  name of the authenticating user, or null
+     * @param password  password (plaintext) of the authenticating user, or null
+     * @return AGRepositoryConnection  a connection to the newly created and
+     *         initialized repository
+     * @throws RepositoryException
+     */
+    public static AGRepositoryConnection createRepositoryConnection(String repoName,
+            String catalogName, String serverURL, String username,
+            String password) throws RepositoryException {
+        return createRepository(repoName, catalogName, serverURL, username, password).getConnection();
+    }
 }

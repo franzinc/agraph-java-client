@@ -1144,16 +1144,13 @@ public class TutorialExamples {
      */
     
     public static AGRepositoryConnection example6() throws Exception {
-        AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
-        AGCatalog catalog = server.getCatalog(CATALOG_ID);
-        AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);
-        myRepository.initialize();
-        AGRepositoryConnection conn = myRepository.getConnection();
+        AGRepositoryConnection conn = AGServer.createRepositoryConnection(
+                REPOSITORY_ID, CATALOG_ID, SERVER_URL, USERNAME, PASSWORD);
         closeBeforeExit(conn);
         conn.clear();
         
         conn.begin();  // start a transaction
-        ValueFactory f = myRepository.getValueFactory();
+        ValueFactory f = conn.getRepository().getValueFactory();
         String path1 = "src/tutorial/java-vcards.rdf";    
         String path2 = "src/tutorial/java-kennedy.ntriples";            
         String baseURI = "http://example.org/example/local";
@@ -1198,8 +1195,8 @@ public class TutorialExamples {
      */
     public static void example8() throws Exception {
         RepositoryConnection conn = example6();
-        Repository myRepository = conn.getRepository();
-        URI context = myRepository.getValueFactory().createURI("http://example.org#vcards");
+        URI context = conn.getValueFactory().createURI(
+                "http://example.org#vcards");
         String outputFile = TEMPORARY_DIRECTORY + "TutorialExamples.example8.nt";
         // outputFile = null;
         if (outputFile == null) {
@@ -1241,8 +1238,7 @@ public class TutorialExamples {
      */
     public static void example10 () throws Exception {
         RepositoryConnection conn = example1(false);
-        Repository myRepository = conn.getRepository();
-        ValueFactory f = myRepository.getValueFactory();
+        ValueFactory f = conn.getValueFactory();
         String exns = "http://example.org/people/";
         // Create URIs for resources, predicates and classes.
         URI alice = f.createURI(exns, "alice");
@@ -1400,8 +1396,7 @@ public class TutorialExamples {
      */
     public static void example11 () throws Exception {
         RepositoryConnection conn = example1(false);
-        Repository myRepository = conn.getRepository();
-	    ValueFactory f = myRepository.getValueFactory();
+        ValueFactory f = conn.getValueFactory();
 	    String exns = "http://example.org/people/";
 	    URI alice = f.createURI(exns, "alice");
 	    URI person = f.createURI(exns, "Person");
@@ -1718,23 +1713,22 @@ public class TutorialExamples {
      */
     public static void example16() throws Exception {
         AGRepositoryConnection conn = example6();
-        AGAbstractRepository myRepository = conn.getRepository();
-        AGCatalog catalog = myRepository.getCatalog();
+        
+        AGServer server = conn.getServer();
         // create two ordinary stores, and one federated store:
-        AGRepository redRepo = catalog.createRepository("redthingsjv");
-        redRepo.initialize();
-        AGRepositoryConnection redConn = redRepo.getConnection();
+        AGRepositoryConnection redConn = server.createRepositoryConnection(
+                "redthingsjv", CATALOG_ID, false);
         closeBeforeExit(redConn);
         redConn.clear();
         ValueFactory rf = redConn.getValueFactory();
-        AGRepository greenRepo = catalog.createRepository("greenthingsjv");
-        greenRepo.initialize();
-        AGRepositoryConnection greenConn = greenRepo.getConnection();
+        AGRepositoryConnection greenConn = server.createRepositoryConnection(
+                "greenthingsjv", CATALOG_ID, false);
         closeBeforeExit(greenConn);
         greenConn.clear();
         ValueFactory gf = greenConn.getValueFactory();
-        AGServer server = myRepository.getCatalog().getServer();
-        AGAbstractRepository rainbowRepo = server.federate(redRepo, greenRepo);
+        
+        AGAbstractRepository rainbowRepo = server.federate(
+                redConn.getRepository(), greenConn.getRepository());
         rainbowRepo.initialize();
         println("Federation is writable? " + rainbowRepo.isWritable());
         AGRepositoryConnection rainbowConn = rainbowRepo.getConnection();
@@ -2482,10 +2476,8 @@ public class TutorialExamples {
      * Transactions
      */
     public static void example22() throws Exception {
-        AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
-        AGCatalog catalog = server.getCatalog(CATALOG_ID);
-        AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);
-        myRepository.initialize();
+        AGRepository myRepository = AGServer.createRepository(REPOSITORY_ID,
+                CATALOG_ID, SERVER_URL, USERNAME, PASSWORD);
         AGValueFactory vf = myRepository.getValueFactory();
         // Create conn1 (autoCommit) and conn2 (no autoCommit).
         AGRepositoryConnection conn1 = myRepository.getConnection();
@@ -2552,12 +2544,10 @@ public class TutorialExamples {
      * Duplicate triples and duplicate results
      */
     public static void example23() throws Exception {
-        AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
-        AGCatalog catalog = server.getCatalog(CATALOG_ID);
-        AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);
-        myRepository.initialize();
-        AGValueFactory vf = myRepository.getValueFactory();
-        AGRepositoryConnection conn = myRepository.getConnection();
+        AGRepositoryConnection conn = AGServer.createRepositoryConnection(
+                REPOSITORY_ID, CATALOG_ID, SERVER_URL, USERNAME, PASSWORD);
+
+        AGValueFactory vf = conn.getValueFactory();
         closeBeforeExit(conn);
         conn.clear();
         String baseURI = "http://example.org/";
@@ -2759,7 +2749,7 @@ public class TutorialExamples {
         }   
         
         conn.close();
-        myRepository.shutDown();
+        conn.getRepository().shutDown();
     
     }
     
@@ -2832,13 +2822,10 @@ public class TutorialExamples {
         // clear any existing connections to the repository we're about to delete.
         closeAll();
     	AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
-        AGCatalog catalog = server.getCatalog(CATALOG_ID);
-        catalog.deleteRepository(REPOSITORY_ID);
-        AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);
-        myRepository.initialize();
-        AGRepositoryConnection conn = myRepository.getConnection();
+        server.getCatalog(CATALOG_ID).deleteRepository(REPOSITORY_ID);
+        AGRepositoryConnection conn = server.createRepositoryConnection(
+                REPOSITORY_ID, CATALOG_ID, false);
         closeBeforeExit(conn);
-        conn.clear();
 				
 		String filter = new String("(attribute-contains-all-of user.color triple.color)");
 		
