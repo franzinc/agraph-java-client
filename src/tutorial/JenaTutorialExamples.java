@@ -60,16 +60,29 @@ public class JenaTutorialExamples {
 
 	static final String FOAF_NS = "http://xmlns.com/foaf/0.1/";
 
-	/**
-	 * Creating a Repository
-	 */
-	public static AGGraphMaker example1(boolean close)
-			throws Exception {
-		// Tests getting the repository up.
-		println("\nStarting example1().");
-		AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
-		println("Available catalogs: " + server.listCatalogs());
-		AGCatalog catalog = server.getCatalog(CATALOG_ID);
+    /**
+     * Creating a Repository
+     */
+    public static AGGraphMaker example1(boolean close) throws Exception {
+        // Tests getting the repository up.
+        println("\nStarting example1().");
+        AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
+
+        try {
+            println("Available catalogs: " + server.listCatalogs());
+        } catch (Exception e) {
+            throw new Exception("Got error when attempting to connect to server at "
+                                + SERVER_URL + ": " + e);
+        }
+
+        AGCatalog catalog = server.getCatalog(CATALOG_ID);
+
+        if (catalog == null) {
+            throw new Exception("Catalog " + CATALOG_ID + " does not exist. Either "
+                            + "define this catalog in your agraph.cfg or modify the CATALOG_ID "
+                            + "in this tutorial to name an existing catalog.");
+        }
+		
 		println("Available repositories in catalog "
 				+ (catalog.getCatalogName()) + ": "
 				+ catalog.listRepositories());

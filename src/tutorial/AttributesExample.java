@@ -63,13 +63,24 @@ public class AttributesExample {
      * Create a fresh AG repository and return a connection object to it.
      * 
      * @return AGRepositoryConnection
-     * @throws RepositoryException
+     * @throws Exception
      */
-    private static AGRepositoryConnection setupRepository()
-            throws RepositoryException {
+    private static AGRepositoryConnection setupRepository() throws Exception {
 
         server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
-        catalog = server.getCatalog(CATALOG_ID);
+        try {
+            catalog = server.getCatalog(CATALOG_ID);
+        } catch (Exception e) {
+            throw new Exception("Got error when attempting to connect to server at "
+                            + SERVER_URL + ": " + e);
+        }
+
+        if (catalog == null) {
+            throw new Exception("Catalog " + CATALOG_ID + " does not exist. Either "
+                            + "define this catalog in your agraph.cfg or modify the CATALOG_ID "
+                            + "in this tutorial to name an existing catalog.");
+        }
+
         println("Creating fresh repository " + CATALOG_ID + "/" + REPOSITORY_ID);
         catalog.deleteRepository(REPOSITORY_ID);
         repo = catalog.createRepository(REPOSITORY_ID);
