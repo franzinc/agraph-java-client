@@ -8,8 +8,6 @@
 
 package com.franz.agraph.http;
 
-import static com.franz.agraph.http.AGProtocol.getSessionURL;
-import static org.openrdf.http.protocol.Protocol.ACCEPT_PARAM_NAME;
 import info.aduna.io.IOUtil;
 
 import java.io.ByteArrayInputStream;
@@ -385,7 +383,7 @@ public class AGHttpRepoClient implements Closeable {
 	private void useDedicatedSession(boolean autoCommit)
 			throws AGHttpException {
 		if (sessionRoot == null) {
-			String url = getSessionURL(getRoot());
+			String url = AGProtocol.getSessionURL(getRoot());
 			List<NameValuePair> params = new ArrayList<NameValuePair>(3);
 			params.add(new NameValuePair(AGProtocol.LIFETIME_PARAM_NAME,
 					Integer.toString(lifetimeInSeconds)));
@@ -433,7 +431,8 @@ public class AGHttpRepoClient implements Closeable {
 					// concurrent access.
 					ping();
 				} catch (final AGHttpException e) {
-					logger.error("Pinger exception", e);
+					// Pinger errors are normal when shutting down...
+					logger.debug("Pinger exception", e);
 				}
 			}
 		}, initialDelay, delay, TimeUnit.MILLISECONDS);
@@ -528,7 +527,7 @@ public class AGHttpRepoClient implements Closeable {
 		String uri = Protocol.getStatementsLocation(getRoot());
 		List<Header> headers = new ArrayList<Header>(1);
 		
-		headers.add(new Header(ACCEPT_PARAM_NAME,
+		headers.add(new Header(Protocol.ACCEPT_PARAM_NAME,
 							   getPreferredRDFFormat().getDefaultMIMEType()));
 
 
@@ -566,7 +565,7 @@ public class AGHttpRepoClient implements Closeable {
 		String uri = Protocol.getStatementsLocation(getRoot())+"/id";
 		List<Header> headers = new ArrayList<Header>(1);
 		
-		headers.add(new Header(ACCEPT_PARAM_NAME,
+		headers.add(new Header(Protocol.ACCEPT_PARAM_NAME,
 							   getPreferredRDFFormat().getDefaultMIMEType()));
 
 		List<NameValuePair> params = new ArrayList<NameValuePair>(5);
@@ -893,7 +892,7 @@ public class AGHttpRepoClient implements Closeable {
 		String url = Protocol.getContextsLocation(getRoot());
 		List<Header> headers = new ArrayList<Header>(1);
 		
-		headers.add(new Header(ACCEPT_PARAM_NAME,
+		headers.add(new Header(Protocol.ACCEPT_PARAM_NAME,
 							   getPreferredTQRFormat().getDefaultMIMEType()));
 		
 		get(url, headers, null,
@@ -933,7 +932,7 @@ public class AGHttpRepoClient implements Closeable {
 		String url = Protocol.getNamespacesLocation(getRoot());
 		List<Header> headers = new ArrayList<Header>(1);
 		
-		headers.add(new Header(ACCEPT_PARAM_NAME,
+		headers.add(new Header(Protocol.ACCEPT_PARAM_NAME,
 							   getPreferredTQRFormat().getDefaultMIMEType()));
 		
 		get(url, headers, null,
@@ -988,7 +987,7 @@ public class AGHttpRepoClient implements Closeable {
 		headers.add(new Header("Content-Type", Protocol.FORM_MIME_TYPE
 				+ "; charset=utf-8"));
 		if (handler.getRequestMIMEType() != null) {
-			headers.add(new Header(ACCEPT_PARAM_NAME, handler
+			headers.add(new Header(Protocol.ACCEPT_PARAM_NAME, handler
 					.getRequestMIMEType()));
 		}
 		List<NameValuePair> queryParams = getQueryMethodParameters(q);
@@ -1252,7 +1251,7 @@ public class AGHttpRepoClient implements Closeable {
 		headers.add(new Header("Content-Type", Protocol.FORM_MIME_TYPE
 				+ "; charset=utf-8"));
 		if (handler.getRequestMIMEType() != null) {
-			headers.add(new Header(ACCEPT_PARAM_NAME, handler
+			headers.add(new Header(Protocol.ACCEPT_PARAM_NAME, handler
 					.getRequestMIMEType()));
 		}
 		List<NameValuePair> queryParams = new ArrayList<NameValuePair>(6);
@@ -1476,7 +1475,7 @@ public class AGHttpRepoClient implements Closeable {
 		String url = AGProtocol.getGeoBoxLocation(getRoot());
 		List<Header> headers = new ArrayList<Header>(1);
 		
-		headers.add(new Header(ACCEPT_PARAM_NAME,
+		headers.add(new Header(Protocol.ACCEPT_PARAM_NAME,
 					getPreferredRDFFormat().getDefaultMIMEType()));
 		
 		List<NameValuePair> params = new ArrayList<NameValuePair>(7);
@@ -1499,7 +1498,7 @@ public class AGHttpRepoClient implements Closeable {
 		String url = AGProtocol.getGeoCircleLocation(getRoot());
 		List<Header> headers = new ArrayList<Header>(1);
 		
-		headers.add(new Header(ACCEPT_PARAM_NAME,
+		headers.add(new Header(Protocol.ACCEPT_PARAM_NAME,
 							   getPreferredRDFFormat().getDefaultMIMEType()));
 		
 		List<NameValuePair> params = new ArrayList<NameValuePair>(7);
@@ -1520,7 +1519,7 @@ public class AGHttpRepoClient implements Closeable {
 		String url = AGProtocol.getGeoHaversineLocation(getRoot());
 		List<Header> headers = new ArrayList<Header>(1);
 		
-		headers.add(new Header(ACCEPT_PARAM_NAME,
+		headers.add(new Header(Protocol.ACCEPT_PARAM_NAME,
 							   getPreferredRDFFormat().getDefaultMIMEType()));
 		
 		List<NameValuePair> params = new ArrayList<NameValuePair>(7);
@@ -1541,7 +1540,7 @@ public class AGHttpRepoClient implements Closeable {
 		String url = AGProtocol.getGeoPolygonLocation(getRoot());
 		List<Header> headers = new ArrayList<Header>(1);
 		
-		headers.add(new Header(ACCEPT_PARAM_NAME,
+		headers.add(new Header(Protocol.ACCEPT_PARAM_NAME,
 							   getPreferredRDFFormat().getDefaultMIMEType()));
 		
 		List<NameValuePair> params = new ArrayList<NameValuePair>(7);
@@ -1813,7 +1812,7 @@ public class AGHttpRepoClient implements Closeable {
 		String url = Protocol.getStatementsLocation(getRoot()) + "/duplicates";
 		List<Header> headers = new ArrayList<Header>(1);
 		
-		headers.add(new Header(ACCEPT_PARAM_NAME, getPreferredRDFFormat().getDefaultMIMEType()));
+		headers.add(new Header(Protocol.ACCEPT_PARAM_NAME, getPreferredRDFFormat().getDefaultMIMEType()));
 		
 		List<NameValuePair> params = new ArrayList<NameValuePair>(2);
 		if (comparisonMode!=null) {
