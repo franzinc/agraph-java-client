@@ -10,6 +10,9 @@ package com.franz.agraph.http.handler;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.httpclient.HttpMethod;
 import org.openrdf.model.Resource;
@@ -50,11 +53,13 @@ public class AGRDFHandler extends AGResponseHandler {
 			throw new AGHttpException("unexpected response MIME type: " + mimeType);
 		}
 		InputStream response = getInputStream(method);
+		// Note: we ignore charset specified in the response.
+		Reader reader = new InputStreamReader(response, StandardCharsets.UTF_8);
 		try {
 			RDFParser parser = Rio.createParser(format, vf);
 			parser.setPreserveBNodeIDs(true);
 			parser.setRDFHandler(rdfhandler);
-			parser.parse(response, method.getURI().getURI());
+			parser.parse(reader, method.getURI().getURI());
 		} catch (RDFParseException e) {
 			throw new AGHttpException(e);
 		} catch (RDFHandlerException e) {

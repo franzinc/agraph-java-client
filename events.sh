@@ -3,13 +3,8 @@
 # Report Java version first
 java -version
 
-java -cp classes:agraph.jar\
-:lib/commons-cli-1.2.jar\
-:lib/commons-pool-1.5.6.jar\
-:lib/sesame/commons-codec-1.3.jar\
-:lib/sesame/commons-httpclient-3.1.jar\
-:lib/sesame/openrdf-sesame-2.7.11-onejar.jar\
-:lib/logging/*\
-:lib/json.jar\
-:clojure/libs/clojure-1.4.0.jar\
- test.stress.Events $*
+# Compute the actual classpath and save it in a file (./classpath).
+ant -q classpath
+
+# Run the test, place compiled files (./classes) on the classpath.
+java -cp "classes:$(cat classpath)" test.stress.Events $*

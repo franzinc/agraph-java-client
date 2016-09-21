@@ -10,6 +10,7 @@ package com.franz.agraph.http.handler;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.httpclient.Header;
@@ -17,6 +18,7 @@ import org.apache.commons.httpclient.HeaderElement;
 import org.apache.commons.httpclient.HttpMethod;
 
 import com.franz.agraph.http.exception.AGHttpException;
+import org.apache.commons.io.IOUtils;
 
 public abstract class AGResponseHandler {
 
@@ -80,12 +82,7 @@ public abstract class AGResponseHandler {
 	
 	protected static String streamToString(InputStream in) throws IOException {
 		// TODO: protect against buffering very large streams
-	    StringBuffer out = new StringBuffer();
-	    byte[] b = new byte[4096];
-	    for (int n; (n = in.read(b)) != -1;) {
-	        out.append(new String(b, 0, n));
-	    }
-	    return out.toString();
+		return IOUtils.toString(in, StandardCharsets.UTF_8);
 	}
 	
 }

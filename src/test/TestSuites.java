@@ -95,7 +95,8 @@ public class TestSuites {
         AGRepositoryFactoryTest.class,
         CljTest.class,
         AGQueryExecutionTest.class,
-        AGTripleAttributesTest.class
+        AGTripleAttributesTest.class,
+        UnicodeTest.class        
     })
     public static class Prepush {}
     

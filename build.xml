@@ -24,6 +24,7 @@
     <property name="testjarfile" location="agraph-java-client-test.jar"/>
     
     <path id="classpath">
+        <path location="${lib}/jackson-core-2.2.1.jar" />
         <path location="${lib}/json.jar"/>
         <path location="${lib}/junit-4.8.1.jar"/>
         <path location="${lib}/logging/commons-logging-1.1.1.jar"/>
@@ -48,7 +49,15 @@
         <path location="${lib}/callimachus/openrdf-alibaba-2.0-rc7.jar"/>
         <path location="clojure/libs/clojure-1.4.0.jar"/>
     </path>
+
+    <!-- Save the classpath in a property, using platform-specific path separator. -->
+    <pathconvert property="classpath.formatted" refid="classpath"/>
     
+    <!-- Write the classpath to a file named 'classpath'. -->
+    <target name="classpath">
+      <echo file="classpath">${classpath.formatted}</echo>
+    </target>
+
     <target name="init">
         <tstamp/>
         <mkdir dir="${build}"/>
