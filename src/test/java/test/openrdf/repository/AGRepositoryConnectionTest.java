@@ -31,6 +31,8 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.*;
+import static org.junit.matchers.JUnitMatchers.hasItem;
+import static org.junit.matchers.JUnitMatchers.hasItems;
 
 public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 	
@@ -849,8 +851,8 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 			set.add(Arrays.asList(bindings.getValue("v1"), bindings.getValue("v2")));
 		}
 		result.close();
-		assertThat(set, org.junit.internal.matchers.IsCollectionContaining.hasItem(Arrays.asList(v1, v2)));
-		assertThat(set, org.junit.internal.matchers.IsCollectionContaining.hasItem(Arrays.asList(v3, null)));
+		assertThat(set, hasItem(Arrays.asList(v1, v2)));
+		assertThat(set, hasItem(Arrays.asList(v3, null)));
 	}
     
     @Override
@@ -873,8 +875,8 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
     			list.add(bindings.getValue("p"));
     		}
     		result.close();
-    		assertThat(list, (Matcher) org.junit.internal.matchers.IsCollectionContaining.hasItem(p1));
-    		assertThat(list, (Matcher) org.junit.internal.matchers.IsCollectionContaining.hasItem(p2));
+    		assertThat(list, hasItem(p1));
+    		assertThat(list, hasItem(p2));
     	}
 
 	@Override
@@ -906,7 +908,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 		assertThat(deserializedGraph.isEmpty(), is(equalTo(false)));
 
 		for (Statement st : deserializedGraph) {
-			assertThat(graph, org.junit.internal.matchers.IsCollectionContaining.hasItem(st));
+			assertThat(graph, hasItem(st));
 			assertThat(testCon.hasStatement(st, true), is(equalTo(true)));
 		}
 	}
@@ -919,7 +921,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 		setupNamespaces();
 		Map<String, String> map = Namespaces.asMap(Iterations.asSet(testCon.getNamespaces()));
 		assertThat(map.size(), is(equalTo(3)));
-		assertThat(map.keySet(), org.junit.internal.matchers.IsCollectionContaining.hasItems("example", "rdfs", "rdf"));
+		assertThat(map.keySet(), hasItems("example", "rdfs", "rdf"));
 		assertThat(map.get("example"), is(equalTo("http://example.org/")));
 		assertThat(map.get("rdfs"), is(equalTo("http://www.w3.org/2000/01/rdf-schema#")));
 		assertThat(map.get("rdf"), is(equalTo("http://www.w3.org/1999/02/22-rdf-syntax-ns#")));

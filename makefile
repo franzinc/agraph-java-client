@@ -26,6 +26,8 @@ clean: dist-clean
 
 prepush: tutorial jena-tutorial attributes-tutorial
 	mvn test -Dtests.include=test.TestSuites\$$Prepush
+	# Force Java to use ASCII (i.e. not UTF-8) as the default encoding.
+	env LC_ALL=C mvn test -Dtests.include=test.TestSuites\$$Unicode
 
 test-bigger: test-stress test-stress-events
 

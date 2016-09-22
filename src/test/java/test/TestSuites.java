@@ -15,7 +15,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite.SuiteClasses;
 import test.pool.AGConnPoolClosingTest;
 import test.pool.AGConnPoolSessionTest;
-import test.stress.StreamingTest;
 import test.stress.TransactionStressTest;
 
 public class TestSuites {
@@ -31,27 +30,9 @@ public class TestSuites {
      * Test is not applicable for AGraph for some reason.
      */
     public interface NotApplicableForAgraph extends NonPrepushTest {}
-    
+
     /**
-     * Temporary category for developer to run a single test.
-     */
-    @RunWith(Categories.class)
-    @IncludeCategory(Temp.class)
-    @SuiteClasses( { AGTripleAttributesTest.class,
-    	TutorialTests.class,
-        QuickTests.class,
-        AGRepositoryConnectionTests.class,
-        JenaTests.class,
-        StreamingTest.class,
-        ServerCodeTests.class,
-        AGConnPoolSessionTest.class,
-        AGConnPoolClosingTest.class,
-        SpinTest.class
-    })
-    public static class Temp {}
-    
-    /**
-     * Suite for 'ant test-prepush' and 'ant prepush'.
+     * Suite for 'make prepush'.
      * Expected to pass.
      */
     @RunWith(Categories.class)
@@ -91,10 +72,18 @@ public class TestSuites {
         AGRepositoryFactoryTest.class,
         AGQueryExecutionTest.class,
         AGTripleAttributesTest.class,
-        UnicodeTest.class        
+        Unicode.class
     })
     public static class Prepush {}
-    
+
+    @RunWith(Categories.class)
+    @SuiteClasses( {
+            UnicodeTest.class,
+            UnicodeRDFFormatTest.class,
+            UnicodeTQRFormatTest.class
+    })
+    public static class Unicode {}
+
     /**
      * Category marker for tests known to be broken.
      * Marker should be removed when test is fixed.
