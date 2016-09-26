@@ -6,7 +6,8 @@
   <version>1.0.1-SNAPSHOT</version>
   <name>agraph-java-client</name>
   <description>Java client API for Franz AllegroGraph</description>
-
+  <url>https://github.com/franzinc/agraph-java-client</url>
+  
   <licenses>
     <license>
       <name>Eclipse Public License 1.0</name>
@@ -26,6 +27,14 @@
     <url>http://franz.com/</url>
   </organization>
 
+  <developers>
+    <developer>
+      <email>support@franz.com</email>
+      <organization>Franz Inc.</organization>
+      <organizationUrl>http://franz.com</organizationUrl>
+    </developer>
+  </developers>
+  
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <tests.include>test.TestSuites$Prepush</tests.include>
@@ -48,6 +57,9 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
             <version>1.6</version>
+	    <configuration>
+	      <keyname>support@franz.com</keyname>
+	    </configuration>
             <executions>
               <execution>
                 <id>sign-artifacts</id>
@@ -64,8 +76,8 @@
   </profiles>
 
   <build>
-    <!-- Get the current year. Just 18 lines of XML! -->
     <plugins>
+      <!-- Get the current year. Just 17 lines of XML! -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>buildnumber-maven-plugin</artifactId>
@@ -84,6 +96,26 @@
         </configuration>
       </plugin>
 
+      <!-- Nexus staging and deployment. -->
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <version>1.6.7</version>
+        <extensions>true</extensions>
+        <configuration>
+          <serverId>ossrh</serverId>
+          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+          <autoReleaseAfterClose>false</autoReleaseAfterClose>
+        </configuration>
+      </plugin>
+      
+      <!-- Used by the deploy script to increment the version. -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.12</version>
+      </plugin>
+      
       <!-- Compiler settings. -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

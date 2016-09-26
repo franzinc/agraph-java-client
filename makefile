@@ -1,6 +1,6 @@
 # Standard Franz make rules forward to Maven.
 
-VERSION ?= $(shell mvn -q exec:exec -Dexec.executable="echo" -Dexec.args='$${project.version}' --non-recursive)
+VERSION ?= $(shell ./version.sh)
 
 RELEASE_VERSION = $(VERSION:-SNAPSHOT=)
 
@@ -101,6 +101,9 @@ tags: FORCE
 
 ###############################################################################
 ## distribution building
+
+deploy: FORCE
+	./deploy.sh
 
 TARNAME=agraph-java-client-${RELEASE_VERSION}.tar.gz
 
