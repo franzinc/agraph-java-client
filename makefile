@@ -84,6 +84,10 @@ jena-compliance-tests: FORCE
 	  test.AGResultSetTest,\
 	  test.AGReifierTest
 
+test-release: FORCE
+	python test-release/make-pom.py > test-release/pom.xml
+	cd test-release && mvn test -Dtest=test.TestSuites\$$Prepush,test.TestSuites\$$Stress
+
 local-deploy: FORCE
 	mvn install -DskipTests=true -Dmaven.repo.local=$(REPO)
 

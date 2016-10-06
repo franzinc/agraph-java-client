@@ -17,9 +17,9 @@ tmp
 # target is where maven stores all output, we do not want these.
 # NOTE: No /, we don't want target dirs from subprojects either.
 target
-# Generated file
+# Generated file.
 /test-release/pom.xml
-# Stuff created when running the tutorial
+# Stuff created when running the tutorial.
 JenaTutorialExamples.*.nt
 JenaTutorialExamples.*.rdf
 TutorialExamples.*.nt

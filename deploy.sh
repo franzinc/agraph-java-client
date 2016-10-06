@@ -89,3 +89,8 @@ read -s -p "Deployment key passphrase: " KEY_PASSWORD
 echo
 
 mvn clean deploy -P release ${MVN_OPTS} "-Dgpg.passphrase=${KEY_PASSWORD}"
+
+echo "Running tests using the released version:"
+echo "Waiting 10 seconds ..."
+sleep 10
+make test-release
