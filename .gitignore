@@ -1,20 +1,25 @@
+# IntelliJ
 .idea/
 *.iml
 bin
+# Temporary Maven repo created to compile the tutorials
 /repo
 .*sw*
 *.class
 classes
-agraph.jar
-agraph-src.jar
-agraph-java-client-test.jar
-agraph*.tar.gz
+*.jar
+*.tar.gz
 DIST
 /build.out
 /doc
 temp.*
 tmp
+# target is where maven stores all output, we do not want these.
+# NOTE: No /, we don't want target dirs from subprojects either.
 target
+# Generated file
+/test-release/pom.xml
+# Stuff created when running the tutorial
 JenaTutorialExamples.*.nt
 JenaTutorialExamples.*.rdf
 TutorialExamples.*.nt
@@ -22,3 +27,5 @@ TutorialExamples.*.rdf
 phase-[0-6].ds
 phase-[0-6].nmon
 phase-[0-6].vm
+# IntelliJ asciidoc previewer seems to generate this
+/README.html

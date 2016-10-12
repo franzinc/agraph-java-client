@@ -1,0 +1,202 @@
+= Franz AllegroGraph client API for Java
+
+:version: 1.0.0
+
+Client API to http://franz.com/agraph/[Franz AllegroGraph]
+triple store database.
+
+This http://github.com/franzinc/agraph-java-client[agraph-java-client] provides:
+
+* Java client API
+  * Adapter for Sesame
+  * Adapter for Jena
+
+http://franz.com/agraph/support/documentation/current/[AllegroGraph Docs]
+
+
+== Server prerequisites
+
+* http://franz.com/agraph/downloads/[Download AllegroGraph]
+  * Requires Linux 64-bit or a Linux VM on Windows or Mac OS X
+* Install AllegroGraph
+* Java version 8 or higher, and any operating system should work
+  with these jars
+
+
+== Download options
+
+http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.franz%22[Maven Central]
+
+http://franz.com/agraph/downloads/clients[Distribution from Franz]
+
+http://github.com/franzinc/agraph-java-client[Git repository]
+
+
+== Java
+
+Communicates to AGraph server over http.
+
+Supports SPARQL and Prolog queries.
+
+
+=== OpenRDF/Sesame
+
+http://www.rdf4j.org/[Sesame] 2.7.11,
+(http://archive.rdf4j.org/javadoc/sesame-2.7.12/[API])
+
+The primary public package is
+`com.franz.agraph.repository`.
+
+http://franz.com/agraph/support/documentation/current/javadoc/index.html[Javadocs]
+
+http://franz.com/agraph/support/documentation/current/java-tutorial/java-tutorial.html[Tutorial]
+
+
+=== Jena
+
+http://jena.apache.org/[Jena] 2.11.1
+
+The primary public package is `com.franz.agraph.jena`.
+
+http://franz.com/agraph/support/documentation/current/javadoc/index.html[Javadocs]
+
+http://franz.com/agraph/support/documentation/current/java-tutorial/jena-tutorial.html[Tutorial]
+
+
+=== Usage
+
+==== Maven
+
+The recommended way of using the client API is to create a dependency on its Maven artifact.
+To do this in a Maven project, add the following to your dependencies:
+
+[source,xml,subs="verbatim,attributes"]
+----
+<dependency>
+  <groupId>com.franz</groupId>
+  <artifactId>agraph-java-client</artifactId>
+  <version>{version}</version>
+  <scope>compile</scope>
+</dependency>
+----
+
+For Gradle, use this
+
+[source,groovy,subs="verbatim,attributes"]
+compile group: 'com.franz', name: 'agraph-java-client', version: '{version}'
+
+Apache Ivy syntax:
+
+[source,xml,subs="verbatim,attributes"]
+<dependency org="com.franz" name="agraph-java-client" rev="{version}"/>
+
+SBT (Scala):
+
+[source,scala,subs="verbatim,attributes"]
+libraryDependencies += "com.franz" % "agraph-java-client" % "{version}"
+
+Leiningen (Clojure):
+
+[source,clojure,subs="verbatim,attributes"]
+----
+[com.franz/agraph-java-client "{version}"]
+----
+
+==== Distribution archive
+
+The http://franz.com/agraph/downloads/clients[agraph-java-client
+download]
+includes jar files for agraph-java-client and jars on which it depends.
+
+Programs that use the API should include all JAR files from the `lib/` directory of the distribution on their classpath.
+
+To use that local JAR file through Maven install it into your local repository:
+
+[source,sh,subs="verbatim,attributes"]
+mvn install:install-file -Dfile=lib/agraph-java-client-{version}.jar -DpomFile=pom.xml
+
+Note that when using the API through Maven all dependencies are downloaded from the central repository - JARs included in the distribution are not used.
+
+== Development
+
+=== Testing
+
+Use this command to run the default testsuite. This assumes that AllegroGraph is listening on the local machine on the default port (10035).
+
+    mvn test
+
+To include long running tests, do
+
+    mvn test -Dtests.include=test.TestSuites\$Prepush,test.TestSuites\$Stress
+
+=== Distribution
+
+To build a distribution archive, do
+
+    mvn package
+
+== Tutorials
+
+There are three tutorials located in tutorials/ that can be
+compiled and run. They are:
+
+  sesame/::  Example usage of the AG Sesame interface
+  jena/:: Example usage of the AG Jena interface
+  attributes/:: Example usage of AG Triple Attributes
+
+=== Prerequisites
+
+An AllegroGraph server must be up and running in order to run the
+tutorials.
+
+The class for each tutorial declares a number of variables near the
+top of its respective class definition, which provide the
+information necessary to communicate with AllegroGraph. If necessary,
+modify these variables to match the settings for your server before
+compiling each tutorial.
+
+By default, each tutorial looks for AllegroGraph on localhost at port
+10035. Each will create a repository named after the respective
+tutorial in the "java-catalog" catalog.
+
+In order for the tutorial to run successfully, you must ensure that
+the "java-catalog" catalog has been defined in your agraph.cfg prior
+to starting AG, or change the value of CATALOG_ID to name a catalog
+that exists on your server. Use the empty string ("") or null to
+indicate the root catalog. All other variables must be updated to
+correspond to your server configuration as well.
+
+
+=== Compiling Tutorials
+
+Each tutorial is a separate Maven project. To compile the tutorials
+first install the AllegroGraph Java client into your local repository.
+This process is described in the 'Usage' section. Then run the
+following command in the directory containing the tutorial:
+
+     mvn compile
+
+### Running Tutorials
+
+To run one of the tutorials, use the following command line:
+
+    mvn java:exec
+
+in the directory containing the tutorial you wish to run.
+
+Sesame and Jena tutorials contain multiple, numbered examples.
+It is possible to run just the specified examples by passing
+their numbers as arguments in the following way:
+
+   mvn java:exec -Dexec.args="1 2 3 5 8 13 21"
+
+The argument 'all' indicates that all examples should be
+run.
+
+== License
+
+Copyright (c) 2008-2016 Franz Inc.
+All rights reserved. This program and the accompanying materials
+are made available under the terms of the Eclipse Public License v1.0
+which accompanies this distribution, and is available at
+http://www.eclipse.org/legal/epl-v10.html[http://www.eclipse.org/legal/epl-v10.html]
