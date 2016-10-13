@@ -10,14 +10,9 @@ package com.franz.agraph.http;
 
 import info.aduna.io.IOUtil;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -78,7 +73,6 @@ import com.franz.agraph.repository.AGSpinMagicProperty;
 import com.franz.agraph.repository.AGUpdate;
 import com.franz.agraph.repository.AGValueFactory;
 import com.franz.util.Closeable;
-import com.hp.hpl.jena.sparql.resultset.JSONResultsKW;
 
 /**
  * The HTTP layer for interacting with AllegroGraph.
@@ -146,15 +140,15 @@ public class AGHttpRepoClient implements Closeable {
 	/**
 	 * When set, pass the contents of this field in the x-user-attributes Header of any request.
 	 * Assumes that AGHttpRepoClient only delivers requests to repo-based REST services in AG.
-	 * 
+	 *
 	 * If this assumption is violated, then we rely on the server to ignore the header, or
 	 * the methods implementing these requests will need to be updated to bypass the local
 	 * class method executors (get/post/put/delete) and invoke the AGHTTPClient methods
 	 * directly as those will not insert the x-user-attributes header.
 	 */
 	private String userAttributes;
-	
-    public AGHttpRepoClient(AGAbstractRepository repo, AGHTTPClient client,
+
+	public AGHttpRepoClient(AGAbstractRepository repo, AGHTTPClient client,
 							String repoRoot, String sessionRoot,
 							ScheduledExecutorService executor) {
 		this.repo = repo;
@@ -170,14 +164,14 @@ public class AGHttpRepoClient implements Closeable {
 		this(repo, client, repoRoot,sessionRoot, repo.getCatalog().getServer().getExecutor());
 	}
 
-    @Override
-    public String toString() {
+	@Override
+	public String toString() {
 		return "{" + super.toString()
 		+ " " + client
 		+ " rr=" + repoRoot
 		+ " sr=" + sessionRoot
 		+ "}";
-    }
+	}
 
 	public String getRoot() throws AGHttpException {
 		if (sessionRoot != null) return sessionRoot;
@@ -319,67 +313,67 @@ public class AGHttpRepoClient implements Closeable {
 	/**
 	 * Takes a List of existing Headers or null, adds the x-user-attribute header
 	 * if userAttributes is set, and returns an array representation of the List.
-	 * 
+	 *
 	 * This method is written to be last operation performed on a set of headers before invoking
 	 * an HTTP request method on the current connection's AGHTTPClient, as it converts the
 	 * headers into the type accepted by the AGHTTPClient method executors.
-	 * 
+	 *
 	 * @param headers, a List<Header> of headers
 	 * @return headers[], the headers converted to an array
 	 */
 	private Header[] prepareHeaders(List<Header> headers) {
-		
+
 		if (headers == null) {
 			headers = new ArrayList<Header>(0);
 		}
-		
+
 		if (userAttributes != null) {
 			headers.add(new Header(AGProtocol.USER_ATTRIBUTE_HEADER, userAttributes));
 		}
 		return headers.toArray(new Header[headers.size()]);
 	}
-	
+
 	private static NameValuePair[] emptyParams = new NameValuePair[0];
-	
+
 	private NameValuePair[] prepareParams(Collection<? extends NameValuePair> params) {
 		if (params != null) {
 			return params.toArray(new NameValuePair[params.size()]);
 		}
 		return emptyParams;
 	}
-	
+
 	protected void get(String url, List<Header> headers,
 			Collection<? extends NameValuePair> params,
 			AGResponseHandler handler) throws AGHttpException {
-		
+
 		getHTTPClient().get(url, prepareHeaders(headers), prepareParams(params),
 				handler);
 	}
-	
+
 	protected void post(String url, List<Header> headers,
 			Collection<? extends NameValuePair> params,
 			RequestEntity requestEntity, AGResponseHandler handler) throws AGHttpException {
-		
+
 		getHTTPClient().post(url, prepareHeaders(headers), prepareParams(params),
 				requestEntity, handler);
 	}
-	
+
 	protected void put(String url, List<Header> headers,
 			Collection<? extends NameValuePair> params,
 			RequestEntity requestEntity,AGResponseHandler handler) throws AGHttpException{
-		
+
 		getHTTPClient().put(url, prepareHeaders(headers), prepareParams(params),
 				requestEntity, handler);
 	}
-	
+
 	protected void delete(String url, List<Header> headers,
 			Collection<? extends NameValuePair> params,
 			AGResponseHandler handler) throws AGHttpException {
-		
+
 		getHTTPClient().delete(url, prepareHeaders(headers), prepareParams(params),
 				handler);
 	}
-	
+
 	private void useDedicatedSession(boolean autoCommit)
 			throws AGHttpException {
 		if (sessionRoot == null) {
@@ -471,12 +465,12 @@ public class AGHttpRepoClient implements Closeable {
 	 * @throws AGHttpException
 	 */
 	private String adjustSessionUrlIfUsingMainPort(String dedicatedSessionUrl) throws AGHttpException {
-                boolean usesMainPort = dedicatedSessionUrl.contains("/session/");
-                if (usingMainPortForSessions() && !usesMainPort) {
-                        /* Turn the url that looks like
-                         * http://localhost:<session-port>/...
-                         * into
-                         * http://localhost:<frontend-port>/session/<session-port>/... */
+				boolean usesMainPort = dedicatedSessionUrl.contains("/session/");
+				if (usingMainPortForSessions() && !usesMainPort) {
+						/* Turn the url that looks like
+						 * http://localhost:<session-port>/...
+						 * into
+						 * http://localhost:<frontend-port>/session/<session-port>/... */
 			String tail = dedicatedSessionUrl.substring(dedicatedSessionUrl.lastIndexOf(':') + 1);
 			String port = tail.substring(0, tail.indexOf('/'));
 			try {
@@ -486,19 +480,19 @@ public class AGHttpRepoClient implements Closeable {
 						"problem finding port in session url: " + tail);
 			}
 			return repoRoot + "/session/" + tail;
-                } else if (!usingMainPortForSessions() && usesMainPort &&
-                           overrideServerUseMainPortForSessions()) {
-                        /* Turn the url that looks like
-                         * http://localhost:<frontend-port>/session/<session-port>/
-                         * into
-                         * http://localhost:<session-port> */
-                        int mainPortStart = dedicatedSessionUrl.lastIndexOf(":") + 1;
-                        int mainPortEnd = dedicatedSessionUrl.indexOf("/", mainPortStart);
-                        int sessionPortStart = dedicatedSessionUrl.indexOf("/session/") + 9;
-                        int sessionPortEnd = dedicatedSessionUrl.indexOf("/", sessionPortStart);
-                        return (dedicatedSessionUrl.substring(0, mainPortStart) +
-                                dedicatedSessionUrl.substring(sessionPortStart, sessionPortEnd) +
-                                dedicatedSessionUrl.substring(sessionPortEnd));
+				} else if (!usingMainPortForSessions() && usesMainPort &&
+						   overrideServerUseMainPortForSessions()) {
+						/* Turn the url that looks like
+						 * http://localhost:<frontend-port>/session/<session-port>/
+						 * into
+						 * http://localhost:<session-port> */
+						int mainPortStart = dedicatedSessionUrl.lastIndexOf(":") + 1;
+						int mainPortEnd = dedicatedSessionUrl.indexOf("/", mainPortStart);
+						int sessionPortStart = dedicatedSessionUrl.indexOf("/session/") + 9;
+						int sessionPortEnd = dedicatedSessionUrl.indexOf("/", sessionPortStart);
+						return (dedicatedSessionUrl.substring(0, mainPortStart) +
+								dedicatedSessionUrl.substring(sessionPortStart, sessionPortEnd) +
+								dedicatedSessionUrl.substring(sessionPortEnd));
 		} else {
 			return dedicatedSessionUrl;
 		}
@@ -526,7 +520,7 @@ public class AGHttpRepoClient implements Closeable {
 			throws RDFHandlerException, AGHttpException {
 		String uri = Protocol.getStatementsLocation(getRoot());
 		List<Header> headers = new ArrayList<Header>(1);
-		
+
 		headers.add(new Header(Protocol.ACCEPT_PARAM_NAME,
 							   getPreferredRDFFormat().getDefaultMIMEType()));
 
@@ -564,7 +558,7 @@ public class AGHttpRepoClient implements Closeable {
 	AGHttpException {
 		String uri = Protocol.getStatementsLocation(getRoot())+"/id";
 		List<Header> headers = new ArrayList<Header>(1);
-		
+
 		headers.add(new Header(Protocol.ACCEPT_PARAM_NAME,
 							   getPreferredRDFFormat().getDefaultMIMEType()));
 
@@ -581,10 +575,10 @@ public class AGHttpRepoClient implements Closeable {
 			Resource... contexts) throws AGHttpException {
 		String uri = Protocol.getStatementsLocation(getRoot());
 		List<Header> headers = new ArrayList<Header>(1);
-		
+
 		headers.add(new Header("Content-Type",
 							   RDFFormat.NTRIPLES.getDefaultMIMEType()));
-		
+
 		List<NameValuePair> params = new ArrayList<NameValuePair>(5);
 		if (subj != null) {
 			params.add(new NameValuePair(Protocol.SUBJECT_PARAM_NAME, Protocol
@@ -634,7 +628,7 @@ public class AGHttpRepoClient implements Closeable {
 		String url = AGProtocol.getAutoCommitLocation(getRoot());
 
 		List<NameValuePair> params = new ArrayList<NameValuePair>(1);
-		
+
 		params.add(new NameValuePair(AGProtocol.ON_PARAM_NAME,
 									 Boolean.toString(autoCommit)));
 		post(url, null, params, null, null);
@@ -705,7 +699,7 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	public void upload(final Reader contents, String baseURI,
-			final RDFFormat dataFormat, boolean overwrite, 
+			final RDFFormat dataFormat, boolean overwrite,
 			JSONObject attributes, Resource... contexts)
 			throws RDFParseException, AGHttpException {
 		final Charset charset = dataFormat.hasCharset() ? dataFormat
@@ -741,10 +735,17 @@ public class AGHttpRepoClient implements Closeable {
 			RDFFormat dataFormat, boolean overwrite,
 			JSONObject attributes, Resource... contexts)
 			throws RDFParseException, AGHttpException {
-		// Set Content-Length to -1 as we don't know it and don't want to cache"
+		upload(contents, baseURI, dataFormat, overwrite, -1, null, attributes, contexts);
+	}
+
+	public void upload(InputStream contents, String baseURI,
+					   RDFFormat dataFormat, boolean overwrite,
+					   long size, String contentEncoding,
+					   JSONObject attributes, Resource... contexts)
+			throws RDFParseException, AGHttpException {
 		String format = dataFormat.getDefaultMIMEType();
-		RequestEntity entity = new InputStreamRequestEntity(contents, -1, format);
-		upload(entity, baseURI, overwrite, null, null, null, attributes, contexts);
+		RequestEntity entity = new InputStreamRequestEntity(contents, size, format);
+		upload(entity, baseURI, overwrite, null, null, null, attributes, contentEncoding, contexts);
 	}
 
 	public void sendRDFTransaction(InputStream rdftransaction) throws AGHttpException {
@@ -752,7 +753,7 @@ public class AGHttpRepoClient implements Closeable {
 				"application/x-rdftransaction");
 		upload(entity, null, false, null, null, null, null);
 	}
-	
+
 	public void sendRDFTransaction(InputStream rdftransaction, JSONObject attributes)
 			throws AGHttpException {
 		RequestEntity entity = new InputStreamRequestEntity(rdftransaction, -1,
@@ -767,14 +768,15 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	public void uploadJSON(String url, JSONArray rows, Resource... contexts)
-            throws AGHttpException {
-		if (rows == null)
+			throws AGHttpException {
+		if (rows == null) {
 			return;
-		InputStream in;
+		}
+
 		try {
-			in = new ByteArrayInputStream(rows.toString().getBytes("UTF-8"));
-			RequestEntity entity = new InputStreamRequestEntity(in, -1,
-					"application/json");
+			final String data = rows.toString();
+			RequestEntity entity = new StringRequestEntity(
+					data, "application/json", "UTF-8");
 			upload(url, entity, null, false, null, null, null, contexts);
 		} catch (UnsupportedEncodingException e) {
 			throw new RuntimeException(e);
@@ -790,7 +792,7 @@ public class AGHttpRepoClient implements Closeable {
 			Resource... contexts) throws AGHttpException {
 		upload(null, baseURI, false, null, source, dataFormat, null, contexts);
 	}
-	
+
 	public void load(URI source, String baseURI, RDFFormat dataFormat,
 			JSONObject attributes, Resource... contexts) throws AGHttpException {
 		upload(null, baseURI, false, null, source, dataFormat,
@@ -803,7 +805,7 @@ public class AGHttpRepoClient implements Closeable {
 		upload(null, baseURI, false, serverAbsolutePath, null, dataFormat,
 				null, contexts);
 	}
-	
+
 	public void load(String serverAbsolutePath, String baseURI,
 			RDFFormat dataFormat, JSONObject attributes,
 			Resource... contexts) throws AGHttpException {
@@ -812,14 +814,23 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	public void upload(RequestEntity reqEntity, String baseURI,
-			boolean overwrite, String serverSideFile, URI serverSideURL,
-			RDFFormat dataFormat, JSONObject attributes,
-			Resource... contexts) throws AGHttpException {
+					   boolean overwrite, String serverSideFile, URI serverSideURL,
+					   RDFFormat dataFormat, JSONObject attributes,
+					   Resource... contexts) throws AGHttpException  {
 		String url = Protocol.getStatementsLocation(getRoot());
 		upload(url, reqEntity, baseURI, overwrite, serverSideFile, serverSideURL,
 				dataFormat, attributes, contexts);
 	}
-	
+
+	public void upload(RequestEntity reqEntity, String baseURI,
+			boolean overwrite, String serverSideFile, URI serverSideURL,
+			RDFFormat dataFormat, JSONObject attributes, String contentEncoding,
+			Resource... contexts) throws AGHttpException {
+		String url = Protocol.getStatementsLocation(getRoot());
+		upload(url, reqEntity, baseURI, overwrite, serverSideFile, serverSideURL,
+				dataFormat, attributes, contentEncoding, contexts);
+	}
+
 	/*
 	 * This method is called by the uploadJSON methods, which already have attributes
 	 * built into the input stream passed as part of the reqEntity.
@@ -832,14 +843,25 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	public void upload(String url, RequestEntity reqEntity, String baseURI,
+					   boolean overwrite, String serverSideFile, URI serverSideURL,
+					   RDFFormat dataFormat, JSONObject attributes,
+					   Resource... contexts) throws AGHttpException {
+		upload(url, reqEntity, baseURI, overwrite, serverSideFile, serverSideURL,
+				dataFormat, attributes, null, contexts);
+	}
+
+	public void upload(String url, RequestEntity reqEntity, String baseURI,
 			boolean overwrite, String serverSideFile, URI serverSideURL,
-			RDFFormat dataFormat, JSONObject attributes,
+			RDFFormat dataFormat, JSONObject attributes, String contentEncoding,
 			Resource... contexts) throws AGHttpException {
 		OpenRDFUtil.verifyContextNotNull(contexts);
 		List<Header> headers = new ArrayList<Header>(1);
 		if (dataFormat != null) {
 			String format = dataFormat.getDefaultMIMEType();
 			headers.add(new Header("Content-Type", format));
+		}
+		if (contentEncoding != null) {
+			headers.add(new Header("Content-Encoding", contentEncoding));
 		}
 		List<NameValuePair> params = new ArrayList<NameValuePair>(5);
 		for (String encodedContext : Protocol.encodeContexts(contexts)) {
@@ -891,10 +913,10 @@ public class AGHttpRepoClient implements Closeable {
 			AGHttpException {
 		String url = Protocol.getContextsLocation(getRoot());
 		List<Header> headers = new ArrayList<Header>(1);
-		
+
 		headers.add(new Header(Protocol.ACCEPT_PARAM_NAME,
 							   getPreferredTQRFormat().getDefaultMIMEType()));
-		
+
 		get(url, headers, null,
 			new AGTQRHandler(getPreferredTQRFormat(), handler, getValueFactory(),getAllowExternalBlankNodeIds()));
 	}
@@ -931,10 +953,10 @@ public class AGHttpRepoClient implements Closeable {
 			AGHttpException {
 		String url = Protocol.getNamespacesLocation(getRoot());
 		List<Header> headers = new ArrayList<Header>(1);
-		
+
 		headers.add(new Header(Protocol.ACCEPT_PARAM_NAME,
 							   getPreferredTQRFormat().getDefaultMIMEType()));
-		
+
 		get(url, headers, null,
 			new AGTQRHandler(getPreferredTQRFormat(), handler, getValueFactory(),getAllowExternalBlankNodeIds()));
 	}
@@ -1113,7 +1135,7 @@ public class AGHttpRepoClient implements Closeable {
 
 	public void deleteSavedQuery(String queryName) throws AGHttpException {
 		String url = AGProtocol.getSavedQueryLocation(getRoot(), queryName);
-		
+
 		delete(url, null, null, null);
 	}
 
@@ -1380,12 +1402,7 @@ public class AGHttpRepoClient implements Closeable {
 	public String evalInServer(String lispForm) throws AGHttpException {
 		String result;
 			InputStream stream;
-			try {
-				stream = new ByteArrayInputStream(lispForm
-						.getBytes("UTF-8"));
-			} catch (UnsupportedEncodingException e) {
-				throw new RuntimeException(e);
-			}
+			stream = new ByteArrayInputStream(lispForm.getBytes(StandardCharsets.UTF_8));
 			result = evalInServer(stream);
 		return result;
 	}
@@ -1471,10 +1488,10 @@ public class AGHttpRepoClient implements Closeable {
 	throws AGHttpException {
 		String url = AGProtocol.getGeoBoxLocation(getRoot());
 		List<Header> headers = new ArrayList<Header>(1);
-		
+
 		headers.add(new Header(Protocol.ACCEPT_PARAM_NAME,
 					getPreferredRDFFormat().getDefaultMIMEType()));
-		
+
 		List<NameValuePair> params = new ArrayList<NameValuePair>(7);
 		params.add(new NameValuePair(AGProtocol.TYPE_PARAM_NAME, type_uri));
 		params.add(new NameValuePair(AGProtocol.GEO_PREDICATE_PARAM_NAME, predicate_uri));
@@ -1494,10 +1511,10 @@ public class AGHttpRepoClient implements Closeable {
 	throws AGHttpException {
 		String url = AGProtocol.getGeoCircleLocation(getRoot());
 		List<Header> headers = new ArrayList<Header>(1);
-		
+
 		headers.add(new Header(Protocol.ACCEPT_PARAM_NAME,
 							   getPreferredRDFFormat().getDefaultMIMEType()));
-		
+
 		List<NameValuePair> params = new ArrayList<NameValuePair>(7);
 		params.add(new NameValuePair(AGProtocol.TYPE_PARAM_NAME, type_uri));
 		params.add(new NameValuePair(AGProtocol.GEO_PREDICATE_PARAM_NAME, predicate_uri));
@@ -1515,10 +1532,10 @@ public class AGHttpRepoClient implements Closeable {
 	throws AGHttpException {
 		String url = AGProtocol.getGeoHaversineLocation(getRoot());
 		List<Header> headers = new ArrayList<Header>(1);
-		
+
 		headers.add(new Header(Protocol.ACCEPT_PARAM_NAME,
 							   getPreferredRDFFormat().getDefaultMIMEType()));
-		
+
 		List<NameValuePair> params = new ArrayList<NameValuePair>(7);
 		params.add(new NameValuePair(AGProtocol.TYPE_PARAM_NAME, type_uri));
 		params.add(new NameValuePair(AGProtocol.GEO_PREDICATE_PARAM_NAME, predicate_uri));
@@ -1536,10 +1553,10 @@ public class AGHttpRepoClient implements Closeable {
 	throws AGHttpException {
 		String url = AGProtocol.getGeoPolygonLocation(getRoot());
 		List<Header> headers = new ArrayList<Header>(1);
-		
+
 		headers.add(new Header(Protocol.ACCEPT_PARAM_NAME,
 							   getPreferredRDFFormat().getDefaultMIMEType()));
-		
+
 		List<NameValuePair> params = new ArrayList<NameValuePair>(7);
 		params.add(new NameValuePair(AGProtocol.TYPE_PARAM_NAME, type_uri));
 		params.add(new NameValuePair(AGProtocol.GEO_PREDICATE_PARAM_NAME, predicate_uri));
@@ -1605,14 +1622,14 @@ public class AGHttpRepoClient implements Closeable {
 		return Arrays.asList(handler.getResult().split("\n"));
 	}
 
-    /**
-     * Adds the given index to the list of actively managed indices.
-     * This will take affect on the next commit.
-     *
-     * @param index a valid index type
-     * @throws AGHttpException
-     * @see #listIndices(boolean)
-     */
+	/**
+	 * Adds the given index to the list of actively managed indices.
+	 * This will take affect on the next commit.
+	 *
+	 * @param index a valid index type
+	 * @throws AGHttpException
+	 * @see #listIndices(boolean)
+	 */
 	public void addIndex(String index) throws AGHttpException {
 		String url = AGProtocol.getIndicesURL(getRoot())+"/"+index;
 
@@ -1709,7 +1726,7 @@ public class AGHttpRepoClient implements Closeable {
 		String url = AGProtocol.getStoredProcLocation(getRoot())+"/"+functionName;
 		List<Header> headers = new ArrayList<Header>(1);
 		headers.add(new Header("x-scripts", moduleName));
-		
+
 		List<NameValuePair> params = new ArrayList<NameValuePair>(1);
 		params.add(new NameValuePair("spargstr", argsEncoded));
 		AGStringHandler handler = new AGStringHandler();
@@ -1768,7 +1785,7 @@ public class AGHttpRepoClient implements Closeable {
 	 *
 	 * @throws AGHttpException
 	 */
- 	public void disableTripleCache() throws AGHttpException {
+	public void disableTripleCache() throws AGHttpException {
 		String url = getRoot()+"/tripleCache";
 
 		delete(url, null, null, null);
@@ -1808,9 +1825,9 @@ public class AGHttpRepoClient implements Closeable {
 	public void getDuplicateStatements(String comparisonMode, RDFHandler handler) throws AGHttpException, RDFHandlerException{
 		String url = Protocol.getStatementsLocation(getRoot()) + "/duplicates";
 		List<Header> headers = new ArrayList<Header>(1);
-		
+
 		headers.add(new Header(Protocol.ACCEPT_PARAM_NAME, getPreferredRDFFormat().getDefaultMIMEType()));
-		
+
 		List<NameValuePair> params = new ArrayList<NameValuePair>(2);
 		if (comparisonMode!=null) {
 			params.add(new NameValuePair("mode", comparisonMode));
@@ -1895,7 +1912,7 @@ public class AGHttpRepoClient implements Closeable {
 	private void putSpinX(String x, AGSpinFunction fn) throws AGHttpException {
 		List<NameValuePair> params = new ArrayList<NameValuePair>(
 				(fn.getArguments() == null ? 0 : fn.getArguments().length) + 1);
-		
+
 		params.add(new NameValuePair(AGProtocol.SPIN_QUERY, fn.getQuery()));
 		for (int i = 0; fn.getArguments() != null && i < fn.getArguments().length; i++) {
 			params.add(new NameValuePair(AGProtocol.SPIN_ARGUMENTS, fn.getArguments()[i]));
@@ -2204,7 +2221,7 @@ public class AGHttpRepoClient implements Closeable {
 	/**
 	 * HTTP client layer function for requesting that AG define a new attribute. Only parameters
 	 * explicitly set by the client will be passed to the request.
-	 * 
+	 *
 	 * @param name
 	 * @param allowedValues
 	 * @param ordered
@@ -2218,30 +2235,30 @@ public class AGHttpRepoClient implements Closeable {
 		String url = AGProtocol.getAttributeDefinitionLocation(getRoot());
 
 		List<NameValuePair> params = new ArrayList<NameValuePair>(5);
-		
+
 		params.add(new NameValuePair(AGProtocol.NAME_PARAM_NAME, name));
 		params.add(new NameValuePair(AGProtocol.ORDERED_PARAM_NAME, Boolean.toString(ordered)));
-		
+
 		if (minimum >= 0) {
 			params.add(new NameValuePair(AGProtocol.MINIMUM_PARAM_NAME, Long.toString(minimum)));
 		}
-		
+
 		if (maximum >= 0) {
 			params.add( new NameValuePair(AGProtocol.MAXIMUM_PARAM_NAME, Long.toString(maximum)));
 		}
-		
+
 		if (allowedValues != null) {
 			for (String value : allowedValues) {
 				params.add(new NameValuePair(AGProtocol.ALLOWED_VALUE_PARAM_NAME, value));
 			}
 		}
-		
+
 		post(url, null, params, null, null);
 	}
-	
+
 	/**
 	 * HTTP client layer function for requesting that AG deletes an existing attribute.
-	 * 
+	 *
 	 * @param name
 	 * @throws AGHttpException
 	 */
@@ -2251,13 +2268,13 @@ public class AGHttpRepoClient implements Closeable {
 
 		List<NameValuePair> params = new ArrayList<NameValuePair>(1);
 		params.add(new NameValuePair(AGProtocol.NAME_PARAM_NAME, name));
-		
+
 		delete(url, null, params, null);
 	}
-	
+
 	/**
 	 * Fetch all attribute definitions.
-	 * 
+	 *
 	 * @return JSONArray containing a JSONObject for each attribute.
 	 * @throws AGHttpException
 	 */
@@ -2266,10 +2283,10 @@ public class AGHttpRepoClient implements Closeable {
 	{
 		return getAttributeDefinition(null);
 	}
-	
+
 	/**
 	 * Fetch the attribute definition named by NAME. Return all definitions if NAME is null.
-	 * 
+	 *
 	 * @param name of the attribute
 	 * @return JSONArray containing a JSONObject for the attribute found.
 	 * 	Returns all attributes if NAME is null.
@@ -2282,17 +2299,17 @@ public class AGHttpRepoClient implements Closeable {
 
 		List<NameValuePair> params = null;
 		AGJSONHandler handler = new AGJSONHandler();
-		
+
 		if (name != null) {
 			params = new ArrayList<NameValuePair>(1);
 			params.add(new NameValuePair(AGProtocol.NAME_PARAM_NAME, name));
 		}
-		
+
 		get(url, null, params, handler);
-		
+
 		return handler.getArrayResult();
 	}
-	
+
 	public void setStaticAttributeFilter(String filter) throws AGHttpException {
 		String url = AGProtocol.getStaticFilterLocation(getRoot());
 
@@ -2301,38 +2318,38 @@ public class AGHttpRepoClient implements Closeable {
 
 		post(url, null, params, null, null);
 	}
-	
+
 	public String getStaticAttributeFilter() throws AGHttpException {
 		String url = AGProtocol.getStaticFilterLocation(getRoot());
 
 		AGStringHandler handler = new AGStringHandler();
 		String result;
-		
+
 		get(url, null, null, handler);
-		
+
 		result = handler.getResult();
-		
+
 		if (result != null && result.trim().length() == 0) {
 			result = null;
 		}
 		return result;
 	}
-	
+
 	public void deleteStaticAttributeFilter() throws AGHttpException {
 		String url = AGProtocol.getStaticFilterLocation(getRoot());
-		
+
 		delete(url, null, null, null);
 	}
-	
+
 	/**
 	 * Return the current userAttributes setting for this connection.
-	 * 
+	 *
 	 * @return String containing a json representation of the attributes.
 	 */
 	public String getUserAttributes() {
 		return userAttributes;
 	}
-	
+
 	/**
 	 * Set the user attributes for this connection.
 	 * @param value, a String containing a serialized JSON object of the attributes.

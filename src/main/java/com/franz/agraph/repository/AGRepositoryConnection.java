@@ -491,14 +491,10 @@ implements RepositoryConnection, Closeable {
 		 		if (dataFormat == null) {
 		 			dataFormat = Rio.getParserFormatForFileName(file.getName());
 		 		}
-		 		
-		 		InputStream in = new FileInputStream(file);
-		 		try {
-		 			add(in, baseURI, dataFormat, attributes, contexts);
-		 		}
-		 		finally {
-		 			in.close();
-		 		}
+
+		 		try (final FileInputStream in = new FileInputStream(file)) {
+					add(in, baseURI, dataFormat, file.length(), attributes, contexts);
+				}
 		 	}
 	
 	/**
@@ -682,21 +678,49 @@ implements RepositoryConnection, Closeable {
 	  public void add(InputStream in, String baseURI, RDFFormat dataFormat,
 			  JSONObject attributes, Resource... contexts)
 	 		throws IOException, RDFParseException, RepositoryException {
-		  if (!in.markSupported()) {
-	 			in = new BufferedInputStream(in, 1024);
-	 		}
-	 		
-	 		if (ZipUtil.isZipStream(in)) {
-	 			addZip(in, baseURI, dataFormat, contexts);
-	 		}
-	 		else if (GZipUtil.isGZipStream(in)) {
-	 			add(new GZIPInputStream(in), baseURI, dataFormat, contexts);
-	 		}
-	 		else {
-	 			addInputStreamOrReader(in, baseURI, dataFormat, attributes, contexts);
-	 		}
+		add(in, baseURI, dataFormat, -1, attributes, contexts);
 	  }
-	 
+
+	  // Same as the other add(InputStream, ...), but makes it possible to pass
+	  // the size of the stream if it happens to be known (used when uploading files).
+	  // Without knowing the size the HTTP request will have to use chunked encoding
+	  // and that is less efficient (due mostly to a suboptimal implementation of
+	  // unchunking in aserve).
+	  // Pass -1 if the size is not known.
+	  private void add(InputStream in, String baseURI, RDFFormat dataFormat,
+					   long size, JSONObject attributes, Resource... contexts)
+			  throws IOException, RDFParseException, RepositoryException {
+		  // We need to look at the magic number at the start of the stream.
+		  // That means the stream needs to be buffered - if it is not, we
+		  // add the buffer here.
+		  if (!in.markSupported()) {
+			  in = new BufferedInputStream(in, 1024);
+		  }
+
+		  if (ZipUtil.isZipStream(in)) {
+			  addZip(in, baseURI, dataFormat, contexts);
+		  } else {
+			   getHttpRepoClient().upload(in, baseURI, dataFormat,
+					   false,    // overwrite = false
+					   size,
+					   GZipUtil.isGZipStream(in) ? "gzip" : null,
+					   attributes,
+					   contexts);
+		  }
+	  }
+
+	/**
+	 * Adds all files stored in a ZIP archive to the repository.
+	 *
+	 * @param in Input stream containing the ZIP file
+	 * @param baseURI Used to resolve relative URIs
+	 * @param dataFormat Default RDF format used when it is not possible to
+	 *                   determine the format from file's extension.
+	 * @param contexts Named graphs to add the data to.
+	 * @throws IOException .
+	 * @throws RDFParseException .
+	 * @throws RepositoryException .
+	 */
 	 private void addZip(InputStream in, String baseURI, RDFFormat dataFormat, Resource... contexts)
 	 		throws IOException, RDFParseException, RepositoryException
 	 	{
@@ -791,7 +815,7 @@ implements RepositoryConnection, Closeable {
 	 public void add(Reader reader, String baseURI, RDFFormat dataFormat, Resource... contexts)
 	 		throws IOException, RDFParseException, RepositoryException
 	 	{
-	 		addInputStreamOrReader(reader, baseURI, dataFormat, null, contexts);
+			add(reader, baseURI, dataFormat, null, contexts);
 	 	}
 	 
 	 /**
@@ -831,7 +855,11 @@ implements RepositoryConnection, Closeable {
 			 JSONObject attributes, Resource... contexts)
 	 		throws IOException, RDFParseException, RepositoryException
 	 	{
-	 		addInputStreamOrReader(reader, baseURI, dataFormat, attributes, contexts);
+			try {
+			    getHttpRepoClient().upload(reader, baseURI, dataFormat, false, attributes, contexts);
+			} catch (AGMalformedDataException e) {
+				throw new RDFParseException(e);
+			}
 	 	}
 	 
 	 /**
@@ -943,37 +971,6 @@ implements RepositoryConnection, Closeable {
 
 				removeWithoutCommit(st.getSubject(), st.getPredicate(), st.getObject(), contexts);
 			}
-	 
-	 /*
-	  * This method appears to be implemented in Sesame in some future release. When
-	  * we upgrade, we'll need to implement a second method w/o attributes in its
-	  * method signature in order to remain API compliant.
-	  */
-	 protected void addInputStreamOrReader(Object inputStreamOrReader,
-				String baseURI, RDFFormat dataFormat, 
-				JSONObject attributes, Resource... contexts)
-				throws IOException, RDFParseException, RepositoryException {
-
-			if (inputStreamOrReader instanceof InputStream) {
-				try {
-					getHttpRepoClient().upload(((InputStream) inputStreamOrReader),
-						baseURI, dataFormat, false, attributes, contexts);
-				} catch (AGMalformedDataException e) {
-					throw new RDFParseException(e);
-				}
-			} else if (inputStreamOrReader instanceof Reader) {
-				try {
-					getHttpRepoClient().upload(((Reader) inputStreamOrReader), baseURI,
-						dataFormat, false, attributes, contexts);
-				} catch (AGMalformedDataException e) {
-					throw new RDFParseException(e);
-				}
-			} else {
-				throw new IllegalArgumentException(
-						"inputStreamOrReader must be an InputStream or a Reader, is a: "
-								+ inputStreamOrReader.getClass());
-			}
-		}
 	
 	public void remove(Iterable<? extends Statement> statements,
 			Resource... contexts) throws RepositoryException {
