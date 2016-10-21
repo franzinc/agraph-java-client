@@ -895,13 +895,13 @@ public class AGServer implements Closeable {
 	}
 	
     /**
-     * Creates/replaces a repository in the specified catalog
+     * Creates or opens a repository in the specified catalog.
      * 
      * @param reponame  name of the repository to create
      * @param catalog  AGCatalog instance where the repository will be created.
      * @param strict  if true, throw an exception if the repository exists.
-     * @return AGRepository  an initialized repository instance for the newly
-     *         created repository.
+     *                Otherwise the existing repository will be opened.
+     * @return an initialized {@link AGRepository} instance for the newly created repository
      * @throws RepositoryException
      */
     public AGRepository createRepository(String reponame, AGCatalog catalog,
@@ -913,13 +913,13 @@ public class AGServer implements Closeable {
     }
 
     /**
-     * Creates/replaces a repository in the specified catalog
+     * Creates or opens a repository in the specified catalog.
      * 
      * @param reponame  name of the repository to create
      * @param catname  name of the catalog in which to create the repository
      * @param strict  if true, throw an exception if the repository exists.
-     * @return AGRepository  an initialized repository instance for the newly
-     *         created repository.
+     *                Otherwise the existing repository will be opened.
+     * @return an initialized {@link AGRepository} instance for the newly created repository
      * @throws RepositoryException
      */
     public AGRepository createRepository(String reponame, String catname,
@@ -941,12 +941,11 @@ public class AGServer implements Closeable {
     }
 
     /**
-     * Creates/replaces a repository in the specified catalog
+     * Creates or opens a repository in the specified catalog.
      * 
      * @param reponame  name of the repository to create
      * @param catname  name of the catalog in which to create the repository
-     * @return AGRepository  an initialized repository instance for the newly
-     *         created repository.
+     * @return an initialized {@link AGRepository} instance for the newly created repository
      * @throws RepositoryException
      */
     public AGRepository createRepository(String reponame, String catname)
@@ -955,11 +954,10 @@ public class AGServer implements Closeable {
     }
 
     /**
-     * Creates/replaces a repository in the root catalog.
+     * Creates or opens a repository in the root catalog.
      * 
-     * @param reponame  name of the repository to create.
-     * @return AGRepository  an initialized repository instance for the newly
-     *         created repository.
+     * @param reponame  name of the repository to create
+     * @return an initialized {@link AGRepository} instance for the newly created repository
      * @throws RepositoryException
      */
     public AGRepository createRepository(String reponame)
@@ -968,15 +966,14 @@ public class AGServer implements Closeable {
     }
 
     /**
-     * Creates/replaces a repository in the specified catalog
+     * Creates or opens a repository in the specified catalog.
      * 
      * @param repoName  name of the repository to create
      * @param catalogName  name of the catalog where repoName will be created
      * @param serverURL  URL at which the AG server is found
      * @param username  name of the authenticating user, or null
      * @param password  password (plaintext) of the authenticating user, or null
-     * @return AGRepository  an initialized repository instance for the newly
-     *         created repository.
+     * @return an initialized {@link AGRepository} instance for the newly created repository
      * @throws RepositoryException
      */
     public static AGRepository createRepository(String repoName,
@@ -987,13 +984,13 @@ public class AGServer implements Closeable {
     }
 
     /**
-     * Creates/replaces a repository in the specified catalog
+     * Creates or opens a repository in the specified catalog.
      * 
      * @param reponame  name of the repository to create
      * @param catname  name of the catalog in which to create the repository
      * @param strict  if true, throw an exception if the repository exists.
-     * @return AGRepositoryConnection  a connection to the newly created and
-     *         initialized repository
+     *                Otherwise the existing repository will be opened.
+     * @return a connection to the newly created and initialized repository
      * @throws RepositoryException
      */
     public AGRepositoryConnection createRepositoryConnection(String reponame, String catname,
@@ -1001,15 +998,14 @@ public class AGServer implements Closeable {
         return createRepository(reponame, catname, strict).getConnection();
     }
     /**
-     * Creates/replaces a repository in the specified catalog
+     * Creates or opens a repository in the specified catalog.
      * 
      * @param repoName  name of the repository to create
      * @param catalogName  name of the catalog where repoName will be created
      * @param serverURL  URL at which the AG server is found
      * @param username  name of the authenticating user, or null
      * @param password  password (plaintext) of the authenticating user, or null
-     * @return AGRepositoryConnection  a connection to the newly created and
-     *         initialized repository
+     * @return a connection to the newly created and initialized repository
      * @throws RepositoryException
      */
     public static AGRepositoryConnection createRepositoryConnection(String repoName,
