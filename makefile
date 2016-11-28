@@ -1,6 +1,7 @@
 # Standard Franz make rules forward to Maven.
 
-VERSION ?= $(shell ./version.sh)
+# Client version, not AG version. It must match the POM.
+override VERSION = $(shell ./version.sh)
 
 RELEASE_VERSION = $(VERSION:-SNAPSHOT=)
 
@@ -104,18 +105,38 @@ tags: FORCE
 ###############################################################################
 ## distribution building
 
+# It is pretty hard to convince Maven to use another name.
+DIST_DIR = agraph-java-client-$(RELEASE_VERSION)
+# But we want our old name, and we want the AG version.
+TARGET_DIST_DIR = agraph-$(AGVERSION)-client-java
+ifdef CUSTOMER_DIST
+TARDIR = DIST
+TAROPTS = --owner=root --group=root
+else
+TARDIR = .
+TAROPTS =
+endif
+TARNAME = $(TARDIR)/$(TARGET_DIST_DIR).tar.gz
+
 deploy: FORCE
 	./deploy.sh
-
-TARNAME=agraph-java-client-${RELEASE_VERSION}.tar.gz
 
 dist: FORCE
 	sed -i.old 's/<version>\([0-9.]*\)-SNAPSHOT/<version>\1/' pom.xml 
 	-mvn -DskipTests=true package
 	mv pom.xml.old pom.xml
+	mkdir -p DIST
+# Note that maven creates target/$(DIST_DIR)/$(DIST_DIR) for some reason.
+# Rename the directory
+	rm -rf target/$(DIST_DIR)/$(TARGET_DIST_DIR)
+	mv target/$(DIST_DIR)/$(DIST_DIR) target/$(DIST_DIR)/$(TARGET_DIST_DIR)
+	tar  -c -h -z $(TAROPTS) -f $(TARNAME) -C target/$(DIST_DIR) $(TARGET_DIST_DIR)
+# Copy the result if requested.
 ifdef DESTDIR
+ifneq "$(DESTDIR)" "$(TARDIR)"
 	mkdir -p $(DESTDIR)
-	cp -p target/$(TARNAME) $(DESTDIR)/$(TARNAME)
+	cp -p $(TARNAME) $(DESTDIR)/
+endif
 endif
 
 dist-clean: FORCE
