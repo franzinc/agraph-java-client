@@ -218,12 +218,16 @@ public class JenaTests extends AGAbstractTest {
         Resource blankNode = model.createResource();
         Property has = model.createProperty("http://example.org/ontology/has");
         model.add(blankNode, has, dave);
-        
-        model.write(closeLater( new FileOutputStream( File.createTempFile("JenaTest-", ".txt"))));
+
+        File outputFile = File.createTempFile("JenaTest-", ".txt");
+        outputFile.deleteOnExit();
+        model.write(closeLater(new FileOutputStream(outputFile)));
         
         graph = closeLater( maker.getGraph());
         model = closeLater( new AGModel(graph));
-        model.write(closeLater( new FileOutputStream( File.createTempFile("JenaTest-", ".txt"))));
+        outputFile = File.createTempFile("JenaTest-", ".txt");
+        outputFile.deleteOnExit();
+        model.write(closeLater(new FileOutputStream(outputFile)));
     }
 
     @Test

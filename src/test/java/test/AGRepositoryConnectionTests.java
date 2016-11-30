@@ -89,14 +89,12 @@ public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
 	public void testAddGzipInputStreamNTriples() throws Exception {
 		// add file default-graph.nt.gz to repository, no context
 	    File gz = File.createTempFile("default-graph.nt-", ".gz");
+	    gz.deleteOnExit();
 	    File nt = Util.resourceAsTempFile(TEST_DIR_PREFIX + "default-graph.nt");
 	    Util.gzip(nt, gz);
-		InputStream defaultGraph = new FileInputStream(gz);
 		//RepositoryConnectionTest.class.getResourceAsStream(TEST_DIR_PREFIX + "default-graph.nt.gz");
-		try {
+		try (InputStream defaultGraph = new FileInputStream(gz)) {
 			testCon.add(defaultGraph, "", RDFFormat.NTRIPLES);
-		} finally {
-			defaultGraph.close();
 		}
 
 		assertTrue("Repository should contain newly added statements", testCon
