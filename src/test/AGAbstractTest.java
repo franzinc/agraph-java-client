@@ -18,6 +18,7 @@ import info.aduna.iteration.CloseableIteration;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -162,8 +163,14 @@ public class AGAbstractTest extends Closer {
     }
     
     public static File createTempFile(String prefix, String suffix) {
-    	File dir = tempDir();
-    	return new File(dir, prefix + System.currentTimeMillis() + suffix);
+    	final File result;
+    	try {
+    		result = File.createTempFile(prefix, suffix);
+		} catch (final IOException e) {
+    		throw new RuntimeException(e);
+		}
+    	result.deleteOnExit();
+    	return result;
     }
     
     public static AGServer newAGServer() {
