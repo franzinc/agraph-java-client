@@ -245,7 +245,7 @@ public class AttributesExample {
         try {
 
             conn.begin();
-            conn.setStaticAttributeFilter("(and (attribute>= user.securityLevel triple.securityLevel) "
+            conn.setStaticAttributeFilter("(and (attribute-set>= user.securityLevel triple.securityLevel) "
                     + "(attribute-contains-one-of user.department triple.department) "
                     + "(attribute-contains-all-of user.accessToken triple.accessToken))");
             conn.commit();
