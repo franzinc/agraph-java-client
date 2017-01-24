@@ -10,6 +10,8 @@ package com.franz.agraph.repository;
 
 import java.util.Iterator;
 
+import org.apache.commons.httpclient.URIException;
+import org.apache.commons.httpclient.util.URIUtil;
 import org.openrdf.query.Binding;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
@@ -385,4 +387,20 @@ public abstract class AGQuery extends AbstractQuery {
 		this.offset = offset;
 	}
 	
+	/**
+	 * Returns a String of the form "PREFIX franzOption_OPTION: &lt;franz:VALUE&gt; "
+	 * suitable for appending to a SPARQL query. VALUE is encoded per the rules
+	 * for percent-encoding the query part of a URI (namely that the space char ' '
+	 * encoded as '%20' instead of '+'.
+	 * 
+	 * @param  option  the name of a valid AllegroGraph SPARQL Query Option
+	 * @param  value  String value to be encoded as the value of the prefixOption
+	 * @return  String
+	 * @throws URIException
+	 * @see <a href="../../../../../sparql-reference.html#sparql-queryoptions">SPARQL Query Options</a>
+	 */
+	public static String getFranzOptionPrefixString(String option, String value) throws URIException {
+		// this will only throw if utf-8 is an unsupported charset.
+		return "PREFIX franzOption_" + option + ": <franz:" + URIUtil.encodeQuery(value, "utf-8") + "> ";
+	}
 }

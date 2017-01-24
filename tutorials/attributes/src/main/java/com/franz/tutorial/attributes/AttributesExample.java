@@ -13,6 +13,9 @@ import org.json.JSONObject;
 import org.openrdf.model.BNode;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
+import org.openrdf.query.QueryLanguage;
+import org.openrdf.query.TupleQuery;
+import org.openrdf.query.TupleQueryResult;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
 
@@ -20,9 +23,11 @@ import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
+import com.franz.agraph.repository.AGQuery;
 import com.franz.agraph.repository.AGValueFactory;
 import com.franz.agraph.repository.AGRepositoryConnection.AttributeDefinition;
 import com.franz.agraph.repository.UserAttributesContext;
+import info.aduna.iteration.CloseableIteration;
 
 /**
  * A sample class demonstrating the capabilities of AllegroGraph Triple
@@ -60,9 +65,9 @@ public class AttributesExample {
         System.out.println(x);
     }
 
-    private static void printRows(String headerMsg,
-            RepositoryResult<Statement> rows) throws Exception {
-        println(headerMsg);
+    private static void printRows(String headerMsg, CloseableIteration<?, ?> rows)
+	    throws Exception {
+	println(headerMsg);
         int count = 0;
         while (rows.hasNext()) {
             println(rows.next());
@@ -214,13 +219,17 @@ public class AttributesExample {
                     .put("securityLevel", "high").put("department", "hr")
                     .put("accessToken", new JSONArray().put("D").put("E"));
 
-            conn.add(s, pName, vf.createLiteral("Joe Smith"), infoAttrs);
             conn.add(s, pDept, vf.createURI(ex, "ops"), infoAttrs);
             conn.add(s, pSalary, vf.createLiteral(100000), salaryAttrs);
             conn.add(s, pInfractions, vf.createURI(
                     "http://example.org/ontology/Infraction#",
                     "ExcessiveTardiness"), sensitiveAttrs);
 
+            // Insert triples with defaulted attributes using SPARQL.
+	    String queryString = AGQuery.getFranzOptionPrefixString("defaultAttributes", infoAttrs.toString()) +
+		    "INSERT DATA { " + s + " <" + pName + "> 'Joe Smith' . }";
+            conn.prepareUpdate(QueryLanguage.SPARQL, queryString).execute();
+            
             conn.commit();
         } catch (Exception e) {
             conn.rollback();
@@ -265,10 +274,10 @@ public class AttributesExample {
         populateRepository();
 
         // define some user-attributes that we will use below.
-        String hrLowSecUser = "{ securityLevel: [ \"low\" ], department: [ \"hr\" ], accessToken: [ \"A\", \"B\" ] }";
-        String acctUser = "{ securityLevel: [ \"medium\" ], department: [ \"accounting\" ], accessToken: [ \"A\", \"C\" ] }";
-        String hrHighSecUser1 = "{ securityLevel: [ \"high\" ], department: [ \"hr\", \"devel\" ], accessToken: [ \"A\", \"B\" ] }";
-        String hrHighSecUser2 = "{ securityLevel: [ \"high\" ], department: [ \"hr\", \"accounting\" ], accessToken: [ \"A\", \"C\", \"D\", \"E\" ] }";
+        String hrLowSecUser = "{ \"securityLevel\": [ \"low\" ], \"department\": [ \"hr\" ], \"accessToken\": [ \"A\", \"B\" ] }";
+	String acctUser = "{ \"securityLevel\": [ \"medium\" ], \"department\": [ \"accounting\" ], \"accessToken\": [ \"A\", \"C\" ] }";
+        String hrHighSecUser1 = "{ \"securityLevel\": [ \"high\" ], \"department\": [ \"hr\", \"devel\" ], \"accessToken\": [ \"A\", \"B\" ] }";
+        String hrHighSecUser2 = "{ \"securityLevel\": [ \"high\" ], \"department\": [ \"hr\", \"accounting\" ], \"accessToken\": [ \"A\", \"C\", \"D\", \"E\" ] }";
 
         // No filter is set, so all triples should be visible.
         printVisibleTriples("Visible triples with no static filter set, and no user-attributes");
@@ -310,6 +319,33 @@ public class AttributesExample {
             printVisibleTriples("Triples visible to hrHighSecUser2.");
         }
 
+        // Set User Attributes via SPARQL prefix and query the repository.
+        // only low security triples will be visible
+	String queryString = AGQuery.getFranzOptionPrefixString("userAttributes", acctUser) +
+		"select ?s ?p ?o where { ?s ?p ?o .} ";
+        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        TupleQueryResult result = tupleQuery.evaluate();
+        
+        printRows("Triples visible to hrLowSecUser (via SPARQL)", result);
+        
+        // Demonstrate the binding of triple attributes as part of a SPARQL Query.
+        // Only low and medium security triples will be visible.
+        // 
+        queryString = "PREFIX attr: <http://franz.com/ns/allegrograph/6.2.0/> " +
+		AGQuery.getFranzOptionPrefixString("userAttributes", acctUser) +
+		"select ?s ?p ?o ?attributes where { ?attributes attr:attributes (?s ?p ?o) . }";
+        printRows("Triples and Attributes visible to acctUser (via SPARQL)",
+        		conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString).evaluate());
+        
+        // Demonstrate the binding of the individual Attribute NameValues as part of a SPARQL Query.
+        // Note that the predicate used in this query differs from the query above.
+        // Only low and medium security triples will be visible.
+        queryString = "PREFIX attr: <http://franz.com/ns/allegrograph/6.2.0/> " +
+		AGQuery.getFranzOptionPrefixString("userAttributes", acctUser) +
+		"select ?s ?name ?value where { (?name ?value) attr:attributesNameValue (?s ?p ?o) . }";
+        printRows("Triples and Attributes NameValues visible to acctUser (via SPARQL)",
+        		conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString).evaluate());
+        
         println("Example complete.");
     }
 }
