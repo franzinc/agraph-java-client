@@ -2161,9 +2161,13 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * Sets the 'lifetime' for a dedicated session spawned by this connection.
 	 * Seconds a session can be idle before being collected.
-	 * This method does not create a session.
-	 * 
-	 * <p>See <a href="#sessions">session overview</a> and
+	 * This method does not create a session. If unset, the lifetime
+         * defaults to the value of <a href="../../../../../daemon-config.html#DefaultSessionTimeout">DefaultSessionTimeout</a>.         
+	 * If set, the value must not be larger than
+         * <a href="../../../../../daemon-config.html#MaximumSessionTimeout">MaximumSessionTimeout</a>.
+         * See <a href="../../../../../daemon-config.html#session-values">Session directives</a>
+         * in <a href="../../../../../daemon-config.html">Server Configuration and Control</a> for more information.
+	 * <p>Also see <a href="#sessions">session overview</a> and
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#post-session"
 	 * target="_top">POST session</a> for more details.</p>
 	 * 
