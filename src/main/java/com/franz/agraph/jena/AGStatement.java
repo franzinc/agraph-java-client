@@ -35,25 +35,29 @@ public class AGStatement extends StatementImpl {
 		return (AGModel)super.getModel();
 	}
 	
-    /**
-    	create a ReifiedStatement corresponding to this Statement
-     */
+	/**
+	 * create a ReifiedStatement corresponding to this Statement
+	 */
 	public ReifiedStatement createReifiedStatement() {
 		Resource bnode = getModel().createResource();
 		return ReifiedStatementImpl.create( this.getModel(), bnode.asNode(), this ); 
 	}
-    
-    /**
-	 * create a Statement from the triple _t_ in the enhanced graph _eg_. The
-	 * Statement has subject, predicate, and object corresponding to those of
-	 * _t_.
+
+	/**
+	 * create a Statement from the triple <code>t</code> in the enhanced graph <code>eg</code>.
+	 * The Statement has subject, predicate, and object corresponding to those of
+	 * <code>t</code>.
+	 * 
+	 * @param t  the triple to build into a Statement
+	 * @param eg  the Graph in which the Statement will be created
+	 * @return Statement  the statement created
 	 */
-    public static Statement toStatement( Triple t, AGModel eg )
-        {
-        Resource s = new ResourceImpl( t.getSubject(), eg );
-        Property p = new PropertyImpl( t.getPredicate(), eg );
-        RDFNode o = createObject( t.getObject(), eg );
-        return new AGStatement( s, p, o, eg );
-        }
+	public static Statement toStatement( Triple t, AGModel eg )
+	{
+		Resource s = new ResourceImpl( t.getSubject(), eg );
+		Property p = new PropertyImpl( t.getPredicate(), eg );
+		RDFNode o = createObject( t.getObject(), eg );
+		return new AGStatement( s, p, o, eg );
+	}
     
 }

@@ -97,8 +97,7 @@ public abstract class AGQuery extends AbstractQuery {
 	 * statements (if any inferred statements are present in the repository). The
 	 * default setting is 'false'.
 	 * 
-	 * @param includeInferred
-	 *        indicates whether inferred statements should included in the
+	 * @param includeInferred  indicates whether inferred statements should included in the
 	 *        result.
 	 * @see #setEntailmentRegime(String)
 	 */
@@ -111,8 +110,7 @@ public abstract class AGQuery extends AbstractQuery {
 	 * Sets the entailment regime to use when including inferences with this
 	 * query.  Default is 'rdfs++'.  
 	 * 
-	 * @param entailmentRegime
-	 *        indicates the entailment regime to use when reasoning.
+	 * @param entailmentRegime  indicates the entailment regime to use when reasoning
 	 * @see #RDFS_PLUS_PLUS       
 	 * @see #RESTRICTION       
 	 * @see #setIncludeInferred(boolean)
@@ -125,6 +123,7 @@ public abstract class AGQuery extends AbstractQuery {
 	 * Gets the entailment regime being used when including inferences
 	 * with this query.
 	 * 
+	 * @return String  the name of the entailment regime
 	 */
 	public String getEntailmentRegime() {
 		return entailmentRegime; 
@@ -133,7 +132,7 @@ public abstract class AGQuery extends AbstractQuery {
 	/**
 	 * Gets the query language for this query.
 	 * 
-	 * @return the query language.
+	 * @return the query language
 	 */
 	public QueryLanguage getLanguage() {
 		return queryLanguage;
@@ -142,7 +141,7 @@ public abstract class AGQuery extends AbstractQuery {
 	/**
 	 * Gets the query string for this query.
 	 * 
-	 * @return the query string.
+	 * @return the query string
 	 */
 	public String getQueryString() {
 		long timeout = getMaxQueryTime();
@@ -155,7 +154,7 @@ public abstract class AGQuery extends AbstractQuery {
 	 * 
 	 * Default is false.  
 	 * 
-	 * @param loggingEnabled boolean indicating whether logging is enabled.
+	 * @param loggingEnabled boolean indicating whether logging is enabled
 	 */
 	public void setLoggingEnabled(boolean loggingEnabled) {
 		this.loggingEnabled = loggingEnabled; 
@@ -163,6 +162,8 @@ public abstract class AGQuery extends AbstractQuery {
 	
 	/**
 	 * Gets the loggingEnabled setting for this query.
+	 * 
+	 * @return Boolean  true if logging is enabled, else false
 	 */
 	public boolean isLoggingEnabled() {
 		return loggingEnabled; 
@@ -171,7 +172,7 @@ public abstract class AGQuery extends AbstractQuery {
 	/**
 	 * Gets the baseURI for this query.
 	 * 
-	 * @return the base URI.
+	 * @return the base URI
 	 */
 	public String getBaseURI() {
 		return baseURI;
@@ -180,7 +181,7 @@ public abstract class AGQuery extends AbstractQuery {
 	/**
 	 * Gets the query planner that processes the query.
 	 * 
-	 * @return the planner name.
+	 * @return the planner name
 	 */
 	public String getPlanner() {
 		return planner;
@@ -189,13 +190,15 @@ public abstract class AGQuery extends AbstractQuery {
 	/**
 	 * Sets the query planner to use when processing the query.
 	 * 
-	 * @param planner the planner name.
+	 * @param planner  the planner name
 	 */
 	public void setPlanner(String planner) {
 		this.planner = planner;
 	}
 	
 	/**
+	 * 
+	 * @return String  the name of the engine used to perform this query
 	 * @deprecated internal use only
 	 */
 	public String getEngine() {
@@ -204,6 +207,8 @@ public abstract class AGQuery extends AbstractQuery {
 	
 	/**
 	 * This method is not for general use - configure server agraph.cfg QueryEngine instead.
+	 * 
+	 * @param engine  the name of the query engine to use for this query
 	 * @see #getEngine()
 	 * @deprecated internal use only
 	 */
@@ -225,7 +230,7 @@ public abstract class AGQuery extends AbstractQuery {
 	 * Sets the name to use when saving this query with the
 	 * server's saved query service.
 	 * 
-	 * @param name the saved name.
+	 * @param name  the saved name
 	 */
 	public void setSaveName(String name) {
 		saveName = name;
@@ -234,7 +239,7 @@ public abstract class AGQuery extends AbstractQuery {
 	/**
 	 * Gets the savedName for the query.
 	 * 
-	 * @return the saved name.
+	 * @return the saved name
 	 */
 	public String getName() {
 		return saveName;
@@ -243,7 +248,7 @@ public abstract class AGQuery extends AbstractQuery {
 	/**
 	 * Gets the prepared flag for the query.
 	 * 
-	 * @return the prepared flag.
+	 * @return the prepared flag
 	 */
 	public boolean isPrepared() {
 		return prepared;
@@ -252,7 +257,7 @@ public abstract class AGQuery extends AbstractQuery {
 	/**
 	 * Sets the prepared flag for the query.
 	 * 
-	 * @param prepared the prepared flag.
+	 * @param prepared the prepared flag
 	 */
 	public void setPrepared(boolean prepared) {
 		this.prepared = prepared;
@@ -261,7 +266,7 @@ public abstract class AGQuery extends AbstractQuery {
 	/**
 	 * Evaluates the query and processes the result in handler.
 	 * 
-	 * @param handler processes or stores the result
+	 * @param handler  processes or stores the result
 	 * @throws QueryEvaluationException
 	 */
 	protected void evaluate(AGResponseHandler handler)
@@ -275,8 +280,8 @@ public abstract class AGQuery extends AbstractQuery {
 	 * When the analyzeOnly flag is true, only a query analysis is
 	 * performed; when false, the query is executed.
 	 * 
-	 * @param analyzeOnly flags for analyzing or executing
-	 * @param handler processes or stores the result
+	 * @param analyzeOnly  flags for analyzing or executing
+	 * @param handler  processes or stores the result
 	 * @throws QueryEvaluationException
 	 */
 	protected void evaluate(boolean analyzeOnly, AGResponseHandler handler)
@@ -295,8 +300,8 @@ public abstract class AGQuery extends AbstractQuery {
 	 * 
 	 * The query is not evaluated.
 	 * 
-	 * @return the query analysis as a string.
-	 * @throws QueryEvaluationException
+	 * @return the query analysis as a string
+	 * @throws QueryEvaluationException  if there is an error while evaluating query
 	 */
 	public String analyze() throws QueryEvaluationException {
 		AGStringHandler handler = new AGStringHandler();
@@ -307,7 +312,7 @@ public abstract class AGQuery extends AbstractQuery {
 	/**
 	 * Gets the flag for checkVariables.
 	 * 
-	 * @return the checkVariables flag.
+	 * @return the checkVariables flag
 	 */
 	public boolean isCheckVariables() {
 		return checkVariables;
@@ -318,7 +323,7 @@ public abstract class AGQuery extends AbstractQuery {
 	 * should be raised when a SPARQL query selects variables that
 	 * are not mentioned in the query body.
 	 * 
-	 * @param checkVariables the checkVariables flag.
+	 * @param checkVariables  the checkVariables flag
 	 */
 	public void setCheckVariables(boolean checkVariables) {
 		this.checkVariables = checkVariables;
@@ -361,9 +366,11 @@ public abstract class AGQuery extends AbstractQuery {
 	}
 
 	/**
-	 * Sets the limit on the number of solutions for this query.
+	 * Sets the limit.
 	 * 
 	 * By default, the value is -1, meaning no constraint is imposed.
+	 * 
+	 * @param limit  the max number of solutions to collect for this query
 	 */
 	public void setLimit(int limit) {
 		this.limit = limit;
@@ -379,7 +386,9 @@ public abstract class AGQuery extends AbstractQuery {
 	}
 	
 	/**
-	 * Sets the offset, the number of solutions to skip for this query.
+	 * Sets the offset.
+	 * 
+	 * @param offset  the number of solutions to skip for this query
 	 * 
 	 * By default, the value is -1, meaning no constraint is imposed.
 	 */
@@ -395,8 +404,8 @@ public abstract class AGQuery extends AbstractQuery {
 	 * 
 	 * @param  option  the name of a valid AllegroGraph SPARQL Query Option
 	 * @param  value  String value to be encoded as the value of the prefixOption
-	 * @return  String
-	 * @throws URIException
+	 * @return  String  the generated prefix.
+	 * @throws URIException  if there is an error while encoding <code>value</code>
 	 * @see <a href="../../../../../sparql-reference.html#sparql-queryoptions">SPARQL Query Options</a>
 	 */
 	public static String getFranzOptionPrefixString(String option, String value) throws URIException {

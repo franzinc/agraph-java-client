@@ -149,17 +149,21 @@ public class AGGraph extends GraphBase implements Graph, Closeable {
         { return toString(getName()+(closed ? " (closed) " : " (size: " + graphBaseSize() + ")."),this); }
 
 	/**
-	 * Returns a human-consumable representation of <code>that</code>. The string
+	 * Returns a human-consumable representation of <code>graph</code>. The string
 	 * <code>prefix</code> will appear at the beginning of the string. Nodes
-	 * may be prefix-compressed using <code>that</code>'s prefix-mapping. This
+	 * may be prefix-compressed using <code>graph</code>'s prefix-mapping. This
 	 * default implementation will display all the triples exposed by the graph,
 	 * including reification triples.
+	 * 
+	 * @param prefix  the prefix of the string returned
+	 * @param graph  the Graph to render into a string
+	 * @return String  a human-consumable representation of the argument Graph
 	 */
-	public static String toString(String prefix, Graph that) {
-		// PrefixMapping pm = that.getPrefixMapping();
+	public static String toString(String prefix, Graph graph) {
+		// PrefixMapping pm = graph.getPrefixMapping();
 		StringBuilder b = new StringBuilder(prefix + " {");
 		String gap = "";
-		ClosableIterator<Triple> it = GraphUtil.findAll(that);
+		ClosableIterator<Triple> it = GraphUtil.findAll(graph);
 		while (it.hasNext()) {
 			b.append(gap);
 			gap = "; ";

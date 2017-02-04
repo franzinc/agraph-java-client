@@ -70,7 +70,11 @@ public class AGFreetextQuery {
 	}
 
 	/**
-	 * Evaluates the query and uses handler to process the result. 
+	 * Evaluates the query and uses handler to process the result.
+	 * 
+	 *  @param handler  used to process the query results
+	 *  @throws QueryEvaluationException  if errors occur while evaluating the query
+	 *  @throws RDFHandlerException  if errors occur while processing results
 	 */
 	public void evaluate(RDFHandler handler) throws QueryEvaluationException,
 			RDFHandlerException {

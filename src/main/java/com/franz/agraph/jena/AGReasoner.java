@@ -52,6 +52,7 @@ public class AGReasoner implements Reasoner {
 	 * Creates a new reasoner, using the specified entailmentRegime.
 	 * Consider using one of the static reasoners instead.
 	 * 
+	 * @param entailmentRegime  the entailment to be used by this reasoner
 	 * @see #RDFS_PLUS_PLUS
 	 * @see #RESTRICTION
 	 */

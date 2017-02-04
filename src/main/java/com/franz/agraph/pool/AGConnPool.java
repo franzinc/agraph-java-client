@@ -210,6 +210,10 @@ implements ObjectPool, Closeable {
 
 	/**
 	 * A {@link GenericObjectPool} is used.
+	 * 
+	 * @param factory  an {@link AGConnFactory}
+	 * @param poolConfig  an {@link AGPoolConfig}
+	 * @return AGConnPool the connection pool object
 	 */
 	public static AGConnPool create(AGConnFactory factory, AGPoolConfig poolConfig) {
 		return new AGConnPool(factory, poolConfig);
@@ -217,8 +221,11 @@ implements ObjectPool, Closeable {
 
 	/**
 	 * Create a pool from configuration properties.
-	 * @param connProps keys are {@link AGConnProp}
-	 * @param poolProps keys are {@link AGPoolProp}
+	 * 
+	 * @param connProps  keys are {@link AGConnProp}
+	 * @param poolProps  keys are {@link AGPoolProp}
+	 * @return AGConnPool  the connection pool object
+	 * @throws RepositoryException  if an error occurs during pool creation
 	 */
 	public static AGConnPool create(Map<AGConnProp, String> connProps, Map<AGPoolProp, String> poolProps) throws RepositoryException {
 		AGPoolConfig poolConfig = new AGPoolConfig(poolProps);
@@ -230,7 +237,10 @@ implements ObjectPool, Closeable {
 		
 	/**
 	 * Create a pool from configuration properties.
-	 * @param keyValuePairs alternating key/value pairs where keys are {@link AGConnProp} and {@link AGPoolProp}
+	 * 
+	 * @param keyValuePairs  alternating key/value pairs where keys are {@link AGConnProp} and {@link AGPoolProp}
+	 * @return {@link AGConnPool}  the connection pool object
+	 * @throws RepositoryException  if an error occurs during pool creation
 	 */
 	public static AGConnPool create(Object...keyValuePairs) throws RepositoryException {
 		Map<AGConnProp, String> connProps = (Map<AGConnProp, String>) toMap(keyValuePairs, EnumSet.allOf(AGConnProp.class));

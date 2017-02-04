@@ -485,20 +485,28 @@ public class AGProtocol extends Protocol {
 	public static final String USER_ATTRIBUTE_HEADER = "x-user-attributes";
 	/**
 	 * Location of the root catalog service
+	 * 
+	 * @param serverURL  the server url
+	 * @return String  the root catalog service location
 	 */
 	public static final String getRootCatalogURL(String serverURL) {
 		return serverURL;
 	}
 	
 	/**
-	 * Location of the named catalogs service
+	 * Location of the named catalog's service
+	 * 
+	 * @param serverURL  the server url
+	 * @return String  the named catalog's service location
 	 */
 	public static final String getNamedCatalogsURL(String serverURL) {
 		return serverURL + "/" + CATALOGS;
 	}
 	
 	/**
-	 * Location of a named catalog
+	 * @param serverURL  the server url
+	 * @param catalogName  the name of the catalog to locate
+	 * @return String  the location of a named catalog
 	 */
 	public static final String getNamedCatalogLocation(String serverURL, String catalogName) {
 		return getNamedCatalogsURL(serverURL) + "/" + encode(catalogName);
@@ -507,8 +515,7 @@ public class AGProtocol extends Protocol {
 	/**
 	 * Get the location of the blank nodes service for a repository
 	 * 
-	 * @param repositoryLocation
-	 *        the base location of the repository.
+	 * @param repositoryLocation  the base location of the repository
 	 * @return the location of the blank nodes service
 	 */
 	public static final String getBlankNodesURL(String repositoryLocation) {

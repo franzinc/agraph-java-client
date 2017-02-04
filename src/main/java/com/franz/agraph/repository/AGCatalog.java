@@ -60,8 +60,8 @@ public class AGCatalog {
 	 * Creates an AGCatalog instance for a named catalog having catalogName
 	 * in the given server.
 	 * 
-	 * @param server the server housing this named catalog.
-	 * @param catalogName the name for this named catalog.
+	 * @param server  the server housing this named catalog
+	 * @param catalogName  the name for this named catalog
 	 * @see AGServer#getCatalog(String)
 	 */
 	public AGCatalog(AGServer server, String catalogName) {
@@ -76,8 +76,8 @@ public class AGCatalog {
 	 * Creates an AGCatalog instance for a special catalog in the given server,
 	 * such as the root catalog.
 	 * 
-	 * @param server the server housing the catalog.
-	 * @param catalogType the type of the special catalog.
+	 * @param server  the server housing the catalog
+	 * @param catalogType  the type of the special catalog
 	 * @see AGServer#getCatalog()
 	 */
 	public AGCatalog(AGServer server, int catalogType) {
@@ -97,7 +97,7 @@ public class AGCatalog {
 	/**
 	 * The AGServer instance for this catalog.
 	 *  
-	 * @return the AGServer instance for this catalog.
+	 * @return the AGServer instance for this catalog
 	 */
 	public AGServer getServer() {
 		return server;
@@ -106,7 +106,7 @@ public class AGCatalog {
 	/**
 	 * The name of this catalog.  The root catalog has the name "/".
 	 * 
-	 * @return the name of this catalog.
+	 * @return the name of this catalog
 	 */
 	public String getCatalogName() {
 		return catalogName;
@@ -124,7 +124,7 @@ public class AGCatalog {
 	/**
 	 * URL of this catalog.
 	 * 
-	 * @return the URL of this catalog.
+	 * @return the URL of this catalog
 	 */
 	public String getCatalogURL() {
 		return catalogURL;
@@ -133,7 +133,7 @@ public class AGCatalog {
 	/**
 	 * URL for accessing the repositories of this catalog.
 	 * 
-	 * @return the URL for accessing the repositories of this catalog.
+	 * @return the URL for accessing the repositories of this catalog
 	 */
 	public String getRepositoriesURL() {
 		return repositoriesURL;
@@ -166,7 +166,8 @@ public class AGCatalog {
 	/**
 	 * Returns a List of repository ids contained in this catalog.
 	 * 
-	 * @return a List of repository ids contained in this catalog.
+	 * @return a List of repository ids contained in this catalog
+	 * @throws OpenRDFException  if there is an error during the request
 	 */
 	public List<String> listRepositories() throws OpenRDFException {
 		String url = getRepositoriesURL();
@@ -187,7 +188,14 @@ public class AGCatalog {
 	/**
 	 * Returns true if the repository id is contained in this catalog.
 	 * 
-	 * @return true if the repository id is contained in this catalog.
+	 * @param repoId  name of the repository to lookup
+	 * @return true if the repository id is contained in this catalog
+	 * @throws OpenRDFException  if repository does not exist
+	 * TODO: revisit the decision to throw instead of returning null
+	 * if does not exit. Why throw?
+	 * 
+	 * TODO: have this throw a RepositoryException instead, either
+	 * by modifying contains() or catching and rethrowing here.
 	 */
 	public boolean hasRepository(String repoId) throws OpenRDFException {
 		List<String> repos = listRepositories();
@@ -202,8 +210,9 @@ public class AGCatalog {
 	 * The repository is created if it does not exist.  If the
 	 * repository already exists, it is simply opened. 
 	 * 
-	 * @param repositoryID the id (the name) of the repository. 
-	 * @return an uninitialized AGRepository instance.
+	 * @param repositoryID  the id (the name) of the repository 
+	 * @return an uninitialized AGRepository instance
+	 * @throws RepositoryException  if there is an error while creating the repository
 	 * @see #createRepository(String, boolean)
 	 */
 	public AGRepository createRepository(String repositoryID)
@@ -220,9 +229,10 @@ public class AGCatalog {
 	 * repository already exists, it is simply opened, or an exception
 	 * is thrown if strict=true.
 	 * 
-	 * @param repositoryID the id (the name) of the repository
-	 * @param strict if true and the repository already exists, throw an exception
-	 * @return an uninitialized AGRepository instance.
+	 * @param repositoryID  the id (the name) of the repository
+	 * @param strict  if true and the repository already exists, throw an exception
+	 * @return an uninitialized AGRepository instance
+	 * @throws RepositoryException  if there is an error while creating the repository
 	 * @see #createRepository(String)
 	 * @see #listRepositories()
 	 * @see #openRepository(String)
@@ -248,8 +258,8 @@ public class AGCatalog {
 	 * 
 	 * If the repository already exists, it is simply opened.
 	 * 
-	 * @param repositoryID the id (the name) of the repository. 
-	 * @return an uninitialized AGRepository instance.
+	 * @param repositoryID  the id (the name) of the repository 
+	 * @return an uninitialized AGRepository instance
 	 * @throws RepositoryException if the repositoryID does not exist
 	 * @see #createRepository(String, boolean)
 	 */
@@ -269,7 +279,8 @@ public class AGCatalog {
 	 * Deletes the repository with the given
 	 * {@link #listRepositories() repository id}.
 	 * 
-	 * @param repositoryID the name of the repository to delete.
+	 * @param repositoryID  the name of the repository to delete
+	 * @throws RepositoryException  if there is an error while deleting the repository
 	 * @see #listRepositories()
 	 */
 	public void deleteRepository(String repositoryID)
@@ -288,8 +299,9 @@ public class AGCatalog {
 	 * 
 	 * Currently null, the empty string, and "/" are all considered to identify
 	 * the root catalog.
-	 * 
-	 * @return true iff the id identifies the root catalog.
+	 *
+	 * @param catalogID  the name of the catalog to check
+	 * @return true iff the id identifies the root catalog
 	 */
 	public static boolean isRootID(String catalogID) {
 		boolean result = false;

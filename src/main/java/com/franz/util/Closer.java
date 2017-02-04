@@ -43,6 +43,10 @@ public class Closer implements Closeable {
 	
 	/**
 	 * Add a resource to be closed with {@link #close()}.
+	 * 
+	 * @param <Obj> The type of objects to be closed by this Closer
+	 * @param o  Object to note for later closing
+	 * @return Obj  always returns o
 	 */
 	public <Obj extends Object>
 	Obj closeLater(Obj o) {
@@ -52,6 +56,9 @@ public class Closer implements Closeable {
 
 	/**
 	 * Remove object from collection so close will not be called later.
+	 * 
+	 * @param o  Object to be removed from this Closer
+	 * @return boolean  Returns true if o was removed, else false
 	 * @see #closeLater(Object)
 	 */
 	public boolean remove(Object o) {
@@ -79,6 +86,9 @@ public class Closer implements Closeable {
 	
 	/**
 	 * Close all objects immediately, will not be closed "later".
+	 * 
+	 * @param objects  The collection of objects to close
+	 * @return Collection  the argument collection is returned
 	 */
 	public Collection closeAll(Collection objects) {
 		for (Object object : objects) {
@@ -96,6 +106,10 @@ public class Closer implements Closeable {
 
 	/**
 	 * Close an object immediately, will not be closed "later".
+	 * 
+	 * @param <Obj>  The type of objects that can be closed by this Closer
+	 * @param o  The object being closed
+	 * @return Obj  o is always returne.
 	 */
 	public <Obj extends Object>
 	Obj close(Obj o) {
@@ -119,7 +133,13 @@ public class Closer implements Closeable {
 	}
 
 	/**
+	 * Deal with exceptions thrown when closing an object.
 	 * Subclass may override, default behavior is to log.warn and return the object.
+	 * 
+	 * @param <Obj> The class of object handles by this Closer
+	 * @param o  The object that caused e to be thrown
+	 * @param e  The exception thrown when o was closed
+	 * @return Obj  o is always returned
 	 */
 	public <Obj extends Object>
 	Obj handleCloseException(Obj o, Throwable e) {

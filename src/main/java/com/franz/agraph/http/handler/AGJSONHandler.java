@@ -10,8 +10,6 @@ package com.franz.agraph.http.handler;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
-import java.util.ArrayList;
 
 import org.apache.commons.httpclient.HttpMethod;
 import org.json.JSONArray;
@@ -65,10 +63,9 @@ public class AGJSONHandler extends AGResponseHandler {
 	}	
 	
 	/**
-	 * Fetch the JSONObject parsed from the response.
 	 * 
-	 * @return JSONObject
-	 * @throws JSONException if a JSONArray is instead available.
+	 * @return the JSONObject parsed from the response
+	 * @throws JSONException if a JSONArray is instead available
 	 */
 	public JSONObject getResult() throws JSONException {
 		if (resultList != null) {
@@ -82,7 +79,8 @@ public class AGJSONHandler extends AGResponseHandler {
 	 * Fetch the JSONArray parsed from the response. If the value parsed is a JSONObject, return
 	 * a JSONArray with the JSONObject as its only element.
 	 * 
-	 * @return JSONArray
+	 * @return the JSONArray parsed from the response
+	 * @throws JSONException if the JSONArray is null
 	 */
 	public JSONArray getArrayResult() throws JSONException {
 		if (result != null) {

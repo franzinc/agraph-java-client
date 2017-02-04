@@ -37,7 +37,9 @@ public abstract class AGResponseHandler {
 	/**
 	 * For most responses, AGHTTPClient releases resources after
 	 * calling {@link #handleResponse(HttpMethod)}; this can be
-	 * overridden in subclasses that stream results. 
+	 * overridden in subclasses that stream results.
+	 * 
+	 * @return Boolean  always returns true
 	 */
 	public boolean releaseConnection() {
 		return true;
@@ -49,9 +51,8 @@ public abstract class AGResponseHandler {
 	 * <tt>Content-Type: application/xml;charset=UTF-8</tt>, this method will
 	 * return <tt>application/xml</tt> as the MIME type.
 	 * 
-	 * @param method
-	 *            The method to get the reponse MIME type from.
-	 * @return The response MIME type, or <tt>null</tt> if not available.
+	 * @param method  the method to get the reponse MIME type from
+	 * @return the response MIME type, or <tt>null</tt> if not available
 	 */
 	protected String getResponseMIMEType(HttpMethod method) throws IOException {
 		Header[] headers = method.getResponseHeaders("Content-Type");

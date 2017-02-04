@@ -21,12 +21,12 @@ import org.openrdf.rio.ntriples.NTriplesUtil;
 
 /**
  * The class of freetext index configurations.
- * <p>
+ * 
  * An index configuration can be customized and then used to create a new freetext index.
- * <p>
+ * 
  * See documentation for 
  * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
- * <p>
+ * 
  * @see #newInstance()
  * @see AGRepositoryConnection#createFreetextIndex(String, AGFreetextIndexConfig)
  */
@@ -60,13 +60,14 @@ public class AGFreetextIndexConfig {
 
 	/**
 	 * Returns a new instance having the default index configuration.
-	 * <p>
+	 * 
 	 * The index configuration can be customized and then used
 	 * to create a new freetext index.
-	 * <p>
+	 * 
 	 * See documentation for 
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
 	 * 
+	 * @return AGFreetextIndexConfig  the created config
 	 * @see AGRepositoryConnection#createFreetextIndex(String, AGFreetextIndexConfig)
 	 */
 	public static AGFreetextIndexConfig newInstance() {
@@ -130,6 +131,8 @@ public class AGFreetextIndexConfig {
 	/**
 	 * See documentation for 
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
+	 * 
+	 * @return List  the Predicates being indexed
 	 */
 	public List<URI> getPredicates() {
 		return predicates;
@@ -138,6 +141,8 @@ public class AGFreetextIndexConfig {
 	/**
 	 * See documentation for 
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
+	 * 
+	 * @return boolean  the current IndexLiterals setting
 	 */
 	public boolean getIndexLiterals() {
 		return indexLiterals;
@@ -146,6 +151,8 @@ public class AGFreetextIndexConfig {
 	/**
 	 * See documentation for 
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
+	 * 
+	 * @param bool  true if Literals should be indexed, false if not
 	 */
 	public void setIndexLiterals(boolean bool) {
 		indexLiterals = bool;
@@ -154,6 +161,8 @@ public class AGFreetextIndexConfig {
 	/**
 	 * See documentation for 
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
+	 * 
+	 * @return  the current IndexLiteralTypes setting
 	 */
 	public List<String> getIndexLiteralTypes() {
 		return indexLiteralTypes;
@@ -162,6 +171,8 @@ public class AGFreetextIndexConfig {
 	/**
 	 * See documentation for 
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
+	 * 
+	 * @return String  the current indexResources setting
 	 */
 	public String getIndexResources() {
 		return indexResources;
@@ -170,6 +181,8 @@ public class AGFreetextIndexConfig {
 	/**
 	 * See documentation for 
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
+	 * 
+	 * @param str  A string indicating how to index resources
 	 */
 	public void setIndexResources(String str) {
 		//TODO: validity check
@@ -179,6 +192,8 @@ public class AGFreetextIndexConfig {
 	/**
 	 * See documentation for 
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
+	 * 
+	 * @return List  the fields (s, p, o, g) being indexed
 	 */
 	public List<String> getIndexFields() {
 		return indexFields;
@@ -187,6 +202,8 @@ public class AGFreetextIndexConfig {
 	/**
 	 * See documentation for 
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
+	 * 
+	 * @return int  the minimum word size associated with this config
 	 */
 	public int getMinimumWordSize() {
 		return minimumWordSize;
@@ -195,6 +212,8 @@ public class AGFreetextIndexConfig {
 	/**
 	 * See documentation for 
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
+	 * 
+	 * @param size  the minimum word size to be set
 	 */
 	public void setMinimumWordSize(int size) {
 		minimumWordSize = size;
@@ -203,6 +222,8 @@ public class AGFreetextIndexConfig {
 	/**
 	 * See documentation for 
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
+	 * 
+	 * @return List  the stop words associated with this config
 	 */
 	public List<String> getStopWords() {
 		return stopWords;
@@ -211,6 +232,8 @@ public class AGFreetextIndexConfig {
 	/**
 	 * See documentation for 
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
+	 * 
+	 * @return List  the word filters associated with this config
 	 */
 	public List<String> getWordFilters() {
 		return wordFilters;
@@ -223,6 +246,8 @@ public class AGFreetextIndexConfig {
 	/**
 	 * See documentation for 
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
+	 * 
+	 * @return List  the border characters associated with this config
 	 */
 	public List<String> getBorderChars() {
 		return borderChars;
@@ -231,6 +256,8 @@ public class AGFreetextIndexConfig {
 	/**
 	 * See documentation for 
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
+	 * 
+	 * @return String  name of the tokenizer
 	 */
 	public String getTokenizer() {
 		return tokenizer;
@@ -239,6 +266,8 @@ public class AGFreetextIndexConfig {
 	/**
 	 * See documentation for 
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
+	 * 
+	 * @param tokenizerName  name of a valid tokenizer
 	 */
 	public void setTokenizer(String tokenizerName) {
 		tokenizer = tokenizerName;

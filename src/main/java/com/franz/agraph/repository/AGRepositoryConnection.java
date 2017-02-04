@@ -200,6 +200,9 @@ implements RepositoryConnection, Closeable {
 	private final AGValueFactory vf;
 
 	/**
+	 * 
+	 * @param repository  a repository name
+	 * @param client  the HTTP client through which requests on this connection will be made
 	 * @see AGRepository#getConnection()
 	 * @see AGVirtualRepository#getConnection()
 	 */
@@ -239,16 +242,16 @@ implements RepositoryConnection, Closeable {
 	}
 
     /**
-     * Returns the AGServer object associated with this connection.
      * 
-     * @return AGServer
+     * @return the AGServer object associated with this connection
      */
     public AGServer getServer() {
         return getRepository().getCatalog().getServer();
     }
 
 	/**
-	 * Returns the lower level HTTP layer for this connection.
+	 * 
+	 * @return the AGHttpRepoclient used by this connection
 	 * 
 	 */
 	public AGHttpRepoClient getHttpRepoClient() {
@@ -413,31 +416,30 @@ implements RepositoryConnection, Closeable {
 	 * Adds RDF data from the specified file to a specific contexts in the
 	 * repository.
 	 *
-	 * @param file
-	 *        A file containing RDF data.
+	 * @param file  a file containing RDF data
 	 * @param baseURI
-	 *        The base URI against which any relative URIs in the data are
+	 *        the base URI against which any relative URIs in the data are
 	 *        resolved. This defaults to the value of
 	 *        {@link java.io.File#toURI() file.toURI()} if the value is set to
-	 *        <tt>null</tt>.
+	 *        <tt>null</tt>
 	 * @param dataFormat
-	 *        The serialization format of the data.
+	 *        the serialization format of the data
 	 * @param contexts
-	 *        The contexts to add the data to. Note that this parameter is a
+	 *        the contexts to add the data to. Note that this parameter is a
 	 *        vararg and as such is optional. If no contexts are specified, the
 	 *        data is added to any context specified in the actual data file, or
 	 *        if the data contains no context, it is added to the default context.
 	 *        If one or more contexts are specified the data is added to these
-	 *        contexts, ignoring any context information in the data itself.
+	 *        contexts, ignoring any context information in the data itself
 	 * @throws IOException
-	 *         If an I/O error occurred while reading from the file.
+	 *        if an I/O error occurred while reading from the file
 	 * @throws UnsupportedRDFormatException
-	 *         If no parser is available for the specified RDF format.
+	 *        if no parser is available for the specified RDF format
 	 * @throws RDFParseException
-	 *         If an error occurred while parsing the RDF data.
+	 *        if an error occurred while parsing the RDF data
 	 * @throws RepositoryException
-	 *         If the data could not be added to the repository, for example
-	 *         because the repository is not writable.
+	 *        if the data could not be added to the repository, for example
+	 *        because the repository is not writable
 	 */
 	public void add(File file, String baseURI, RDFFormat dataFormat, Resource... contexts)
 	 		throws IOException, RDFParseException, RepositoryException
@@ -449,36 +451,34 @@ implements RepositoryConnection, Closeable {
 	 * Adds RDF data from the specified file to a specific contexts in the
 	 * repository.
 	 *
-	 * @param file
-	 *        A file containing RDF data.
+	 * @param file  a file containing RDF data
 	 * @param baseURI
-	 *        The base URI against which any relative URIs in the data are
+	 *        the base URI against which any relative URIs in the data are
 	 *        resolved. This defaults to the value of
 	 *        {@link java.io.File#toURI() file.toURI()} if the value is set to
-	 *        <tt>null</tt>.
-	 * @param dataFormat
-	 *        The serialization format of the data.
+	 *        <tt>null</tt>
+	 * @param dataFormat  the serialization format of the data
 	 * @param attributes
-	 * 		  A JSONObject of attribute bindings that will be added to each statement
-	 * 		  imported from `file'. For RDFFormats that support the specification of
+	 * 		    a JSONObject of attribute bindings that will be added to each statement
+	 * 		    imported from `file'. For RDFFormats that support the specification of
 	 *        attributes (like NQX) these attributes will be applied to statements
-	 *        that do not already specify attributes.
+	 *        that do not already specify attributes
 	 * @param contexts
-	 *        The contexts to add the data to. Note that this parameter is a
+	 *        the contexts to add the data to. Note that this parameter is a
 	 *        vararg and as such is optional. If no contexts are specified, the
 	 *        data is added to any context specified in the actual data file, or
 	 *        if the data contains no context, it is added to the default context.
 	 *        If one or more contexts are specified the data is added to these
-	 *        contexts, ignoring any context information in the data itself.
+	 *        contexts, ignoring any context information in the data itself
 	 * @throws IOException
-	 *         If an I/O error occurred while reading from the file.
+	 *        if an I/O error occurred while reading from the file
 	 * @throws UnsupportedRDFormatException
-	 *         If no parser is available for the specified RDF format.
+	 *        if no parser is available for the specified RDF format
 	 * @throws RDFParseException
-	 *         If an error occurred while parsing the RDF data.
+	 *        if an error occurred while parsing the RDF data
 	 * @throws RepositoryException
-	 *         If the data could not be added to the repository, for example
-	 *         because the repository is not writable.
+	 *        if the data could not be added to the repository, for example
+	 *        because the repository is not writable
 	 */
 	public void add(File file, String baseURI, RDFFormat dataFormat,
 			JSONObject attributes, Resource... contexts)
@@ -501,28 +501,25 @@ implements RepositoryConnection, Closeable {
 	 * Adds the RDF data that can be found at the specified URL to the
 	 * repository, optionally to one or more named contexts.
 	 *
-	 * @param url
-	 *        The URL of the RDF data.
+	 * @param url  the URL of the RDF data
 	 * @param baseURI
-	 *        The base URI against which any relative URIs in the data are
+	 *        the base URI against which any relative URIs in the data are
 	 *        resolved. This defaults to the value of {@link
 	 *        java.net.URL#toExternalForm() url.toExternalForm()} if the value is
-	 *        set to <tt>null</tt>.
-	 * @param dataFormat
-	 *        The serialization format of the data.
+	 *        set to <tt>null</tt>
+	 * @param dataFormat  the serialization format of the data
 	 * @param contexts
-	 *        The contexts to add the data to. If one or more contexts are
+	 *        the contexts to add the data to. If one or more contexts are
 	 *        specified the data is added to these contexts, ignoring any context
-	 *        information in the data itself.
-	 * @throws IOException
-	 *         If an I/O error occurred while reading from the URL.
+	 *        information in the data itself
+	 * @throws IOException  if an I/O error occurred while reading from the URL
 	 * @throws UnsupportedRDFormatException
-	 *         If no parser is available for the specified RDF format.
+	 *        if no parser is available for the specified RDF format
 	 * @throws RDFParseException
-	 *         If an error occurred while parsing the RDF data.
+	 *        if an error occurred while parsing the RDF data
 	 * @throws RepositoryException
-	 *         If the data could not be added to the repository, for example
-	 *         because the repository is not writable.
+	 *        if the data could not be added to the repository, for example
+	 *        because the repository is not writable
 	 */
 	public void add(URL url, String baseURI, RDFFormat dataFormat, Resource... contexts)
 	 		throws IOException, RDFParseException, RepositoryException {
@@ -533,33 +530,31 @@ implements RepositoryConnection, Closeable {
 	 * Adds the RDF data that can be found at the specified URL to the
 	 * repository, optionally to one or more named contexts.
 	 *
-	 * @param url
-	 *        The URL of the RDF data.
+	 * @param url  the URL of the RDF data
 	 * @param baseURI
-	 *        The base URI against which any relative URIs in the data are
+	 *        the base URI against which any relative URIs in the data are
 	 *        resolved. This defaults to the value of {@link
 	 *        java.net.URL#toExternalForm() url.toExternalForm()} if the value is
-	 *        set to <tt>null</tt>.
-	 * @param dataFormat
-	 *        The serialization format of the data.
+	 *        set to <tt>null</tt>
+	 * @param dataFormat  the serialization format of the data
 	 * @param attributes
-	 * 		  A JSONObject of attribute bindings that will be added to each statement
-	 * 		  imported from `url'. For RDFFormats that support the specification of
+	 * 		    a JSONObject of attribute bindings that will be added to each statement
+	 * 		    imported from `url'. For RDFFormats that support the specification of
 	 *        attributes (like NQX) these attributes will be applied to statements
-	 *        that do not already specify attributes.
+	 *        that do not already specify attributes
 	 * @param contexts
-	 *        The contexts to add the data to. If one or more contexts are
+	 *        the contexts to add the data to. If one or more contexts are
 	 *        specified the data is added to these contexts, ignoring any context
-	 *        information in the data itself.
+	 *        information in the data itself
 	 * @throws IOException
-	 *         If an I/O error occurred while reading from the URL.
+	 *        if an I/O error occurred while reading from the URL
 	 * @throws UnsupportedRDFormatException
-	 *         If no parser is available for the specified RDF format.
+	 *        if no parser is available for the specified RDF format
 	 * @throws RDFParseException
-	 *         If an error occurred while parsing the RDF data.
+	 *        if an error occurred while parsing the RDF data
 	 * @throws RepositoryException
-	 *         If the data could not be added to the repository, for example
-	 *         because the repository is not writable.
+	 *        if the data could not be added to the repository, for example
+	 *        because the repository is not writable
 	 */
 	public void add(URL url, String baseURI, RDFFormat dataFormat,
 			JSONObject attributes, Resource... contexts)
@@ -614,28 +609,26 @@ implements RepositoryConnection, Closeable {
 		 * Adds RDF data from an InputStream to the repository, optionally to one or
 		 * more named contexts.
 		 *
-		 * @param in
-		 *        An InputStream from which RDF data can be read.
+		 * @param in  an InputStream from which RDF data can be read
 		 * @param baseURI
-		 *        The base URI against which any relative URIs in the data are
-		 *        resolved.
-		 * @param dataFormat
-		 *        The serialization format of the data.
+		 *        the base URI against which any relative URIs in the data are
+		 *        resolved
+		 * @param dataFormat  the serialization format of the data
 		 * @param contexts
-		 *        The contexts to add the data to. If one or more contexts are
+		 *        the contexts to add the data to. If one or more contexts are
 		 *        supplied the method ignores contextual information in the actual
 		 *        data. If no contexts are supplied the contextual information in the
 		 *        input stream is used, if no context information is available the
-		 *        data is added without any context.
+		 *        data is added without any context
 		 * @throws IOException
-		 *         If an I/O error occurred while reading from the input stream.
+		 *        if an I/O error occurred while reading from the input stream
 		 * @throws UnsupportedRDFormatException
-		 *         If no parser is available for the specified RDF format.
+		 *        if no parser is available for the specified RDF format
 		 * @throws RDFParseException
-		 *         If an error occurred while parsing the RDF data.
+		 *        if an error occurred while parsing the RDF data
 		 * @throws RepositoryException
-		 *         If the data could not be added to the repository, for example
-		 *         because the repository is not writable.
+		 *        if the data could not be added to the repository, for example
+		 *        because the repository is not writable
 		 */
 	  public void add(InputStream in, String baseURI, RDFFormat dataFormat, Resource... contexts)
 	 		throws IOException, RDFParseException, RepositoryException
@@ -647,33 +640,31 @@ implements RepositoryConnection, Closeable {
 		 * Adds RDF data from an InputStream to the repository, optionally to one or
 		 * more named contexts.
 		 *
-		 * @param in
-		 *        An InputStream from which RDF data can be read.
+		 * @param in  an InputStream from which RDF data can be read
 		 * @param baseURI
-		 *        The base URI against which any relative URIs in the data are
-		 *        resolved.
-		 * @param dataFormat
-		 *        The serialization format of the data.
+		 *        the base URI against which any relative URIs in the data are
+		 *        resolved
+		 * @param dataFormat  the serialization format of the data
 		 * @param attributes
-		 * 		  A JSONObject of attribute bindings that will be added to each statement
-		 * 		  imported from `in'. For RDFFormats that support the specification of
+		 * 		    a JSONObject of attribute bindings that will be added to each statement
+		 * 		    imported from `in'. For RDFFormats that support the specification of
 		 *        attributes (like NQX) these attributes will be applied to statements
-		 *        that do not already specify attributes.
+		 *        that do not already specify attributes
 		 * @param contexts
-		 *        The contexts to add the data to. If one or more contexts are
+		 *        the contexts to add the data to. If one or more contexts are
 		 *        supplied the method ignores contextual information in the actual
 		 *        data. If no contexts are supplied the contextual information in the
 		 *        input stream is used, if no context information is available the
-		 *        data is added without any context.
+		 *        data is added without any context
 		 * @throws IOException
-		 *         If an I/O error occurred while reading from the input stream.
+		 *        if an I/O error occurred while reading from the input stream
 		 * @throws UnsupportedRDFormatException
-		 *         If no parser is available for the specified RDF format.
+		 *        if no parser is available for the specified RDF format
 		 * @throws RDFParseException
-		 *         If an error occurred while parsing the RDF data.
+		 *        if an error occurred while parsing the RDF data
 		 * @throws RepositoryException
-		 *         If the data could not be added to the repository, for example
-		 *         because the repository is not writable.
+		 *        if the data could not be added to the repository, for example
+		 *        because the repository is not writable
 		 */
 	  public void add(InputStream in, String baseURI, RDFFormat dataFormat,
 			  JSONObject attributes, Resource... contexts)
@@ -712,11 +703,11 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * Adds all files stored in a ZIP archive to the repository.
 	 *
-	 * @param in Input stream containing the ZIP file
-	 * @param baseURI Used to resolve relative URIs
-	 * @param dataFormat Default RDF format used when it is not possible to
-	 *                   determine the format from file's extension.
-	 * @param contexts Named graphs to add the data to.
+	 * @param in  input stream containing the ZIP file
+	 * @param baseURI  used to resolve relative URIs
+	 * @param dataFormat default RDF format used when it is not possible to
+	 *                   determine the format from file's extension
+	 * @param contexts  named graphs to add the data to
 	 * @throws IOException .
 	 * @throws RDFParseException .
 	 * @throws RepositoryException .
@@ -791,26 +782,24 @@ implements RepositoryConnection, Closeable {
 		 * by enforcing a default character encoding upon the bytes. If possible,
 		 * adding such data using an InputStream is to be preferred.</b>
 		 *
-		 * @param reader
-		 *        A Reader from which RDF data can be read.
+		 * @param reader  a Reader from which RDF data can be read
 		 * @param baseURI
-		 *        The base URI against which any relative URIs in the data are 
-		 *        resolved.
-		 * @param dataFormat
-		 *        The serialization format of the data.
+		 *        the base URI against which any relative URIs in the data are 
+		 *        resolved
+		 * @param dataFormat  the serialization format of the data
 		 * @param contexts
-		 *        The contexts to add the data to. If one or more contexts are
+		 *        he contexts to add the data to. If one or more contexts are
 		 *        specified the data is added to these contexts, ignoring any context
-		 *        information in the data itself.
+		 *        information in the data itself
 		 * @throws IOException
-		 *         If an I/O error occurred while reading from the reader.
+		 *        if an I/O error occurred while reading from the reader
 		 * @throws UnsupportedRDFormatException
-		 *         If no parser is available for the specified RDF format.
+		 *        if no parser is available for the specified RDF format
 		 * @throws RDFParseException
-		 *         If an error occurred while parsing the RDF data.
+		 *        if an error occurred while parsing the RDF data
 		 * @throws RepositoryException
-		 *         If the data could not be added to the repository, for example
-		 *         because the repository is not writable.
+		 *        if the data could not be added to the repository, for example
+		 *        because the repository is not writable
 		 */
 	 public void add(Reader reader, String baseURI, RDFFormat dataFormat, Resource... contexts)
 	 		throws IOException, RDFParseException, RepositoryException
@@ -825,31 +814,28 @@ implements RepositoryConnection, Closeable {
 		 * by enforcing a default character encoding upon the bytes. If possible,
 		 * adding such data using an InputStream is to be preferred.</b>
 		 *
-		 * @param reader
-		 *        A Reader from which RDF data can be read.
+		 * @param reader  a Reader from which RDF data can be read
 		 * @param baseURI
-		 *        The base URI against which any relative URIs in the data are 
-		 *        resolved.
-		 * @param dataFormat
-		 *        The serialization format of the data.
+		 *        the base URI against which any relative URIs in the data are 
+		 *        resolved
+		 * @param dataFormat  the serialization format of the data
 		 * @param attributes
-		 *        A JSONObject of attribute bindings that will be added to each statement
-		 * 		  imported from `reader'. For RDFFormats that support the specification of
+		 *        a JSONObject of attribute bindings that will be added to each statement
+		 * 		    imported from `reader'. For RDFFormats that support the specification of
 		 *        attributes (like NQX) these attributes will be applied to statements
-		 *        that do not already specify attributes.
+		 *        that do not already specify attributes
 		 * @param contexts
-		 *        The contexts to add the data to. If one or more contexts are
+		 *        the contexts to add the data to. If one or more contexts are
 		 *        specified the data is added to these contexts, ignoring any context
-		 *        information in the data itself.
-		 * @throws IOException
-		 *         If an I/O error occurred while reading from the reader.
+		 *        information in the data itself
+		 * @throws IOException  if an I/O error occurred while reading from the reader
 		 * @throws UnsupportedRDFormatException
-		 *         If no parser is available for the specified RDF format.
+		 *        if no parser is available for the specified RDF format
 		 * @throws RDFParseException
-		 *         If an error occurred while parsing the RDF data.
+		 *        if an error occurred while parsing the RDF data
 		 * @throws RepositoryException
-		 *         If the data could not be added to the repository, for example
-		 *         because the repository is not writable.
+		 *        if the data could not be added to the repository, for example
+		 *        because the repository is not writable
 		 */
 	 public void add(Reader reader, String baseURI, RDFFormat dataFormat,
 			 JSONObject attributes, Resource... contexts)
@@ -866,21 +852,18 @@ implements RepositoryConnection, Closeable {
 		 * Adds a statement with the specified subject, predicate and object to this
 		 * repository, optionally to one or more named contexts.
 		 *
-		 * @param subject
-		 *        The statement's subject.
-		 * @param predicate
-		 *        The statement's predicate.
-		 * @param object
-		 *        The statement's object.
+		 * @param subject  the statement's subject
+		 * @param predicate  the statement's predicate
+		 * @param object  the statement's object
 		 * @param contexts
-		 *        The contexts to add the data to. Note that this parameter is a
+		 *        he contexts to add the data to. Note that this parameter is a
 		 *        vararg and as such is optional. If the data contains no context,
 		 *        it is added to the default context. If one or more contexts are
 		 *        specified the data is added to these contexts, ignoring any context
-		 *        information in the data itself.
+		 *        information in the data itself
 		 * @throws RepositoryException
-		 *         If the data could not be added to the repository, for example
-		 *         because the repository is not writable.
+		 *         if the data could not be added to the repository, for example
+		 *         because the repository is not writable
 		 */
 	 public void add(Resource subject, URI predicate, Value object, Resource... contexts)
 			throws RepositoryException
@@ -900,19 +883,16 @@ implements RepositoryConnection, Closeable {
 	 * Removes the statement(s) with the specified subject, predicate and object
 	 * from the repository, optionally restricted to the specified contexts.
 	 *
-	 * @param subject
-	 *        The statement's subject, or <tt>null</tt> for a wildcard.
-	 * @param predicate
-	 *        The statement's predicate, or <tt>null</tt> for a wildcard.
-	 * @param object
-	 *        The statement's object, or <tt>null</tt> for a wildcard.
+	 * @param subject  the statement's subject, or <tt>null</tt> for a wildcard
+	 * @param predicate  the statement's predicate, or <tt>null</tt> for a wildcard
+	 * @param object  the statement's object, or <tt>null</tt> for a wildcard
 	 * @param contexts
-	 *        The context(s) to remove the data from. Note that this parameter is
+	 *        the context(s) to remove the data from. Note that this parameter is
 	 *        a vararg and as such is optional. If no contexts are supplied the
-	 *        method operates on the entire repository.
+	 *        method operates on the entire repository
 	 * @throws RepositoryException
-	 *         If the statement(s) could not be removed from the repository, for
-	 *         example because the repository is not writable.
+	 *        if the statement(s) could not be removed from the repository, for
+	 *        example because the repository is not writable
 	 */
 	 public void remove(Resource subject, URI predicate, Value object, Resource... contexts)
 			throws RepositoryException
@@ -1046,6 +1026,8 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * Set to true to automatically use {@link AGStreamTupleQuery}
 	 * for {@link #prepareTupleQuery(QueryLanguage, String, String)}.
+	 * 
+	 * @param streamResults  new setting for the streamResults parameter
 	 * @see #isStreamResults()
 	 */
 	public void setStreamResults(boolean streamResults) {
@@ -1055,6 +1037,8 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * If true, automatically use {@link AGStreamTupleQuery}.
 	 * Default is false.
+	 * 
+	 * @return boolean the value of the <code>streamResults</code> parameter
 	 * @see #setStreamResults(boolean)
 	 */
 	public boolean isStreamResults() {
@@ -1119,6 +1103,10 @@ implements RepositoryConnection, Closeable {
 
 	/**
 	 * Creates a RepositoryResult for the supplied element set.
+	 * 
+	 * @param <E>  the class of elements in the set
+	 * @param elements  the set of elements
+	 * @return RepositoryResult  the set of elements as a RepositoryResult
 	 */
 	public <E> RepositoryResult<E> createRepositoryResult(
 			Iterable<? extends E> elements) {
@@ -1182,13 +1170,13 @@ implements RepositoryConnection, Closeable {
 	 * natural way to obtain a statement's triple id from the 
 	 * java client; when that is possible, this api may change.
 	 * 
-	 * @param ids Strings representing statement ids.
-	 * @return The statements having the specified ids. The result object
+	 * @param ids  Strings representing statement ids
+	 * @return the statements having the specified ids. The result object
 	 *         is a {@link RepositoryResult} object, a lazy Iterator-like object
 	 *         containing {@link Statement}s and optionally throwing a
 	 *         {@link RepositoryException} when an error when a problem occurs
-	 *         during retrieval.
-	 * @throws RepositoryException
+	 *         during retrieval
+	 * @throws RepositoryException  if there is an error with this request
 	 */
 	public RepositoryResult<Statement> getStatements(String... ids)
 			throws RepositoryException {
@@ -1210,9 +1198,9 @@ implements RepositoryConnection, Closeable {
 	 * {@link #prepareGraphQuery(QueryLanguage, String, String)} methods instead.
 	 * 
 	 * @throws UnsupportedOperationException
-	 *         if the method is not supported for the supplied query language.
+	 *         if the method is not supported for the supplied query language
 	 * @throws IllegalArgumentException
-	 *         if the query type (Tuple, Graph, Boolean) cannot be determined.
+	 *         if the query type (Tuple, Graph, Boolean) cannot be determined
 	 */
 	public AGQuery prepareQuery(QueryLanguage ql, String queryString, String baseURI) {
 		if (QueryLanguage.SPARQL.equals(ql)) {
@@ -1241,10 +1229,8 @@ implements RepositoryConnection, Closeable {
 	 * Removes any SPARQL prefix and base declarations and comments from 
 	 * the supplied SPARQL query string.
 	 * 
-	 * @param queryString
-	 *        a SPARQL query string
-	 * @return a substring of queryString, with prefix and base declarations
-	 *         removed.
+	 * @param queryString  a SPARQL query string
+	 * @return a substring of queryString, with prefix and base declarations removed
 	 */
 	private String stripSparqlQueryString(String queryString) {
 		String normalizedQuery = queryString;
@@ -1368,9 +1354,10 @@ implements RepositoryConnection, Closeable {
 	 * See documentation for 
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
 	 * 
-	 * @see AGFreetextIndexConfig#newInstance()
 	 * @param indexName the index name to create
 	 * @param config the index configuration
+	 * @throws RepositoryException  if there is an error with this request
+	 * @see AGFreetextIndexConfig#newInstance()
 	 */
 	public void createFreetextIndex(String indexName, AGFreetextIndexConfig config)
 	throws RepositoryException {
@@ -1384,6 +1371,8 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * Deletes the freetext index of the specified name.
 	 * 
+	 * @param indexName  the index to be deleted
+	 * @throws RepositoryException  if there is an error with this request
 	 * @see #createFreetextIndex(String, AGFreetextIndexConfig)
 	 */
 	public void deleteFreetextIndex(String indexName) throws RepositoryException {
@@ -1395,6 +1384,9 @@ implements RepositoryConnection, Closeable {
 	 * objects of data added to the repository having this predicate will be
 	 * text indexed and searchable.
 	 * 
+	 * @param name  of the index to create
+	 * @param predicates  the predicates this index will operate on
+	 * @throws RepositoryException  if there is an error with this request
 	 * @deprecated
 	 * @see #createFreetextIndex(String, AGFreetextIndexConfig)
 	 */
@@ -1408,6 +1400,9 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * Gets the predicates that have been registered for text indexing.
 	 * 
+	 * @param index  name of the index to lookup
+	 * @return String[]  the predicates this index operates on
+	 * @throws RepositoryException  if there is an error during the request
 	 * @deprecated
 	 * @see #getFreetextIndexConfig(String)
 	 */
@@ -1417,6 +1412,11 @@ implements RepositoryConnection, Closeable {
 
 	/**
 	 * Gets the configuration of the specified free text index.
+	 * 
+	 * @param indexName  name of the index
+	 * @return {@link AGFreetextIndexConfig}  the configuration of the specified index
+	 * @exception RepositoryException  if there is an error during the request
+	 * @exception JSONException  if there is a problem parsing the response to JSON
 	 */
 	public AGFreetextIndexConfig getFreetextIndexConfig(String indexName)
 			throws RepositoryException, JSONException {
@@ -1425,6 +1425,9 @@ implements RepositoryConnection, Closeable {
 	
 	/**
 	 * Gets freetext indexes that have been created
+	 * 
+	 * @return String[]  a list of freetext index names
+	 * @throws RepositoryException  if there is an error during the request
 	 * @deprecated
 	 * @see #listFreetextIndices()
 	 */
@@ -1435,7 +1438,8 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * Lists the freetext indices that have been defined for this repository.
 	 * 
-	 * @return a list of freetext index names
+	 * @return List  a list of freetext index names
+	 * @throws RepositoryException  if there is an error during the request
 	 */
 	public List<String> listFreetextIndices() throws RepositoryException {
 		return getHttpRepoClient().listFreetextIndices();
@@ -1458,8 +1462,9 @@ implements RepositoryConnection, Closeable {
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#post-put-predmapping"
 	 * target="_top">POST predicate mapping</a>.</p>
 	 * 
-	 * @param predicate the predicate URI
-	 * @param primtype datatype URI
+	 * @param predicate  the predicate URI
+	 * @param primtype  the datatype URI
+	 * @throws RepositoryException  if there is an error during the request
 	 * @see #getPredicateMappings()
 	 */
 	public void registerPredicateMapping(URI predicate, URI primtype)
@@ -1474,7 +1479,8 @@ implements RepositoryConnection, Closeable {
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#delete-predmapping"
 	 * target="_top">DELETE predicate mapping</a>.</p>
 	 * 
-	 * @param predicate the predicate
+	 * @param predicate  the predicate mapping to delete
+	 * @throws RepositoryException  if there is an error during the request
 	 * @see #getPredicateMappings()
 	 */
 	public void deletePredicateMapping(URI predicate)
@@ -1494,6 +1500,8 @@ implements RepositoryConnection, Closeable {
 	 * target="_top">predicate-mapping function</a>.
 	 * </p>
 	 * 
+	 * @return String[]  the predicate mappings that have been registered
+	 * @throws RepositoryException  if there is an error during the request
 	 * @see #registerPredicateMapping(URI, URI)
 	 * @see #deletePredicateMapping(URI)
 	 * @see #getDatatypeMappings()
@@ -1520,8 +1528,9 @@ implements RepositoryConnection, Closeable {
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#post-put-typemapping"
 	 * target="_top">POST type mapping</a>.</p>
 	 * 
-	 * @param datatype the user datatype
-	 * @param primtype the primitive type
+	 * @param datatype  the name of the datatype mapping to register
+	 * @param primtype  the primitive type of the new mapping
+	 * @throws RepositoryException  if there is an error during the request
 	 * @see #getDatatypeMappings()
 	 */
 	public void registerDatatypeMapping(URI datatype, URI primtype)
@@ -1536,7 +1545,8 @@ implements RepositoryConnection, Closeable {
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#delete-typemapping"
 	 * target="_top">DELETE type mapping</a>.</p>
 	 * 
-	 * @param datatype the user datatype
+	 * @param datatype  the datatype mapping to delete
+	 * @throws RepositoryException  if there is an error during the request
 	 * @see #getDatatypeMappings()
 	 * @see #clearMappings()
 	 */
@@ -1555,6 +1565,8 @@ implements RepositoryConnection, Closeable {
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/lisp-reference.html#function.datatype-mapping"
 	 * target="_top">datatype-mapping function</a>.
 	 * 
+	 * @return String[]  the datatype mappings that have been registered
+	 * @throws RepositoryException  if there is an error during the request
 	 * @see #deleteDatatypeMapping(URI)
 	 * @see #clearMappings()
 	 * @see #registerDatatypeMapping(URI, URI)
@@ -1574,6 +1586,7 @@ implements RepositoryConnection, Closeable {
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#delete-all-mapping"
 	 * target="_top">DELETE all mapping</a> for more details.</p>
 	 * 
+	 * @throws RepositoryException  if there is an error during the request
 	 * @see #getDatatypeMappings()
 	 * @see #getPredicateMappings()
 	 */
@@ -1594,6 +1607,8 @@ implements RepositoryConnection, Closeable {
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#delete-all-mapping"
 	 * target="_top">DELETE all mapping</a> for more details.</p>
 	 * 
+	 * @param includeAutoEncodedPrimitiveTypes  true if auto-encoded primitive types should be cleared
+	 * @throws RepositoryException  if there is an error during the request
 	 * @see #getDatatypeMappings()
 	 * @see #getPredicateMappings()
 	 */
@@ -1603,6 +1618,8 @@ implements RepositoryConnection, Closeable {
 
 	/**
 	 * Deletes all attribute definitions from the repository.
+	 * 
+	 * @throws RepositoryException  if there is an error during the request
 	 */
 	public void clearAttributes() throws RepositoryException {
 		try {
@@ -1632,7 +1649,8 @@ implements RepositoryConnection, Closeable {
 	 * target="_top">Session Port Setup</a>.
 	 * </p>
 	 * 
-	 * @param rules a string of rule text
+	 * @param rules  a string of rule text
+	 * @throws RepositoryException  if there is an error during the request
 	 * @see #addRules(InputStream)
 	 */
 	public void addRules(String rules) throws RepositoryException {
@@ -1656,7 +1674,8 @@ implements RepositoryConnection, Closeable {
 	 * target="_top">Session Port Setup</a>.
 	 * </p>
 	 * 
-	 * @param rulestream a stream of rule text
+	 * @param rulestream  a stream of rule text
+	 * @throws RepositoryException  if there is an error during the request
 	 * @see #addRules(String)
 	 */
 	public void addRules(InputStream rulestream) throws RepositoryException {
@@ -1669,8 +1688,9 @@ implements RepositoryConnection, Closeable {
 	 * See <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#post-eval"
 	 * target="_top">HTTP POST eval</a>.
 	 * 
-	 * @param lispForm the Lisp form to evaluate
-	 * @return the result in a String
+	 * @param lispForm  the Lisp form to evaluate
+	 * @return String  the result of the evaluation
+	 * @throws RepositoryException  if there is an error during the request
 	 * @see #evalInServer(String)
 	 */
 	public String evalInServer(String lispForm) throws RepositoryException {
@@ -1685,6 +1705,7 @@ implements RepositoryConnection, Closeable {
 	 * 
 	 * @param stream the Lisp form to evaluate
 	 * @return the result in a String
+	 * @throws RepositoryException  if there is an error during the request
 	 * @see #evalInServer(String)
 	 */
 	public String evalInServer(InputStream stream) throws RepositoryException {
@@ -1694,15 +1715,11 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * Instructs the server to fetch and load data from the specified URI.
 	 * 
-	 * @param source
-	 *            the URI to fetch and load.
-	 * @param baseURI
-	 *            the base URI for the source document.
-	 * @param dataFormat
-	 *            the RDF data format for the source document.
-	 * @param contexts
-	 *            zero or more contexts into which data will be loaded.
-	 * @throws RepositoryException
+	 * @param source  the URI to fetch and load
+	 * @param baseURI  the base URI for the source document
+	 * @param dataFormat  the RDF data format for the source document
+	 * @param contexts  zero or more contexts into which data will be loaded
+	 * @throws RepositoryException  if there is an error during the request
 	 */
 	public void load(URI source, String baseURI, RDFFormat dataFormat,
 			Resource... contexts) throws RepositoryException {
@@ -1712,20 +1729,16 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * Instructs the server to fetch and load data from the specified URI.
 	 * 
-	 * @param source
-	 *            the URI to fetch and load.
-	 * @param baseURI
-	 *            the base URI for the source document.
-	 * @param dataFormat
-	 *            the RDF data format for the source document.
+	 * @param source  the URI to fetch and load
+	 * @param baseURI  the base URI for the source document
+	 * @param dataFormat  the RDF data format for the source document
 	 * @param attributes
-	 * 		  A JSONObject of attribute bindings that will be added to each statement
+	 * 		  a JSONObject of attribute bindings that will be added to each statement
 	 * 		  imported from `source'. For RDFFormats that support the specification of
-	 *        attributes (like NQX) these attributes will be applied to statements
-	 *        that do not already specify attributes.
-	 * @param contexts
-	 *            zero or more contexts into which data will be loaded.
-	 * @throws RepositoryException
+	 *      attributes (like NQX) these attributes will be applied to statements
+	 *      that do not already specify attributes
+	 * @param contexts  zero or more contexts into which data will be loaded
+	 * @throws RepositoryException  if there is an error during the request
 	 */
 	public void load(URI source, String baseURI, RDFFormat dataFormat,
 			JSONObject attributes, Resource... contexts)
@@ -1736,15 +1749,11 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * Instructs the server to load data from the specified server-side path.
 	 * 
-	 * @param absoluteServerPath
-	 *            the path to the server-side source file.
-	 * @param baseURI
-	 *            the base URI for the source document.
-	 * @param dataFormat
-	 *            the RDF data format for the source document.
-	 * @param contexts
-	 *            zero or more contexts into which data will be loaded.
-	 * @throws RepositoryException
+	 * @param absoluteServerPath  the path to the server-side source file
+	 * @param baseURI  the base URI for the source document
+	 * @param dataFormat  the RDF data format for the source document
+	 * @param contexts  zero or more contexts into which data will be loaded
+	 * @throws RepositoryException  if there is an error during the request
 	 */
 	public void load(String absoluteServerPath, String baseURI,
 			RDFFormat dataFormat, Resource... contexts)
@@ -1756,20 +1765,16 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * Instructs the server to load data from the specified server-side path.
 	 * 
-	 * @param absoluteServerPath
-	 *            the path to the server-side source file.
-	 * @param baseURI
-	 *            the base URI for the source document.
-	 * @param dataFormat
-	 *            the RDF data format for the source document.
+	 * @param absoluteServerPath  the path to the server-side source file
+	 * @param baseURI  the base URI for the source document
+	 * @param dataFormat  the RDF data format for the source document
 	 * @param attributes
-	 * 		  A JSONObject of attribute bindings that will be added to each statement
+	 * 		  a JSONObject of attribute bindings that will be added to each statement
 	 * 		  imported from `absoluteServerPath'. For RDFFormats that support the
 	 * 		  specification of attributes (like NQX) these attributes will be applied
-	 * 		  to statements that do not already specify attributes.
-	 * @param contexts
-	 *            zero or more contexts into which data will be loaded.
-	 * @throws RepositoryException
+	 * 		  to statements that do not already specify attributes
+	 * @param contexts  zero or more contexts into which data will be loaded
+	 * @throws RepositoryException  if there is an error during the request
 	 */
 	public void load(String absoluteServerPath, String baseURI,
 			RDFFormat dataFormat, JSONObject attributes,
@@ -1788,7 +1793,7 @@ implements RepositoryConnection, Closeable {
 	 * and <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#get-ping"
 	 * target="_top">GET ping</a> for more details.</p>
 	 * 
-	 * @throws RepositoryException
+	 * @throws RepositoryException  if there is an error during the request
 	 * @see #setSessionLifetime(int)
 	 */
 	public void ping() throws RepositoryException {
@@ -1797,14 +1802,24 @@ implements RepositoryConnection, Closeable {
 
 	// TODO: return RepositoryResult<URI>?
 	/**
-	 * Gets the Geospatial types that have been registered.
+	 * 
+	 * @return String[]  the geospatial types that have been registered
+	 * @throws RepositoryException  if there is an error during the request
 	 */
 	public String[] getGeoTypes() throws RepositoryException {
 		return getHttpRepoClient().getGeoTypes();
 	}
 
 	/**
-	 * Registers a cartesian type.
+	 * Registers a cartesian geospatial subtype.
+	 * 
+	 * @param stripWidth  the strip width in some units
+	 * @param xmin  the minimum x range
+	 * @param ymin  the minimum y range
+	 * @param xmax  the maximum x range
+	 * @param ymax  the maximum y range
+	 * @return URI  the datatype encoding of this subtype
+	 * @throws RepositoryException  if there is an error during the request
 	 */
 	public URI registerCartesianType(float stripWidth, float xmin, float xmax,
 			float ymin, float ymax) throws RepositoryException {
@@ -1814,7 +1829,16 @@ implements RepositoryConnection, Closeable {
 	}
 
 	/**
-	 * Registers a spherical type.
+	 * Registers a spherical geospatial subtype.
+	 * 
+	 * @param stripWidth  the strip width in some units
+	 * @param unit  the distance unit <code>stripWidth</code> is specified in
+	 * @param latmin  the minimum latitude range
+	 * @param lonmin  the minimum longitude range
+	 * @param latmax  the maximum latitude range
+	 * @param lonmax  the maximum longitude range
+	 * @return URI  the datatype encoding of this subtype
+	 * @throws RepositoryException  if there is an error during the request
 	 */
 	public URI registerSphericalType(float stripWidth, String unit,
 			float latmin, float lonmin, float latmax, float lonmax)
@@ -1830,6 +1854,10 @@ implements RepositoryConnection, Closeable {
 	
 	/**
 	 * Registers a polygon.
+	 * 
+	 * @param polygon  the name of this polygon
+	 * @param points  a List of points describing the polygon
+	 * @throws RepositoryException  if there is an error during the request
 	 */
 	public void registerPolygon(URI polygon, List<Literal> points)
 	throws RepositoryException {
@@ -1899,11 +1927,12 @@ implements RepositoryConnection, Closeable {
 	 * target="_top">Session Port Setup</a>.
 	 * </p>
 	 * 
-	 * @param generator Generator name.
-	 * @param objectOfs
-	 * @param subjectOfs
-	 * @param undirecteds
-	 * @param query
+	 * @param generator  Generator name
+	 * @param objectOfs  a list of predicates
+	 * @param subjectOfs  a list of predicates
+	 * @param undirecteds a list of predicates
+	 * @param query  a string representation of a select clause
+	 * @throws RepositoryException  if there is an error during the request
 	 */
 	public void registerSNAGenerator(String generator, List<URI> objectOfs, List<URI> subjectOfs, List<URI> undirecteds, String query) throws RepositoryException {
 		List<String> objOfs = new ArrayList<String>();
@@ -1941,8 +1970,8 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * Returns a list of actively managed indices for this repository.
 	 * 
-	 * @return a list of actively managed indices for this repository.
-	 * @throws OpenRDFException
+	 * @return a list of actively managed indices for this repository
+	 * @throws OpenRDFException  if there is an error during the request
 	 */
     public List<String> listIndices() throws OpenRDFException {
     	return getHttpRepoClient().listIndices(false);
@@ -1952,7 +1981,7 @@ implements RepositoryConnection, Closeable {
      * Returns a list of all possible index types for this repository.
      * 
      * @return a list of valid index types
-     * @throws OpenRDFException
+     * @throws OpenRDFException  if there is an error during the request
      */
     public List<String> listValidIndices() throws OpenRDFException {
     	return getHttpRepoClient().listIndices(true);
@@ -1962,8 +1991,8 @@ implements RepositoryConnection, Closeable {
      * Adds the given index to the list of actively managed indices.
      * This will take affect on the next commit.
      * 
-     * @param type a valid index type
-     * @throws RepositoryException
+     * @param type  a valid index type
+     * @throws RepositoryException  if there is an error during the request
    	 * @see #listValidIndices()
    	 */
     public void addIndex(String type) throws RepositoryException {
@@ -1974,8 +2003,8 @@ implements RepositoryConnection, Closeable {
      * Drops the given index from the list of actively managed indices.
      * This will take affect on the next commit.
      * 
-     * @param type an actively managed index type.
-     * @throws RepositoryException
+     * @param type  an actively managed index type
+     * @throws RepositoryException  if there is an error during the request
      * @see #listValidIndices()
      */
     public void dropIndex(String type) throws RepositoryException {
@@ -1994,9 +2023,9 @@ implements RepositoryConnection, Closeable {
 	 * frequently . 
 	 * 
 	 * @param rdftransaction a stream in application/x-rdftransaction format
-	 * @throws RepositoryException
-	 * @throws RDFParseException
-	 * @throws IOException
+	 * @throws RepositoryException  if there is an error during the request
+	 * @throws RDFParseException  if malformed data is encountered
+	 * @throws IOException  on errors reading from the <code>rdftransaction</code> stream
 	 */
 	public void sendRDFTransaction(InputStream rdftransaction) throws RepositoryException,
 			RDFParseException, IOException {
@@ -2013,9 +2042,9 @@ implements RepositoryConnection, Closeable {
 	 * @param rdftransaction a stream in application/x-rdftransaction format
 	 * @param attributes a JSONObject of attribute bindings that will be added
 	 * 		to each triple imported from `rdftransaction'.
-	 * @throws RepositoryException
-	 * @throws RDFParseException
-	 * @throws IOException
+	 * @throws RepositoryException  if there is an error during the request
+	 * @throws RDFParseException  if malformed data is encountered
+	 * @throws IOException  on errors reading from the <code>rdftransaction</code> stream
 	 */
 	public void sendRDFTransaction(InputStream rdftransaction, JSONObject attributes)
 			throws RepositoryException, RDFParseException, IOException {
@@ -2067,6 +2096,7 @@ implements RepositoryConnection, Closeable {
 	 *  
 	 * @param namespace a valid namespace, a URI ref
 	 * @param format a valid format for an encodable namespace
+	 * @throws RepositoryException  if there is an error during the request
 	 * @see #registerEncodableNamespaces(Iterable)
 	 * @see #listEncodableNamespaces()
 	 * @see #unregisterEncodableNamespace(String)
@@ -2080,6 +2110,8 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * Registers multiple formatted namespaces in a single request.
 	 * 
+	 * @param formattedNamespaces  an iterable collection of formatted namespaces
+	 * @throws RepositoryException  if there is an error during the request
 	 * @see #registerEncodableNamespace(String, String)
 	 */
 	public void registerEncodableNamespaces(Iterable <? extends AGFormattedNamespace> formattedNamespaces) throws RepositoryException {
@@ -2100,7 +2132,8 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * Returns a list of the registered encodable namespaces.
 	 *  
-	 * @return a list of the registered encodable namespaces
+	 * @return List  a list of the registered encodable namespaces
+	 * @throws OpenRDFException  if there is a problem parsing the request
 	 * @see #registerEncodableNamespace(String, String)
 	 */
 	public List<AGFormattedNamespace> listEncodableNamespaces()
@@ -2125,7 +2158,8 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * Unregisters the specified encodable namespace.
 	 * 
-	 * @param namespace the namespace to unregister
+	 * @param namespace  the namespace to unregister
+	 * @throws RepositoryException  if there is an error during the request
 	 * @see #registerEncodableNamespace(String, String)
 	 */
 	public void unregisterEncodableNamespace(String namespace) throws RepositoryException {
@@ -2161,17 +2195,17 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * Sets the 'lifetime' for a dedicated session spawned by this connection.
 	 * Seconds a session can be idle before being collected.
-	 * This method does not create a session. If unset, the lifetime
-         * defaults to the value of <a href="../../../../../daemon-config.html#DefaultSessionTimeout">DefaultSessionTimeout</a>.         
+	 * If unset, the lifetime defaults to the value of
+	 * <a href="../../../../../daemon-config.html#DefaultSessionTimeout">DefaultSessionTimeout</a>.         
 	 * If set, the value must not be larger than
-         * <a href="../../../../../daemon-config.html#MaximumSessionTimeout">MaximumSessionTimeout</a>.
-         * See <a href="../../../../../daemon-config.html#session-values">Session directives</a>
-         * in <a href="../../../../../daemon-config.html">Server Configuration and Control</a> for more information.
+	 * <a href="../../../../../daemon-config.html#MaximumSessionTimeout">MaximumSessionTimeout</a>.
+	 * See <a href="../../../../../daemon-config.html#session-values">Session directives</a>
+	 * in <a href="../../../../../daemon-config.html">Server Configuration and Control</a> for more information.
 	 * <p>Also see <a href="#sessions">session overview</a> and
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#post-session"
 	 * target="_top">POST session</a> for more details.</p>
 	 * 
-	 * @param lifetimeInSeconds the session lifetime, in seconds.
+	 * @param lifetimeInSeconds the session lifetime, in seconds
 	 * @see #getSessionLifetime()
 	 * @see #ping()
 	 */
@@ -2186,21 +2220,20 @@ implements RepositoryConnection, Closeable {
 	 * 
 	 * @see #setSessionLifetime(int)
 	 * @see #ping()
-	 * @return the session lifetime, in seconds.
+	 * @return the session lifetime, in seconds
 	 */
 	public int getSessionLifetime() {
 		return getHttpRepoClient().getSessionLifetime();
 	}
 	
 	/**
-	 * Sets the 'loadInitFile' for a dedicated session spawned by this connection.
-	 * This method does not create a session.
-	 * 
-	 * <p>loadInitFile is a boolean, defaulting to false, which determines
-	 * whether the initfile is loaded into this session.</p>
+	 * Sets the 'loadInitFile' flag for a dedicated session spawned by
+	 * this connection. This method does not create a session.
 	 * 
 	 * <p>See also: <a href="#sessions">Session overview</a>.</p>
 	 * 
+	 * @param loadInitFile  boolean determining if the init file is loaded
+	 * into this session
 	 * @see #addSessionLoadScript(String)
 	 */
 	public void setSessionLoadInitFile(boolean loadInitFile) {
@@ -2217,6 +2250,7 @@ implements RepositoryConnection, Closeable {
 	 * 
 	 * <p>See also: <a href="#sessions">Session overview</a>.</p>
 	 * 
+	 * @param scriptName  name of the script to be loaded
 	 * @see #setSessionLoadInitFile(boolean)
 	 */
 	public void addSessionLoadScript(String scriptName) {
@@ -2228,8 +2262,8 @@ implements RepositoryConnection, Closeable {
 	 * 
 	 * Takes a size argument to set the size of the cache.
 	 * 
-	 * @param size the size of the cache, in triples.
-	 * @throws RepositoryException
+	 * @param size the size of the cache, in triples
+	 * @throws RepositoryException  if there is an error during the request
 	 */
 	public void enableTripleCache(long size) throws RepositoryException {
 		getHttpRepoClient().enableTripleCache(size);
@@ -2238,8 +2272,8 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * Returns the size of the spogi cache.
 	 * 
-	 * @return the size of the spogi cache, in triples.
-	 * @throws RepositoryException
+	 * @return the size of the spogi cache, in triples
+	 * @throws RepositoryException  if there is an error during the request
 	 */
 	public long getTripleCacheSize() throws RepositoryException {
 		return getHttpRepoClient().getTripleCacheSize();
@@ -2248,7 +2282,7 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * Disables the spogi triple cache.
 	 * 
-	 * @throws RepositoryException
+	 * @throws RepositoryException  if there is an error during the request
 	 */
  	public void disableTripleCache() throws RepositoryException {
  		getHttpRepoClient().disableTripleCache();
@@ -2258,7 +2292,7 @@ implements RepositoryConnection, Closeable {
  	 * Sets the commit period to use within large add/load operations.
  	 * 
  	 * @param period commit after this many statements
- 	 * @throws RepositoryException
+ 	 * @throws RepositoryException  if there is an error with this request
  	 * @see AGHttpRepoClient#setUploadCommitPeriod(int)
  	 */
  	public void setUploadCommitPeriod(int period) throws RepositoryException {
@@ -2269,7 +2303,8 @@ implements RepositoryConnection, Closeable {
  	/**
 	 * Gets the commit period used within large add/load operations.
 	 * 
- 	 * @throws RepositoryException
+	 * @return int  the current upload commit period
+ 	 * @throws RepositoryException  if there is an error with this request
  	 * @see AGHttpRepoClient#getUploadCommitPeriod()
  	 */
  	public int getUploadCommitPeriod() throws RepositoryException {
@@ -2278,13 +2313,14 @@ implements RepositoryConnection, Closeable {
  	}
 
 	/**
-	 * tells the server to try and optimize the indices for this
-	 * store.
+	 * Instruct the server to optimize the indices for this store.
 	 *
-	 * @param wait is a boolean, false for request to return immediately
-	 * @param level determines the work to be done. See the index documentation
-	 *        for an explanation of the different levels.
-	 * @throws RepositoryException
+	 * @param wait  a boolean, false for request to return immediately
+	 * @param level  determines the work to be done. See the index documentation
+	 * for an explanation of the different levels
+	 * @throws RepositoryException  if there is an error with this request
+	 * See the <a href="http://franz.com/agraph/support/documentation/current/triple-index.html#optimize">Index documentation</a>
+	 *   for more details. 
 	 */
 	public void optimizeIndices(Boolean wait, int level) throws RepositoryException {
 		getHttpRepoClient().optimizeIndices(wait, level);
@@ -2296,8 +2332,9 @@ implements RepositoryConnection, Closeable {
 
 	/**
 	 * 
-	 * @param uri spin function identifier
-	 * @return spin function query text
+	 * @param uri  SPIN function identifier
+	 * @return String  the SPIN function query text
+	 * @throws OpenRDFException  if there is an error with this request
 	 * @see #putSpinFunction(AGSpinFunction)
 	 * @see #deleteSpinFunction(String)
 	 * @see #listSpinFunctions()
@@ -2309,6 +2346,9 @@ implements RepositoryConnection, Closeable {
 	}
 
 	/**
+	 * 
+	 * @return List  currently defined SPIN functions
+	 * @throws OpenRDFException  if there is an error with this request
 	 * @see #getSpinFunction(String)
 	 * @see #putSpinFunction(AGSpinFunction)
 	 * @see #deleteSpinFunction(String)
@@ -2330,6 +2370,8 @@ implements RepositoryConnection, Closeable {
 	
 	/**
 	 * 
+	 * @param fn  the SPIN function to add
+	 * @throws OpenRDFException  if there is an error with this request
 	 * @see #getSpinFunction(String)
 	 * @see #deleteSpinFunction(String)
 	 * @see #putSpinMagicProperty(AGSpinMagicProperty)
@@ -2341,7 +2383,8 @@ implements RepositoryConnection, Closeable {
 
 	/**
 	 * 
-	 * @param uri spin function identifier
+	 * @param uri  SPIN function identifier
+	 * @throws OpenRDFException  if there is an error with this request
 	 * @see #putSpinFunction(AGSpinFunction)
 	 * @see #getSpinFunction(String)
 	 * @since v4.4
@@ -2352,8 +2395,9 @@ implements RepositoryConnection, Closeable {
 
 	/**
 	 * 
-	 * @param uri spin magic property identifier
-	 * @return sparqlQuery
+	 * @param uri  SPIN magic property identifier
+	 * @return String  describing the SPIN magic property
+	 * @throws OpenRDFException  if there is an error with this request
 	 * @see #putSpinMagicProperty(AGSpinMagicProperty)
 	 * @see #deleteSpinMagicProperty(String)
 	 * @since v4.4
@@ -2363,6 +2407,9 @@ implements RepositoryConnection, Closeable {
 	}
 
 	/**
+	 *
+	 * @return List  all defined SPIN magic properties
+	 * @throws OpenRDFException  if there is an error with this request
 	 * @see #getSpinMagicProperty(String)
 	 * @see #putSpinMagicProperty(AGSpinMagicProperty)
 	 * @see #deleteSpinMagicProperty(String)
@@ -2384,7 +2431,8 @@ implements RepositoryConnection, Closeable {
 	
 	/**
 	 * 
-	 * @param uri spin magic property identifier
+	 * @param uri  SPIN magic property identifier
+	 * @throws OpenRDFException  if there is an error with this request
 	 * @see #putSpinMagicProperty(AGSpinMagicProperty)
 	 * @see #getSpinMagicProperty(String)
 	 * @since v4.4
@@ -2395,6 +2443,8 @@ implements RepositoryConnection, Closeable {
 
 	/**
 	 * 
+	 * @param fn  the SPIN magic property to add
+	 * @throws OpenRDFException  if there is an error with this request
 	 * @see #getSpinMagicProperty(String)
 	 * @see #deleteSpinMagicProperty(String)
 	 * @see #putSpinFunction(AGSpinFunction)
@@ -2418,8 +2468,9 @@ implements RepositoryConnection, Closeable {
 	 * <p>
 	 * See also the protocol documentation for
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#delete-statements-duplicates">deleting duplicates</a>
-	 * @param comparisonMode determines what is a duplicate 
-	 * @throws AGHttpException
+	 * 
+	 * @param comparisonMode  method to determine what is a duplicate 
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public void deleteDuplicates(String comparisonMode) throws RepositoryException {
 		getHttpRepoClient().deleteDuplicates(comparisonMode);
@@ -2439,8 +2490,10 @@ implements RepositoryConnection, Closeable {
 	 * <p>
 	 * See also the protocol documentation for
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#delete-statements-duplicates">deleting duplicates</a>
-	 * @param comparisonMode determines what is a duplicate 
-	 * @throws AGHttpException
+	 * 
+	 * @param comparisonMode  method to determine what is a duplicate 
+	 * @throws AGHttpException  if there is an error with this request
+	 * @return RepositoryResult  the duplicates that exist in the store
 	 */
 	public RepositoryResult<Statement> getDuplicateStatements(String comparisonMode)
 			throws RepositoryException {
@@ -2459,9 +2512,9 @@ implements RepositoryConnection, Closeable {
 	 * <p>
 	 * The materializer's configuration determines how statements are materialized.
 	 * 
-	 * @param materializer the materializer to use. 
-	 * @return the number of statements added.
-	 * @throws AGHttpException
+	 * @param materializer  the materializer to use 
+	 * @return long  the number of statements added
+	 * @throws AGHttpException  if there is an error with this request
 	 * @see AGMaterializer#newInstance()
 	 */
 	public long materialize(AGMaterializer materializer) throws RepositoryException {
@@ -2471,8 +2524,8 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * Deletes materialized statements.
 	 * 
-	 * @return the number of statements deleted.
-	 * @throws AGHttpException
+	 * @return the number of statements deleted
+	 * @throws AGHttpException  if there is an error with this request
 	 * @see #materialize(AGMaterializer)
 	 */
 	public long deleteMaterialized() throws RepositoryException {
@@ -2485,7 +2538,8 @@ implements RepositoryConnection, Closeable {
 	 * For AG superusers only.  This allows AG superusers to run requests as
 	 * another user in a dedicated session.
 	 *  
-	 * @param user the user for X-Masquerade-As-User requests.
+	 * @param user  the user for X-Masquerade-As-User requests
+	 * @throws RepositoryException  if there is an error with this request
 	 */
 	public void setMasqueradeAsUser(String user) throws RepositoryException {
 		getHttpRepoClient().setMasqueradeAsUser(user);
@@ -2495,7 +2549,7 @@ implements RepositoryConnection, Closeable {
 	 * Begins a transaction requiring {@link #commit()} or {@link #rollback()} to
 	 * be called to end the transaction.
 	 *
-	 * @throws RepositoryException
+	 * @throws RepositoryException  if there is an error with this request
 	 *  
 	 * @see #isActive()
 	 * @see #commit()
@@ -2511,14 +2565,14 @@ implements RepositoryConnection, Closeable {
 	 * transaction is active if {@link #begin()} has been called, and becomes
 	 * inactive after {@link #commit()} or {@link #rollback()} has been called.
 	 *
-	 * @since 2.7.0
 	 * @return <code>true</code> iff a transaction is active, <code>false</code>
 	 *         iff no transaction is active.
 	 * @throws UnknownTransactionStateException
 	 *         if the transaction state can not be determined. This can happen
 	 *         for instance when communication with a repository fails or times
 	 *         out.
-	 * @throws RepositoryException
+	 * @throws RepositoryException  if there is an error with this request
+	 * @since 2.7.0
 	 */
 	public boolean isActive() throws UnknownTransactionStateException,
 			RepositoryException {
@@ -2529,12 +2583,12 @@ implements RepositoryConnection, Closeable {
 	 * Removes all statement(s) within the specified contexts.
 	 *
 	 * @param contexts
-	 *        The context(s) to remove the data from. Note that this parameter is
+	 *        the context(s) to remove the data from. Note that this parameter is
 	 *        a vararg and as such is optional. If no contexts are supplied the
-	 *        method operates on the entire repository.
+	 *        method operates on the entire repository
 	 * @throws RepositoryException
-	 *         If the statement(s) could not be removed from the repository, for
-	 *         example because the repository is not writable.
+	 *        if the statement(s) could not be removed from the repository, for
+	 *        example because the repository is not writable
 	 */
 	public void clear(Resource... contexts)
 			throws RepositoryException
@@ -2573,7 +2627,7 @@ implements RepositoryConnection, Closeable {
 		/**
 		 * Overwrite current setting of allowedValues with the argument List.
 		 * 
-		 * @param values, a {@code List<String>} of allowed values.
+		 * @param values, a {@code List<String>} of allowed values
 		 * 
 		 * @return this
 		 */
@@ -2586,7 +2640,7 @@ implements RepositoryConnection, Closeable {
 		/**
 		 * Add an allowed value to the current list of allowed values for this attribute definition
 		 * 
-		 * @param value
+		 * @param value  an allowed value for this attribute
 		 * @return this
 		 */
 		public AttributeDefinition allowedValue(String value)
@@ -2604,7 +2658,7 @@ implements RepositoryConnection, Closeable {
 		/**
 		 * Specifies whether the values allowed by this attribute definition are ordered.
 		 * 
-		 * @param value
+		 * @param value  boolean, if this attribute is ordered
 		 * @return this
 		 */
 		public AttributeDefinition ordered(boolean value)
@@ -2616,8 +2670,9 @@ implements RepositoryConnection, Closeable {
 		/**
 		 * The minimum number of times this attribute must be provided for a triple.
 		 * 
-		 * @param value
+		 * @param value, the minimum number of times this attribute can be specified
 		 * @return this
+		 * @throws Exception  if <code>value</code> is invalid
 		 */
 		public AttributeDefinition minimum(long value) throws Exception
 		{
@@ -2631,8 +2686,9 @@ implements RepositoryConnection, Closeable {
 		/**
 		 * The maximum number of times this attribute can be provided with a triple.
 		 * 
-		 * @param value
+		 * @param value  the maximum number of times this attribute can be specified
 		 * @return this
+		 * @throws Exception if <code>value</code> is invalid
 		 */
 		public AttributeDefinition maximum(long value) throws Exception
 		{
@@ -2647,7 +2703,7 @@ implements RepositoryConnection, Closeable {
 		 * Pass the current attribute definition to AllegroGraph for defining.
 		 * 
 		 * @return this
-		 * @throws AGHttpException
+		 * @throws AGHttpException  if there is an error with the request
 		 */
 		public AttributeDefinition add() throws AGHttpException
 		{
@@ -2660,8 +2716,8 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * Delete an existing triple attribute definition.
 	 * 
-	 * @param name - The name of the defined attribute to delete.
-	 * @throws RepositoryException
+	 * @param name  The name of the defined attribute to delete
+	 * @throws RepositoryException  if there is an error with this request
 	 * 
 	 */
 	public void deleteAttributeDefinition(String name) throws RepositoryException
@@ -2672,7 +2728,9 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * Return a list of all attributes defined for the current connection.
 	 * 
-	 * @return JSONArray of Triple Attribute definitions.
+	 * @return JSONArray of Triple Attribute definitions
+	 * @exception RepositoryException  if there is an error with this request
+	 * @exception JSONException  if there is an error parsing the response to JSON
 	 */
 	public JSONArray getAttributeDefinitions()
 			throws RepositoryException, JSONException {
@@ -2682,9 +2740,10 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * Return the definition of the attribute named by NAME.
 	 * 
-	 * @param name
+	 * @param name  the attribute definition to lookup
 	 * @return JSONArray of all found definitions
-	 * @throws RepositoryException
+	 * @exception RepositoryException  if there is an error with this request
+	 * @exception JSONException  if there is an error parsing the response to JSON
 	 */
 	public JSONArray getAttributeDefinition(String name)
 			throws RepositoryException, JSONException {
@@ -2694,8 +2753,8 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * Establish a static attribute filter on the current repository.
 	 * 
-	 * @param filter a String representing a static attribute filter definition.
-	 * @throws RepositoryException
+	 * @param filter a String representing a static attribute filter definition
+	 * @throws RepositoryException  if there is an error with this request
 	 */
 	public void setStaticAttributeFilter(String filter) throws RepositoryException {
 		getHttpRepoClient().setStaticAttributeFilter(filter);
@@ -2705,8 +2764,8 @@ implements RepositoryConnection, Closeable {
 	 * Fetch the string representation of the static attribute filter defined on this
 	 * repository
 	 * 
-	 * @return String, or null if no static filter is defined.
-	 * @throws RepositoryException
+	 * @return String, or null if no static filter is defined
+	 * @throws RepositoryException  if there is an error with this request
 	 */
 	public String getStaticAttributeFilter() throws RepositoryException {
 		return getHttpRepoClient().getStaticAttributeFilter();
@@ -2715,7 +2774,7 @@ implements RepositoryConnection, Closeable {
 	/**
 	 * Delete the static attribute filter defined on this repository.
 	 * 
-	 * @throws RepositoryException
+	 * @throws RepositoryException  if there is an error with this request
 	 */
 	public void deleteStaticAttributeFilter() throws RepositoryException {
 		getHttpRepoClient().deleteStaticAttributeFilter();

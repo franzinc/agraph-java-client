@@ -84,7 +84,7 @@ public class AGValueFactory extends ValueFactoryImpl {
 	 * com.franz.agraph.repository.blankNodesPerRequest 
 	 * or to 100 if that property has not been set.
 	 *   
-	 * @param amount
+	 * @param amount  a positive integer
 	 */
 	public void setBlankNodesPerRequest(int amount) {
 		blankNodesPerRequest=amount;
@@ -93,7 +93,7 @@ public class AGValueFactory extends ValueFactoryImpl {
 	/**
 	 * Gets the number of blank nodes fetched per request.
 	 * 
-	 * @return the number of blank nodes fetched per request.
+	 * @return int  the number of blank nodes fetched per request
 	 */
 	public int getBlankNodesPerRequest() {
 		return blankNodesPerRequest;
@@ -165,8 +165,8 @@ public class AGValueFactory extends ValueFactoryImpl {
 	/**
 	 * Creates an OpenRDF Value from a concrete Jena Node.
 	 *  
-	 * @param node a concrete Jena node.
-	 * @return the corresponding Value.
+	 * @param node  a concrete Jena node
+	 * @return the corresponding Value
 	 */
 	public Value asValue(Node node) {
 		Value val;
@@ -204,7 +204,7 @@ public class AGValueFactory extends ValueFactoryImpl {
 	 * There is nothing sacrosanct about this but it is unlikely
 	 * to change.
 	 *  
-	 * @param id the string to be tested
+	 * @param id  the string to be tested
 	 * @return true iff id looks like an AG blank node id
 	 */
 	public boolean isAGBlankNodeId(String id) {
@@ -263,11 +263,14 @@ public class AGValueFactory extends ValueFactoryImpl {
 	 * 
 	 * <p>If amount cannot be generated, up to amount URIs will be returned,
 	 * or an exception will be thrown if none are available.</p>
-	 *   
+	 * 
+	 * @param namespace  encodable namespace from which the URIs will be generated
+	 * @param amount  the number of URIs to generate
+	 * @return URI[]  the generated URIs
+	 * @throws RepositoryException  if there is an error with this request
+	 * @return a unique URI within the specified namespace.
 	 * @see AGRepositoryConnection#registerEncodableNamespace(String, String)
 	 * @see #generateURI(String)
-	 * 
-	 * @return a unique URI within the specified namespace.
 	 */
 	public URI[] generateURIs(String namespace, int amount) throws RepositoryException {
 		String[] uri_strs;
@@ -292,7 +295,10 @@ public class AGValueFactory extends ValueFactoryImpl {
 	 * to be unique for this namespace generator.  Note that this does
 	 * not prevent other parties from independently using URIs that
 	 * involve this namespace, however.</p>
-	 * 
+	 *
+	 * @param registeredEncodableNamespace  encodable namespace from which the URI will be generated
+	 * @return URI  the generated URI
+	 * @throws RepositoryException  if there is an error with this request
 	 * @see AGRepositoryConnection#registerEncodableNamespace(String, String)
 	 * @see #generateURIs(String, int)
 	 * 

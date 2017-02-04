@@ -53,7 +53,7 @@ public class AGTupleQuery extends AGQuery implements TupleQuery {
 	 * are not returned).
 	 * 
 	 * @return the number of results
-	 * @throws QueryEvaluationException
+	 * @throws QueryEvaluationException  if there is an error with this request
 	 */
 	public long count() throws QueryEvaluationException {
 		AGLongHandler handler = new AGLongHandler();

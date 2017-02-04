@@ -39,7 +39,10 @@ public class AGVirtualRepository extends RepositoryBase implements AGAbstractRep
 
 	/**
 	 * Applications normally create a virtual repository via an AGServer instance. 
-	 *  
+	 *
+	 * @param server  the server hosting this virtual repository
+	 * @param spec  the store specification for this repository
+	 * @param wrapped  the component repository of this virtual repository
 	 * @see AGServer#virtualRepository(String)
 	 * @see AGServer#federate(AGAbstractRepository...)
 	 */
@@ -58,7 +61,7 @@ public class AGVirtualRepository extends RepositoryBase implements AGAbstractRep
 	 * Virtual repositories don't reside on disk (their component stores do);
 	 * they don't have a catalog.
 	 * 
-	 * @return null
+	 * @return always returns null
 	 */
 	public AGCatalog getCatalog() {
 		return null;
@@ -118,18 +121,20 @@ public class AGVirtualRepository extends RepositoryBase implements AGAbstractRep
 
     
 	/**
-	 * The dataDir is not currently applicable to AllegroGraph. 
+	 * The dataDir is not currently applicable to AllegroGraph.
+	 *  
 	 * @deprecated not applicable to AllegroGraph
-	 * @throws UnsupportedOperationException
+	 * @throws UnsupportedOperationException  this operation is unsupported
 	 */
 	public void setDataDir(File dataDir) {
 		throw new UnsupportedOperationException("setDataDir is inapplicable for AG repositories");
 	}
 	
 	/**
-	 * The dataDir is not currently applicable to AllegroGraph. 
+	 * The dataDir is not currently applicable to AllegroGraph.
+	 *  
 	 * @deprecated not applicable to AllegroGraph
-	 * @throws UnsupportedOperationException
+	 * @throws UnsupportedOperationException  this operation is unsupported
 	 */
 	public File getDataDir() {
 		throw new UnsupportedOperationException("getDataDir is inapplicable for AG repositories");

@@ -30,10 +30,10 @@ public class AGGraphQuery extends AGQuery implements GraphQuery {
 	/**
 	 * Creates an AGGraphQuery instance for the given connection.
 	 * 
-	 * @param con the connection.
-	 * @param ql the query language.
-	 * @param queryString the query.
-	 * @param baseURI the base URI for the query.
+	 * @param con  the connection
+	 * @param ql  the query language
+	 * @param queryString  the query
+	 * @param baseURI  the base URI for the query
 	 */
 	public AGGraphQuery(AGRepositoryConnection con, QueryLanguage ql,
 			String queryString, String baseURI) {
@@ -70,8 +70,8 @@ public class AGGraphQuery extends AGQuery implements GraphQuery {
 	 * to the client (counting is done on the server, the results
 	 * are not returned).
 	 * 
-	 * @return the number of results
-	 * @throws QueryEvaluationException
+	 * @return long  the number of results
+	 * @throws QueryEvaluationException  if an error occurs while evaluating the query
 	 */
 	public long count() throws QueryEvaluationException {
 		AGLongHandler handler = new AGLongHandler();

@@ -46,7 +46,7 @@ public class AGQuery {
 	/**
 	 * Gets the flag for checkVariables.
 	 * 
-	 * @return the checkVariables flag.
+	 * @return the checkVariables flag
 	 */
 	public boolean isCheckVariables() {
 		return checkVariables;
@@ -57,7 +57,7 @@ public class AGQuery {
 	 * should be raised when a SPARQL query selects variables that
 	 * are not mentioned in the query body.
 	 * 
-	 * @param checkVariables the checkVariables flag.
+	 * @param checkVariables  the checkVariables flag
 	 */
 	public void setCheckVariables(boolean checkVariables) {
 		this.checkVariables = checkVariables;
@@ -76,6 +76,8 @@ public class AGQuery {
 	 * Sets the limit on the number of solutions for this query.
 	 * 
 	 * By default, the value is -1, meaning no constraint is imposed.
+	 * 
+	 * @param limit  the new value of the limit
 	 */
 	public void setLimit(int limit) {
 		this.limit = limit;
@@ -94,6 +96,8 @@ public class AGQuery {
 	 * Sets the offset, the number of solutions to skip for this query.
 	 * 
 	 * By default, the value is -1, meaning no constraint is imposed.
+	 * 
+	 * @param offset  the new value of the offset
 	 */
 	public void setOffset(int offset) {
 		this.offset = offset;

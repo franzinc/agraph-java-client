@@ -19,6 +19,8 @@ public interface Closeable {
 	
 	/**
 	 * Releases system resources associated with the object.
+	 * 
+	 * @throws Exception  any exception that is thrown when attempting to close
 	 * @see java.io.Closeable#close()
 	 */
 	void close() throws Exception;

@@ -85,9 +85,9 @@ public class AGServer implements Closeable {
 	 *
 	 * Uses Basic authentication.
 	 *
-	 * @param serverURL the URL of the server (trailing slashes are removed).
-	 * @param username a user id for authenticating with the server
-	 * @param password a password for authenticating with the server
+	 * @param serverURL  the URL of the server (trailing slashes are removed)
+	 * @param username  a user id for authenticating with the server
+	 * @param password  a password for authenticating with the server
 	 * @see #AGServer(String)
 	 */
 	public AGServer(String serverURL, String username, String password) {
@@ -103,9 +103,9 @@ public class AGServer implements Closeable {
 	 * Uses Basic authentication with the server as configured in the
 	 * httpClient instance.
 	 *
-	 * @param username a user id for authenticating with the server
-	 * @param password a password for authenticating with the server
-	 * @param httpClient the AGHTTPClient instance to use
+	 * @param username  a user id for authenticating with the server
+	 * @param password  a password for authenticating with the server
+	 * @param httpClient  the AGHTTPClient instance to use
 	 */
 	public AGServer(String username, String password, AGHTTPClient httpClient) {
 		this.serverURL = httpClient.getServerURL();
@@ -137,7 +137,8 @@ public class AGServer implements Closeable {
 	 * }</pre>
 	 * For more details, see <a href="http://www.franz.com/agraph/support/documentation/current/daemon-config.html#client-index">Server configuration</a>.
 	 * <p>
-	 * @param httpClient the AGHTTPClient instance to use
+	 * 
+	 * @param httpClient  the AGHTTPClient instance to use
 	 * @see #AGServer(String)
 	 */
 	public AGServer(AGHTTPClient httpClient) {
@@ -171,8 +172,8 @@ public class AGServer implements Closeable {
 	 * }</pre>
 	 * <p>For more details, see <a href="http://www.franz.com/agraph/support/documentation/current/daemon-config.html#client-index">Server configuration</a>.
 	 * </p>
-         *
-	 * @param serverURL the URL of the server (trailing slashes are removed).
+   *
+	 * @param serverURL  the URL of the server (trailing slashes are removed)
 	 * @see #AGServer(String, String, String)
 	 * @see #AGServer(AGHTTPClient)
 	 */
@@ -186,7 +187,7 @@ public class AGServer implements Closeable {
 	/**
 	 * Returns the URL of this AllegroGraph server.
 	 *
-	 * @return the URL of this AllegroGraph server.
+	 * @return the URL of this AllegroGraph server
 	 */
 	public String getServerURL() {
 		return serverURL;
@@ -195,28 +196,31 @@ public class AGServer implements Closeable {
 	/**
 	 * Returns the AGHTTPClient instance for this server.
 	 *
-	 * @return the AGHTTPClient instance for this server.
+	 * @return the AGHTTPClient instance for this server
 	 */
 	public AGHTTPClient getHTTPClient() {
 		return httpClient;
 	}
 
 	/**
-	 * Returns the server version.
+	 * @return the server version
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public String getVersion() throws AGHttpException {
 		return getHTTPClient().getString(serverURL + "/version");
 	}
 
 	/**
-	 * Returns the server's build date.
+	 * @return the server's build date
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public String getBuildDate() throws AGHttpException {
 		return getHTTPClient().getString(serverURL + "/version/date");
 	}
 
 	/**
-	 * Returns the server's revision info.
+	 * @return the server's revision info
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public String getRevision() throws AGHttpException {
 		return getHTTPClient().getString(serverURL + "/version/revision");
@@ -226,7 +230,7 @@ public class AGServer implements Closeable {
 	 * Returns the unnamed root catalog for this AllegroGraph server.
 	 * Note: this method may be deprecated in an upcoming release.
 	 *
-	 * @return the root catalog.
+	 * @return the root catalog
 	 * @see #getCatalog()
 	 */
 	public AGCatalog getRootCatalog() {
@@ -236,8 +240,8 @@ public class AGServer implements Closeable {
 	/**
 	 * Returns a List of catalog ids known to this AllegroGraph server.
 	 *
-	 * @return List of catalog ids.
-	 * @throws AGHttpException
+	 * @return List of catalog ids
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public List<String> listCatalogs() throws AGHttpException {
 		String url = AGProtocol.getNamedCatalogsURL(serverURL);
@@ -262,9 +266,9 @@ public class AGServer implements Closeable {
 	 * the catalog Id is not found on the server,  returns
 	 * null.
 	 *
-	 * @param catalogID a catalog id.
-	 * @return the corresponding catalog instance.
-	 * @throws AGHttpException
+	 * @param catalogID  a catalog id
+	 * @return the corresponding catalog instance
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public AGCatalog getCatalog(String catalogID) throws AGHttpException {
 		if (AGCatalog.isRootID(catalogID)) {
@@ -279,7 +283,7 @@ public class AGServer implements Closeable {
 	/**
 	 * Returns the unnamed root catalog for this AllegroGraph server.
 	 *
-	 * @return the root catalog.
+	 * @return the root catalog
 	 */
 	public AGCatalog getCatalog() {
 		return rootCatalog;
@@ -294,9 +298,9 @@ public class AGServer implements Closeable {
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/daemon-config.html#DynamicCatalogs">
 	 * dynamic catalogs</a>; otherwise, an exception is thrown.
 	 *
-	 * @param catalogID the id (the name) of the catalog
-	 * @return an AGCatalog instance.
-	 * @throws AGHttpException
+	 * @param catalogID  the id (the name) of the catalog
+	 * @return an AGCatalog instance
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public AGCatalog createCatalog(String catalogID) throws AGHttpException {
 		AGCatalog catalog = getCatalog(catalogID);
@@ -313,8 +317,8 @@ public class AGServer implements Closeable {
 	 *
 	 * This method only applies to dynamically created catalogs.
 	 *
-	 * @param catalogID the name of the catalog to delete.
-	 * @throws AGHttpException
+	 * @param catalogID  the name of the catalog to delete
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public void deleteCatalog(String catalogID) throws AGHttpException {
 		String catalogURL = AGProtocol.getNamedCatalogLocation(getServerURL(),
@@ -333,7 +337,8 @@ public class AGServer implements Closeable {
 	 * This syntax can be used to create federations, graph-filtered stores,
 	 * reasoning stores, and compositions thereof.
 	 *
-	 * @param storeSpec the store specification
+	 * @param storeSpec  the store specification
+	 * @return a virtual repository based on <code>storeSpec</code>
 	 */
 	public AGVirtualRepository virtualRepository(String storeSpec) {
 		return new AGVirtualRepository(this, storeSpec, null);
@@ -344,6 +349,8 @@ public class AGServer implements Closeable {
 	 *
 	 * See <a href="http://www.franz.com/agraph/support/documentation/current/agraph-introduction.html#intro-federation">Managing
 	 * Massive Data - Federation</a>.
+	 * 
+	 * @param repositories  repositories that will compose the virtual repository
 	 * @return a virtual repository that federates queries across multiple physical repositories
 	 */
 	public AGVirtualRepository federate(AGAbstractRepository... repositories) {
@@ -366,8 +373,8 @@ public class AGServer implements Closeable {
 	/**
 	 * Returns a List of user ids known to this AllegroGraph server.
 	 *
-	 * @return List of user ids.
-	 * @throws AGHttpException
+	 * @return List of user ids
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public List<String> listUsers() throws AGHttpException {
 		return getHTTPClient().getListOfStrings(serverURL+"/users");
@@ -376,9 +383,9 @@ public class AGServer implements Closeable {
 	/**
 	 * Adds a user to the server.
 	 *
-	 * @param user user id to add
-	 * @param password user's password
-	 * @throws AGHttpException
+	 * @param user  user id to add
+	 * @param password  user's password
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public void addUser(String user, String password) throws AGHttpException {
 		String url = serverURL+"/users/"+user;
@@ -390,8 +397,8 @@ public class AGServer implements Closeable {
 	/**
 	 * Deletes a user from the server.
 	 *
-	 * @param user user id to delete
-	 * @throws AGHttpException
+	 * @param user  user id to delete
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public void deleteUser(String user) throws AGHttpException {
 		String url = serverURL+"/users/"+user;
@@ -407,12 +414,12 @@ public class AGServer implements Closeable {
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-user-access"
 	 * target="_top">here</a>.
 	 * <p>
-	 * @param user user id
-	 * @param read read access
-	 * @param write write access
-	 * @param catalog catalog id, or "*" (or null) for all catalogs
-	 * @param repository repository id, or "*" (or null) for all repos, in the given catalog(s)
-	 * @throws AGHttpException
+	 * @param user  user id
+	 * @param read  read access
+	 * @param write  write access
+	 * @param catalog  catalog id, or "*" (or null) for all catalogs
+	 * @param repository  repository id, or "*" (or null) for all repos, in the given catalog(s)
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public void addUserAccess(String user, boolean read, boolean write, String catalog, String repository) throws AGHttpException {
 		String url = serverURL+"/users/"+user+"/access";
@@ -434,12 +441,12 @@ public class AGServer implements Closeable {
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#delete-user-access"
 	 * target="_top">here</a>.
 	 * <p>
-	 * @param user user id
-	 * @param read read access
-	 * @param write write access
-	 * @param catalog catalog id, or "*" (or null) for all catalogs
-	 * @param repository repository id, or "*" (or null) for all repos, in the given catalog(s)
-	 * @throws AGHttpException
+	 * @param user  user id
+	 * @param read  read access
+	 * @param write  write access
+	 * @param catalog  catalog id, or "*" (or null) for all catalogs
+	 * @param repository  repository id, or "*" (or null) for all repos, in the given catalog(s)
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public void deleteUserAccess(String user, boolean read, boolean write, String catalog, String repository) throws AGHttpException {
 		String url = serverURL+"/users/"+user+"/access";
@@ -461,8 +468,10 @@ public class AGServer implements Closeable {
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#get-user-access"
 	 * target="_top">here</a>.
 	 * <p>
-	 * @param user user id
-	 * @throws AGHttpException
+	 * 
+	 * @param user  user id
+	 * @return a JSONArray describing <code>user</code>'s access list
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public JSONArray listUserAccess(String user) throws AGHttpException {
 		String url = serverURL+"/users/"+user+"/access";
@@ -476,13 +485,13 @@ public class AGServer implements Closeable {
 	/**
 	 * Adds a security filter for a user.
 	 *
-	 * @param user user id
-	 * @param type filter type is "allow" or "disallow"
-	 * @param s subject to allow/disallow, in NTriples format
-	 * @param p predicate to allow/disallow, in NTriples format
-	 * @param o object to allow/disallow, in NTriples format
-	 * @param g graph  to allow/disallow, in NTriples format
-	 * @throws AGHttpException
+	 * @param user  user id
+	 * @param type  filter type is "allow" or "disallow"
+	 * @param s  subject to allow/disallow, in NTriples format
+	 * @param p  predicate to allow/disallow, in NTriples format
+	 * @param o  object to allow/disallow, in NTriples format
+	 * @param g  graph  to allow/disallow, in NTriples format
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public void addUserSecurityFilter(String user, String type, String s,
 			String p, String o, String g) throws AGHttpException {
@@ -499,13 +508,13 @@ public class AGServer implements Closeable {
 	/**
 	 * Deletes a security filter for a user.
 	 *
-	 * @param user user id
-	 * @param type filter type is "allow" or "disallow"
-	 * @param s subject to allow/disallow, in NTriples format
-	 * @param p predicate to allow/disallow, in NTriples format
-	 * @param o object to allow/disallow, in NTriples format
-	 * @param g graph  to allow/disallow, in NTriples format
-	 * @throws AGHttpException
+	 * @param user  user id
+	 * @param type  filter type is "allow" or "disallow"
+	 * @param s  subject to allow/disallow, in NTriples format
+	 * @param p  predicate to allow/disallow, in NTriples format
+	 * @param o  object to allow/disallow, in NTriples format
+	 * @param g  graph  to allow/disallow, in NTriples format
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public void deleteUserSecurityFilter(String user, String type,
 			String s, String p, String o, String g) throws AGHttpException {
@@ -522,9 +531,10 @@ public class AGServer implements Closeable {
 	/**
 	 * Returns a list of security filters of the given type for a user
 	 *
-	 * @param user user id
-	 * @param type filter type is "allow" or "disallow"
-	 * @throws AGHttpException
+	 * @param user  user id
+	 * @param type  filter type is "allow" or "disallow"
+	 * @return a JSONArray of <code>user</code>'s security filters
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public JSONArray listUserSecurityFilters(String user, String type) throws AGHttpException {
 		String url = serverURL+"/users/"+user+"/security-filters/"+type;
@@ -545,8 +555,9 @@ public class AGServer implements Closeable {
 	 * <p>
 	 * Includes the access granted to roles that this user has.
 	 *
-	 * @param user user id
-	 * @throws AGHttpException
+	 * @param user  user id
+	 * @return a JSONArray describing <code>user</code>'s effective access
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public JSONArray listUserEffectiveAccess(String user) throws AGHttpException {
 		String url = serverURL+"/users/"+user+"/effectiveAccess";
@@ -565,9 +576,9 @@ public class AGServer implements Closeable {
 	 * target="_top">here</a>.
 	 * <p>
 	 *
-	 * @param user user id
-	 * @return list of permissions.
-	 * @throws AGHttpException
+	 * @param user  user id
+	 * @return list of permissions
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public List<String> listUserPermissions(String user) throws AGHttpException {
 		return getHTTPClient().getListOfStrings(serverURL+"/users/"+user+"/permissions");
@@ -583,9 +594,9 @@ public class AGServer implements Closeable {
 	 * target="_top">here</a>.
 	 * <p>
 	 *
-	 * @param user user id
-	 * @return list of permissions.
-	 * @throws AGHttpException
+	 * @param user  user id
+	 * @return list of permissions
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public List<String> listUserEffectivePermissions(String user) throws AGHttpException {
 		return getHTTPClient().getListOfStrings(serverURL+"/users/"+user+"/effectivePermissions");
@@ -594,9 +605,9 @@ public class AGServer implements Closeable {
 	/**
 	 * Adds to a user's permission list.
 	 *
-	 * @param user user id
-	 * @param permission "super" or "eval" or "session"
-	 * @throws AGHttpException
+	 * @param user  user id
+	 * @param permission  "super" or "eval" or "session"
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public void addUserPermission(String user, String permission) throws AGHttpException {
 		String url = serverURL+"/users/"+user+"/permissions/"+permission;
@@ -608,9 +619,9 @@ public class AGServer implements Closeable {
 	/**
 	 * Deletes from a user's permission list.
 	 *
-	 * @param user user id
-	 * @param permission "super" or "eval" or "session"
-	 * @throws AGHttpException
+	 * @param user  user id
+	 * @param permission  "super" or "eval" or "session"
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public void deleteUserPermission(String user, String permission) throws AGHttpException {
 		String url = serverURL+"/users/"+user+"/permissions/"+permission;
@@ -623,8 +634,8 @@ public class AGServer implements Closeable {
 	/**
 	 * Returns a list of roles known to this server.
 	 *
-	 * @return a list of roles.
-	 * @throws AGHttpException
+	 * @return a list of roles
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public List<String> listRoles() throws AGHttpException {
 		return getHTTPClient().getListOfStrings(serverURL+"/roles");
@@ -633,8 +644,8 @@ public class AGServer implements Closeable {
 	/**
 	 * Adds a role to this server.
 	 *
-	 * @param role role id
-	 * @throws AGHttpException
+	 * @param role  role id
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public void addRole(String role) throws AGHttpException {
 		String url = serverURL+"/roles/"+role;
@@ -650,12 +661,12 @@ public class AGServer implements Closeable {
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-user-access"
 	 * target="_top">here</a>.
 	 * <p>
-	 * @param role role id
-	 * @param read read access
-	 * @param write write access
-	 * @param catalog catalog id, or "*" (or null) for all catalogs
-	 * @param repository repository id, or "*" (or null) for all repos, in the given catalog(s)
-	 * @throws AGHttpException
+	 * @param role  role id
+	 * @param read  read access
+	 * @param write  write access
+	 * @param catalog  catalog id, or "*" (or null) for all catalogs
+	 * @param repository  repository id, or "*" (or null) for all repos, in the given catalog(s)
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public void addRoleAccess(String role, boolean read, boolean write,
 			String catalog, String repository) throws AGHttpException {
@@ -678,8 +689,9 @@ public class AGServer implements Closeable {
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#get-user-access"
 	 * target="_top">here</a>.
 	 * <p>
-	 * @param role role id
-	 * @throws AGHttpException
+	 * @param role  role id
+	 * @return the access list for the specified role
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public JSONArray listRoleAccess(String role) throws AGHttpException {
 		String url = serverURL+"/roles/"+role+"/access";
@@ -693,13 +705,13 @@ public class AGServer implements Closeable {
 	/**
 	 * Adds a security filter for a role.
 	 *
-	 * @param role role id
-	 * @param type filter type is "allow" or "disallow"
-	 * @param s subject to allow/disallow, in NTriples format
-	 * @param p predicate to allow/disallow, in NTriples format
-	 * @param o object to allow/disallow, in NTriples format
-	 * @param g graph  to allow/disallow, in NTriples format
-	 * @throws AGHttpException
+	 * @param role  role id
+	 * @param type  filter type is "allow" or "disallow"
+	 * @param s  subject to allow/disallow, in NTriples format
+	 * @param p  predicate to allow/disallow, in NTriples format
+	 * @param o  object to allow/disallow, in NTriples format
+	 * @param g  graph  to allow/disallow, in NTriples format
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public void addRoleSecurityFilter(String role, String type, String s,
 			String p, String o, String g) throws AGHttpException {
@@ -716,9 +728,10 @@ public class AGServer implements Closeable {
 	/**
 	 * Returns a list of security filters of the given type for a role
 	 *
-	 * @param role role id
-	 * @param type filter type is "allow" or "disallow"
-	 * @throws AGHttpException
+	 * @param role  role id
+	 * @param type  filter type is "allow" or "disallow"
+	 * @return the security filters for the role
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public JSONArray listRoleSecurityFilters(String role, String type) throws AGHttpException {
 		String url = serverURL+"/roles/"+role+"/security-filters/"+type;
@@ -732,13 +745,13 @@ public class AGServer implements Closeable {
 	/**
 	 * Deletes a security filter for a role.
 	 *
-	 * @param role role id
-	 * @param type filter type is "allow" or "disallow"
-	 * @param s subject to allow/disallow, in NTriples format
-	 * @param p predicate to allow/disallow, in NTriples format
-	 * @param o object to allow/disallow, in NTriples format
-	 * @param g graph  to allow/disallow, in NTriples format
-	 * @throws AGHttpException
+	 * @param role  role id
+	 * @param type  filter type is "allow" or "disallow"
+	 * @param s  subject to allow/disallow, in NTriples format
+	 * @param p  predicate to allow/disallow, in NTriples format
+	 * @param o  object to allow/disallow, in NTriples format
+	 * @param g  graph  to allow/disallow, in NTriples format
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public void deleteRoleSecurityFilter(String role, String type,
 			String s, String p, String o, String g) throws AGHttpException {
@@ -755,8 +768,9 @@ public class AGServer implements Closeable {
 	/**
 	 * Returns a list of roles for a user.
 	 *
-	 * @return a list of roles.
-	 * @throws AGHttpException
+	 * @param user  the user to lookup
+	 * @return a list of roles
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public List<String> listUserRoles(String user) throws AGHttpException {
 		return getHTTPClient().getListOfStrings(serverURL+"/users/"+user+"/roles");
@@ -765,9 +779,9 @@ public class AGServer implements Closeable {
 	/**
 	 * Adds a role for this user.
 	 *
-	 * @param user user id
-	 * @param role role id
-	 * @throws AGHttpException
+	 * @param user  user id
+	 * @param role  role id
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public void addUserRole(String user, String role) throws AGHttpException {
 		String url = serverURL+"/users/"+user+"/roles/"+role;
@@ -779,9 +793,9 @@ public class AGServer implements Closeable {
 	/**
 	 * Deletes a role for this user.
 	 *
-	 * @param user user id
-	 * @param role role id
-	 * @throws AGHttpException
+	 * @param user  user id
+	 * @param role  role id
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public void deleteUserRole(String user, String role) throws AGHttpException {
 		String url = serverURL+"/users/"+user+"/roles/"+role;
@@ -794,12 +808,12 @@ public class AGServer implements Closeable {
 	/**
 	 * Deletes from a role's access list for this server.
 	 *
-	 * @param role role id
-	 * @param read read access
-	 * @param write write access
-	 * @param catalog catalog id, or "*" (or null) for all catalogs
-	 * @param repository repository id, or "*" (or null) for all repos, in the given catalog(s)
-	 * @throws AGHttpException
+	 * @param role  role id
+	 * @param read  read access
+	 * @param write  write access
+	 * @param catalog  catalog id, or "*" (or null) for all catalogs
+	 * @param repository  repository id, or "*" (or null) for all repos, in the given catalog(s)
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public void deleteRoleAccess(String role, boolean read, boolean write,
 			String catalog, String repository) throws AGHttpException {
@@ -818,8 +832,8 @@ public class AGServer implements Closeable {
 	/**
 	 * Deletes a role from this server.
 	 *
-	 * @param role role id
-	 * @throws AGHttpException
+	 * @param role  role id
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public void deleteRole(String role) throws AGHttpException {
 		String url = serverURL+"/roles/"+role;
@@ -834,7 +848,7 @@ public class AGServer implements Closeable {
 	 *
 	 * @param role role id
 	 * @param permission "super" or "eval" or "session"
-	 * @throws AGHttpException
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public void addRolePermission(String role, String permission) throws AGHttpException {
 		String url = serverURL+"/roles/"+role+"/permissions/"+permission;
@@ -848,7 +862,7 @@ public class AGServer implements Closeable {
 	 *
 	 * @param role role id
 	 * @param permission "super" or "eval" or "session"
-	 * @throws AGHttpException
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public void deleteRolePermission(String role, String permission) throws AGHttpException {
 		String url = serverURL+"/roles/"+role+"/permissions/"+permission;
@@ -866,9 +880,9 @@ public class AGServer implements Closeable {
 	 * target="_top">here</a>.
 	 * <p>
 	 *
-	 * @param role role id
-	 * @return list of permissions.
-	 * @throws AGHttpException
+	 * @param role  role id
+	 * @return list of permissions
+	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public List<String> listRolePermissions(String role) throws AGHttpException {
 		return getHTTPClient().getListOfStrings(serverURL+"/roles/"+role+"/permissions");
@@ -878,7 +892,7 @@ public class AGServer implements Closeable {
 	 * Gets the default executor object that will be used by connections
 	 * to schedule maintenance operations.
 	 *
-	 * @return An executor instance.
+	 * @return An executor instance
 	 */
 	public ScheduledExecutorService getExecutor() {
 		return executor;
@@ -888,7 +902,7 @@ public class AGServer implements Closeable {
 	 * Changes the default executor object that will be used by connections
 	 * to schedule maintenance operations.
 	 *
-	 * @param executor An executor instance.
+	 * @param executor An executor instance
 	 */
 	public void setExecutor(ScheduledExecutorService executor) {
 		this.executor = executor;
@@ -898,11 +912,11 @@ public class AGServer implements Closeable {
      * Creates or opens a repository in the specified catalog.
      * 
      * @param reponame  name of the repository to create
-     * @param catalog  AGCatalog instance where the repository will be created.
+     * @param catalog  AGCatalog instance where the repository will be created
      * @param strict  if true, throw an exception if the repository exists.
      *                Otherwise the existing repository will be opened.
      * @return an initialized {@link AGRepository} instance for the newly created repository
-     * @throws RepositoryException
+     * @throws RepositoryException  if there is an error with this request
      */
     public AGRepository createRepository(String reponame, AGCatalog catalog,
             boolean strict) throws RepositoryException {
@@ -920,7 +934,7 @@ public class AGServer implements Closeable {
      * @param strict  if true, throw an exception if the repository exists.
      *                Otherwise the existing repository will be opened.
      * @return an initialized {@link AGRepository} instance for the newly created repository
-     * @throws RepositoryException
+     * @throws RepositoryException  if there is an error with this request
      */
     public AGRepository createRepository(String reponame, String catname,
             boolean strict) throws RepositoryException {
@@ -946,7 +960,7 @@ public class AGServer implements Closeable {
      * @param reponame  name of the repository to create
      * @param catname  name of the catalog in which to create the repository
      * @return an initialized {@link AGRepository} instance for the newly created repository
-     * @throws RepositoryException
+     * @throws RepositoryException  if there is an error with this request
      */
     public AGRepository createRepository(String reponame, String catname)
             throws RepositoryException {
@@ -958,7 +972,7 @@ public class AGServer implements Closeable {
      * 
      * @param reponame  name of the repository to create
      * @return an initialized {@link AGRepository} instance for the newly created repository
-     * @throws RepositoryException
+     * @throws RepositoryException  if there is an error with this request
      */
     public AGRepository createRepository(String reponame)
             throws RepositoryException {
@@ -974,7 +988,7 @@ public class AGServer implements Closeable {
      * @param username  name of the authenticating user, or null
      * @param password  password (plaintext) of the authenticating user, or null
      * @return an initialized {@link AGRepository} instance for the newly created repository
-     * @throws RepositoryException
+     * @throws RepositoryException  if there is an error with this request
      */
     public static AGRepository createRepository(String repoName,
             String catalogName, String serverURL, String username,
@@ -991,7 +1005,7 @@ public class AGServer implements Closeable {
      * @param strict  if true, throw an exception if the repository exists.
      *                Otherwise the existing repository will be opened.
      * @return a connection to the newly created and initialized repository
-     * @throws RepositoryException
+     * @throws RepositoryException  if there is an error with this request.
      */
     public AGRepositoryConnection createRepositoryConnection(String reponame, String catname,
             boolean strict) throws RepositoryException {
@@ -1006,7 +1020,7 @@ public class AGServer implements Closeable {
      * @param username  name of the authenticating user, or null
      * @param password  password (plaintext) of the authenticating user, or null
      * @return a connection to the newly created and initialized repository
-     * @throws RepositoryException
+     * @throws RepositoryException  if there is an error with this request.
      */
     public static AGRepositoryConnection createRepositoryConnection(String repoName,
             String catalogName, String serverURL, String username,

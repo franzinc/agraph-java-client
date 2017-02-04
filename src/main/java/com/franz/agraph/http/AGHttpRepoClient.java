@@ -89,6 +89,8 @@ public class AGHttpRepoClient implements Closeable {
 	/**
 	 * Gets the default lifetime of sessions spawned by any instance
 	 * unless otherwise specified by {@link #setSessionLifetime(int)}
+	 * 
+	 * @return long  defaultSessionLifetimeInSeconds
 	 */
 	public static long getDefaultSessionLifetime() {
 		return defaultSessionLifetimeInSeconds;
@@ -100,7 +102,7 @@ public class AGHttpRepoClient implements Closeable {
 	 *
 	 * Defaults to 3600 seconds (1 hour).
 	 *
-	 * @param lifetimeInSeconds Number of seconds before the session times out.
+	 * @param lifetimeInSeconds Number of seconds before the session times out
 	 */
 	public static void setDefaultSessionLifetime(int lifetimeInSeconds)
 	{
@@ -180,10 +182,9 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	/**
-	 * Returns true if using the main server port for sessions.
-	 *
-	 * Gets System property com.franz.agraph.http.useMainPortForSessions
+	 * Checks the System property com.franz.agraph.http.useMainPortForSessions
 	 * (defaults to false).
+	 * @return boolean  true if proxying sessions through the main server port.
 	 */
 	public boolean usingMainPortForSessions() {
 		boolean b = Boolean.parseBoolean(System.getProperty("com.franz.agraph.http.useMainPortForSessions","false"));
@@ -220,14 +221,19 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	/**
-	 * Sets the 'loadInitFile' for a dedicated session spawned by this instance.
+	 * When true, dedicated sessions will load the initfile upon creation.
+	 * 
+	 * @param loadInitFile  boolean indicating the new value to set
 	 */
 	public void setSessionLoadInitFile(boolean loadInitFile) {
 		this.loadInitFile = loadInitFile;
 	}
 
 	/**
-	 * Returns the 'loadInitFile' for a dedicated session spawned by this instance.
+	 * Returns true if the initfile (if any) will be loaded by dedicated
+	 * sessions spawned by this instance.
+	 * 
+	 * @return boolean  the current setting of 'loadInitFile'
 	 */
 	public boolean getSessionLoadInitFile() {
 		return loadInitFile;
@@ -235,6 +241,9 @@ public class AGHttpRepoClient implements Closeable {
 
 	/**
 	 * Adds a 'script' for a dedicated session spawned by this instance.
+	 * 
+	 * @param scriptName  the name of the script to be added to the list of scripts
+	 * loaded for this session
 	 */
 	public void addSessionLoadScript(String scriptName) {
 		if (this.scripts == null) {
@@ -243,10 +252,20 @@ public class AGHttpRepoClient implements Closeable {
 		this.scripts.add(scriptName);
 	}
 
+	/**
+	 * Fetch the preferred {@link TupleQueryResultFormat}.
+	 * 
+	 * @return TupleQueryResultFormat  the current preferred format
+	 */
 	public TupleQueryResultFormat getPreferredTQRFormat() {
 		return preferredTQRFormat;
 	}
 
+	/**
+	 * Set the preferred {@link TupleQueryResultFormat}
+	 * 
+	 * @param preferredTQRFormat  the new value to set as preferred
+	 */
 	public void setPreferredTQRFormat(TupleQueryResultFormat preferredTQRFormat) {
 		this.preferredTQRFormat = preferredTQRFormat;
 	}
@@ -291,11 +310,12 @@ public class AGHttpRepoClient implements Closeable {
 
 	/**
 	 * Sets the RDFFormat to use in making requests that return
-	 * RDF statements; the format should support contexts.
+	 * RDF statements; the format must support contexts.
 	 *
 	 * AGRDFFormat.NQUADS and RDFFormat.TRIX are currently supported.
 	 * Defaults to the format returned by {@link #getDefaultRDFFormat()}
 	 *
+	 * @param preferredRDFFormat  The new {@link RDFFormat} to set as preferred
 	 */
 	public void setPreferredRDFFormat(RDFFormat preferredRDFFormat) {
 		logger.debug("Defaulting to " + preferredRDFFormat.getDefaultMIMEType() + " for requests that return RDF statements.");
@@ -402,7 +422,7 @@ public class AGHttpRepoClient implements Closeable {
 
 	/**
 	 * Starts the periodic pinger task.
-	 * This should be invoked at most once.
+	 * This must be invoked at most once.
 	 */
 	private void startPinger() {
 		assert pinger == null;
@@ -459,8 +479,8 @@ public class AGHttpRepoClient implements Closeable {
 	 * is true, then this does nothing as the session url provided
 	 * by the server already points to the main port.
 	 *
-	 * @param dedicatedSessionUrl the dedicated session url from the server.
-	 * @return an appropriate session url, possibly using main port instead.
+	 * @param dedicatedSessionUrl the dedicated session url from the server
+	 * @return an appropriate session url, possibly using main port instead
 	 *
 	 * @throws AGHttpException
 	 */
@@ -661,7 +681,7 @@ public class AGHttpRepoClient implements Closeable {
 	 * uploading a huge amount of statements in a single transaction
 	 * will require excessive amounts of memory.
 	 *
-	 * @param period A non-negative integer.
+	 * @param period A non-negative integer
 	 * @see #getUploadCommitPeriod()
 	 */
 	public void setUploadCommitPeriod(int period) {
@@ -674,6 +694,7 @@ public class AGHttpRepoClient implements Closeable {
 	/**
 	 * Gets the commit period used when uploading statements.
 	 *
+	 * @return int  The value of the current commit period in triples
 	 * @see #setUploadCommitPeriod(int)
 	 */
 	public int getUploadCommitPeriod() {
@@ -1124,7 +1145,7 @@ public class AGHttpRepoClient implements Closeable {
 	 * Free up any no-longer-needed saved queries as reported
 	 * by AGQuery finalizer.
 	 *
-	 * @throws AGHttpException
+	 * @throws AGHttpException  if there is an error during the request
 	 */
 	private void processSavedQueryDeleteQueue() throws AGHttpException {
 		String queryName;
@@ -1147,11 +1168,29 @@ public class AGHttpRepoClient implements Closeable {
 
 	/**
 	 * Creates a new freetext index with the given parameters.
-	 *
+	 * 
+	 * @param name  the name of the new index
+	 * @param predicates  the predicates that will cause triples to be indexed
+	 * @param indexLiterals  true if literals should be indexed
+	 * @param indexLiteralTypes  the datatypes of Literals that should be indexed.
+	 * @param indexResources  true if resources should be indexed
+	 * @param indexFields  the fields (s, p, o, g) to index.
+	 * @param minimumWordSize  the smallest word that will be indexed.
+	 * @param stopWords  list of words that will not be indexed
+	 * @param wordFilters  filters to apply to words before they are indexed.
+	 * @param innerChars  list of characters that constitute a word
+	 * @param borderChars list of characters that can begin/terminate a word
+	 * @param tokenizer  the name of a supported tokenizer
+	 * @throws AGHttpException  if there's a problem with the index parameters
+	 * or handling the request.
+	 * 
 	 * See also the protocol documentation for
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-freetext-index">freetext index parameters</a>.
 	 */
-	public void createFreetextIndex(String name, List<String> predicates, boolean indexLiterals, List<String> indexLiteralTypes, String indexResources, List<String> indexFields, int minimumWordSize, List<String> stopWords, List<String> wordFilters, List<String> innerChars, List<String> borderChars, String tokenizer)
+	public void createFreetextIndex(String name, List<String> predicates, boolean indexLiterals,
+					List<String> indexLiteralTypes, String indexResources, List<String> indexFields,
+					int minimumWordSize, List<String> stopWords, List<String> wordFilters, List<String> innerChars,
+					List<String> borderChars, String tokenizer)
 	throws AGHttpException {
 		String url = AGProtocol.getFreetextIndexLocation(getRoot(), name);
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
@@ -1212,8 +1251,8 @@ public class AGHttpRepoClient implements Closeable {
 	/**
 	 * Delete the freetext index of the given name.
 	 *
-	 * @param index the name of the index
-	 * @throws AGHttpException
+	 * @param index the name of the index to delete
+	 * @throws AGHttpException  if an error occurs while deleting
 	 */
 	public void deleteFreetextIndex(String index) throws AGHttpException {
 		String url = AGProtocol.getFreetextIndexLocation(getRoot(), index);
@@ -1225,7 +1264,7 @@ public class AGHttpRepoClient implements Closeable {
 	 * Lists the free text indices defined on the repository.
 	 *
 	 * @return a list of index names
-	 * @throws AGHttpException
+	 * @throws AGHttpException  if an error occurs with the request
 	 */
 	public List<String> listFreetextIndices()
 			throws AGHttpException {
@@ -1233,11 +1272,12 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	/**
+	 * @return String[]  the list of defined freetext indices
+	 * @throws AGHttpException  if there is a problem with the request
 	 * @deprecated
 	 * @see #listFreetextIndices()
 	 */
-	public String[] getFreetextIndices()
-	throws AGHttpException {
+	public String[] getFreetextIndices() throws AGHttpException {
 		String url = AGProtocol.getFreetextIndexLocation(getRoot());
 		AGStringHandler handler = new AGStringHandler();
 		getHTTPClient().get(url, new Header[0], new NameValuePair[0], handler);
@@ -1246,6 +1286,11 @@ public class AGHttpRepoClient implements Closeable {
 
 	/**
 	 * Gets the configuration of the given index.
+	 * 
+	 * @param index  the name of the index to lookup
+	 * @return JSONObject  a description of the index configuration
+	 * @exception AGHttpException  if there is an error delivering the request
+	 * @exception JSONException  if there is an error parsing the request into JSON 
 	 */
 	public JSONObject getFreetextIndexConfiguration(String index)
 			throws AGHttpException, JSONException {
@@ -1607,9 +1652,9 @@ public class AGHttpRepoClient implements Closeable {
 	 * return all possible valid index types for this store; when listValid is
 	 * false, return only the current actively managed index types.
 	 *
-	 * @param listValid true yields all valid types, false yields active types.
+	 * @param listValid true yields all valid types, false yields active types
 	 * @return list of indices, never null
-	 * @throws AGHttpException
+	 * @throws AGHttpException  if there is a problem with the request
 	 */
 	public List<String> listIndices(boolean listValid) throws AGHttpException {
 		String url = AGProtocol.getIndicesURL(getRoot());
@@ -1627,7 +1672,7 @@ public class AGHttpRepoClient implements Closeable {
 	 * This will take affect on the next commit.
 	 *
 	 * @param index a valid index type
-	 * @throws AGHttpException
+	 * @throws AGHttpException  if there is a problem with the request
 	 * @see #listIndices(boolean)
 	 */
 	public void addIndex(String index) throws AGHttpException {
@@ -1641,7 +1686,7 @@ public class AGHttpRepoClient implements Closeable {
 	 * This will take affect on the next commit.
 	 *
 	 * @param index a valid index type
-	 * @throws AGHttpException
+	 * @throws AGHttpException  if there is a problem with the request
 	 * @see #listIndices(boolean)
 	 */
 	public void dropIndex(String index) throws AGHttpException {
@@ -1672,8 +1717,8 @@ public class AGHttpRepoClient implements Closeable {
 	/**
 	 * Enables the spogi cache in this repository.
 	 *
-	 * @param size the size of the cache, in triples.
-	 * @throws AGHttpException
+	 * @param size the size of the cache, in triples
+	 * @throws AGHttpException  if there is a problem with the request
 	 */
 	public void enableTripleCache(long size) throws AGHttpException {
 		String url = getRoot()+"/tripleCache";
@@ -1715,8 +1760,9 @@ public class AGHttpRepoClient implements Closeable {
 	 *
 	 * @param functionName stored proc lisp function, for example "addTwo"
 	 * @param moduleName lisp FASL file name, for example "example.fasl"
-	 * @param argsEncoded byte-encoded arguments to the stored proc
-	 * @return byte-encoded response from stored proc
+	 * @param argsEncoded byte-encoded arguments to the stored procedure
+	 * @return String  byte-encoded response from stored proc
+	 * @throws AGHttpException  if there is a problem with the request
 	 * @see #callStoredProc(String, String, Object...)
 	 * @since v4.2
 	 * @deprecated The stored proc feature and API are experimental, and subject to change in a future release.
@@ -1741,11 +1787,11 @@ public class AGHttpRepoClient implements Closeable {
 	 * {@link String}, {@link Integer}, null, byte[],
 	 * or Object[] or {@link List} of these (can be nested).</p>
 	 *
-	 * @param functionName stored proc lisp function, for example "addTwo"
-	 * @param moduleName lisp FASL file name, for example "example.fasl"
-	 * @param args arguments to the stored proc
-	 * @return return value of stored proc
-	 * @throws AGCustomStoredProcException for errors from stored proc.
+	 * @param functionName  stored proc lisp function, for example "addTwo"
+	 * @param moduleName  lisp FASL file name, for example "example.fasl"
+	 * @param args  arguments to the stored proc
+	 * @return Object  return value of stored proc
+	 * @throws AGCustomStoredProcException  for errors from stored proc
 	 *
 	 * @see AGSerializer#serializeAndEncode(Object[])
 	 * @see AGDeserializer#decodeAndDeserialize(String)
@@ -1769,8 +1815,8 @@ public class AGHttpRepoClient implements Closeable {
 	/**
 	 * Returns the size of the spogi cache.
 	 *
-	 * @return the size of the spogi cache, in triples.
-	 * @throws AGHttpException
+	 * @return long  the size of the spogi cache, in triples
+	 * @throws AGHttpException  if there is a problem with the request
 	 */
 	public long getTripleCacheSize() throws AGHttpException {
 		String url = getRoot()+"/tripleCache";
@@ -1783,7 +1829,7 @@ public class AGHttpRepoClient implements Closeable {
 	/**
 	 * Disables the spogi triple cache.
 	 *
-	 * @throws AGHttpException
+	 * @throws AGHttpException  if there is a problem with the request
 	 */
 	public void disableTripleCache() throws AGHttpException {
 		String url = getRoot()+"/tripleCache";
@@ -1809,8 +1855,9 @@ public class AGHttpRepoClient implements Closeable {
 	 * <p>
 	 * See also the protocol documentation for
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#delete-statements-duplicates">deleting duplicates</a>
+	 * 
 	 * @param comparisonMode determines what is a duplicate
-	 * @throws AGHttpException
+	 * @throws AGHttpException  if there is a problem with the request
 	 */
 	public void deleteDuplicates(String comparisonMode) throws AGHttpException {
 		String url = Protocol.getStatementsLocation(getRoot()) + "/duplicates";
@@ -1842,9 +1889,9 @@ public class AGHttpRepoClient implements Closeable {
 	 * <p>
 	 * The materializer's configuration determines how statements are materialized.
 	 *
-	 * @param materializer the materializer to use.
-	 * @return the number of statements added.
-	 * @throws AGHttpException
+	 * @param materializer  the materializer to use
+	 * @return long  the number of statements added
+	 * @throws AGHttpException  if there is a problem with the request
 	 * @see AGMaterializer#newInstance()
 	 */
 	public long materialize(AGMaterializer materializer) throws AGHttpException {
@@ -1874,9 +1921,9 @@ public class AGHttpRepoClient implements Closeable {
 
 	/**
 	 * Deletes materialized statements.
-	 *
-	 * @throws AGHttpException
-	 * returns the number of statements deleted.
+	 * 
+	 * @return long  the number of statements deleted
+	 * @throws AGHttpException  if there is a problem with the request
 	 * @see #materialize(AGMaterializer)
 	 */
 	public long deleteMaterialized() throws RepositoryException {
@@ -1921,6 +1968,9 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	/**
+	 * @param uri  name of the SPIN magic property to retrieve
+	 * @return String  a string representation of the property definition
+	 * @throws AGHttpException  if there is a problem with the request
 	 * @since v4.4
 	 */
 	public String getSpinFunction(String uri) throws AGHttpException {
@@ -1928,6 +1978,8 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	/**
+	 * @return {@link TupleQueryResult}  a list of defined SPIN magic properties
+	 * @throws AGHttpException  if there is a problem with the request
 	 * @since v4.4
 	 */
 	public TupleQueryResult listSpinFunctions() throws AGHttpException {
@@ -1935,6 +1987,8 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	/**
+	 * @param fn  the SPIN magic property to add
+	 * @throws AGHttpException  if there is a problem with the request
 	 * @since v4.4
 	 */
 	public void putSpinFunction(AGSpinFunction fn) throws AGHttpException {
@@ -1942,6 +1996,8 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	/**
+	 * @param uri  name of the SPIN magic property to delete
+	 * @throws AGHttpException  if there is a problem with the request
 	 * @since v4.4
 	 */
 	public void deleteSpinFunction(String uri) throws AGHttpException {
@@ -1949,6 +2005,8 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	/**
+	 * @param uri  name of the SPIN magic property to delete
+	 * @throws AGHttpException  if there is a problem with the request
 	 * @since v4.4
 	 */
 	public void deleteHardSpinFunction(String uri) throws AGHttpException {
@@ -1962,6 +2020,9 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	/**
+	 * @param uri  name of the SPIN magic property to retrieve
+	 * @return String  a string representation of the property definition
+	 * @throws AGHttpException  if there is a problem with the request
 	 * @since v4.4
 	 */
 	public String getSpinMagicProperty(String uri) throws AGHttpException {
@@ -1969,6 +2030,8 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	/**
+	 * @return {@link TupleQueryResult}  a list of defined SPIN magic properties
+	 * @throws AGHttpException  if there is a problem with the request
 	 * @since v4.4
 	 */
 	public TupleQueryResult listSpinMagicProperties() throws AGHttpException {
@@ -1976,6 +2039,8 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	/**
+	 * @param fn  the SPIN magic property to add
+	 * @throws AGHttpException if there is a problem with the request
 	 * @since v4.4
 	 */
 	public void putSpinMagicProperty(AGSpinMagicProperty fn) throws AGHttpException {
@@ -1983,6 +2048,8 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	/**
+	 * @param uri  The uri naming the SPIN magic property to delete
+	 * @throws AGHttpException if there is a problem with the request
 	 * @since v4.4
 	 */
 	public void deleteSpinMagicProperty(String uri) throws AGHttpException {
@@ -1990,6 +2057,8 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	/**
+	 * @param uri  The uri naming the SPIN magic property to delete
+	 * @throws AGHttpException if there is a problem with the request
 	 * @since v4.4
 	 */
 	public void deleteHardSpinMagicProperty(String uri) throws AGHttpException {
@@ -2071,6 +2140,7 @@ public class AGHttpRepoClient implements Closeable {
 	 * <p>
 	 * This method and approach are experimental and subject to change.
 	 * <p>
+	 * 
 	 * @param allow true enables a workaround to support external bnodes
 	 * @see #getAllowExternalBlankNodeIds()
 	 * @see AGValueFactory#isAGBlankNodeId(String)
@@ -2110,7 +2180,8 @@ public class AGHttpRepoClient implements Closeable {
 	 * This method is intended for use within the AG client library,
 	 * not for use by applications.
 	 *
-	 * @param r a resource
+	 * @param r  a resource
+	 * @param vf  a value factory that can create new store values
 	 * @return a storable resource for the given resource
 	 * @see #getApplicationResource(Resource, AGValueFactory)
 	 * @see #setAllowExternalBlankNodeIds(boolean)
@@ -2149,6 +2220,7 @@ public class AGHttpRepoClient implements Closeable {
 	 * not for use by applications.
 	 *
 	 * @param v a value
+	 * @param vf  a value factory that can create new store values
 	 * @return a storable value for the given value
 	 * @see #getApplicationValue(Value, AGValueFactory)
 	 * @see #setAllowExternalBlankNodeIds(boolean)
@@ -2173,6 +2245,7 @@ public class AGHttpRepoClient implements Closeable {
 	 * not for use by applications.
 	 *
 	 * @param stored a stored resource
+	 * @param vf  a value factory that can create new store values
 	 * @return the application resource
 	 * @see #getStorableResource(Resource, AGValueFactory)
 	 * @since v4.4
@@ -2192,6 +2265,7 @@ public class AGHttpRepoClient implements Closeable {
 	 * not for use by applications.
 	 *
 	 * @param stored a stored value
+	 * @param vf  a value factory that can create new store values
 	 * @return the application value
 	 * @see #getStorableValue(Value, AGValueFactory)
 	 * @since v4.4
@@ -2211,7 +2285,8 @@ public class AGHttpRepoClient implements Closeable {
 	 * another user in a dedicated session.
 	 *
 	 *
-	 * @param user the user for X-Masquerade-As-User requests.
+	 * @param user the user for X-Masquerade-As-User requests
+	 * @throws RepositoryException  if an error occurs
 	 */
 	public void setMasqueradeAsUser(String user) throws RepositoryException {
 		useDedicatedSession(autoCommit);
@@ -2222,12 +2297,12 @@ public class AGHttpRepoClient implements Closeable {
 	 * HTTP client layer function for requesting that AG define a new attribute. Only parameters
 	 * explicitly set by the client will be passed to the request.
 	 *
-	 * @param name
-	 * @param allowedValues
-	 * @param ordered
-	 * @param minimum
-	 * @param maximum
-	 * @throws AGHttpException
+	 * @param name  the name of the attribute being defined
+	 * @param allowedValues  list of allowed values (null means all values allowed)
+	 * @param ordered  true if <code>allowedValues</code> are ordered
+	 * @param minimum  the minimum number of times this attribute can be specified
+	 * @param maximum  the maximum number of times this attribute can be specified
+	 * @throws AGHttpException  if there's a problem with the request
 	 */
 	public void addAttributeDefinition(String name, List<String> allowedValues, boolean ordered, long minimum, long maximum)
 	throws AGHttpException
@@ -2259,8 +2334,8 @@ public class AGHttpRepoClient implements Closeable {
 	/**
 	 * HTTP client layer function for requesting that AG deletes an existing attribute.
 	 *
-	 * @param name
-	 * @throws AGHttpException
+	 * @param name  the attribute to delete
+	 * @throws AGHttpException  if there's a problem with the request
 	 */
 	public void deleteAttributeDefinition(String name) throws AGHttpException
 	{
@@ -2275,8 +2350,9 @@ public class AGHttpRepoClient implements Closeable {
 	/**
 	 * Fetch all attribute definitions.
 	 *
-	 * @return JSONArray containing a JSONObject for each attribute.
-	 * @throws AGHttpException
+	 * @return JSONArray containing a JSONObject for each attribute
+	 * @exception AGHttpException  if there's a problem with the request
+	 * @exception JSONException  if there's a problem parsing the request into JSON
 	 */
 	public JSONArray getAttributeDefinition()
 			throws AGHttpException, JSONException
@@ -2288,9 +2364,10 @@ public class AGHttpRepoClient implements Closeable {
 	 * Fetch the attribute definition named by NAME. Return all definitions if NAME is null.
 	 *
 	 * @param name of the attribute
-	 * @return JSONArray containing a JSONObject for the attribute found.
-	 * 	Returns all attributes if NAME is null.
-	 * @throws AGHttpException
+	 * @return a JSONArray containing a JSONObject for the attribute found, or
+	 * all attributes if NAME is null
+	 * @exception AGHttpException if there's a problem with the request
+	 * @exception JSONException  if there's a problem parsing the request into JSON
 	 */
 	public JSONArray getAttributeDefinition(String name)
 			throws AGHttpException, JSONException
@@ -2344,7 +2421,7 @@ public class AGHttpRepoClient implements Closeable {
 	/**
 	 * Return the current userAttributes setting for this connection.
 	 *
-	 * @return String containing a json representation of the attributes.
+	 * @return String containing a json representation of the attributes
 	 */
 	public String getUserAttributes() {
 		return userAttributes;
@@ -2352,7 +2429,8 @@ public class AGHttpRepoClient implements Closeable {
 
 	/**
 	 * Set the user attributes for this connection.
-	 * @param value, a String containing a serialized JSON object of the attributes.
+	 * 
+	 * @param value, a String containing a serialized JSON object of the attributes
 	 */
 	public void setUserAttributes(String value) {
 		if (value != null && value.trim().length() == 0) {

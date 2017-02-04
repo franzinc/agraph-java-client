@@ -23,7 +23,6 @@ import java.util.List;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpConnectionManager;
-import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.NameValuePair;
@@ -141,7 +140,7 @@ implements Closeable {
 	* Checks whether the specified status code is in the 2xx-range, indicating a
 	* successfull request.
 	*
-	* @return <tt>true</tt> if the status code is in the 2xx range.
+	* @return <tt>true</tt> if the status code is in the 2xx range
 	*/
 	private boolean is2xx(int statusCode) {
 		return statusCode >= 200 && statusCode < 300;
@@ -227,10 +226,8 @@ implements Closeable {
 	/**
 	 * Set the username and password for authentication with the remote server.
 	 * 
-	 * @param username
-	 *            the username
-	 * @param password
-	 *            the password
+	 * @param username  the username
+	 * @param password  the password
 	 */
 	public void setUsernameAndPassword(String username, String password) {
 		
@@ -258,9 +255,9 @@ implements Closeable {
 	 * For AG superusers only.  This allows AG superusers to run requests as
 	 * another user in a dedicated session.
 	 *  
-	 * @param user the user for X-Masquerade-As-User requests.
+	 * @param user  the user for X-Masquerade-As-User requests  
 	 */
-	public void setMasqueradeAsUser(String user) throws AGHttpException {
+	public void setMasqueradeAsUser(String user) {
 		masqueradeAsUser = user;
 	}
 	

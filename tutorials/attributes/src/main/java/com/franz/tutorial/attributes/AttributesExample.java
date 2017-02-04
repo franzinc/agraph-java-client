@@ -64,10 +64,10 @@ public class AttributesExample {
     private static URI pInfractions;
 
     /**
-     * Gets the value of an environment variable.
-     * @param name Name of the variable.
-     * @param defaultValue Value to be returned if the varaible is not defined.
-     * @return Value.
+     * 
+     * @param name  Name of the variable
+     * @param defaultValue  Value to be returned if the variable is not defined
+     * @return the value of the environment variable or defaultValue if unset
      */
     private static String getenv(final String name, final String defaultValue) {
 	final String value = System.getenv(name);
@@ -76,6 +76,7 @@ public class AttributesExample {
     
     /**
      * A simple object printer.
+     * 
      * @param x  The object to print
      * @return void
      */
@@ -85,8 +86,9 @@ public class AttributesExample {
 
     /**
      * A simple row printer for outputting query results.
-     * @param headerMsg  a string to print before printing rows.
-     * @param rows  The rows to print.
+     * 
+     * @param headerMsg  a string to print before printing rows
+     * @param rows  The rows to print
      * @return void
      * @throws Exception
      */
@@ -106,7 +108,7 @@ public class AttributesExample {
      * Create a fresh AG repository and return a connection object to it.
      * 
      * @return AGRepositoryConnection
-     * @throws Exception
+     * @throws Exception  if there is an error during the request
      */
     private static AGRepositoryConnection setupRepository() throws Exception {
 
@@ -283,8 +285,8 @@ public class AttributesExample {
      * user access-token attributes must contain all accessToken attributes on a
      * triple.
      * 
-     * @throws Exception  If there is a problem setting or committing the triple-store
-     * it is rolled back and the exception rethrown. 
+     * @throws Exception  if there is a problem setting or committing the triple-store
+     * it is rolled back and the exception rethrown 
      */
     private static void defineStaticFilter() throws Exception {
     	try {
@@ -302,9 +304,10 @@ public class AttributesExample {
 
     /**
      * Print all triples visible at the time this function is called.
-     * @param msg  an informative message printed before the statements are displayed.
+     * 
+     * @param msg  an informative message printed before the statements are displayed
      * @return void
-     * @throws Exception  if any problem occurs while fetching/printing triples.
+     * @throws Exception  if any problem occurs while fetching/printing triples
      */
     private static void printVisibleTriples(String msg) throws Exception {
     	printRows(msg, conn.getStatements(null, null, null, false));
@@ -312,11 +315,12 @@ public class AttributesExample {
 
     /**
      * Collect the values of a single variable from a SPARQL result set.
-     * @param set  The result set from which the bindings will be collected.
-     * @param variable  The name of the binding to collect.
-     * @return List<String>  A List of the values collected, as Strings.
+     * 
+     * @param set  the result set from which the bindings will be collected
+     * @param variable  the name of the binding to collect
+     * @return List&lt;String&gt;  a List of the values collected, as Strings
      * @throws QueryEvaluationException  if errors are encountered while operating
-     * on the result set.
+     * on the result set
      */
     public static List<String> collectBindings(TupleQueryResult set, String variable)
     		throws QueryEvaluationException {
@@ -342,12 +346,12 @@ public class AttributesExample {
      * and checks that the number of results matches NUMEXPECTED, and that EXPECTEDVALUE
      * is found in the result set.
      *
-     * @param attribute  A String naming the attribute to be checked.
-     * @param expectedValue  The value to search for.
-     * @param predicate  The predicate used to modify the statements found by the query
-     * @param numExpected  The number of results expected by evaluating the query.
-     * @return boolean  true if the check succeeds, else throws an Exception.
-     * @throws Exception  if any check fails.
+     * @param attribute  a String naming the attribute to be checked
+     * @param expectedValue  the value to search for
+     * @param predicate  the predicate used to modify the statements found by the query
+     * @param numExpected  the number of results expected by evaluating the query
+     * @return boolean  true if the check succeeds, else throws an Exception
+     * @throws Exception  if any check fails
      */
     public static boolean checkAttributeValue(String attribute, String expectedValue,
     		URI predicate, int numExpected)
@@ -365,9 +369,9 @@ public class AttributesExample {
     /**
      * Simple error routine that throws an Exception when called, passing REASON
      * to the constructor of the Exception.
-     * @param reason  an informative String explaining the exception.
-     * @return void  this method never returns, only throws.
-     * @throws Exception
+     * 
+     * @param reason  an informative String explaining the exception
+     * @throws Exception  the exception generated by the call
      */
     public static void error(String reason) throws Exception{
     	throw new Exception(reason);

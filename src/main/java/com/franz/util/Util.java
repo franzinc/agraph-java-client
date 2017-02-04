@@ -20,6 +20,9 @@ import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 public class Util {
 	
 	/**
+	 * @param <CloseableType>  .
+	 * @param o  the object to close
+	 * @return the closed object <code>o</code>
 	 * @deprecated in v4.4 use Closer
 	 * @see Closer
 	 */
@@ -29,6 +32,9 @@ public class Util {
 	}
 	
 	/**
+	 * @param <CloseableType>  .
+	 * @param o  the object to close
+	 * @return the closed object <code>o</code>
 	 * @deprecated in v4.4 use Closer
 	 * @see Closer
 	 */
@@ -38,6 +44,9 @@ public class Util {
 	}
 	
 	/**
+	 * 
+	 * @param o  the connection manager to close
+	 * @return the closed object <code>o</code>
 	 * @deprecated in v4.4 use Closer
 	 * @see Closer
 	 */
@@ -46,6 +55,11 @@ public class Util {
 	}
 	
 	/**
+	 * 
+	 * @param <Elem>  the element type of the ClosableIteration
+	 * @param <Exc>   the exception type of the ClosableIteration
+	 * @param o  the object to close
+	 * @return the closed object <code>o</code>
 	 * @deprecated in v4.4 use Closer
 	 * @see Closer
 	 */
@@ -55,6 +69,8 @@ public class Util {
 	}
 	
 	/**
+	 * @param o  the stream to close
+	 * @return  the closed stream <code>o</code>
 	 * @deprecated in v4.4 use Closer
 	 * @see Closer
 	 */
