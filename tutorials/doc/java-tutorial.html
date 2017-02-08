@@ -1928,7 +1928,6 @@ After loading, there are 1214 kennedy triples.</pre>
 <pre class="output">
 After loading, there are 2428 kennedy triples.</pre>
 <p>Now there are two copies of every Kennedy triple. If you add the same triple multiple times, you will get multiple copies of it. </p>
-
 <h3 id="DuplicatesAndSparql">Duplicates and SPARQL</h3>
 <p>
   The
@@ -1961,7 +1960,9 @@ might that cause?</p>
 <p>This simple query should return three matches, one for each of Ted
 Kennedy's three children: </p>
 <pre class="input">    SELECT ?o WHERE {kdy:person17 kdy:has-child ?o}</pre>
-<p>However, because each of the expected triples has a duplicate, we <a href="#DuplicatesAndSparql">may</a> get up to six answers instead of three: </p>
+<p>However, because each of the expected triples has a duplicate,
+we <a href="#DuplicatesAndSparql">may</a> get up to six answers
+instead of three: </p>
 <pre class="output">SPARQL matches for children of Ted Kennedy.<br>http://www.franz.com/simple#person72<br>http://www.franz.com/simple#person72<br>http://www.franz.com/simple#person74<br>http://www.franz.com/simple#person74<br>http://www.franz.com/simple#person76<br>http://www.franz.com/simple#person76</pre>
 <p>That's a nuisance, but SPARQL provides an easy way to wipe out the duplicate answers: </p>
 <pre class="input">    SELECT DISTINCT ?o WHERE {kdy:person17 kdy:has-child ?o}</pre>
@@ -2010,7 +2011,6 @@ below:</p>
   Triple count before duplicate deletion: 2428
   Triple count after duplicate deletion: 1214
 </pre>
-
 <p>The argument to deleteDuplicates() is a string that describes how
 to check if two triples should be considered as identical. The allowed
 values are "spo" and "spog". The difference is that "spog" will only
