@@ -2558,8 +2558,9 @@ public class TutorialExamples {
      * Duplicate triples and duplicate results
      */
     public static void example23() throws Exception {
-        AGRepositoryConnection conn = AGServer.createRepositoryConnection(
-                REPOSITORY_ID, CATALOG_ID, SERVER_URL, USERNAME, PASSWORD);
+        AGRepository myRepository = AGServer.createRepository(REPOSITORY_ID,
+                CATALOG_ID, SERVER_URL, USERNAME, PASSWORD);
+        AGRepositoryConnection conn = myRepository.getConnection();
 
         AGValueFactory vf = conn.getValueFactory();
         closeBeforeExit(conn);
@@ -2742,29 +2743,29 @@ public class TutorialExamples {
         } finally {
         	result7.close();
         }
+
+        // Explicit duplicate deletion
+        println("\nDuplicate deletion demo:");
+        conn.clear();
+        conn.add(new File("src/tutorial/java-kennedy.ntriples"), baseURI, RDFFormat.NTRIPLES);
+        conn.add(new File("src/tutorial/java-kennedy.ntriples"), baseURI, RDFFormat.NTRIPLES);
         
-        // Test to see if triple is present before adding it.
-        URI newParent = vf.createURI(exns, "person100");
-        URI newChild = vf.createURI(exns, "person101");
-        println("\nTest before adding triple, first trial: ");
-        if (conn.getStatements(newParent, hasChild, newChild, false).hasNext()) {
-        	println("Did not add new triple.");
-        } else {
-        	conn.add(newParent, hasChild, newChild);
-        	println("Added new statement.");
-        }   
+        println("Triple count before duplicate deletion: " + conn.size());
+        conn.deleteDuplicates("spog");
+        println("Triple count after duplicate deletion: " + conn.size());
+
+        // Enable duplicate suppression
+        final String oldPolicy = myRepository.getDuplicateSuppressionPolicy();
+        myRepository.setDuplicateSuppressionPolicy("spog");
+        println("Trying to import the same set of triples a second time.");
+        conn.add(new File("src/tutorial/java-kennedy.ntriples"), baseURI, RDFFormat.NTRIPLES);
+        println("Triple count after import: " + conn.size());
         
-        println("\nTest before adding triple, second trial: ");
-        if (conn.getStatements(newParent, hasChild, newChild, false).hasNext()) {
-        	println("Did not add new triple.");
-        } else {
-        	conn.add(newParent, hasChild, newChild);
-        	println("Added new statement.");
-        }   
+        // Disable duplicate suppression to avoid problem in further examples
+        myRepository.setDuplicateSuppressionPolicy(oldPolicy);
         
         conn.close();
-        conn.getRepository().shutDown();
-    
+        myRepository.shutDown();
     }
     
     /**
