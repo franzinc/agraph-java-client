@@ -260,8 +260,9 @@ public class AGAbstractTest extends Closer {
         repo.initialize();
         vf = repo.getValueFactory();
         conn = getConnection();
+        conn.deleteStaticAttributeFilter();
         conn.clear();
-		conn.clearAttributes();
+        conn.clearAttributes();
         conn.clearMappings();
         conn.clearNamespaces();
         // these are the default namespaces in AG, which are not present after clearNamespaces:
