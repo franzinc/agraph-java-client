@@ -2781,48 +2781,71 @@ public class TutorialExamples {
     
     /**
      * Connection pooling
+     * 
+     * Demonstrates how to create and configure a connection pool, associate it with
+     * a particular repository, and borrow/return connections.
+     * 
      */    
-    public static void example24() throws Exception {
-        // Tests getting the repository up. 
-        println("\nStarting example24().");                
-        AGConnPool pool = AGConnPool.create(
-                AGConnProp.serverUrl, SERVER_URL,
-                AGConnProp.username, USERNAME,
-                AGConnProp.password, PASSWORD,
-                AGConnProp.catalog, CATALOG_ID,
-                AGConnProp.repository, REPOSITORY_ID,
-                AGConnProp.session, AGConnProp.Session.DEDICATED,
-                AGPoolProp.shutdownHook, true,
-                AGPoolProp.maxActive, 10,
-                AGPoolProp.initialSize, 2);
-        
-        //To get a connection from pool
-        AGRepositoryConnection conn = pool.borrowConnection();
-        AGValueFactory vf = conn.getRepository().getValueFactory();                
-        println("pool getNumActive is: "+pool.getNumActive());
-        println("pool getNumIdle is: "+pool.getNumIdle());        
-                
-        try {        	
-        	URI alice = vf.createURI("http://example.org/people/alice");
-            URI bob = vf.createURI("http://example.org/people/bob");
-            URI name = vf.createURI("http://example.org/ontology/name");
-            URI person = vf.createURI("http://example.org/ontology/Person");
-            Literal bobsName = vf.createLiteral("Bob");
-            Literal alicesName = vf.createLiteral("Alice");
-            println("Triple count before inserts: " + 
-                    (conn.size()));
-            conn.add(alice, name, alicesName);            
-            conn.add(alice, RDF.TYPE, person);            
-            conn.add(bob, name, bobsName);            
-            conn.add(bob, RDF.TYPE, person);            
-            conn.commit();
-        } finally {
-                conn.close(); // or equivalently pool.returnObject(conn);
-                println("pool getNumActive is: "+pool.getNumActive());
-                println("pool getNumIdle is: "+pool.getNumIdle());        
-        }
-  
-       }
+    public static void example24() throws Exception { 
+    	println("\nStarting example24().");
+    	
+    	// Set up our connection pool.
+    	AGConnPool pool = AGConnPool.create(
+    			AGConnProp.serverUrl, SERVER_URL,
+    			AGConnProp.username, USERNAME,
+    			AGConnProp.password, PASSWORD,
+    			AGConnProp.catalog, CATALOG_ID,
+    			AGConnProp.repository, REPOSITORY_ID,
+    			AGConnProp.session, AGConnProp.Session.DEDICATED,
+    			AGPoolProp.shutdownHook, true,
+    			AGPoolProp.maxActive, 10,
+    			AGPoolProp.initialSize, 2);
+
+    	// Get a reference to an AGRepository instance
+    	AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
+    	AGRepository repo =
+    			server.createRepository(REPOSITORY_ID, CATALOG_ID, SERVER_URL, USERNAME, PASSWORD);
+
+    	// Assign our pool to the repository
+    	repo.setConnPool(pool);
+    	
+    	// The way to acquire a connection from an AGRepository
+    	// instance is the same when using a connection pool or not using
+    	// one. When called, getConnection() sees the pool saved to the
+    	// Repository via setConnPool() and borrows a connection from it. If
+    	// no pool is assigned, an independent connection is created
+    	// and returned.
+    	AGRepositoryConnection conn = repo.getConnection();
+    	
+    	// Now that we have a connection, we can create and add some triples.
+    	AGValueFactory vf = conn.getRepository().getValueFactory();          
+    	
+    	println("pool getNumActive is: "+pool.getNumActive());
+    	println("pool getNumIdle is: "+pool.getNumIdle());        
+
+    	try {        	
+    		URI alice = vf.createURI("http://example.org/people/alice");
+    		URI bob = vf.createURI("http://example.org/people/bob");
+    		URI name = vf.createURI("http://example.org/ontology/name");
+    		URI person = vf.createURI("http://example.org/ontology/Person");
+    		Literal bobsName = vf.createLiteral("Bob");
+    		Literal alicesName = vf.createLiteral("Alice");
+    		println("Triple count before inserts: " + 
+    				(conn.size()));
+    		conn.add(alice, name, alicesName);            
+    		conn.add(alice, RDF.TYPE, person);            
+    		conn.add(bob, name, bobsName);            
+    		conn.add(bob, RDF.TYPE, person);            
+    		conn.commit();
+    	} finally {
+    		// To return a connection to the pool use conn.close(). Connections that
+    		// do not belong to a pool will simply be closed.
+    		conn.close(); 
+    		println("pool getNumActive is: "+pool.getNumActive());
+    		println("pool getNumIdle is: "+pool.getNumIdle());        
+    	}
+
+    }
     
     /**
      * Usage: all
