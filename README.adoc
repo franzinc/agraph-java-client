@@ -1,6 +1,6 @@
 = Franz AllegroGraph client API for Java
 
-:version: 1.0.0
+:version: 1.0.1
 
 Client API to http://franz.com/agraph/[Franz AllegroGraph]
 triple store database.
