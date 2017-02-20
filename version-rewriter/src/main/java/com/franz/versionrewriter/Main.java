@@ -223,7 +223,8 @@ public class Main {
     }
 
     /**
-     * Parses a version number (X.Y.Z) and increments the last component by one.
+     * Parses a version number (X.Y.Z-whatever) and increments 
+     * the last component by one.
      *
      * @param version Version number.
      *
@@ -232,7 +233,10 @@ public class Main {
     private static String incrementVersion(final String version) {
         final String[] components = version.split("\\.");
         final int last = components.length - 1;
-        components[last] = Integer.toString(Integer.parseInt(components[last]) + 1);
+        final String lastComponents = components[last].split("-");
+        final int lastValue = Integer.parseInt(lastComponents[0]);
+        lastComponents[0] = Integer.toString(lastValue + 1); 
+        components[last] = String.join("-", (CharSequence[])lastComponents);
         return String.join(".", (CharSequence[]) components);
     }
 
@@ -322,7 +326,11 @@ public class Main {
         final String version = read(new File(baseDir, "../pom.xml"),
                                              "/project/version");
         if (newVersion != null) {
-            prepareSnapshot(baseDir, version, newVersion);
+            if (newVersion.equalsIgnoreCase("next-snapshot")) {
+                prepareNextSnapshot(baseDir, version);
+            } else {
+                prepareSnapshot(baseDir, version, newVersion);
+            }
         } else if (version.endsWith("-SNAPSHOT")) {
             prepareRelease(baseDir, version);
         } else {

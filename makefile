@@ -126,9 +126,11 @@ deploy: FORCE
 	./deploy.sh
 
 dist: FORCE
-	sed -i.old 's/<version>\([0-9.]*\)-SNAPSHOT/<version>\1/' pom.xml 
-	-mvn -DskipTests=true package
-	mv pom.xml.old pom.xml
+# Unsnapshot and send to OSSRH if we're making a release
+ifdef CUSTOMER_DIST
+	AG_SKIP_TESTS=y ./release.sh
+endif
+	mvn -DskipTests=true package
 	mkdir -p DIST
 # Note that maven creates target/$(DIST_DIR)/$(DIST_DIR) for some reason.
 # Rename the directory
@@ -141,6 +143,13 @@ ifneq "$(DESTDIR)" "$(TARDIR)"
 	mkdir -p $(DESTDIR)
 	cp -p $(TARNAME) $(DESTDIR)/
 endif
+endif
+# If we just made a release, we need to increment the version number
+# and add -SNAPSHOT to it. Also push both the release and the
+# incremented version to git.
+ifdef CUSTOMER_DIST
+	./increment-version.sh
+	git push origin HEAD
 endif
 
 dist-clean: FORCE

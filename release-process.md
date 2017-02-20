@@ -111,6 +111,9 @@ It operates in the following steps:
    prompted for the GPG key passphrase.
 4. Tests are run against the freshly uploaded JAR. This phase requires 
    a working AllegroGraph server.
+
+Two further steps are performed by ./increment-version.sh
+
 5. The version number is adjusted again, by incrementing the patch level
    by one and adding the `-SNAPSHOT` qualifier back.
 6. The result is again commited.
@@ -138,6 +141,9 @@ other segments of the version might also need to be adjusted.
 
 See README.md in `version-rewriter/` to learn how to do this.
 
+If doing 'make dist' when building an AG release (i.e. when
+CUSTOMER_DIST is set) all these steps happen automatically,
+except for the OSSRH approval step.
 
 # Snapshot deployment
 

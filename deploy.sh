@@ -8,12 +8,16 @@
 #   - OSSRH credentials, configured in ~/.m2/settings.xml,
 #     see http://books.sonatype.com/nexus-book/reference/usertoken.html#_accessing_and_using_your_user_tokens
 #   - GPG key for support@franz.com. The script will prompt
-#     for the passphrase for this key.
+#     for the passphrase for this key. Alternatively it can
+#     be provided in the KEY_PASSWORD env var. Or the key
+#     may be stored unencrypted.
 # Note that release versions (i.e. those without the -SNAPSHOT modifier)
 # cannot be changed after they're approved and uploaded to the central
 # repository. This script will not allow an already released version
 # to be uploaded again. It is possible to upload a version more than once
 # if it is a snapshot or if it has not been approved yet.
+# Tests will be run after the upload. These tests use the freshly uploaded JAR from OSSRH.
+# This step can be skipped by setting the value of AG_SKIP_TESTS to anything.
 
 set -e
 
@@ -27,7 +31,6 @@ DEPLOYMENT_URL=https://oss.sonatype.org/content/groups/public/com/franz/agraph-j
 NEXUS_CHECK_URL=https://oss.sonatype.org/service/local/staging/profiles
 
 # Used to accumulate options for the final mvn call
-# Skip pre-release tests by default, post-release tests will still be run.
 MVN_OPTS=-DskipTests=true
 
 function info () {
@@ -38,10 +41,31 @@ function err () {
     echo $@ >&2
 }
 
+function check_passphrase () {
+    if [ -n "${KEY_PASSWORD+x}" ]; then
+	printf %s "${KEY_PASSWORD:-}" | gpg --batch --passphrase-fd 0 -o /dev/null --local-user "${KEY_NAME}" -as - 2> /dev/null || { err "Passphrase is invalid." && return 1; }
+    else
+	 gpg --no-agent --batch -o /dev/null --local-user "${KEY_NAME}" -as - 2> /dev/null || { err "GPG passphrase is required." && return 1; }
+    fi
+    info "GPG key access verified."
+    return 0
+}
+
 # Check if the GPG key is available
 if ! gpg -K "${KEY_NAME}" > /dev/null; then
     err "You must have a key named ${KEY_NAME} in your GPG keyring."
     exit 1
+fi
+
+# Establish the passphrase
+while ! check_passphrase ; do
+    read -s -p "Deployment key passphrase: " KEY_PASSWORD
+    echo
+done
+
+# Pass the passphrase to Maven if required.
+if [ -n "${KEY_PASSWORD+x}" ]; then
+    MVN_OPTS+=" -Dgpg.passphrase=${KEY_PASSWORD}"
 fi
 
 # Check if OSSRH credentials are configured.
@@ -85,12 +109,11 @@ else
     fi
 fi
 
-read -s -p "Deployment key passphrase: " KEY_PASSWORD
-echo
+mvn clean deploy -P release ${MVN_OPTS}
 
-mvn clean deploy -P release ${MVN_OPTS} "-Dgpg.passphrase=${KEY_PASSWORD}"
-
-echo "Running tests using the released version:"
-echo "Waiting 10 seconds ..."
-sleep 10
-make test-release
+if [ -z "${AG_SKIP_TESTS+x}" ]; then
+    echo "Running tests using the released version:"
+    echo "Waiting 10 seconds ..."
+    sleep 10
+    make test-release
+fi
