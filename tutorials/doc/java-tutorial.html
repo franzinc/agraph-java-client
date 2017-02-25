@@ -1928,12 +1928,40 @@ After loading, there are 1214 kennedy triples.</pre>
 <pre class="output">
 After loading, there are 2428 kennedy triples.</pre>
 <p>Now there are two copies of every Kennedy triple. If you add the same triple multiple times, you will get multiple copies of it. </p>
-<h3></h3>
+
+<h3 id="DuplicatesAndSparql">Duplicates and SPARQL</h3>
+<p>
+  The
+  SPARQL <a href="https://www.w3.org/TR/sparql11-query/">specification</a>
+  assumes that the queried data consists of RDF graphs, which
+  are <strong>sets</strong> of triples. This means that, in theory,
+  there should be no duplicates in the input data as seen by a SPARQL
+  query, although duplicate results might be produced, as we have seen
+  already. In practice, filtering out all redundant triples would have
+  a very significant negative impact on performance. For this reason
+  AllegroGraph will not perform this operation. It will, however,
+  hide <strong>some</strong> of the duplicate triples, to avoid
+  unnecessarily processing the same data multiple times.</p>
+
+<p>This behavior can lead to some surprising results. For example, the
+following SPARQL query:</p>
+<pre>
+  SELECT count(*) WHERE { ?s ?p ?o }
+</pre>
+<p>could return either the number of unique triples in the store, the
+number of all triples (including duplicates), <strong>or any number in
+between</strong>.</p>
+
 <h3>Filter Out Duplicate Results </h3>
-<p>In practice, our advice "don't create duplicate triples" may be difficult to follow. Some data feeds contain duplicated information and there is no convenient or efficient way to filter it out. So now you have duplicated data in the system. How much trouble might that cause?</p>
-<p>This simple query should return three matches, one for each of Ted Kennedy's three children: </p>
+<p>In practice, our advice &quot;don't create duplicate triples&quot;
+may be difficult to follow. Some data feeds contain duplicated
+information and there is no convenient or efficient way to filter it
+out. So now you have duplicated data in the system. How much trouble
+might that cause?</p>
+<p>This simple query should return three matches, one for each of Ted
+Kennedy's three children: </p>
 <pre class="input">    SELECT ?o WHERE {kdy:person17 kdy:has-child ?o}</pre>
-<p>However, because each of the expected triples has a duplicate, we get six answers instead of three: </p>
+<p>However, because each of the expected triples has a duplicate, we <a href="#DuplicatesAndSparql">may</a> get up to six answers instead of three: </p>
 <pre class="output">SPARQL matches for children of Ted Kennedy.<br>http://www.franz.com/simple#person72<br>http://www.franz.com/simple#person72<br>http://www.franz.com/simple#person74<br>http://www.franz.com/simple#person74<br>http://www.franz.com/simple#person76<br>http://www.franz.com/simple#person76</pre>
 <p>That's a nuisance, but SPARQL provides an easy way to wipe out the duplicate answers: </p>
 <pre class="input">    SELECT DISTINCT ?o WHERE {kdy:person17 kdy:has-child ?o}</pre>
@@ -1942,19 +1970,70 @@ After loading, there are 2428 kennedy triples.</pre>
 <p>DISTINCT works by sorting the bindings by each of the bound variables in the result. This forces duplicate results to be adjacent to each other in the result list. Then it runs over the list and eliminates bindings that are the same as the previous binding. As you can imagine, there are situations where forcing an exhaustive sort on a large binding set might use up a lot of time. </p>
 <p>For this reason, SPARQL also offers a REDUCED operator:</p>
 <pre class="input">    SELECT REDUCED ?o WHERE {kdy:person17 kdy:has-child ?o} ORDER BY ?o</pre>
-<p>REDUCED performs the same sweep for duplicates that DISTINCT performs, but it lets you control the sorting. In this example the values of the subject and predicate are fixed, so sorting by the object value is sufficient to force all duplicate bindings to be adjacent to each other. REDUCED is often much faster than DISTINCT.</p>
+<p>REDUCED performs the same sweep for duplicates that DISTINCT
+performs, but it does not perform the (potentialy costly) sorting
+step. But if the results are already sorted (using ORDER BY), that
+will produce the same output that using DISTINCT would. In this
+example the values of the subject and predicate are fixed, so sorting
+by the object value is sufficient to force all duplicate bindings to
+be adjacent to each other. REDUCED is often much faster than
+DISTINCT. If the data is not properly sorted, some duplicates might
+not be filtered out, but in many applications that is acceptable.</p>
+
 <h3>Filtering Duplicate Triples while Loading </h3>
-<p>AllegroGraph could check each incoming triple to see if that information is already present in the triple store, but this process would be very time-consuming, slowing down our extremely-fast <a href="http://www.franz.com/agraph/allegrograph/">load times</a> by orders of magnitude. Loading speed is important to almost everyone, so AllegroGraph does not filter duplicates during the load. </p>
-<p>If loading speed isn't critical in your application, you can add triples one at a time while checking for duplicates as shown here:</p>
-<pre class="input">        if (conn.getStatements(newParent, hasChild, newChild, false).hasNext()) {<br>        	println("Did not add new triple.");<br>        } else {<br>        	conn.add(newParent, hasChild, newChild);<br>        	println("Added new statement.");<br>        }   </pre>
-<p>If <strong>getStatements()</strong> return any value, then the new triple is already present in the store. If not, then we can add it to the store knowing that it will be unique. </p>
-<p>When you run this example twice it adds a triple the first time, but not the second time:</p>
-<pre class="output">Test before adding triple, first trial: 
-Added new triple.  
+<p>
+  AllegroGraph provides facilities for detecting and removing
+  duplicate triples from the store. This can be done in one of two
+  ways:</p>
+<ol>
+  <li>At any point it is possible to explicitly perform a duplicate
+  removal operation.</li>
+  <li>A store can be configured to suppress duplicates whenever new
+    triples are committed.  Note that this will affect only the new
+    triples - anything that is already in the store will not be
+    deleted.
+  </li>
+</ol>
+<p>Explicit duplicate deletion can be performed by calling the
+deleteDuplicates() method of the connection objects, as shown
+below:</p>
+<pre class="input">
+  conn.clear();
+  conn.add(new File("src/tutorial/java-kennedy.ntriples"), baseURI, RDFFormat.NTRIPLES);
+  conn.add(new File("src/tutorial/java-kennedy.ntriples"), baseURI, RDFFormat.NTRIPLES);
+  
+  println("Triple count before duplicate deletion: " + conn.size());
+  conn.deleteDuplicates("spog");
+  println("Triple count after duplicate deletion: " + conn.size());
+  </pre>
+<pre class="output">
+  Triple count before duplicate deletion: 2428
+  Triple count after duplicate deletion: 1214
+</pre>
 
+<p>The argument to deleteDuplicates() is a string that describes how
+to check if two triples should be considered as identical. The allowed
+values are "spo" and "spog". The difference is that "spog" will only
+detect duplicates in the same graph, while "spo" operates across
+graphs.</p>
 
-Test before adding triple, second trial: 
-Did not add new triple.</pre>
+<p>To enable duplicate suppression at commit time, call
+setDuplicateSuppressionPolicy() on the repository object. The argument
+has the same meaning as in deleteDuplicates()</p>
+<pre class="input">
+  myRepository.setDuplicateSuppressionPolicy("spog");
+  println("Trying to import the same set of triples a second time.");
+  conn.add(new File("src/tutorial/java-kennedy.ntriples"), baseURI, RDFFormat.NTRIPLES);
+  println("Triple count after import: " + conn.size());
+</pre>
+<pre class="output">
+  Trying to import the same set of triples a second time.
+  Triple count after import: 1214
+</pre>
+<p><a href="../deleting-duplicate-triples.html">AllegroGraph
+documentation contains further information about handling of duplicate
+triples.</a></p>
+
 <h3>Duplicates in Federated Stores</h3>
 <p>A <a href="#Federated Repositories">federated store</a> is a single connection to multiple AllegroGraph repositories, possibly on multiple servers at multiple sites. Such systems can have duplicate triples, but deleting them is unwise.</p>
 <p>Presumably any existing repository has a purpose of its own, and has been federated with other respositories to serve some combined purpose. It would be a mistake to delete triples from one repository simply because they also occur elsewhere in the federated store. This could damage the integrity of the individual repositories when they are used in stand-alone mode. By similar reasoning, it is a mistake to add triples to a federated repository. Which repository gets the new triples? </p>
