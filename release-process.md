@@ -98,31 +98,37 @@ All releases must be signed using a GPG key for `support@franz.com`.
 This key must be available in your GPG keyring for the deployment 
 process to succeed. 
 
-# The release script
+# Website releases
 
-The release process is started by invoking the `release.sh` script.
-It operates in the following steps:
+The release process consists of the following steps:
 
-1. The `-SNAPSHOT` qualifier is stripped from the version number in 
-   the POM file and all other files that mention it.
-2. The resulting code is commited to git and tagged with the version
-   number.
-3. The code is compiled and uploaded (staged) to OSSRH. You'll be 
+1. The `-SNAPSHOT` qualifier must be stripped from the version number in 
+   the POM file and all other files that mention it. The result must
+   be committed to git. This is done by invoking `make prepare-release`.
+2. The regular AG release process can then build the archive to be
+   uploaded to the webpage with `make dist`. This step will fail
+   if the version number is still a snapshot (i.e. if the previous step
+   has been skipped). At this step it is recommended to release 
+   the client to the Maven central repository (see next section).
+3. After that the version number must be incremented, -SNAPSHOT needs to
+   be added back and the result must be placed in git. This is done
+   with `make post-release`.
+
+# Maven central releases
+
+In addition to being published on the website, the client should also
+be deployed to the central repository. This is done by calling 
+`make deploy`. It is possible to deploy both snapshot and release
+version. Calling `make deploy` will:
+
+1. Compile the code and upload it (stage) to OSSRH. You'll be 
    prompted for the GPG key passphrase.
-4. Tests are run against the freshly uploaded JAR. This phase requires 
-   a working AllegroGraph server.
+2. Run the tests against the freshly uploaded JAR. This phase requires 
+   a working AllegroGraph server. If that is not desired, set the
+   AG_SKIP_TESTS variable to something.
 
-Two further steps are performed by ./increment-version.sh
-
-5. The version number is adjusted again, by incrementing the patch level
-   by one and adding the `-SNAPSHOT` qualifier back.
-6. The result is again commited.
-
-Once the script finishes successfully two steps must be performed
-manually:
- 
-1. The two commits mentioned above must be pushed to gerrit and merged.
-2. The staged release must be approved on OSSRH. To do that:
+Once `make deploy` finishes successfully, the staged release must be 
+approved on OSSRH. To do that:
    
      * Go to https://oss.sonatype.org/ 
      * Make sure you're logged in (there is a 'Log In' button in the 
@@ -135,15 +141,12 @@ manually:
            release and you do *not* want to approve it.
      
 # Adjusting major/minor version number
-The release script takes care of managing the version number, but it 
-only increments the patch number. After more serious API changes the 
-other segments of the version might also need to be adjusted. 
+
+The release scripts take care of managing the version number, but only
+the patch number is ever incremented. After more serious API changes
+the other segments of the version might also need to be adjusted.
 
 See README.md in `version-rewriter/` to learn how to do this.
-
-If doing 'make dist' when building an AG release (i.e. when
-CUSTOMER_DIST is set) all these steps happen automatically,
-except for the OSSRH approval step.
 
 # Snapshot deployment
 

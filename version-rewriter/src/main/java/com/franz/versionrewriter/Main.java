@@ -233,7 +233,7 @@ public class Main {
     private static String incrementVersion(final String version) {
         final String[] components = version.split("\\.");
         final int last = components.length - 1;
-        final String lastComponents = components[last].split("-");
+        final String[] lastComponents = components[last].split("-");
         final int lastValue = Integer.parseInt(lastComponents[0]);
         lastComponents[0] = Integer.toString(lastValue + 1); 
         components[last] = String.join("-", (CharSequence[])lastComponents);

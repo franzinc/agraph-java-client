@@ -110,7 +110,7 @@ tags: FORCE
 ## distribution building
 
 # It is pretty hard to convince Maven to use another name.
-DIST_DIR = agraph-java-client-$(RELEASE_VERSION)
+DIST_DIR = agraph-java-client-$(VERSION)
 # But we want our old name, and we want the AG version.
 TARGET_DIST_DIR = agraph-$(AGVERSION)-client-java
 ifdef CUSTOMER_DIST
@@ -126,9 +126,12 @@ deploy: FORCE
 	./deploy.sh
 
 dist: FORCE
-# Unsnapshot and send to OSSRH if we're making a release
+# Make sure we're not trying to make a release with a snaphost version.
 ifdef CUSTOMER_DIST
-	AG_SKIP_TESTS=y ./release.sh
+	if [[ $(VERSION) == *-SNAPSHOT ]]; then \
+	   echo "ERROR: Cannot make a public release of a snapshot ($(VERSION))" 1>&2 ; \
+	   exit 1; \
+	fi
 endif
 	mvn -DskipTests=true package
 	mkdir -p DIST
@@ -144,13 +147,13 @@ ifneq "$(DESTDIR)" "$(TARDIR)"
 	cp -p $(TARNAME) $(DESTDIR)/
 endif
 endif
-# If we just made a release, we need to increment the version number
-# and add -SNAPSHOT to it. Also push both the release and the
-# incremented version to git.
-ifdef CUSTOMER_DIST
+
+prepare-release: FORCE
+	./unsnapshot.sh
+
+post-release: FORCE
 	./increment-version.sh
 	git push origin HEAD
-endif
 
 dist-clean: FORCE
 	rm -fr target
