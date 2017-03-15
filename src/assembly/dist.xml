@@ -28,16 +28,20 @@
       <directory>doc</directory>
       <outputDirectory>javadoc</outputDirectory>
     </fileSet>     
-  </fileSets>
-  <files>
+
     <!-- We need a copy of the pom file.
          It is included in the JAR, but there is a bug
          in Maven and that file is not usable.
          See https://issues.apache.org/jira/browse/MINSTALL-110.
-    -->  
-    <file>
-      <source>pom.xml</source>
-      <outputDirectory>.</outputDirectory>
-    </file>
-  </files>
+    
+         Note: do NOT try to include this in the 'files' section.
+	 Paths in that section are incorrectly resolved when
+         the pom.xml file is a symlink.
+    -->
+    <fileSet>
+      <includes>
+	<include>pom.xml</include>
+      </includes>
+    </fileSet>
+  </fileSets>
 </assembly>
