@@ -45,7 +45,7 @@ function check_passphrase () {
     if [ -n "${KEY_PASSWORD+x}" ]; then
 	printf %s "${KEY_PASSWORD:-}" | gpg --batch --passphrase-fd 0 -o /dev/null --local-user "${KEY_NAME}" -as - 2> /dev/null || { err "Passphrase is invalid." && return 1; }
     else
-	 gpg --no-agent --batch -o /dev/null --local-user "${KEY_NAME}" -as - 2> /dev/null || { err "GPG passphrase is required." && return 1; }
+	 echo | gpg --batch -o /dev/null --passphrase-fd 0 --local-user "${KEY_NAME}" -as - 2> /dev/null || { err "GPG passphrase is required." && return 1; }
     fi
     info "GPG key access verified."
     return 0
