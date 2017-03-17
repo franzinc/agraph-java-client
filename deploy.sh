@@ -51,6 +51,24 @@ function check_passphrase () {
     return 0
 }
 
+function ag_is_running() {
+    AGRAPH_HOST=${AGRAPH_HOST:-127.0.0.1}
+    if [ -f "../agraph/lisp/agraph.port" ]; then
+	DEFAULT_PORT=$(cat ../agraph/lisp/agraph.port)
+    else
+	DEFAULT_PORT=10035
+    fi
+    AGRAPH_PORT=${AGRAPH_PORT:-${DEFAULT_PORT}}
+    curl -s -f "http://${AGRAPH_HOST}:${AGRAPH_PORT}/version" > /dev/null 2>&1
+    return $?
+}
+
+# We'll need AG to run tests, so let's fail early if it's not there.
+if [ -z "${AG_SKIP_TESTS+x}" ] && ! ag_is_running; then
+    err "Start the server before deployment (or use AG_SKIP_TESTS)."
+    exit 1
+fi
+
 # Check if the GPG key is available
 if ! gpg -K "${KEY_NAME}" > /dev/null; then
     err "You must have a key named ${KEY_NAME} in your GPG keyring."
