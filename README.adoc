@@ -180,7 +180,7 @@ following command in the directory containing the tutorial:
 
 To run one of the tutorials, use the following command line:
 
-    mvn java:exec
+    mvn exec:java
 
 in the directory containing the tutorial you wish to run.
 
@@ -188,7 +188,7 @@ Sesame and Jena tutorials contain multiple, numbered examples.
 It is possible to run just the specified examples by passing
 their numbers as arguments in the following way:
 
-   mvn java:exec -Dexec.args="1 2 3 5 8 13 21"
+   mvn exec:java -Dexec.args="1 2 3 5 8 13 21"
 
 The argument 'all' indicates that all examples should be
 run.
