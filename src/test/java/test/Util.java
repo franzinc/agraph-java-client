@@ -27,6 +27,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipOutputStream;
 
 public class Util {
 	public static File resource(final String path) {
@@ -146,15 +147,19 @@ public class Util {
     }
     
     public static void gzip(File in, File out) throws IOException {
-        try (final FileInputStream is = new FileInputStream(in);
-			 final OutputStream os = new GZIPOutputStream(new FileOutputStream(out))) {
-            for (int ch = is.read(); ch != -1; ch = is.read()) {
-                os.write(ch);
-            }
-            os.flush();
-        }
+	try (final OutputStream os = new GZIPOutputStream(new FileOutputStream(out))) {
+	    FileUtils.copyFile(in, os);
+	    os.flush();
+	}
     }
     
+    public static void zip(File in, File out) throws IOException {
+        try (final OutputStream os = new ZipOutputStream(new FileOutputStream(out))) {
+	    FileUtils.copyFile(in, os);
+	    os.flush();
+        }
+    }
+
     public static List arrayList(Object...elements) {
     	List list = new ArrayList();
     	for (int i = 0; i < elements.length; i++) {

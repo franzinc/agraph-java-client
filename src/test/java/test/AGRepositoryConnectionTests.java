@@ -20,6 +20,8 @@ import org.junit.experimental.categories.Categories.IncludeCategory;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite.SuiteClasses;
 import org.openrdf.model.Statement;
+import org.openrdf.model.Resource;
+import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.query.*;
 import org.openrdf.repository.Repository;
@@ -29,11 +31,8 @@ import org.openrdf.rio.RDFParseException;
 import test.RepositoryConnectionTest.RepositoryConnectionTests;
 import test.TestSuites.NonPrepushTest;
 
-import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGRDFFormat;
-import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
-import com.franz.agraph.repository.AGServer;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -43,7 +42,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 
-import static org.junit.Assert.*;
 
 public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
     
@@ -81,31 +79,51 @@ public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
 
 	}
 
+	// Add statements to the repository from STREAM. STREAM contains data formatted
+	// as FORMAT.
+	public void addInputStream(InputStream stream, RDFFormat format) throws Exception {
+		testCon.add(stream, "", format);
+	}
+
+	// Add statements to the repository from the file pointed to by SOURCE. SOUCE
+	// contains data formatted as FORMAT.
+	public void addInputFile(File source, RDFFormat format) throws Exception {
+		try (InputStream stream = new FileInputStream(source)) {
+			addInputStream(stream, format);
+		}
+	}
+
+	public File createTempGzipFileFrom(File from) throws IOException {
+		File gz = File.createTempFile(from.getName() + ".", ".gz");
+		gz.deleteOnExit();
+		Util.gzip(from,gz);
+		return gz;
+	}
+
+	public File createTempZipFileFrom(File from) throws IOException {
+		File zip = File.createTempFile(from.getName() + ".", ".zip");
+		zip.deleteOnExit();
+		Util.zip(from,zip);
+		return zip;
+	}
+
     @Test
 	public void testAddGzipInputStreamNTriples() throws Exception {
-		// add file default-graph.nt.gz to repository, no context
-	    File gz = File.createTempFile("default-graph.nt-", ".gz");
-	    gz.deleteOnExit();
+	    // add file default-graph.nt.gz to repository, no context
 	    File nt = Util.resourceAsTempFile(TEST_DIR_PREFIX + "default-graph.nt");
-	    Util.gzip(nt, gz);
-		//RepositoryConnectionTest.class.getResourceAsStream(TEST_DIR_PREFIX + "default-graph.nt.gz");
-		try (InputStream defaultGraph = new FileInputStream(gz)) {
-			testCon.add(defaultGraph, "", RDFFormat.NTRIPLES);
-		}
+	    addInputFile(createTempGzipFileFrom(nt), RDFFormat.NTRIPLES);
 
-		assertTrue("Repository should contain newly added statements", testCon
-				.hasStatement(null, publisher, nameBob, false));
-		assertTrue("Repository should contain newly added statements", testCon
-				.hasStatement(null, publisher, nameAlice, false));
-
+	    assertTrue("Repository should contain newly added statements", testCon
+		       .hasStatement(null, publisher, nameBob, false));
+	    assertTrue("Repository should contain newly added statements", testCon
+		       .hasStatement(null, publisher, nameAlice, false));
 	}
 
     @Test
 	public void testAddZipFileNTriples() throws Exception {
 		InputStream in = Util.resourceAsStream(TEST_DIR_PREFIX + "graphs.nt.zip");
-
-		testCon.add(in, "", RDFFormat.NTRIPLES);
-
+		addInputStream(in, RDFFormat.NTRIPLES);
+		
 		assertTrue("Repository should contain newly added statements", testCon
 				.hasStatement(null, publisher, nameBob, false));
 		assertTrue("Repository should contain newly added statements", testCon
@@ -122,11 +140,10 @@ public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
 	public void testAddReaderNTriples() throws Exception {
 		InputStream defaultGraphStream = Util.resourceAsStream(TEST_DIR_PREFIX
 				+ "default-graph.nt");
-		Reader defaultGraph = new InputStreamReader(defaultGraphStream, "UTF-8");
 
-		testCon.add(defaultGraph, "", RDFFormat.NTRIPLES);
-
-		defaultGraph.close();
+		try (Reader defaultGraph = new InputStreamReader(defaultGraphStream, "UTF-8")) {
+			testCon.add(defaultGraph, "", RDFFormat.NTRIPLES);
+		}
 
 		assertTrue("Repository should contain newly added statements", testCon
 				.hasStatement(null, publisher, nameBob, false));
@@ -136,23 +153,15 @@ public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
 		// add file graph1.nt to context1
 		InputStream graph1Stream = Util.resourceAsStream(TEST_DIR_PREFIX
 				+ "graph1.nt");
-		Reader graph1 = new InputStreamReader(graph1Stream, "UTF-8");
-
-		try {
+		try (Reader graph1 = new InputStreamReader(graph1Stream, "UTF-8")) {
 			testCon.add(graph1, "", RDFFormat.NTRIPLES, context1);
-		} finally {
-			graph1.close();
 		}
 
 		// add file graph2.nt to context2
 		InputStream graph2Stream = Util.resourceAsStream(TEST_DIR_PREFIX
 				+ "graph2.nt");
-		Reader graph2 = new InputStreamReader(graph2Stream, "UTF-8");
-
-		try {
+		try (Reader graph2 = new InputStreamReader(graph2Stream, "UTF-8")) {
 			testCon.add(graph2, "", RDFFormat.NTRIPLES, context2);
-		} finally {
-			graph2.close();
 		}
 
 		assertTrue("alice should be known in the store", testCon.hasStatement(
@@ -175,37 +184,26 @@ public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
 
     @Test
 	public void testAddInputStreamNTriples() throws Exception {
-		// add file default-graph.nt to repository, no context
-		InputStream defaultGraph = Util.resourceAsStream(TEST_DIR_PREFIX
-				+ "default-graph.nt");
+	        // add file default-graph.nt to repository, no context
 
-		try {
+	        try (InputStream defaultGraph =
+		     Util.resourceAsStream(TEST_DIR_PREFIX + "default-graph.nt")) {
 			testCon.add(defaultGraph, "", RDFFormat.NTRIPLES);
-		} finally {
-			defaultGraph.close();
 		}
-
+	    
 		assertTrue("Repository should contain newly added statements", testCon
 				.hasStatement(null, publisher, nameBob, false));
 		assertTrue("Repository should contain newly added statements", testCon
 				.hasStatement(null, publisher, nameAlice, false));
 
 		// add file graph1.nt to context1
-		InputStream graph1 = Util.resourceAsStream(TEST_DIR_PREFIX + "graph1.nt");
-
-		try {
+		try (InputStream graph1 = Util.resourceAsStream(TEST_DIR_PREFIX + "graph1.nt")) {
 			testCon.add(graph1, "", RDFFormat.NTRIPLES, context1);
-		} finally {
-			graph1.close();
 		}
 
 		// add file graph2.nt to context2
-		InputStream graph2 = Util.resourceAsStream(TEST_DIR_PREFIX + "graph2.nt");
-
-		try {
+		try (InputStream graph2 = Util.resourceAsStream(TEST_DIR_PREFIX + "graph2.nt")) {
 			testCon.add(graph2, "", RDFFormat.NTRIPLES, context2);
-		} finally {
-			graph2.close();
 		}
 
 		assertTrue("alice should be known in the store", testCon.hasStatement(
@@ -247,6 +245,45 @@ public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
 
 		assertEquals("Repository contains incorrect number of statements", 1,
 				testCon.size());
+	}
+
+	@Test
+	public void testImportAllSupportedFormats() throws Exception {
+
+		class SampleInput {
+			public String file;
+			public RDFFormat type;
+
+			public SampleInput(RDFFormat format, String sampleFile) {
+				type = format;
+				file = sampleFile;
+			}
+		}
+
+		AGRepository repo = (AGRepository)createRepository();
+		AGRepositoryConnection conn = repo.getConnection();
+
+		SampleInput[] formats = { new SampleInput(RDFFormat.NTRIPLES, "default-graph.nt"),
+					  new SampleInput(RDFFormat.NQUADS, "example.nq"),
+					  // import via 'application/trig'
+					  new SampleInput(AGRDFFormat.TRIG, "sample.trig"),
+					  // import via 'application/x-trig'
+					  new SampleInput(RDFFormat.TRIG, "sample.trig"),
+					  new SampleInput(RDFFormat.TRIX, "sample.trix"),
+					  new SampleInput(RDFFormat.TURTLE, "default-graph.ttl"),
+					  new SampleInput(RDFFormat.RDFXML, "tutorial-test8-expected.rdf"),
+					  new SampleInput(AGRDFFormat.NQX, "sample.nqx")
+		};
+
+		for(SampleInput format: formats) {
+			// delete all triples.
+			conn.remove((Resource)null, (URI)null, (Value)null, (Resource)null);
+			// Import data file. If no exception is thrown, we consider the test successful
+			try(InputStream in = Util.resourceAsStream(TEST_DIR_PREFIX + format.file)) {
+				addInputStream(in, format.type);
+			}
+		}
+
 	}
 
     @Test
