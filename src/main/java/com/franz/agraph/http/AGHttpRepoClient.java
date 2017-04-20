@@ -1894,7 +1894,7 @@ public class AGHttpRepoClient implements Closeable {
 		String url = getRoot() + "/materializeEntailed";
 
 		List<NameValuePair> params = new ArrayList<NameValuePair>(5);
-		if (materializer!=null) {
+		if (materializer != null) {
 			for (String with: materializer.getWithRulesets()) {
 				params.add(new NameValuePair("with", with));
 			}
@@ -1902,12 +1902,16 @@ public class AGHttpRepoClient implements Closeable {
 				params.add(new NameValuePair("without", without));
 			}
 			Integer period = materializer.getCommitPeriod();
-			if (period!=null) {
+			if (period != null) {
 				params.add(new NameValuePair("commit", period.toString()));
 			}
 			Boolean useTypeSubproperty = materializer.getUseTypeSubproperty();
-			if (useTypeSubproperty!=null) {
+			if (useTypeSubproperty != null) {
 				params.add(new NameValuePair("useTypeSubproperty", useTypeSubproperty.toString()));
+			}
+			Resource inferredGraph = materializer.getInferredGraph();
+			if (inferredGraph != null) {
+				params.add(new NameValuePair("inferredGraph", Protocol.encodeContext(inferredGraph)));
 			}
 		} // else, using the server's default materializer
 		AGLongHandler handler = new AGLongHandler();
@@ -1917,15 +1921,20 @@ public class AGHttpRepoClient implements Closeable {
 
 	/**
 	 * Deletes materialized statements.
-	 * 
+	 *
+	 * @param inferredGraph Graph to delete the triples from. If null the default graph will be used.
+	 *
 	 * @return long  the number of statements deleted
 	 * @throws AGHttpException  if there is a problem with the request
 	 * @see #materialize(AGMaterializer)
 	 */
-	public long deleteMaterialized() throws RepositoryException {
+	public long deleteMaterialized(final Resource inferredGraph) throws RepositoryException {
 		String url = getRoot() + "/materializeEntailed";
 
 		List<NameValuePair> params = new ArrayList<NameValuePair>(2);
+		if (inferredGraph != null) {
+			params.add(new NameValuePair("inferredGraph", Protocol.encodeContext(inferredGraph)));
+		}
 		AGLongHandler handler = new AGLongHandler();
 		delete(url, null, params, handler);
 		return handler.getResult();

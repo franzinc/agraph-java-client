@@ -25,7 +25,6 @@ import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -2518,16 +2517,43 @@ implements RepositoryConnection, Closeable {
 	}
 	
 	/**
-	 * Deletes materialized statements.
+	 * Deletes materialized statements from the default graph.
 	 * 
 	 * @return the number of statements deleted
 	 * @throws AGHttpException  if there is an error with this request
 	 * @see #materialize(AGMaterializer)
 	 */
 	public long deleteMaterialized() throws RepositoryException {
-		return getHttpRepoClient().deleteMaterialized();
+		return deleteMaterialized((Resource)null);
 	}
-	
+
+	/**
+	 * Deletes materialized statements.
+	 *
+	 * @param materializer Materializer parameters used to create the triples.
+	 *
+	 * @return the number of statements deleted
+	 * @throws AGHttpException  if there is an error with this request
+	 * @see #materialize(AGMaterializer)
+	 */
+	public long deleteMaterialized(final AGMaterializer materializer) throws RepositoryException {
+		return deleteMaterialized(materializer.getInferredGraph());
+	}
+
+	/**
+	 * Deletes materialized statements from given graph.
+	 *
+	 * @param inferredGraph Graph to delete the statements from.
+	 *                      If null the default graph will be used.
+	 *
+	 * @return the number of statements deleted
+	 * @throws AGHttpException  if there is an error with this request
+	 * @see #materialize(AGMaterializer)
+	 */
+	public long deleteMaterialized(final Resource inferredGraph) throws RepositoryException {
+		return getHttpRepoClient().deleteMaterialized(inferredGraph);
+	}
+
 	/**
 	 * Sets the AG user for X-Masquerade-As-User requests.
 	 * 

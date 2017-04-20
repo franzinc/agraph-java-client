@@ -1,27 +1,31 @@
+/******************************************************************************
+** See the file LICENSE for the full license governing this code.
+******************************************************************************/
+
 package com.franz.agraph.repository;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+
+import org.openrdf.model.Resource;
 
 /**
  * A materializer governs how triples are inferred and added to a repository.
  * 
- * Note: The methods in this class are experimental and subject to change in
- * a future release.
- * 
  * @since v4.9
- *
  */
 public class AGMaterializer {
 
-	List<String> with; 
-	List<String> without;
-	Integer commitPeriod;
-	Boolean useTypeSubproperty;
+	private final List<String> with;
+	private final List<String> without;
+	private Integer commitPeriod;
+	private Boolean useTypeSubproperty;
+	private Resource inferredGraph;
 
 	/**
 	 * Gets a default materializer that can be further configured.
-	 * 
+	 * <p>
 	 * See also the HTTP protocol documentation for
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-materialize-entailed">
 	 * materializing entailed triples</a>.
@@ -32,9 +36,9 @@ public class AGMaterializer {
 		return new AGMaterializer();
 	}
 	
-	protected AGMaterializer() {
-		with = new ArrayList<String>();
-		without = new ArrayList<String>();
+	private AGMaterializer() {
+		with = new ArrayList<>();
+		without = new ArrayList<>();
 		commitPeriod = null; // use the server's default
 		useTypeSubproperty = null; // use the server's default
 	}
@@ -46,10 +50,10 @@ public class AGMaterializer {
 	 * See also the HTTP protocol documentation for
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-materialize-entailed">
 	 * materializing entailed triples</a>.
-	 *  
+	 *
 	 * @param ruleset the name of the ruleset to include.
 	 */
-	public void withRuleset(String ruleset) {
+	public void withRuleset(final String ruleset) {
 		with.add(ruleset);
 	}
 
@@ -59,19 +63,19 @@ public class AGMaterializer {
 	 * @return the with rulesets
 	 */
 	public List<String> getWithRulesets() {
-		return with;
+		return Collections.unmodifiableList(with);
 	}
 	
 	/**
 	 * Excludes a ruleset from materialization.
-	 * 
+	 * <p>
 	 * See also the HTTP protocol documentation for
 	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-materialize-entailed">
 	 * materializing entailed triples</a>.
-	 * 
+	 *
 	 * @param ruleset the name of the ruleset to exclude.
 	 */
-	public void withoutRuleset(String ruleset) {
+	public void withoutRuleset(final String ruleset) {
 		without.add(ruleset);
 	}
 	
@@ -81,7 +85,7 @@ public class AGMaterializer {
 	 * @return the without rulesets
 	 */
 	public List<String> getWithoutRulesets() {
-		return without;
+		return Collections.unmodifiableList(without);
 	}
 	
 	/**
@@ -96,7 +100,7 @@ public class AGMaterializer {
 	 * 
 	 * @param periodInTriples commit every time this many triples are added 
 	 */
-	public void setCommitPeriod(Integer periodInTriples) {
+	public void setCommitPeriod(final Integer periodInTriples) {
 		commitPeriod = periodInTriples;
 	}
 
@@ -140,6 +144,24 @@ public class AGMaterializer {
 	public Boolean getUseTypeSubproperty() {
 		return useTypeSubproperty;
 	}
-	
-}
 
+	/**
+	 * Gets the graph the inferred triples will be placed in.
+	 * <p>
+	 * If the value is null (the default), triples will be placed in the default graph.
+	 *
+	 * @return Graph URI or null (meaning 'the default graph')
+	 */
+	public Resource getInferredGraph() {
+		return inferredGraph;
+	}
+
+	/**
+	 * Sets the the graph the inferred triples will be placed in.
+	 *
+	 * @param inferredGraph Graph URI or null (meaning 'the default graph')
+	 */
+	public void setInferredGraph(final Resource inferredGraph) {
+		this.inferredGraph = inferredGraph;
+	}
+}

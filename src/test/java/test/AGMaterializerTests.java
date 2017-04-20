@@ -5,10 +5,11 @@
 package test;
 
 import com.franz.agraph.repository.AGMaterializer;
-import junit.framework.Assert;
 import junit.framework.AssertionFailedError;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.vocabulary.OWL;
@@ -61,10 +62,40 @@ public class AGMaterializerTests extends AGAbstractTest {
 			Assert.assertFalse(conn.hasStatement(a, RDF.TYPE, A, false));
 			Assert.assertEquals("expected size 2", 2, conn.size());
 		} catch (AssertionFailedError e) {
-			StringBuffer m = new StringBuffer();
-			m.append(e.getMessage());
-			m.append(printStatements(conn));
-			throw new AssertionFailedError(m.toString());
+			throw new AssertionFailedError(e.getMessage() + printStatements(conn));
+		}
+	}
+
+	@Test
+	@Category(TestSuites.Prepush.class)
+	public void materializeIntoNamedGraph() throws Exception {
+		URI a = vf.createURI("http://a");
+		URI p = vf.createURI("http://p");
+		URI A = vf.createURI("http://A");
+		URI g = vf.createURI("http://g");
+		try {
+			conn.add(a, p, a);
+			conn.add(p, RDFS.DOMAIN, A);
+			AGMaterializer materializer = AGMaterializer.newInstance();
+			materializer.withRuleset("all");
+			materializer.setInferredGraph(g);
+			Assert.assertEquals(
+					"unexpected number of materialized triples added", 13,
+					conn.materialize(materializer));
+			Assert.assertEquals("wrong size of G", 13, conn.size(g));
+			Assert.assertEquals("wrong size of the default graph", 2,
+					conn.size((Resource)null));
+			Assert.assertTrue(conn.hasStatement(a, RDF.TYPE, A, false, g));
+			Assert.assertEquals(
+					"materialized triples deleted from wrong graph", 0,
+					conn.deleteMaterialized());
+			Assert.assertEquals(
+					"unexpected number of materialized triples deleted", 13,
+					conn.deleteMaterialized(materializer));
+			Assert.assertFalse(conn.hasStatement(a, RDF.TYPE, A, false, g));
+			Assert.assertEquals("G not empty after delete", 0, conn.size(g));
+		} catch (AssertionFailedError e) {
+			throw new AssertionFailedError(e.getMessage() + printStatements(conn));
 		}
 	}
 
