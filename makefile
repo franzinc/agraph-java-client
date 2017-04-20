@@ -99,6 +99,9 @@ javadoc: FORCE
     # computes the current year will run too late.
 	mvn validate javadoc:javadoc
 
+checkstyle: FORCE
+	mvn checkstyle:check
+
 srcjar: FORCE
 	mvn source:jar
 
