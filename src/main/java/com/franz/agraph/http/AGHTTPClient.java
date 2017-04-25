@@ -7,6 +7,7 @@ package com.franz.agraph.http;
 import static com.franz.agraph.http.AGProtocol.AMOUNT_PARAM_NAME;
 import static com.franz.agraph.http.AGProtocol.OVERRIDE_PARAM_NAME;
 import static org.openrdf.http.protocol.Protocol.ACCEPT_PARAM_NAME;
+import static org.openrdf.http.protocol.Protocol.PROTOCOL;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,6 +31,7 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
+import org.openrdf.http.protocol.Protocol;
 import org.openrdf.http.protocol.UnauthorizedException;
 import org.openrdf.query.TupleQueryResult;
 import org.openrdf.query.impl.TupleQueryResultBuilder;
@@ -123,7 +125,7 @@ implements Closeable {
 		// bug21953. Only write params to body if content-type is appropriate.
 		Header contentType = post.getRequestHeader("Content-Type");
 		if (requestEntity == null && ( contentType == null ||
-					       "application/x-www-form-urlencoded".contains(contentType.getValue()) )) {
+					       contentType.getValue().contains(Protocol.FORM_MIME_TYPE))) {
 			post.setRequestBody(params);
 		} else {
 			post.setQueryString(params);
