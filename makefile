@@ -22,6 +22,12 @@ REPO = $(abspath repo)
 
 default: build
 
+check-version: FORCE
+ifndef AGVERSION
+	@echo AGVERSION is not set.
+	@exit 1
+endif
+
 clean: dist-clean
 	mvn clean
 
@@ -128,7 +134,7 @@ TARNAME = $(TARDIR)/$(TARGET_DIST_DIR).tar.gz
 deploy: FORCE
 	./deploy.sh
 
-dist: FORCE
+dist: check-version
 # Make sure we're not trying to make a release with a snaphost version.
 ifdef CUSTOMER_DIST
 	if [[ $(VERSION) == *-SNAPSHOT ]]; then \
