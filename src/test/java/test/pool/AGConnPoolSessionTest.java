@@ -26,6 +26,9 @@ import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
+import java.time.Instant;
+import java.time.Duration;;
+
 public class AGConnPoolSessionTest extends Closer {
 	
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
@@ -316,4 +319,77 @@ public class AGConnPoolSessionTest extends Closer {
         log.info("count=" + count);
     }
 
+	// This is a PTEST, comparing performance of connection pools vs
+	// fetching a non-pool connection for every use. Not intended to be run as
+	// part of the test suite.
+	@Test
+	@Category(TestSuites.NonPrepushTest.class)
+    public void connectionTimeTest() throws Exception {
+	System.out.println("Testing AGConnProp.Session.SHARED");
+        doTestConnection(AGConnProp.Session.SHARED, true, 1000);
+	doTestConnection(AGConnProp.Session.SHARED, false, 1000);
+	System.out.println();
+
+	System.out.println("Testing AGConnProp.Session.TX");
+        doTestConnection(AGConnProp.Session.TX, true, 1000);
+	doTestConnection(AGConnProp.Session.TX, false, 1000);
+	System.out.println();
+
+	System.out.println("Testing AGConnProp.Session.DEDICATED");
+        doTestConnection(AGConnProp.Session.DEDICATED, true, 1000);
+	doTestConnection(AGConnProp.Session.DEDICATED, false, 1000);
+    }
+
+	private void doTestConnection(AGConnProp.Session style, boolean usePooling, int iterations) throws Exception {
+	    AGServer server = closeLater( AGAbstractTest.newAGServer());
+	    AGCatalog catalog = server.getCatalog(AGAbstractTest.CATALOG_ID);
+        AGRepository repository = catalog.createRepository("spr43583");
+        AGConnPool pool = null;
+
+
+        if (usePooling) {
+            pool = AGConnPool.create(
+                    AGConnProp.serverUrl, server.getServerURL(),
+                    AGConnProp.username, AGAbstractTest.username(),
+                    AGConnProp.password, AGAbstractTest.password(),
+                    AGConnProp.catalog, catalog.getCatalogName(),
+                    AGConnProp.repository, repository.getRepositoryID(),
+                    AGConnProp.session, style
+            );
+            repository.setConnPool(pool);
+        }
+
+        Instant start = Instant.now();
+
+        for (int i = 0; i < iterations; i++)
+        {
+            AGRepositoryConnection connection = repository.getConnection();
+            if(connection== null)
+                Assert.fail("Connection is null");
+
+	    // for apple to apple comparison, the non-pool case must create a dedicated session if
+	    // the style argument is TX or DEDICATED.
+	    if(usePooling == false && (style == AGConnProp.Session.TX ||
+				       style == AGConnProp.Session.DEDICATED)) {
+		// autoCommit is true for DEDICATED, false for TX
+		// on return from setAutoCommit() CONNECTION is guaranteed to be
+		// a dedicated session.
+	        connection.setAutoCommit(style == AGConnProp.Session.DEDICATED);
+	    }
+
+            // Used it to check that my repository has it's ~500 statements:
+            //System.out.println("Connection size = " + connection.size());
+	    // connection.size();
+            connection.close();
+        }
+
+        System.out.println("TIMER: usePooling="+ usePooling +
+                ". It took " + Duration.between(start, Instant.now()) +
+                " to make " + iterations + " iterations of " +
+                "get-close connection.");
+
+        if (pool != null) pool.close();
+        repository.close();
+        server.close();
+    }
 }

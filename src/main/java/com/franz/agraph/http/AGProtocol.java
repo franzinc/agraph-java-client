@@ -479,6 +479,13 @@ public class AGProtocol extends Protocol {
 	 * Override header for supplying user attributes with a store-based request.
 	 */
 	public static final String USER_ATTRIBUTE_HEADER = "x-user-attributes";
+
+	/**
+	 * Headers for requesting rollback and commit as part of a request
+	 */
+	public static final String X_COMMIT_HEADER = "x-commit";
+	public static final String X_ROLLBACK_HEADER = "x-rollback";
+
 	/**
 	 * Location of the root catalog service
 	 * 

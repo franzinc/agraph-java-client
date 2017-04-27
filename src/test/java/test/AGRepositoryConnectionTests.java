@@ -636,4 +636,22 @@ public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
     }
     
 
+    // Test rollback via the x-rollback request header.
+    // See RepositoryConnectionTest#testSizeRollback() for related tests.
+    @Test
+    public void testSizeXRollback() throws Exception {
+        AGRepository repo = (AGRepository)createRepository();
+	AGRepositoryConnection conn = repo.getConnection();
+		
+        assertEquals(0, conn.size());
+        conn.setAutoCommit(false);
+	conn.add(bob, name, nameBob);
+        assertEquals(1, conn.size());
+	conn.getHttpRepoClient().setSendRollbackHeader(true);
+	assertEquals(0, conn.size());
+	conn.getHttpRepoClient().setSendRollbackHeader(false);
+	conn.add(bob, name, nameBob);
+	assertEquals(1, conn.size());
+	conn.rollback();
+    }
 }

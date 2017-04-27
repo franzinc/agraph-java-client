@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.franz.agraph.http.AGHTTPClient;
+import com.franz.agraph.http.AGHttpRepoClient;
 import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
@@ -104,31 +105,37 @@ implements PoolableObjectFactory {
 	}
 
 	protected void activateConnection(AGRepositoryConnection conn) throws RepositoryException {
-		// rollback to transaction will catch up to the most recent
-		conn.rollback();
+		// if autoCommit is false, then rollback to refresh this connection's view of the repository.
+		if (!conn.isAutoCommit()) {
+			conn.rollback();
+		}
 		
 		switch (props.session) {
 		case SHARED:
+			// Typically a shared connection (url through the frontend port) but may be a dedicated
+			// session if setAutoCommit() has been called on this connection.
 			if (!conn.isAutoCommit()) {
 				// it must have been set by the user, but restore it anyway
 				// it is no longer actually SHARED but DEDICATED
 				conn.setAutoCommit(true);
-				if (log.isDebugEnabled())
-					log.debug("Dedicated (not shared) backend: " + conn.getHttpRepoClient().getRoot());
+				log.debug("Dedicated (not shared) backend: " + conn.getHttpRepoClient().getRoot());
 			}
 			break;
 		case DEDICATED:
-			if (conn.getHttpRepoClient().getRoot().contains(props.serverUrl) || !conn.isAutoCommit()) {
+			// Dedicated Session in autoCommit mode.
+			// Ensure conn is a dedicated session, with autoCommit set to true.
+			if (!conn.getHttpRepoClient().isDedicatedSession() || !conn.isAutoCommit()) {
+				// forces conn to a dedicated session if not already.
 				conn.setAutoCommit(true);
-				if (log.isDebugEnabled())
-					log.debug("Dedicated backend: " + conn.getHttpRepoClient().getRoot());
+				log.debug("Dedicated backend: " + conn.getHttpRepoClient().getRoot());
 			}
 			break;
 		case TX:
+			// Dedicated Session not in autoCommit mode.
 			if (conn.isAutoCommit()) {
+				// forces conn to a dedicated session if not already.
 				conn.setAutoCommit(false);
-				if (log.isDebugEnabled())
-					log.debug("TX dedicated backend: " + conn.getHttpRepoClient().getRoot());
+				log.debug("TX dedicated backend: " + conn.getHttpRepoClient().getRoot());
 			}
 			break;
 		}
@@ -151,11 +158,15 @@ implements PoolableObjectFactory {
 	
 	@Override
 	public void passivateObject(Object obj) throws Exception {
-		AGRepositoryConnection conn = (AGRepositoryConnection) obj;
-		if (!conn.isAutoCommit() && conn.getRepository().isWritable()) {
-			// rollback to free resources on server
-			conn.rollback();
-		}
+		// Do nothing when returning a connection to the pool.
+		// Users can set TestOnReturn to true to force a rollback on
+		// a connection when it is returned to the pool.
+		//
+		// Setting TestWhileIdle to true (and associated PoolProps) will
+		// trigger a rollback when the connection is not being used.
+		//
+		// rollback() will always be called when a connection is borrowed
+		// from the pool.
 	}
 	
 	/**
@@ -165,9 +176,13 @@ implements PoolableObjectFactory {
 	public boolean validateObject(Object obj) {
 		AGRepositoryConnection conn = (AGRepositoryConnection) obj;
 		try {
-			// ping only checks the network is up
-			// size also ensures the repo exists
+			// ping() only checks that the network is up, so we call size(),
+			// which ensures the repo exists.
+			AGHttpRepoClient client = conn.getHttpRepoClient();
+			// Have the server perform a rollback as part of the size request.
+			client.setSendRollbackHeader(true);
 			conn.size();
+			client.setSendRollbackHeader(false);
 			return true;
 		} catch (Exception e) {
 			log.debug("validateObject " + obj, e);

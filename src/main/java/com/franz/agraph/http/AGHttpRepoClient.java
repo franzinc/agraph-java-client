@@ -146,6 +146,9 @@ public class AGHttpRepoClient implements Closeable {
 	 */
 	private String userAttributes;
 
+	// When true, any request made by this instance will include an `x-rollback' header.
+	private boolean sendRollbackHeader = false;
+
 	public AGHttpRepoClient(AGAbstractRepository repo, AGHTTPClient client,
 							String repoRoot, String sessionRoot,
 							ScheduledExecutorService executor) {
@@ -345,6 +348,9 @@ public class AGHttpRepoClient implements Closeable {
 
 		if (userAttributes != null) {
 			headers.add(new Header(AGProtocol.USER_ATTRIBUTE_HEADER, userAttributes));
+		}
+		if (sendRollbackHeader) {
+			headers.add(new Header(AGProtocol.X_ROLLBACK_HEADER, "yes"));
 		}
 		return headers.toArray(new Header[headers.size()]);
 	}
@@ -655,6 +661,10 @@ public class AGHttpRepoClient implements Closeable {
 		delete(url, null, params, null);
 	}
 
+	public boolean isDedicatedSession() {
+		return usingDedicatedSession;
+	}
+	
 	public void setAutoCommit(boolean autoCommit) throws AGHttpException {
 		useDedicatedSession(autoCommit);
 		String url = AGProtocol.getAutoCommitLocation(getRoot());
@@ -664,19 +674,11 @@ public class AGHttpRepoClient implements Closeable {
 		params.add(new NameValuePair(AGProtocol.ON_PARAM_NAME,
 									 Boolean.toString(autoCommit)));
 		post(url, null, params, null, null);
-		this.autoCommit = autoCommit; // TODO: let the server track this?
+		this.autoCommit = autoCommit;
 	}
 
 	public boolean isAutoCommit() throws AGHttpException {
-		if (sessionRoot != null) {
-			String url = AGProtocol.getAutoCommitLocation(getRoot());
-
-			AGStringHandler handler = new AGStringHandler();
-			get(url, null, null, handler);
-			return Boolean.valueOf(handler.getResult().toString());
-		}
-		else
-			return true;
+		return autoCommit;
 	}
 
 	/**
@@ -725,6 +727,17 @@ public class AGHttpRepoClient implements Closeable {
 		post(url, null, null, (RequestEntity) null, null);
 	}
 
+	/**
+	 * When set to true, an x-rollback header will be passed with each request
+	 * made by this AGHttpRepoClient instance.
+	 *
+	 * @param sendRollbackHeader  boolean indicating whether each request
+	 * should include a rollback header.
+	 */
+	public void setSendRollbackHeader(boolean sendRollbackHeader) {
+		this.sendRollbackHeader = sendRollbackHeader;
+	}
+	
 	public void clearNamespaces() throws AGHttpException {
 		String url = Protocol.getNamespacesLocation(getRoot());
 
