@@ -70,6 +70,11 @@ attributes-tutorial: local-deploy
 	mvn compile -Dmaven.repo.local=$(REPO) && \
 	mvn exec:java -Dmaven.repo.local=$(REPO)
 
+agq-tests: local-deploy
+	cd tutorials/agq && \
+	mvn compile -Dmaven.repo.local=$(REPO) && \
+	mvn test -Dmaven.repo.local=$(REPO)
+
 sparql-query-tests: FORCE
 	mvn test -Dtests.include=test.openrdf.AGSparqlQueryTest
 
