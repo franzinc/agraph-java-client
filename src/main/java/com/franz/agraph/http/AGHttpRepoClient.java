@@ -534,11 +534,21 @@ public class AGHttpRepoClient implements Closeable {
 	public void getStatements(Resource subj, URI pred, Value obj,
 			String includeInferred, RDFHandler handler, Resource... contexts)
 			throws RDFHandlerException, AGHttpException {
+			getStatements(subj, pred, obj, includeInferred,
+					new AGRDFHandler(getPreferredRDFFormat(), handler,
+							getValueFactory(),getAllowExternalBlankNodeIds()),
+					contexts);
+	}
+
+	public void getStatements(Resource subj, URI pred, Value obj,
+							  String includeInferred,
+							  AGResponseHandler handler, Resource... contexts)
+			throws AGHttpException {
 		String uri = Protocol.getStatementsLocation(getRoot());
 		List<Header> headers = new ArrayList<Header>(1);
 
 		headers.add(new Header(Protocol.ACCEPT_PARAM_NAME,
-							   getPreferredRDFFormat().getDefaultMIMEType()));
+				getPreferredRDFFormat().getDefaultMIMEType()));
 
 
 		AGValueFactory vf = getValueFactory();
@@ -565,13 +575,20 @@ public class AGHttpRepoClient implements Closeable {
 		params.add(new NameValuePair(Protocol.INCLUDE_INFERRED_PARAM_NAME,
 				includeInferred));
 
-		get(uri, headers, params,
-			new AGRDFHandler(getPreferredRDFFormat(), handler,
-			getValueFactory(),getAllowExternalBlankNodeIds()));
+		get(uri, headers, params, handler);
 	}
 
-	public void getStatements(RDFHandler handler, String... ids) throws RDFHandlerException,
-	AGHttpException {
+	public void getStatements(RDFHandler handler, String... ids) throws AGHttpException {
+		getStatements(
+				new AGRDFHandler(
+						getPreferredRDFFormat(),
+						handler,
+						getValueFactory(),
+						getAllowExternalBlankNodeIds()),
+				ids);
+	}
+
+	public void getStatements(AGResponseHandler handler, String... ids) throws AGHttpException {
 		String uri = Protocol.getStatementsLocation(getRoot())+"/id";
 		List<Header> headers = new ArrayList<Header>(1);
 
@@ -583,8 +600,7 @@ public class AGHttpRepoClient implements Closeable {
 			params.add(new NameValuePair("id", id));
 		}
 
-		get(uri, headers, params,
-			new AGRDFHandler(getPreferredRDFFormat(),handler,getValueFactory(),getAllowExternalBlankNodeIds()));
+		get(uri, headers, params, handler);
 	}
 
 	public void addStatements(Resource subj, URI pred, Value obj,

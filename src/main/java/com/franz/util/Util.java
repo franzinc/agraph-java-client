@@ -14,6 +14,8 @@ import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
  * @see Closer
  */
 public class Util {
+	// String that separated the catalog from the repository
+	private static final String CAT_SEPARATOR = ":";
 	
 	/**
 	 * @param <CloseableType>  .
@@ -74,4 +76,32 @@ public class Util {
 		return Closer.Close(o);
 	}
 	
+    /**
+     * Parses a store spec of the form [CATALOG:]REPO and returns
+     * the CATALOG. Returns {@code null} if there is no CATALOG.
+     *
+     * @param repoAndCatalog  Store specification ([CATALOG:]REPO).
+     *
+     * @return Catalog name or {@code null}.
+     */
+    public static String getCatalogFromSpec(final String repoAndCatalog) {
+        final String[] components =
+                repoAndCatalog.split(CAT_SEPARATOR, 2);
+        return components.length == 1 ? null : components[0];
+        
+    }
+    
+    /**
+     * Parses a store spec of the form [CATALOG:]REPO and returns
+     * the REPO part.
+     *
+     * @param repoAndCatalog  Store specification ([CATALOG:]REPO).
+     *
+     * @return Repository name.
+     */
+    public static String getRepoFromSpec(final String repoAndCatalog) {
+        final String[] components =
+                repoAndCatalog.split(CAT_SEPARATOR, 2);
+        return components[components.length - 1];       
+    }
 }

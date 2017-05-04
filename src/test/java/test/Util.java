@@ -4,11 +4,18 @@
 
 package test;
 
+import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
+import com.franz.agraph.repository.AGTupleQuery;
 import com.franz.util.Closer;
 import info.aduna.io.IOUtil;
 import org.apache.commons.io.FileUtils;
 import org.openrdf.model.Resource;
+import org.openrdf.model.URI;
+import org.openrdf.model.Value;
+import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.query.QueryLanguage;
+import org.openrdf.query.TupleQueryResult;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.rio.RDFFormat;
@@ -79,6 +86,38 @@ public class Util {
 			throw new RuntimeException(e);
 		}
 		return result;
+	}
+
+	/**
+	 * Gets the ID of a statement with given subject, predicate and object.
+	 *
+	 * @param conn Connection object.
+	 * @param subj Subject.
+	 * @param pred Predicate.
+	 * @param obj Object.
+	 * @return ID or {@code null}, if it couldn;t be found.
+	 */
+	public static String getStatementId(AGRepositoryConnection conn,
+										Resource subj, URI pred, Value obj)
+			throws QueryEvaluationException {
+		final String qs = "select ?id { " +
+				"?id <http://franz.com/ns/allegrograph/4.0/tripleId> (?s ?p ?o) }";
+		final AGTupleQuery query = conn.prepareTupleQuery(QueryLanguage.SPARQL, qs);
+		query.setBinding("s", subj);
+		query.setBinding("p", pred);
+		query.setBinding("o", obj);
+		final TupleQueryResult result = query.evaluate();
+		try {
+			if (result.hasNext()) {
+				final String uri = result.next().getValue("id").stringValue();
+				// We get back the full URI, but other APIs want only the number
+				return uri.substring(uri.indexOf('#') + 1);
+			}
+		} finally {
+			result.close();
+		}
+		// Not found
+		return null;
 	}
 
     public static String get(String[] arr, int i, String defaultVal) {

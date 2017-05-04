@@ -4,11 +4,18 @@
 
 package com.franz.agraph.repository;
 
+import com.franz.agraph.http.handler.AGDownloadHandler;
+import com.franz.agraph.http.handler.AGRawStreamer;
 import org.openrdf.query.BooleanQuery;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.QueryLanguage;
 
 import com.franz.agraph.http.handler.AGBQRHandler;
+import org.openrdf.query.resultio.BooleanQueryResultFormat;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Implements the Sesame BooleanQuery interface for AllegroGraph.
@@ -38,4 +45,49 @@ public class AGBooleanQuery extends AGQuery implements BooleanQuery {
 		return handler.getResult();
 	}
 
+	/**
+	 * Evaluates the query and saves the results to a file.
+	 *
+	 * @param file Output path.
+	 * @param format Output format.
+	 * @throws QueryEvaluationException  if there is an error while evaluating query
+	 */
+	public void download(final File file, final BooleanQueryResultFormat format)
+			throws QueryEvaluationException {
+		evaluate(new AGDownloadHandler(file, format));
+	}
+
+	/**
+	 * Evaluates the query and saves the results to a file.
+	 *
+	 * @param file Output path.
+	 * @param format Output format.
+	 * @throws QueryEvaluationException  if there is an error while evaluating query
+	 */
+	public void download(final String file, final BooleanQueryResultFormat format)
+			throws QueryEvaluationException {
+		evaluate(new AGDownloadHandler(file, format));
+	}
+
+	/**
+	 * Evaluates the query and returns the result as an input stream.
+	 *
+	 * Note that it is important to close the returned stream, to avoid
+	 * resource leaks.
+	 *
+	 * @param format Output format.
+	 * @return An input stream containing response data.
+	 *         The caller MUST close this stream to release connection resources.
+	 * @throws QueryEvaluationException  if there is an error while evaluating query
+	 */
+	public InputStream stream(final BooleanQueryResultFormat format)
+			throws QueryEvaluationException {
+		final AGRawStreamer handler = new AGRawStreamer(format);
+		evaluate(handler);
+		try {
+			return handler.getStream();
+		} catch (final IOException e) {
+			throw new QueryEvaluationException(e);
+		}
+	}
 }

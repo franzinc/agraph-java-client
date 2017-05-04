@@ -68,7 +68,9 @@ public class TestSuites {
         AGRepositoryFactoryTest.class,
         AGQueryExecutionTest.class,
         AGTripleAttributesTest.class,
-        Unicode.class
+        Unicode.class,
+        DownloadTest.class,
+        AGUtilTest.class
     })
     public static class Prepush {}
 

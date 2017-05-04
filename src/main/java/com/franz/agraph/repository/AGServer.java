@@ -47,7 +47,13 @@ import com.franz.util.Closer;
 public class AGServer implements Closeable {
 	// Size of the thread pool for the global executor service
 	private static final int THREAD_POOL_SIZE = 4;
+    
+    /** Default AG server port for HTTP connections. */
+    public static final int DEFAULT_HTTP_PORT = 10035;
 
+    /** Default AG server port for HTTPS connections. */
+    public static final int DEFAULT_HTTPS_PORT = 10036;
+    
 	// A default, global executor service used to create pinger threads.
 	// Created lazily in getSharedExecutorService().
 	private static ScheduledThreadPoolExecutor sharedExecutor;

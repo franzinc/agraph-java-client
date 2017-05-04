@@ -4,6 +4,8 @@
 
 package com.franz.agraph.repository;
 
+import com.franz.agraph.http.handler.AGDownloadHandler;
+import com.franz.agraph.http.handler.AGRawStreamer;
 import org.openrdf.query.GraphQuery;
 import org.openrdf.query.GraphQueryResult;
 import org.openrdf.query.QueryEvaluationException;
@@ -16,6 +18,10 @@ import org.openrdf.rio.helpers.StatementCollector;
 
 import com.franz.agraph.http.handler.AGLongHandler;
 import com.franz.agraph.http.handler.AGRDFHandler;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Implements the Sesame GraphQuery interface for AllegroGraph.
@@ -73,5 +79,51 @@ public class AGGraphQuery extends AGQuery implements GraphQuery {
 		AGLongHandler handler = new AGLongHandler();
 		evaluate(handler);
 		return handler.getResult();
+	}
+
+	/**
+	 * Evaluates the query and saves the results to a file.
+	 *
+	 * @param file Output path.
+	 * @param format Output format.
+	 * @throws QueryEvaluationException  if there is an error while evaluating query
+	 */
+	public void download(final File file, final RDFFormat format)
+			throws QueryEvaluationException {
+		evaluate(new AGDownloadHandler(file, format));
+	}
+
+	/**
+	 * Evaluates the query and saves the results to a file.
+	 *
+	 * @param file Output path.
+	 * @param format Output format.
+	 * @throws QueryEvaluationException  if there is an error while evaluating query
+	 */
+	public void download(final String file, final RDFFormat format)
+			throws QueryEvaluationException {
+		evaluate(new AGDownloadHandler(file, format));
+	}
+
+	/**
+	 * Evaluates the query and returns the result as an input stream.
+	 *
+	 * Note that it is important to close the returned stream, to avoid
+	 * resource leaks.
+	 *
+	 * @param format Output format.
+	 * @return An input stream containing response data.
+	 *         The caller MUST close this stream to release connection resources.
+	 * @throws QueryEvaluationException  if there is an error while evaluating query
+	 */
+	public InputStream stream(final RDFFormat format)
+			throws QueryEvaluationException {
+		final AGRawStreamer handler = new AGRawStreamer(format);
+		evaluate(handler);
+		try {
+			return handler.getStream();
+		} catch (final IOException e) {
+			throw new QueryEvaluationException(e);
+		}
 	}
 }

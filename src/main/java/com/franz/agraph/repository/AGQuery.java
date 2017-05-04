@@ -4,8 +4,13 @@
 
 package com.franz.agraph.repository;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Iterator;
 
+import com.franz.agraph.http.handler.AGDownloadHandler;
+import com.franz.agraph.http.handler.AGRawStreamer;
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.util.URIUtil;
 import org.openrdf.query.Binding;
@@ -289,6 +294,90 @@ public abstract class AGQuery extends AbstractQuery {
 		} catch (AGHttpException e) {
 			throw new QueryEvaluationException(e);
 		}
+	}
+
+	/**
+	 * Evaluates the query and saves the results to a file.
+	 *
+	 * Output format is determined by the server.
+	 *
+	 * @param file Output path.
+	 * @throws QueryEvaluationException  if there is an error while evaluating query
+	 */
+	public void download(final File file) throws QueryEvaluationException {
+		evaluate(new AGDownloadHandler(file));
+	}
+
+	/**
+	 * Evaluates the query and saves the results to a file.
+	 *
+	 * Output format is determined by the server.
+	 *
+	 * @param file Output path.
+	 * @throws QueryEvaluationException  if there is an error while evaluating query
+	 */
+	public void download(final String file) throws QueryEvaluationException {
+		evaluate(new AGDownloadHandler(file));
+	}
+
+	/**
+	 * Evaluates the query and saves the results to a file.
+	 *
+	 * @param file Output path.
+	 * @param mimeType MIME type that will be requested from the server (i.e. output format).
+	 * @throws QueryEvaluationException  if there is an error while evaluating query
+	 */
+	public void download(final File file, final String mimeType)
+			throws QueryEvaluationException {
+		evaluate(new AGDownloadHandler(file, mimeType));
+	}
+
+	/**
+	 * Evaluates the query and saves the results to a file.
+	 *
+	 * @param file Output path.
+	 * @param mimeType MIME type that will be requested from the server (i.e. output format).
+	 * @throws QueryEvaluationException  if there is an error while evaluating query
+	 */
+	public void download(final String file, final String mimeType)
+			throws QueryEvaluationException {
+		evaluate(new AGDownloadHandler(file, mimeType));
+	}
+
+	/**
+	 * Evaluates the query and returns the result as an input stream.
+	 *
+	 * Note that it is important to close the returned stream, to avoid
+	 * resource leaks.
+	 *
+	 * @param mimeType MIME type that will be requested from the server (i.e. output format).
+	 * @return An input stream containing response data.
+	 *         The caller MUST close this stream to release connection resources.
+	 * @throws QueryEvaluationException  if there is an error while evaluating query
+	 */
+	public InputStream stream(final String mimeType)
+			throws QueryEvaluationException {
+		final AGRawStreamer handler = new AGRawStreamer(mimeType);
+		evaluate(handler);
+		try {
+			return handler.getStream();
+		} catch (final IOException e) {
+			throw new QueryEvaluationException(e);
+		}
+	}
+
+	/**
+	 * Evaluates the query and returns the result as an input stream.
+	 *
+	 * The output format will be chosen by the server.
+	 *
+	 * @return An input stream containing response data.
+	 *         The caller MUST close this stream to release connection resources.
+	 * @throws QueryEvaluationException  if there is an error while evaluating query
+	 */
+	public InputStream stream()
+			throws QueryEvaluationException {
+		return stream("*/*");
 	}
 
 	/**

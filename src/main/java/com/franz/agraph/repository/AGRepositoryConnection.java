@@ -4,6 +4,8 @@
 
 package com.franz.agraph.repository;
 
+import com.franz.agraph.http.handler.AGDownloadHandler;
+import com.franz.agraph.http.handler.AGRawStreamer;
 import info.aduna.io.GZipUtil;
 import info.aduna.io.ZipUtil;
 import info.aduna.iteration.CloseableIteratorIteration;
@@ -1159,6 +1161,224 @@ implements RepositoryConnection, Closeable {
 	}
 
 	/**
+	 * Downloads statements matching given pattern to a file.
+	 *
+	 * The output format is determined by the server.
+	 *
+	 * @param file Output path.
+	 * @param subj Subject filter.
+	 * @param pred Predicate filter.
+	 * @param obj Object filter.
+	 * @param includeInferred If true, inferred triples will be included in the result.
+	 * @param contexts Optional list of graphs to export.
+	 * @throws AGHttpException .
+	 */
+	public void downloadStatements(final File file,
+								   final Resource subj, final URI pred, final Value obj,
+								   final boolean includeInferred,
+								   final Resource... contexts)
+			throws AGHttpException {
+		getHttpRepoClient().getStatements(
+				subj, pred, obj, Boolean.toString(includeInferred),
+				new AGDownloadHandler(file), contexts);
+	}
+
+	/**
+	 * Downloads statements matching given pattern to a file.
+	 *
+	 * The output format is determined by the server.
+	 *
+	 * @param file Output path.
+	 * @param subj Subject filter.
+	 * @param pred Predicate filter.
+	 * @param obj Object filter.
+	 * @param includeInferred If true, inferred triples will be included in the result.
+	 * @param contexts Optional list of graphs to export.
+	 * @throws AGHttpException .
+	 */
+	public void downloadStatements(final String file,
+								   final Resource subj, final URI pred, final Value obj,
+								   final boolean includeInferred,
+								   final Resource... contexts)
+			throws AGHttpException {
+		getHttpRepoClient().getStatements(
+				subj, pred, obj, Boolean.toString(includeInferred),
+				new AGDownloadHandler(file), contexts);
+	}
+
+	/**
+	 * Downloads statements matching given pattern to a file.
+	 *
+	 * @param file Output path.
+	 * @param format Format to export the data in.
+	 * @param subj Subject filter.
+	 * @param pred Predicate filter.
+	 * @param obj Object filter.
+	 * @param includeInferred If true, inferred triples will be included in the result.
+	 * @param contexts Optional list of graphs to export.
+	 * @throws AGHttpException .
+	 */
+	public void downloadStatements(final File file, final RDFFormat format,
+								   final Resource subj, final URI pred, final Value obj,
+								   final boolean includeInferred,
+								   final Resource... contexts)
+			throws AGHttpException {
+		getHttpRepoClient().getStatements(
+				subj, pred, obj, Boolean.toString(includeInferred),
+				new AGDownloadHandler(file, format), contexts);
+	}
+
+	/**
+	 * Downloads statements matching given pattern to a file.
+	 *
+	 * @param file Output path.
+	 * @param format Format to export the data in.
+	 * @param subj Subject filter.
+	 * @param pred Predicate filter.
+	 * @param obj Object filter.
+	 * @param includeInferred If true, inferred triples will be included in the result.
+	 * @param contexts Optional list of graphs to export.
+	 * @throws AGHttpException .
+	 */
+	public void downloadStatements(final String file, final RDFFormat format,
+								   final Resource subj, final URI pred, final Value obj,
+								   final boolean includeInferred,
+								   final Resource... contexts)
+			throws AGHttpException {
+		getHttpRepoClient().getStatements(
+				subj, pred, obj, Boolean.toString(includeInferred),
+				new AGDownloadHandler(file, format), contexts);
+	}
+
+	/**
+	 * Downloads statements matching given pattern to a file.
+	 *
+	 * @param file Output path.
+	 * @param mimeType MIME type that will be requested from the server (output format).
+	 * @param subj Subject filter.
+	 * @param pred Predicate filter.
+	 * @param obj Object filter.
+	 * @param includeInferred If true, inferred triples will be included in the result.
+	 * @param contexts Optional list of graphs to export.
+	 * @throws AGHttpException .
+	 */
+	public void downloadStatements(final File file, final String mimeType,
+								   final Resource subj, final URI pred, final Value obj,
+								   final boolean includeInferred,
+								   final Resource... contexts)
+			throws AGHttpException {
+		getHttpRepoClient().getStatements(
+				subj, pred, obj, Boolean.toString(includeInferred),
+				new AGDownloadHandler(file, mimeType), contexts);
+	}
+
+	/**
+	 * Downloads statements matching given pattern to a file.
+	 *
+	 * @param file Output path.
+	 * @param mimeType MIME type that will be requested from the server (output format).
+	 * @param subj Subject filter.
+	 * @param pred Predicate filter.
+	 * @param obj Object filter.
+	 * @param includeInferred If true, inferred triples will be included in the result.
+	 * @param contexts Optional list of graphs to export.
+	 * @throws AGHttpException .
+	 */
+	public void downloadStatements(final String file, final String mimeType,
+								   final Resource subj, final URI pred, final Value obj,
+								   final boolean includeInferred,
+								   final Resource... contexts)
+			throws AGHttpException {
+		getHttpRepoClient().getStatements(
+				subj, pred, obj, Boolean.toString(includeInferred),
+				new AGDownloadHandler(file, mimeType), contexts);
+	}
+
+	/**
+	 * Returns statements matching given pattern as an InputStream.
+	 *
+	 * The output format will be chosen by the server.
+	 *
+	 * Note that it is important to close the returned stream, to avoid
+	 * resource leaks.
+	 *
+	 * @param subj Subject filter.
+	 * @param pred Predicate filter.
+	 * @param obj Object filter.
+	 * @param includeInferred If true, inferred triples will be included in the result.
+	 * @param contexts Optional list of graphs to export.
+	 * @return An input stream containing response data.
+	 *         The caller MUST close this stream to release connection resources.
+	 * @throws AGHttpException .
+	 */
+	public InputStream streamStatements(final Resource subj, final URI pred, final Value obj,
+										final boolean includeInferred,
+										final Resource... contexts)
+			throws IOException, AGHttpException {
+		final AGRawStreamer handler = new AGRawStreamer();
+		getHttpRepoClient().getStatements(
+				subj, pred, obj, Boolean.toString(includeInferred),
+				handler, contexts);
+		return handler.getStream();
+	}
+
+	/**
+	 * Returns statements matching given pattern as an InputStream.
+     *
+	 * Note that it is important to close the returned stream, to avoid
+	 * resource leaks.
+	 *
+	 * @param mimeType MIME type that will be requested from the server (output format).
+	 * @param subj Subject filter.
+	 * @param pred Predicate filter.
+	 * @param obj Object filter.
+	 * @param includeInferred If true, inferred triples will be included in the result.
+	 * @param contexts Optional list of graphs to export.
+	 * @return An input stream containing response data.
+	 *         The caller MUST close this stream to release connection resources.
+	 * @throws AGHttpException .
+	 */
+	public InputStream streamStatements(final String mimeType,
+						                final Resource subj, final URI pred, final Value obj,
+								        final boolean includeInferred,
+								        final Resource... contexts)
+			throws IOException, AGHttpException {
+		final AGRawStreamer handler = new AGRawStreamer(mimeType);
+		getHttpRepoClient().getStatements(
+				subj, pred, obj, Boolean.toString(includeInferred),
+				handler, contexts);
+		return handler.getStream();
+	}
+
+	/**
+	 * Returns statements matching given pattern as an InputStream.
+	 *
+	 * Note that it is important to close the returned stream, to avoid
+	 * resource leaks.
+	 *
+	 * @param format Format to export the data in.
+	 * @param subj Subject filter.
+	 * @param pred Predicate filter.
+	 * @param obj Object filter.
+	 * @param includeInferred If true, inferred triples will be included in the result.
+	 * @param contexts Optional list of graphs to export.
+	 * @return An input stream containing response data.
+	 *         The caller MUST close this stream to release connection resources.
+	 * @throws AGHttpException .
+	 */
+	public InputStream streamStatements(final RDFFormat format,
+										final Resource subj, final URI pred, final Value obj,
+										final boolean includeInferred,
+										final Resource... contexts)
+			throws IOException, AGHttpException {
+		final AGRawStreamer handler = new AGRawStreamer(format);
+		getHttpRepoClient().getStatements(
+				subj, pred, obj, Boolean.toString(includeInferred),
+				handler, contexts);
+		return handler.getStream();
+	}
+
+	/**
 	 * Returns statements having the specified ids.
 	 *  
 	 * This api is subject to change.  There is currently no 
@@ -1184,7 +1404,111 @@ implements RepositoryConnection, Closeable {
 			throw new RuntimeException(e);
 		}
 	}
-	
+
+	/**
+	 * Downloads statements with given ids to a file.
+	 *
+	 * @param file Output path.
+	 * @param format Format to export the data in.
+	 * @param ids Strings representing statement ids
+	 * @throws AGHttpException .
+	 */
+	public void downloadStatements(final File file, final RDFFormat format,
+								   final String ids)
+			throws AGHttpException {
+		getHttpRepoClient().getStatements(new AGDownloadHandler(file, format), ids);
+	}
+
+	/**
+	 * Downloads statements with given ids to a file.
+	 *
+	 * @param file Output path.
+	 * @param format Format to export the data in.
+	 * @param ids Strings representing statement ids
+	 * @throws AGHttpException .
+	 */
+	public void downloadStatements(final String file, final RDFFormat format,
+								   final String ids)
+			throws AGHttpException {
+		getHttpRepoClient().getStatements(new AGDownloadHandler(file, format), ids);
+	}
+
+	/**
+	 * Downloads statements with given ids to a file.
+	 *
+	 * @param file Output path.
+	 * @param mimeType MIME type to be requested from the server.
+	 *                 Use {@code "*&#47;*"} to let the server choose
+	 *                 the output format.
+	 * @param ids Strings representing statement ids
+	 * @throws AGHttpException .
+	 */
+	public void downloadStatements(final File file, final String mimeType,
+								   final String ids)
+			throws AGHttpException {
+		getHttpRepoClient().getStatements(
+				new AGDownloadHandler(file, mimeType), ids);
+	}
+
+	/**
+	 * Downloads statements with given ids to a file.
+	 *
+	 * @param file Output path.
+	 * @param mimeType MIME type to be requested from the server.
+	 *                 Use {@code "*&#47;*"} to let the server choose
+	 *                 the output format.
+	 * @param ids Strings representing statement ids
+	 * @throws AGHttpException .
+	 */
+	public void downloadStatements(final String file, final String mimeType,
+								   final String ids)
+			throws AGHttpException {
+		getHttpRepoClient().getStatements(
+				new AGDownloadHandler(file, mimeType), ids);
+	}
+
+	/**
+	 * Returns statements with given ids as an InputStream.
+	 *
+	 * Note that it is important to close the returned stream, to avoid
+	 * resource leaks.
+	 *
+	 * @param format Format to export the data in.
+	 * @param ids Strings representing statement ids
+	 * @return An input stream containing response data.
+	 *         The caller MUST close this stream to release connection resources.
+	 * @throws AGHttpException .
+	 */
+	public InputStream streamStatements(final RDFFormat format,
+										final String... ids)
+			throws IOException, AGHttpException {
+		final AGRawStreamer handler = new AGRawStreamer(format);
+		getHttpRepoClient().getStatements(handler, ids);
+		return handler.getStream();
+	}
+
+	/**
+	 * Returns statements with given ids as an InputStream.
+	 *
+	 * Note that it is important to close the returned stream, to avoid
+	 * resource leaks.
+	 *
+	 * @param mimeType MIME type to be requested from the server.
+	 *                 Use {@code "*&#47;*"} to let the server choose
+	 *                 the output format.
+	 * @param ids Strings representing statement ids
+	 * @return An input stream containing response data.
+	 *         The caller MUST close this stream to release connection resources.
+	 * @throws AGHttpException .
+	 */
+	public InputStream streamStatements(final String mimeType,
+										final String... ids)
+			throws IOException, AGHttpException {
+		final AGRawStreamer handler = new AGRawStreamer(mimeType);
+		getHttpRepoClient().getStatements(handler, ids);
+		return handler.getStream();
+	}
+
 	/**
 	 * Prepares a {@link AGQuery} for evaluation on this repository. Note
 	 * that the preferred way of preparing queries is to use the more specific
