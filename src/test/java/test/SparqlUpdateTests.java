@@ -4,13 +4,12 @@
 
 package test;
 
-import com.franz.agraph.jena.*;
 import com.hp.hpl.jena.sparql.vocabulary.FOAF;
 import junit.framework.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.openrdf.model.Literal;
-import org.openrdf.model.URI;
+import org.openrdf.model.IRI;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.Update;
 
@@ -21,7 +20,6 @@ import com.franz.agraph.jena.AGQuery;
 import com.franz.agraph.jena.AGQueryExecution;
 import com.franz.agraph.jena.AGQueryExecutionFactory;
 import com.franz.agraph.jena.AGQueryFactory;
-import com.hp.hpl.jena.sparql.vocabulary.FOAF;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.Property;
 
@@ -30,11 +28,11 @@ public class SparqlUpdateTests extends AGAbstractTest {
     @Test
     @Category(TestSuites.Prepush.class)
     public void testSesameUpdate() throws Exception {
-    	URI s = vf.createURI("http://example/book1");
-    	URI p = vf.createURI("http://purl.org/dc/elements/1.1/title");
+    	IRI s = vf.createIRI("http://example/book1");
+    	IRI p = vf.createIRI("http://purl.org/dc/elements/1.1/title");
     	Literal o_wrong = vf.createLiteral("Fundamentals of Compiler Desing");
     	Literal o_right = vf.createLiteral("Fundamentals of Compiler Design");
-    	URI g = vf.createURI("http://example/bookStore");
+    	IRI g = vf.createIRI("http://example/bookStore");
     	conn.add(s,p,o_wrong,g);
     	
     	// Perform a sequence of SPARQL UPDATE queries in one request to correct the title
@@ -53,11 +51,11 @@ public class SparqlUpdateTests extends AGAbstractTest {
     @Test
     @Category(TestSuites.Prepush.class)
     public void testSesameUpdateViaBooleanQuery() throws Exception {
-    	URI s = vf.createURI("http://example/book1");
-    	URI p = vf.createURI("http://purl.org/dc/elements/1.1/title");
+    	IRI s = vf.createIRI("http://example/book1");
+    	IRI p = vf.createIRI("http://purl.org/dc/elements/1.1/title");
     	Literal o_wrong = vf.createLiteral("Fundamentals of Compiler Desing");
     	Literal o_right = vf.createLiteral("Fundamentals of Compiler Design");
-    	URI g = vf.createURI("http://example/bookStore");
+    	IRI g = vf.createIRI("http://example/bookStore");
     	conn.add(s,p,o_wrong,g);
     	
     	// Perform a sequence of SPARQL UPDATE queries in one request to correct the title

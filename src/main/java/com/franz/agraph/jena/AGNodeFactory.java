@@ -4,11 +4,7 @@
 
 package com.franz.agraph.jena;
 
-import org.openrdf.model.BNode;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
+import org.openrdf.model.*;
 
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.graph.Triple;
@@ -33,14 +29,14 @@ public class AGNodeFactory {
 		Node node = null;
 		if (v==null) {
 			node = Node.ANY; // TODO or Node.NULL or null?
-		} else if (v instanceof URI) {
+		} else if (v instanceof IRI) {
 			node = Node.createURI(v.stringValue());
 		} else if (v instanceof BNode) {
 			node = Node.createAnon(new AnonId(v.stringValue()));
 		} else if (v instanceof Literal) {
 			Literal lit = (Literal)v;
-			URI datatype = lit.getDatatype();
-			String lang = lit.getLanguage();
+			IRI datatype = lit.getDatatype();
+			String lang = lit.getLanguage().orElse(null);
 			if (lang!=null) {
 				node = Node.createLiteral(lit.getLabel(), lang, null);
 			} else if (datatype!=null) {

@@ -7,8 +7,8 @@ package test;
 import junit.framework.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.openrdf.model.IRI;
 import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
 import org.openrdf.rio.RDFFormat;
 
 import static org.junit.Assert.assertEquals;
@@ -24,7 +24,7 @@ public class BulkModeTests extends AGAbstractTest {
     	Assert.assertTrue("expected autoCommit true", conn.isAutoCommit());
     	Assert.assertTrue("expected bulkMode true", repo.isBulkMode());
         String path1 = "/tutorial/java-vcards.rdf";
-        URI context = vf.createURI("http://example.org#vcards");
+        IRI context = vf.createIRI("http://example.org#vcards");
         Util.add(conn, path1, null, RDFFormat.RDFXML, context);
         assertEquals("expected 16 vcard triples", 16, conn.size(context));
         conn.setAutoCommit(false);

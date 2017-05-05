@@ -261,12 +261,12 @@ public class ServerCodeTests extends AGAbstractTest {
     public void storedProcs_triples_rfe10189() throws Exception {
     	SProcTest sp = new SProcTest(conn);
     	Assert.assertNotNull("add-a-triple-int", sp.addATripleInt(1));
-    	assertEqualsDeep("get-a-triple-int", Stmt.stmts(new Stmt(vf.createURI("http://test.com/add-a-triple-int"),
-    			vf.createURI("http://test.com/p"), vf.createLiteral(1))),
+    	assertEqualsDeep("get-a-triple-int", Stmt.stmts(new Stmt(vf.createIRI("http://test.com/add-a-triple-int"),
+    			vf.createIRI("http://test.com/p"), vf.createLiteral(1))),
     			Stmt.stmts( new Stmt(sp.getATripleInt(1))));
     	// TODO: transferring triples does not work yet
     	// TODO: change the expected return value when that is known
-    	//Assert.assertNotNull("add-a-triple", sp.addATriple(vf.createURI("http://test.com/s"), vf.createURI("http://test.com/p"), vf.createURI("http://test.com/p")));
+    	//Assert.assertNotNull("add-a-triple", sp.addATriple(vf.createIRI("http://test.com/s"), vf.createIRI("http://test.com/p"), vf.createIRI("http://test.com/p")));
     }
     
     @Test
@@ -278,8 +278,8 @@ public class ServerCodeTests extends AGAbstractTest {
     		// add a triple
     		Assert.assertNotNull("add-a-triple-int", sp.addATripleInt(1));
     		Assert.assertEquals("expected a change in triple count", count+1, conn.size());
-    		assertEqualsDeep("get-a-triple-int", Stmt.stmts(new Stmt(vf.createURI("http://test.com/add-a-triple-int"),
-    			vf.createURI("http://test.com/p"), vf.createLiteral(1))),
+    		assertEqualsDeep("get-a-triple-int", Stmt.stmts(new Stmt(vf.createIRI("http://test.com/add-a-triple-int"),
+    			vf.createIRI("http://test.com/p"), vf.createLiteral(1))),
     			Stmt.stmts( new Stmt(sp.getATripleInt(1))));
     		// this should throw an AGCustomStoredProcException
     		sp.bestBeNull("foo");

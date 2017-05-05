@@ -2,12 +2,11 @@ package test.openrdf.repository;
 
 import info.aduna.iteration.CloseableIteration;
 import info.aduna.iteration.Iterations;
-import org.hamcrest.Matcher;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.openrdf.IsolationLevels;
 import org.openrdf.model.*;
-import org.openrdf.model.impl.GraphImpl;
+import org.openrdf.model.impl.LinkedHashModel;
 import org.openrdf.model.impl.StatementImpl;
 import org.openrdf.model.util.Namespaces;
 import org.openrdf.model.vocabulary.RDFS;
@@ -73,28 +72,28 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 			throws Exception
 		{
 			ContextAwareConnection con = new ContextAwareConnection(testCon);
-			URI defaultGraph = null;
+			IRI defaultGraph = null;
 			con.setInsertContext(defaultGraph);
-			con.add(vf.createURI("urn:test:s1"), vf.createURI("urn:test:p1"), vf.createURI("urn:test:o1"));
+			con.add(vf.createIRI("urn:test:s1"), vf.createIRI("urn:test:p1"), vf.createIRI("urn:test:o1"));
 			con.prepareUpdate("INSERT DATA { <urn:test:s2> <urn:test:p2> \"l2\" }").execute();
 			assertEquals(2, Iterations.asList(con.getStatements(null, null, null)).size());
 			assertEquals(2, Iterations.asList(con.getStatements(null, null, null, defaultGraph)).size());
 			assertEquals(2, size(defaultGraph));
-			con.add(vf.createURI("urn:test:s3"), vf.createURI("urn:test:p3"), vf.createURI("urn:test:o3"), (Resource)null);
-			con.add(vf.createURI("urn:test:s4"), vf.createURI("urn:test:p4"), vf.createURI("urn:test:o4"), vf.createURI("urn:test:other"));
+			con.add(vf.createIRI("urn:test:s3"), vf.createIRI("urn:test:p3"), vf.createIRI("urn:test:o3"), (Resource)null);
+			con.add(vf.createIRI("urn:test:s4"), vf.createIRI("urn:test:p4"), vf.createIRI("urn:test:o4"), vf.createIRI("urn:test:other"));
 			assertEquals(4, Iterations.asList(con.getStatements(null, null, null)).size());
 			assertEquals(3, Iterations.asList(con.getStatements(null, null, null, defaultGraph)).size());
 			assertEquals(4, Iterations.asList(testCon.getStatements(null, null, null, true)).size());
 			assertEquals(3, size(defaultGraph));
-			assertEquals(1, size(vf.createURI("urn:test:other")));
+			assertEquals(1, size(vf.createIRI("urn:test:other")));
 			con.prepareUpdate("DELETE { ?s ?p ?o } WHERE { ?s ?p ?o }").execute();
 			assertEquals(0, Iterations.asList(con.getStatements(null, null, null)).size());
 			assertEquals(0, Iterations.asList(testCon.getStatements(null, null, null, true)).size());
 			assertEquals(0, size(defaultGraph));
-			assertEquals(0, size(vf.createURI("urn:test:other")));
+			assertEquals(0, size(vf.createIRI("urn:test:other")));
 		}
 
-	private int size(URI defaultGraph)
+	private int size(IRI defaultGraph)
 			throws RepositoryException, MalformedQueryException, QueryEvaluationException
 		{
 			TupleQuery qry = testCon.prepareTupleQuery(QueryLanguage.SPARQL, "SELECT * { ?s ?p ?o }");
@@ -176,7 +175,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 	}
 	
 	public void testBaseURIInQueryString() throws Exception {
-		testCon.add(vf.createURI("urn:test:s1"), vf.createURI("urn:test:p1"), vf.createURI("urn:test:o1"));
+		testCon.add(vf.createIRI("urn:test:s1"), vf.createIRI("urn:test:p1"), vf.createIRI("urn:test:o1"));
 		TupleQueryResult rs = testCon.prepareTupleQuery(QueryLanguage.SPARQL, "BASE <urn:test:s1> SELECT * { <> ?p ?o }").evaluate();
 		try {
 			assertTrue(rs.hasNext());
@@ -186,7 +185,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 	}
 	
 	public void testBaseURIInParam() throws Exception {
-		testCon.add(vf.createURI("http://example.org/s1"), vf.createURI("urn:test:p1"), vf.createURI("urn:test:o1"));
+		testCon.add(vf.createIRI("http://example.org/s1"), vf.createIRI("urn:test:p1"), vf.createIRI("urn:test:o1"));
 		TupleQueryResult rs = testCon.prepareTupleQuery(QueryLanguage.SPARQL, "SELECT * { <s1> ?p ?o }", "http://example.org").evaluate();
 		try {
 			assertTrue(rs.hasNext());
@@ -196,7 +195,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 	}
 	
 	public void testBaseURIInParamWithTrailingSlash() throws Exception {
-		testCon.add(vf.createURI("http://example.org/s1"), vf.createURI("urn:test:p1"), vf.createURI("urn:test:o1"));
+		testCon.add(vf.createIRI("http://example.org/s1"), vf.createIRI("urn:test:p1"), vf.createIRI("urn:test:o1"));
 		TupleQueryResult rs = testCon.prepareTupleQuery(QueryLanguage.SPARQL, "SELECT * { <s1> ?p ?o }", "http://example.org/").evaluate();
 		try {
 			assertTrue(rs.hasNext());
@@ -834,9 +833,9 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 		throws Exception
 	{
 		String optional = "{ ?s :p1 ?v1 OPTIONAL {?s :p2 ?v2 FILTER(?v1<3) } }";
-		URI s = vf.createURI("urn:test:s");
-		URI p1 = vf.createURI("urn:test:p1");
-		URI p2 = vf.createURI("urn:test:p2");
+		IRI s = vf.createIRI("urn:test:s");
+		IRI p1 = vf.createIRI("urn:test:p1");
+		IRI p2 = vf.createIRI("urn:test:p2");
 		Value v1 = vf.createLiteral(1);
 		Value v2 = vf.createLiteral(2);
 		Value v3 = vf.createLiteral(3);
@@ -861,10 +860,10 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
     		throws Exception
     	{
     		String union = "{ :s ?p :o FILTER (?p = :p1 || ?p = :p2) }";
-    		URI s = vf.createURI("urn:test:s");
-    		URI p1 = vf.createURI("urn:test:p1");
-    		URI p2 = vf.createURI("urn:test:p2");
-    		URI o = vf.createURI("urn:test:o");
+    		IRI s = vf.createIRI("urn:test:s");
+    		IRI p1 = vf.createIRI("urn:test:p1");
+    		IRI p2 = vf.createIRI("urn:test:p2");
+    		IRI o = vf.createIRI("urn:test:o");
     		testCon.add(s, p1, o);
     		testCon.add(s, p2, o);
     		String qry = "PREFIX :<urn:test:> SELECT ?p WHERE " + union;
@@ -887,10 +886,10 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 		testCon.add(bob, name, nameBob);
 		testCon.add(alice, name, nameAlice);
 
-		Graph graph;
+		Model graph;
 		RepositoryResult<Statement> statements = testCon.getStatements(null, null, null, true);
 		try {
-			graph = new GraphImpl(Iterations.asList(statements));
+			graph = new LinkedHashModel(Iterations.asList(statements));
 		}
 		finally {
 			statements.close();
@@ -903,7 +902,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 
 		ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
 		ObjectInputStream in = new ObjectInputStream(bais);
-		Graph deserializedGraph = (Graph)in.readObject();
+		Model deserializedGraph = (Model)in.readObject();
 		in.close();
 
 		assertThat(deserializedGraph.isEmpty(), is(equalTo(false)));
@@ -936,7 +935,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 		testCon.setNamespace("rdfs", "http://www.w3.org/2000/01/rdf-schema#");
 
 		// Translated from earlier RDF document. Is this line even necessary?
-		testCon.add(vf.createURI("http://example.org/", "Main"), vf.createURI("http://www.w3.org/2000/01/rdf-schema#", "label"),
+		testCon.add(vf.createIRI("http://example.org/", "Main"), vf.createIRI("http://www.w3.org/2000/01/rdf-schema#", "label"),
 				vf.createLiteral("Main Node"));
 	}
 

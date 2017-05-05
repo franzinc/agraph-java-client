@@ -10,11 +10,7 @@ import static com.franz.agraph.repository.config.AGRepositorySchema.REPOSITORYID
 import static com.franz.agraph.repository.config.AGRepositorySchema.SERVERURL;
 import static com.franz.agraph.repository.config.AGRepositorySchema.USERNAME;
 
-import org.openrdf.model.Graph;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
+import org.openrdf.model.*;
 import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.model.util.GraphUtil;
 import org.openrdf.model.util.GraphUtilException;
@@ -105,7 +101,7 @@ public class AGRepositoryConfig extends RepositoryImplConfigBase {
 	}
 
 	@Override
-	public Resource export(Graph graph) {
+	public Resource export(Model graph) {
 		Resource implNode = super.export(graph);
 
 		if (serverUrl != null) {
@@ -127,13 +123,13 @@ public class AGRepositoryConfig extends RepositoryImplConfigBase {
 	}
 
 	@Override
-	public void parse(Graph graph, Resource implNode)
+	public void parse(Model graph, Resource implNode)
 		throws RepositoryConfigException
 	{
 		super.parse(graph, implNode);
 
 		try {
-			URI uri = GraphUtil.getOptionalObjectURI(graph, implNode, SERVERURL);
+			IRI uri = GraphUtil.getOptionalObjectURI(graph, implNode, SERVERURL);
 			if (uri != null) {
 				setServerUrl(uri.toString());
 			}

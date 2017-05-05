@@ -721,37 +721,37 @@ public class Events extends Closer {
     
     private static class RandomCustomer implements RandomCallback {
         public Value makeValue() {
-            return ThreadVars.valueFactory.get().createURI(Defaults.NS, "Customer-" + RANDOM.nextLong(Defaults.SIZE/1000));
+            return ThreadVars.valueFactory.get().createIRI(Defaults.NS, "Customer-" + RANDOM.nextLong(Defaults.SIZE/1000));
         }
     }
     
     private static class RandomAccount implements RandomCallback {
         public Value makeValue() {
-            return ThreadVars.valueFactory.get().createURI(Defaults.NS, "Account-" + RANDOM.nextLong(Defaults.SIZE/1000));
+            return ThreadVars.valueFactory.get().createIRI(Defaults.NS, "Account-" + RANDOM.nextLong(Defaults.SIZE/1000));
         }
     }
     
     private static class RandomProductID implements RandomCallback {
         public Value makeValue() {
-            return ThreadVars.valueFactory.get().createURI(Defaults.NS, "ProductID-" + RANDOM.nextLong(Defaults.SIZE/1000));
+            return ThreadVars.valueFactory.get().createIRI(Defaults.NS, "ProductID-" + RANDOM.nextLong(Defaults.SIZE/1000));
         }
     }
     
     private static class RandomPaymentTarget implements RandomCallback {
         public Value makeValue() {
-            return ThreadVars.valueFactory.get().createURI(Defaults.NS, "PaymentTarget-" + RANDOM.nextInt(100));
+            return ThreadVars.valueFactory.get().createIRI(Defaults.NS, "PaymentTarget-" + RANDOM.nextInt(100));
         }
     }
     
     private static class RandomBusinessEntity implements RandomCallback {
         public Value makeValue() {
-            return ThreadVars.valueFactory.get().createURI(Defaults.NS, "DepositDesignation-" + RANDOM.nextInt(100));
+            return ThreadVars.valueFactory.get().createIRI(Defaults.NS, "DepositDesignation-" + RANDOM.nextInt(100));
         }
     }
     
     private static class RandomDepositDesignation implements RandomCallback {
         public Value makeValue() {
-            return ThreadVars.valueFactory.get().createURI(Defaults.NS, "BusinessEntity-" + RANDOM.nextInt(100));
+            return ThreadVars.valueFactory.get().createIRI(Defaults.NS, "BusinessEntity-" + RANDOM.nextInt(100));
         }
     }
     
@@ -763,7 +763,7 @@ public class Events extends Closer {
         }
         
         public Value makeValue() {
-            return ThreadVars.valueFactory.get().createURI(Defaults.NS, typeLabel);
+            return ThreadVars.valueFactory.get().createIRI(Defaults.NS, typeLabel);
         }
     }
     
@@ -780,16 +780,16 @@ public class Events extends Closer {
     }
     
     private static class PredicateInfo {
-        private URI predicate;
+        private IRI predicate;
         private RandomCallback objectMaker;
         
-        public PredicateInfo(URI thePredicate, RandomCallback theMaker) {
+        public PredicateInfo(IRI thePredicate, RandomCallback theMaker) {
             predicate = thePredicate;
             objectMaker = theMaker;
         }
         
         public PredicateInfo(String label, RandomCallback theMaker) {
-            predicate = ThreadVars.valueFactory.get().createURI(Defaults.NS, label);
+            predicate = ThreadVars.valueFactory.get().createIRI(Defaults.NS, label);
             objectMaker = theMaker;
         }
         
@@ -1180,7 +1180,7 @@ public class Events extends Closer {
             ThreadVars.dateMaker.set(dateMaker);
 
             connHolder.begin();
-            timestamp = NTriplesUtil.toNTriplesString(ThreadVars.valueFactory.get().createURI(Defaults.NS, "EventTimeStamp"));
+            timestamp = NTriplesUtil.toNTriplesString(ThreadVars.valueFactory.get().createIRI(Defaults.NS, "EventTimeStamp"));
             connHolder.end();
             
             final int statusSize = Math.max(1, Defaults.STATUS / 5);
@@ -1250,7 +1250,7 @@ public class Events extends Closer {
         public Integer call() {
             Thread.currentThread().setName("deleter(" + range + ")");
             connHolder.begin();
-            String timestamp = NTriplesUtil.toNTriplesString(ThreadVars.valueFactory.get().createURI(Defaults.NS, "EventTimeStamp"));
+            String timestamp = NTriplesUtil.toNTriplesString(ThreadVars.valueFactory.get().createIRI(Defaults.NS, "EventTimeStamp"));
             
             // interval is 1 day's worth of milliseconds.
             long interval = 24*60*60*1000;
@@ -1363,7 +1363,7 @@ public class Events extends Closer {
             try {
                 conn.remove(ThreadVars.valueFactory.get().createStatement(
                                                                    (BNode)bs.getValue("s"),
-                                                                   (URI)bs.getValue("p"),
+                                                                   (IRI)bs.getValue("p"),
                                                                    bs.getValue("o")));
             } catch (RepositoryException e) {
                 throw new TupleQueryResultHandlerException("failed to remove " + bs, e);

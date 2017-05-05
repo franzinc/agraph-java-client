@@ -48,10 +48,10 @@ public class TutorialTests extends AGAbstractTest {
     
     private Map<String, Stmt> example2inputs() throws Exception {
         AGValueFactory vf = repo.getValueFactory();
-        URI alice = vf.createURI("http://example.org/people/alice");
-        URI bob = vf.createURI("http://example.org/people/bob");
-        URI name = vf.createURI("http://example.org/ontology/name");
-        URI person = vf.createURI("http://example.org/ontology/Person");
+        IRI alice = vf.createIRI("http://example.org/people/alice");
+        IRI bob = vf.createIRI("http://example.org/people/bob");
+        IRI name = vf.createIRI("http://example.org/ontology/name");
+        IRI person = vf.createIRI("http://example.org/ontology/Person");
         Literal bobsName = vf.createLiteral("Bob");
         Literal alicesName = vf.createLiteral("Alice");
         assertEquals(0, conn.size());
@@ -94,7 +94,7 @@ public class TutorialTests extends AGAbstractTest {
     @Test
     public void example4() throws Exception {
         Map<String, Stmt> inputs = example2setup();
-        URI alice = repo.getValueFactory().createURI("http://example.org/people/alice");
+        IRI alice = repo.getValueFactory().createIRI("http://example.org/people/alice");
         RepositoryResult<Statement> result = conn.getStatements(alice, null, null, false);
         result.enableDuplicateFilter();
         Set<Stmt> stmts = statementSet(result);
@@ -107,12 +107,12 @@ public class TutorialTests extends AGAbstractTest {
         conn.clear();
         ValueFactory f = repo.getValueFactory();
         String exns = "http://example.org/people/";
-        URI alice = f.createURI("http://example.org/people/alice");
-        URI ted = f.createURI(exns, "ted");
-        URI age = f.createURI(exns, "age");
-        URI weight = f.createURI(exns, "weight");
-        URI favoriteColor = f.createURI(exns, "favoriteColor");
-        URI birthdate = f.createURI(exns, "birthdate");
+        IRI alice = f.createIRI("http://example.org/people/alice");
+        IRI ted = f.createIRI(exns, "ted");
+        IRI age = f.createIRI(exns, "age");
+        IRI weight = f.createIRI(exns, "weight");
+        IRI favoriteColor = f.createIRI(exns, "favoriteColor");
+        IRI birthdate = f.createIRI(exns, "birthdate");
         Literal red = f.createLiteral("Red");
         Literal rouge = f.createLiteral("Rouge", "fr");
         Literal fortyTwoInt = f.createLiteral("42", XMLSchema.INT);
@@ -168,7 +168,7 @@ public class TutorialTests extends AGAbstractTest {
                 f.createLiteral("1984-12-06T09:00:00Z",XMLSchema.DATETIME), false)));
     }
     
-    public static URI example6_setup(AGRepositoryConnection conn, AGRepository repo) throws Exception {
+    public static IRI example6_setup(AGRepositoryConnection conn, AGRepository repo) throws Exception {
         conn.clear();
         conn.setAutoCommit(false);  // dedicated session
         assertEquals(0, conn.size());
@@ -176,7 +176,7 @@ public class TutorialTests extends AGAbstractTest {
         String path1 = "/tutorial/java-vcards.rdf";
         String path2 = "/tutorial/java-kennedy.ntriples";
         String baseURI = "http://example.org/example/local";
-        URI context = f.createURI("http://example.org#vcards");
+        IRI context = f.createIRI("http://example.org#vcards");
         // read vcards triples into the context 'context':
         Util.add(conn, path1, baseURI, RDFFormat.RDFXML, context);
         // read Kennedy triples into the null context:
@@ -186,7 +186,7 @@ public class TutorialTests extends AGAbstractTest {
     
     @Test
     public void example6() throws Exception {
-    	URI context = example6_setup(conn, repo);
+    	IRI context = example6_setup(conn, repo);
         assertEquals(16, conn.size(context));
         assertEquals(1214, conn.size((Resource)null));
         assertEquals(1230, conn.size());
@@ -212,7 +212,7 @@ public class TutorialTests extends AGAbstractTest {
         conn = getConnection(repo);
         vf = repo.getValueFactory();
         example6();
-        URI context = repo.getValueFactory().createURI("http://example.org#vcards");
+        IRI context = repo.getValueFactory().createIRI("http://example.org#vcards");
         {
             File outputFile = File.createTempFile(getClass().getSimpleName(), ".nt");
             println("Writing n-triples to: " + outputFile.getCanonicalPath());
@@ -262,16 +262,16 @@ public class TutorialTests extends AGAbstractTest {
     public void example10 () throws Exception {
         ValueFactory f = repo.getValueFactory();
         String exns = "http://example.org/people/";
-        URI alice = f.createURI(exns, "alice");
-        URI bob = f.createURI(exns, "bob");
-        URI ted = f.createURI(exns, "ted");        
-        URI person = f.createURI("http://example.org/ontology/Person");
-        URI name = f.createURI("http://example.org/ontology/name");
+        IRI alice = f.createIRI(exns, "alice");
+        IRI bob = f.createIRI(exns, "bob");
+        IRI ted = f.createIRI(exns, "ted");
+        IRI person = f.createIRI("http://example.org/ontology/Person");
+        IRI name = f.createIRI("http://example.org/ontology/name");
         Literal alicesName = f.createLiteral("Alice");
         Literal bobsName = f.createLiteral("Bob");
         Literal tedsName = f.createLiteral("Ted");        
-        URI context1 = f.createURI(exns, "cxt1");      
-        URI context2 = f.createURI(exns, "cxt2");         
+        IRI context1 = f.createIRI(exns, "cxt1");
+        IRI context2 = f.createIRI(exns, "cxt2");
         conn.add(alice, RDF.TYPE, person, context1);
         conn.add(alice, name, alicesName, context1);
         conn.add(bob, RDF.TYPE, person, context2);
@@ -342,8 +342,8 @@ public class TutorialTests extends AGAbstractTest {
     public void example11() throws Exception {
         String exns = "http://example.org/people/";
         conn.setNamespace("ex", exns);
-        URI alice = vf.createURI(exns, "alice");
-        URI person = vf.createURI(exns, "Person");
+        IRI alice = vf.createIRI(exns, "alice");
+        IRI person = vf.createIRI(exns, "Person");
         conn.add(alice, RDF.TYPE, person);
         String queryString = "PREFIX ex:" + "<" + exns + ">\n" +
             "SELECT ?s ?p ?o WHERE { ?s ?p ?o . FILTER ((?p = rdf:type) && (?o = ex:Person) ) }";
@@ -360,25 +360,25 @@ public class TutorialTests extends AGAbstractTest {
 	    String exns = "http://example.org/people/";
         conn.setNamespace("ex", exns);
 	    AGFreetextIndexConfig config = AGFreetextIndexConfig.newInstance();
-	    URI fullname = f.createURI(exns,"fullname");
+	    IRI fullname = f.createIRI(exns,"fullname");
 	    config.getPredicates().add(fullname);
 	    conn.createFreetextIndex("index1", config);
 	    List<String> indices = new ArrayList<String>();
 	    indices.add("index1");
 	    assertSetsEqual("listFreetextIndices() expects index1",indices,conn.listFreetextIndices());
-	    List<URI> preds = new ArrayList<URI>();
+	    List<IRI> preds = new ArrayList<IRI>();
 	    preds.add(fullname);
 	    AGFreetextIndexConfig config1 = conn.getFreetextIndexConfig("index1");
 	    assertSetsEqual("getPredicates() expects fullname",preds,config1.getPredicates());
-	    URI alice = f.createURI(exns, "alice1");
-	    URI carroll = f.createURI(exns, "carroll");
-	    URI person = f.createURI(exns, "Person");
+	    IRI alice = f.createIRI(exns, "alice1");
+	    IRI carroll = f.createIRI(exns, "carroll");
+	    IRI person = f.createIRI(exns, "Person");
 	    Literal alicename = f.createLiteral("Alice B. Toklas");
 	    Literal lewisCarroll = f.createLiteral("Lewis Carroll");
-	    URI book =  f.createURI(exns, "book1");
-	    URI booktype = f.createURI(exns, "Book");
-	    URI booktitle = f.createURI(exns, "title");    
-	    URI author = f.createURI(exns, "author");
+	    IRI book =  f.createIRI(exns, "book1");
+	    IRI booktype = f.createIRI(exns, "Book");
+	    IRI booktitle = f.createIRI(exns, "title");
+	    IRI author = f.createIRI(exns, "author");
 	    Literal wonderland = f.createLiteral("Alice in Wonderland");
 	    conn.clear();    
 	    conn.add(alice, RDF.TYPE, person);
@@ -443,7 +443,7 @@ public class TutorialTests extends AGAbstractTest {
         conn.createFreetextIndex("index2", config);
         indices.add("index2");
 	    assertSetsEqual("listFreetextIndices() expects index1 and index2",indices,conn.listFreetextIndices());
-	    preds = new ArrayList<URI>();
+	    preds = new ArrayList<IRI>();
 	    preds.add(author);
 	    assertSetsEqual("getPredicates() expects author",preds,config.getPredicates());
 	    assertEquals("getIndexResources() expects short","short",config.getIndexResources());
@@ -517,8 +517,8 @@ public class TutorialTests extends AGAbstractTest {
         Map<String, Stmt> inputs = example2setup();
         ValueFactory f = conn.getValueFactory();
         conn.setAutoCommit(false);
-        URI alice = f.createURI("http://example.org/people/alice");
-        URI bob = f.createURI("http://example.org/people/bob");
+        IRI alice = f.createIRI("http://example.org/people/alice");
+        IRI bob = f.createIRI("http://example.org/people/bob");
         String queryString = "select ?s ?p ?o where { ?s ?p ?o} ";
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         tupleQuery.setBinding("s", alice);
@@ -541,10 +541,10 @@ public class TutorialTests extends AGAbstractTest {
         conn.clear();
         String exns = "http://example.org/people/";
         conn.setNamespace("ex", exns);
-        URI alice = f.createURI(exns, "alice");
-        URI bob = f.createURI(exns, "bob");
-        URI carol = f.createURI(exns, "carol");
-        URI age = f.createURI(exns, "age");
+        IRI alice = f.createIRI(exns, "alice");
+        IRI bob = f.createIRI(exns, "bob");
+        IRI carol = f.createIRI(exns, "carol");
+        IRI age = f.createIRI(exns, "age");
         Literal l42 = f.createLiteral(42);
         conn.add(alice, age, l42);
         Literal l451 = f.createLiteral(45.1);
@@ -598,14 +598,14 @@ public class TutorialTests extends AGAbstractTest {
         AGRepositoryConnection rainbowConn = getConnection(rainbowRepo);
         String ex = "http://example.org/";
         // add a few triples to the red and green stores:
-        URI mac = rf.createURI(ex+"mcintosh");
-        redConn.add(mac, RDF.TYPE, rf.createURI(ex+"Apple"));
-        URI red = rf.createURI(ex+"reddelicious");
-        redConn.add(red, RDF.TYPE, rf.createURI(ex+"Apple"));    
-        URI pippen = gf.createURI(ex+"pippin");
-        greenConn.add(pippen, RDF.TYPE, gf.createURI(ex+"Apple"));
-        URI kermit = gf.createURI(ex+"kermitthefrog");
-        greenConn.add(kermit, RDF.TYPE, gf.createURI(ex+"Frog"));
+        IRI mac = rf.createIRI(ex+"mcintosh");
+        redConn.add(mac, RDF.TYPE, rf.createIRI(ex+"Apple"));
+        IRI red = rf.createIRI(ex+"reddelicious");
+        redConn.add(red, RDF.TYPE, rf.createIRI(ex+"Apple"));
+        IRI pippen = gf.createIRI(ex+"pippin");
+        greenConn.add(pippen, RDF.TYPE, gf.createIRI(ex+"Apple"));
+        IRI kermit = gf.createIRI(ex+"kermitthefrog");
+        greenConn.add(kermit, RDF.TYPE, gf.createIRI(ex+"Frog"));
         redConn.setNamespace("ex", ex);
         greenConn.setNamespace("ex", ex);
         rainbowConn.setNamespace("ex", ex);
@@ -678,14 +678,14 @@ public class TutorialTests extends AGAbstractTest {
     public void example19() throws Exception {
         // Examples of RDFS++ inference.  Was originally example 2A.
         ValueFactory f = conn.getValueFactory();
-        URI robert = f.createURI("http://example.org/people/robert");
-        URI roberta = f.createURI("http://example.org/people/roberta");
-        URI bob = f.createURI("http://example.org/people/bob");
-        URI bobby = f.createURI("http://example.org/people/bobby");
+        IRI robert = f.createIRI("http://example.org/people/robert");
+        IRI roberta = f.createIRI("http://example.org/people/roberta");
+        IRI bob = f.createIRI("http://example.org/people/bob");
+        IRI bobby = f.createIRI("http://example.org/people/bobby");
         // create name and child predicates, and Person class.
-        URI name = f.createURI("http://example.org/ontology/name");
-        URI fatherOf = f.createURI("http://example.org/ontology/fatherOf");
-        URI person = f.createURI("http://example.org/ontology/Person");
+        IRI name = f.createIRI("http://example.org/ontology/name");
+        IRI fatherOf = f.createIRI("http://example.org/ontology/fatherOf");
+        IRI person = f.createIRI("http://example.org/ontology/Person");
         // create literal values for names    
         Literal bobsName = f.createLiteral("Bob");
         Literal bobbysName = f.createLiteral("Bobby");
@@ -723,7 +723,7 @@ public class TutorialTests extends AGAbstractTest {
         conn.remove(bob, OWL.SAMEAS, robert);
         
         // Define new predicate, hasFather, as the inverse of fatherOf.
-        URI hasFather = f.createURI("http://example.org/ontology/hasFather");
+        IRI hasFather = f.createIRI("http://example.org/ontology/hasFather");
         conn.add(hasFather, OWL.INVERSEOF, fatherOf);
         // Search for people who have fathers, even though there are no hasFather triples.
         // With inference OFF.
@@ -741,7 +741,7 @@ public class TutorialTests extends AGAbstractTest {
         // Remove owl:inverseOf property.
         conn.remove(hasFather, OWL.INVERSEOF, fatherOf);
 
-        URI parentOf = f.createURI("http://example.org/ontology/parentOf");
+        IRI parentOf = f.createIRI("http://example.org/ontology/parentOf");
         conn.add(fatherOf, RDFS.SUBPROPERTYOF, parentOf);
         // Now search for inferred parentOf links.
         // Search for parentOf links, even though there are no parentOf triples.
@@ -760,8 +760,8 @@ public class TutorialTests extends AGAbstractTest {
         
         // The next example shows rdfs:range and rdfs:domain in action.
         // We'll create two new rdf:type classes.  Note that classes are capitalized.
-        URI parent = f.createURI("http://example.org/ontology/Parent");
-        URI child = f.createURI("http://exmaple.org/ontology/Child");
+        IRI parent = f.createIRI("http://example.org/ontology/Parent");
+        IRI child = f.createIRI("http://exmaple.org/ontology/Child");
         // The following triples say that a fatherOf link points from a parent to a child.
         conn.add(fatherOf, RDFS.DOMAIN, parent);
         conn.add(fatherOf, RDFS.RANGE, child);
@@ -787,11 +787,11 @@ public class TutorialTests extends AGAbstractTest {
         conn.clear();
         String exns = "http://example.org/people/";
         conn.setNamespace("ex", exns);
-        URI alice = vf.createURI(exns, "alice");
-        URI bob = vf.createURI(exns, "bob");
-        URI carol = vf.createURI(exns, "carol");
-        URI cartSystem = conn.registerCartesianType(10, 0, 100, 0, 100);
-        URI location = vf.createURI(exns, "location");
+        IRI alice = vf.createIRI(exns, "alice");
+        IRI bob = vf.createIRI(exns, "bob");
+        IRI carol = vf.createIRI(exns, "carol");
+        IRI cartSystem = conn.registerCartesianType(10, 0, 100, 0, 100);
+        IRI location = vf.createIRI(exns, "location");
 		Literal alice_loc = vf.createLiteral("+30.0+30.0", cartSystem);
 		Literal bob_loc = vf.createLiteral("+40.0+40.0", cartSystem);
 		Literal carol_loc = vf.createLiteral("+50.0+50.0", cartSystem);
@@ -808,7 +808,7 @@ public class TutorialTests extends AGAbstractTest {
                         new Stmt(bob, location, null)),
                         stmtsSP(statementSet( conn.getStatementsInCircle(cartSystem, location, 35, 35, 10, 0, false))));
         //printRows( conn.getStatementsInCircle(cartSystem, location, 35, 35, 10, 0, false) ); 
-        URI polygon1 = vf.createURI("http://example.org/polygon1");
+        IRI polygon1 = vf.createIRI("http://example.org/polygon1");
         List<Literal> polygon1_points = new ArrayList<Literal>(4);
         polygon1_points.add(vf.createLiteral("+10.0+40.0", cartSystem));
         polygon1_points.add(vf.createLiteral("+50.0+10.0", cartSystem));
@@ -824,12 +824,12 @@ public class TutorialTests extends AGAbstractTest {
         // now we switch to a Spherical (Lat/Long) coordinate system
         //URI sphericalSystemKM = conn.registerSphericalType(5, AGProtocol.KM_PARAM_VALUE);
         //URI sphericalSystemDegree = conn.registerSphericalType(5, AGProtocol.DEGREE_PARAM_VALUE);
-        URI sphericalSystemDegree = conn.registerSphericalType(5, "degree");
-        URI amsterdam = vf.createURI(exns, "amsterdam");
-        URI london = vf.createURI(exns, "london");
-        URI sanfrancisco = vf.createURI(exns, "sanfrancisco");
-        URI salvador = vf.createURI(exns, "salvador");
-        location = vf.createURI(exns, "geolocation");
+        IRI sphericalSystemDegree = conn.registerSphericalType(5, "degree");
+        IRI amsterdam = vf.createIRI(exns, "amsterdam");
+        IRI london = vf.createIRI(exns, "london");
+        IRI sanfrancisco = vf.createIRI(exns, "sanfrancisco");
+        IRI salvador = vf.createIRI(exns, "salvador");
+        location = vf.createIRI(exns, "geolocation");
         conn.add(amsterdam, location, vf.createLiteral("+52.366665+004.883333",sphericalSystemDegree));
         conn.add(london, location, vf.createLiteral("+51.533333-000.08333333",sphericalSystemDegree));
         conn.add(sanfrancisco, location, vf.createLiteral("+37.783333-122.433334",sphericalSystemDegree));
@@ -842,7 +842,7 @@ public class TutorialTests extends AGAbstractTest {
                 stmts(new Stmt(salvador, location, null)),
                 stmtsSP(statementSet( conn.getGeoHaversine(sphericalSystemDegree, location, 19.3994f, -99.08f, 2000.0f, "km", 0, false))));
 		//printRows(conn.getGeoHaversine(sphericalSystemDegree, location, 19.3994f, -99.08f, 2000.0f, "km", 0, false) );
-        URI polygon2 = vf.createURI("http://example.org/polygon2");
+        IRI polygon2 = vf.createIRI("http://example.org/polygon2");
         List<Literal> polygon2_points = new ArrayList<Literal>(3);
         polygon2_points.add(vf.createLiteral("+51.0+002.0", sphericalSystemDegree));
         polygon2_points.add(vf.createLiteral("+60.0-005.0", sphericalSystemDegree));
@@ -875,42 +875,42 @@ public class TutorialTests extends AGAbstractTest {
         conn.setNamespace("lm", lmns);
         String dc = "http://purl.org/dc/elements/1.1/";
         conn.setNamespace("dc", dc);
-        URI knows = vf.createURI(lmns, "knows");
-        URI barelyKnows = vf.createURI(lmns, "barely_knows");
-        URI knowsWell = vf.createURI(lmns, "knows_well");
+        IRI knows = vf.createIRI(lmns, "knows");
+        IRI barelyKnows = vf.createIRI(lmns, "barely_knows");
+        IRI knowsWell = vf.createIRI(lmns, "knows_well");
 
         // Create URIs for some characters.
-        URI valjean = vf.createURI(lmns, "character11");
-        //URI bossuet = vf.createURI(lmns, "character64");
+        IRI valjean = vf.createIRI(lmns, "character11");
+        //URI bossuet = vf.createIRI(lmns, "character64");
 
         // Create some generators
         //print "\nSNA generators known (should be none): '%s'" % (conn.listSNAGenerators())
-        List<URI> intimates = new ArrayList<URI>(1);
+        List<IRI> intimates = new ArrayList<IRI>(1);
         Collections.addAll(intimates, knowsWell);
         conn.registerSNAGenerator("intimates", null, null, intimates, null);
-        List<URI> associates = new ArrayList<URI>(2);
+        List<IRI> associates = new ArrayList<IRI>(2);
         Collections.addAll(associates, knowsWell, knows);
         conn.registerSNAGenerator("associates", null, null, associates, null);
-        List<URI> everyone = new ArrayList<URI>(3);
+        List<IRI> everyone = new ArrayList<IRI>(3);
         Collections.addAll(everyone, knowsWell, knows, barelyKnows);
         conn.registerSNAGenerator("everyone", null, null, everyone, null);
 
         // Create neighbor matrix.
-        List<URI> startNodes = new ArrayList<URI>(1);
+        List<IRI> startNodes = new ArrayList<IRI>(1);
         startNodes.add(valjean);
         conn.registerSNANeighborMatrix("matrix1", "intimates", startNodes, 2);
         conn.registerSNANeighborMatrix("matrix2", "associates", startNodes, 5);
         conn.registerSNANeighborMatrix("matrix3", "everyone", startNodes, 2);
         
         Set<Stmt> valjeansEgoGroup = stmts(
-                new Stmt(vf.createURI(lmns, "character11"), null, vf.createLiteral("Valjean")),
-                new Stmt(vf.createURI(lmns, "character23"), null, vf.createLiteral("Fantine")),
-                new Stmt(vf.createURI(lmns, "character24"), null, vf.createLiteral("MmeThenardier")),
-                new Stmt(vf.createURI(lmns, "character25"), null, vf.createLiteral("Thenardier")),
-                new Stmt(vf.createURI(lmns, "character26"), null, vf.createLiteral("Cosette")),
-                new Stmt(vf.createURI(lmns, "character27"), null, vf.createLiteral("Javert")),
-                new Stmt(vf.createURI(lmns, "character28"), null, vf.createLiteral("Fauchelevent")),
-                new Stmt(vf.createURI(lmns, "character55"), null, vf.createLiteral("Marius")));
+                new Stmt(vf.createIRI(lmns, "character11"), null, vf.createLiteral("Valjean")),
+                new Stmt(vf.createIRI(lmns, "character23"), null, vf.createLiteral("Fantine")),
+                new Stmt(vf.createIRI(lmns, "character24"), null, vf.createLiteral("MmeThenardier")),
+                new Stmt(vf.createIRI(lmns, "character25"), null, vf.createLiteral("Thenardier")),
+                new Stmt(vf.createIRI(lmns, "character26"), null, vf.createLiteral("Cosette")),
+                new Stmt(vf.createIRI(lmns, "character27"), null, vf.createLiteral("Javert")),
+                new Stmt(vf.createIRI(lmns, "character28"), null, vf.createLiteral("Fauchelevent")),
+                new Stmt(vf.createIRI(lmns, "character55"), null, vf.createLiteral("Marius")));
         
         // Explore Valjean's ego group.
         assert21("Valjean's ego group members (using associates).",
@@ -1118,7 +1118,7 @@ public class TutorialTests extends AGAbstractTest {
                 statementSet(conn.getStatements(null, null, obj, false)));
     }
     
-    private void assert22k(String msg, Stmt expected, AGRepositoryConnection conn, URI pred, Value obj) throws Exception {
+    private void assert22k(String msg, Stmt expected, AGRepositoryConnection conn, IRI pred, Value obj) throws Exception {
         assertSetsSome(msg, stmts(expected),
                 Stmt.dropSubjects(statementSet(conn.getStatements(null, pred, obj, false))));
     }
@@ -1150,9 +1150,9 @@ public class TutorialTests extends AGAbstractTest {
         Literal kennedy = vf.createLiteral("Kennedy");
         String lmns = "http://www.franz.com/lesmis#";
         //conn.setNamespace("lm", lmns);
-        URI char11 = vf.createURI(lmns, "character11");
-        URI title = vf.createURI("http://purl.org/dc/elements/1.1/title");
-        URI lastname = vf.createURI("http://www.franz.com/simple#last-name");
+        IRI char11 = vf.createIRI(lmns, "character11");
+        IRI title = vf.createIRI("http://purl.org/dc/elements/1.1/title");
+        IRI lastname = vf.createIRI("http://www.franz.com/simple#last-name");
         
         assert22("Using getStatements() on conn1; should find Valjean:",
                 new Stmt(char11, title, valjean),

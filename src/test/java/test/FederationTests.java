@@ -23,14 +23,14 @@ public class FederationTests extends AGAbstractTest {
     @Category(TestSuites.Prepush.class)
     public void federationBNodes() throws Exception {
     	BNode bnode = vf.createBNode();
-    	conn.add(bnode, RDF.TYPE, vf.createURI("http://Foo"));
+    	conn.add(bnode, RDF.TYPE, vf.createIRI("http://Foo"));
     	AGVirtualRepository fed = server.federate(repo,repo);
     	AGRepositoryConnection conn2 = fed.getConnection();
     	// Should be able to create BNodes for a federation
     	conn2.getValueFactory().createBNode();
     	conn2.getValueFactory().createBNode("foo");
     	try {
-    		conn2.add(bnode, RDF.TYPE, vf.createURI("http://Boo"));
+    		conn2.add(bnode, RDF.TYPE, vf.createIRI("http://Boo"));
     		Assert.fail("expected can't write to federation.");
     	} catch (RepositoryException e) {
     		//expected

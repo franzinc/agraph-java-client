@@ -4,10 +4,7 @@
 
 package com.franz.agraph.repository;
 
-import org.openrdf.model.BNode;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
+import org.openrdf.model.*;
 import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.rio.ntriples.NTriplesUtil;
@@ -176,7 +173,7 @@ public class AGValueFactory extends ValueFactoryImpl {
 		} else if (node.isLiteral()) {
 			String lang = node.getLiteralLanguage();
 			if (node.getLiteralDatatypeURI()!=null) {
-				URI datatype = createURI(node.getLiteralDatatypeURI());
+				IRI datatype = createIRI(node.getLiteralDatatypeURI());
 				val = createLiteral(node.getLiteralLexicalForm(), datatype);
 			} else if (lang!=null && !lang.equals("")) {
 				val = createLiteral(node.getLiteralLexicalForm(),lang);
@@ -225,16 +222,16 @@ public class AGValueFactory extends ValueFactoryImpl {
 		return res;
 	}
 
-	public URI asURI(Node node) {
-		URI uri;
+	public IRI asURI(Node node) {
+		IRI uri;
 		if (node==null || node==Node.ANY) {
 			uri = null;
 		} else if (node.isURI()) {
-			uri = createURI(node.getURI());
+			uri = createIRI(node.getURI());
 		} else if (node.isBlank()) {
 			// TODO: research this more, seems to be needed for the test 
 			// suite, as blank nodes appear in the predicate position
-			uri = createURI("http://anon/" + node.getBlankNodeLabel());
+			uri = createIRI("http://anon/" + node.getBlankNodeLabel());
 		} else {
 			throw new IllegalArgumentException("Cannot convert Node to URI: " + node);
 		}
@@ -268,12 +265,12 @@ public class AGValueFactory extends ValueFactoryImpl {
 	 * @see AGRepositoryConnection#registerEncodableNamespace(String, String)
 	 * @see #generateURI(String)
 	 */
-	public URI[] generateURIs(String namespace, int amount) throws RepositoryException {
+	public IRI[] generateURIs(String namespace, int amount) throws RepositoryException {
 		String[] uri_strs;
-		URI[] uris;
+		IRI[] uris;
 		try {
 			uri_strs = getHTTPClient().generateURIs(getRepository().getRepositoryURL(),namespace,amount);
-			uris = new URI[uri_strs.length];
+			uris = new IRI[uri_strs.length];
 			for (int i=0;i<uri_strs.length;i++) {
 				uris[i] = NTriplesUtil.parseURI(uri_strs[i],this);
 			}
@@ -300,7 +297,7 @@ public class AGValueFactory extends ValueFactoryImpl {
 	 * 
 	 * @return a unique URI within the specified namespace.
 	 */
-	public URI generateURI(String registeredEncodableNamespace) throws RepositoryException {
+	public IRI generateURI(String registeredEncodableNamespace) throws RepositoryException {
 		return generateURIs(registeredEncodableNamespace,1)[0];
 	}
 

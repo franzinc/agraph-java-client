@@ -26,13 +26,13 @@ public class ContextsVarargsTest {
 		
 		// non-empty array, using varargs
 		Assert.assertEquals(1, m((Resource)null).length); // just the null context
-		Assert.assertEquals(1, m(vf.createURI("http://a")).length);
-		Assert.assertEquals(3, m(null,vf.createURI("http://a"),vf.createURI("http://b")).length);
+		Assert.assertEquals(1, m(vf.createIRI("http://a")).length);
+		Assert.assertEquals(3, m(null,vf.createIRI("http://a"),vf.createIRI("http://b")).length);
 		
 		// non-empty, using an explicit array
 		Assert.assertEquals(1, m(new Resource[]{null}).length); // just the null context
-		Assert.assertEquals(1, m(new Resource[]{vf.createURI("http://a")}).length);
-		Assert.assertEquals(3, m(new Resource[]{null,vf.createURI("http://a"),vf.createURI("http://b")}).length);
+		Assert.assertEquals(1, m(new Resource[]{vf.createIRI("http://a")}).length);
+		Assert.assertEquals(3, m(new Resource[]{null,vf.createIRI("http://a"),vf.createIRI("http://b")}).length);
 	}
 	
 	/**

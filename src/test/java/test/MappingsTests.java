@@ -23,9 +23,9 @@ public class MappingsTests extends AGAbstractTest {
 		// one way of confirming that primitive mappings are present
 		// or absent is to check for precision loss due to encoding
 		// of the double below.
-		URI myDouble = vf.createURI("http://example.org/mydouble");
+		IRI myDouble = vf.createIRI("http://example.org/mydouble");
 		BNode s = vf.createBNode();
-		URI p = vf.createURI("http://example.org/hasAge");
+		IRI p = vf.createIRI("http://example.org/hasAge");
 		String d = "1.86733E1";
 		Literal o = vf.createLiteral(d,myDouble);
 		conn.registerDatatypeMapping(myDouble, XMLSchema.DOUBLE);

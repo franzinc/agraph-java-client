@@ -8,7 +8,7 @@ import com.franz.agraph.repository.*;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
+import org.openrdf.model.IRI;
 import org.openrdf.model.Value;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryEvaluationException;
@@ -69,8 +69,8 @@ public class TransactionStressTest {
             boolean okay = false;
             try {
                 AGValueFactory vf = conn.getRepository().getValueFactory();
-                URI node = vf.createURI("http://example.org/" + id);
-                conn.add(node, vf.createURI("http://example.org/finished"), vf.createLiteral("false"));
+                IRI node = vf.createIRI("http://example.org/" + id);
+                conn.add(node, vf.createIRI("http://example.org/finished"), vf.createLiteral("false"));
                 
                 String q = "SELECT ?n WHERE {?n <http://example.org/finished> \"false\"}";
                 TupleQueryResult result = conn.prepareTupleQuery(QueryLanguage.SPARQL, q).evaluate();
@@ -88,8 +88,8 @@ public class TransactionStressTest {
                 // Test aborted transactions.
                 if (rnd.nextInt() % 20 == 0) return false;
 
-                conn.remove(node, vf.createURI("http://example.org/finished"), vf.createLiteral("false"));
-                conn.add(node, vf.createURI("http://example.org/finished"), vf.createLiteral("true"));
+                conn.remove(node, vf.createIRI("http://example.org/finished"), vf.createLiteral("false"));
+                conn.add(node, vf.createIRI("http://example.org/finished"), vf.createLiteral("true"));
                 conn.commit();
                 // commit turns on autocommit with sesame 2.7
                 // transaction semantics, make sure it's off
@@ -136,7 +136,7 @@ public class TransactionStressTest {
 
             AGValueFactory vf = conn.getRepository().getValueFactory();
             RepositoryResult<Statement> unfinished =
-                conn.getStatements(null, vf.createURI("http://example.org/finished"), vf.createLiteral("false"), false);
+                conn.getStatements(null, vf.createIRI("http://example.org/finished"), vf.createLiteral("false"), false);
             assertTrue(!unfinished.hasNext());
         }
         finally {conn.close();}

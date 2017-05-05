@@ -13,7 +13,7 @@ import org.openrdf.model.BNode;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
+import org.openrdf.model.IRI;
 import org.openrdf.model.Value;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFHandlerException;
@@ -111,7 +111,7 @@ public class NQuadsWriter extends RDFWriterBase {
 		}
 
 		Resource subj = st.getSubject();
-		URI pred = st.getPredicate();
+		IRI pred = st.getPredicate();
 		Value obj = st.getObject();
 		Resource context = st.getContext();
 
@@ -166,11 +166,11 @@ public class NQuadsWriter extends RDFWriterBase {
 			writeBNode((BNode)res);
 		}
 		else {
-			writeURI((URI)res);
+			writeURI((IRI)res);
 		}
 	}
 
-	private void writeURI(URI uri)
+	private void writeURI(IRI uri)
 		throws IOException
 	{
 		writer.write(NTriplesUtil.toNTriplesString(uri));

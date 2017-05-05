@@ -43,13 +43,13 @@ public abstract class SPARQLUpdateTest {
 
 		protected ValueFactory f;
 
-		private URI bob;
+		private IRI bob;
 
-		private URI alice;
+		private IRI alice;
 
-		private URI graph1;
+		private IRI graph1;
 
-		private URI graph2;
+		private IRI graph2;
 
 		protected static final String EX_NS = "http://example.org/";
 
@@ -68,11 +68,11 @@ public abstract class SPARQLUpdateTest {
 
 			loadDataset("/testdata-update/dataset-update.trig");
 
-			bob = f.createURI(EX_NS, "bob");
-			alice = f.createURI(EX_NS, "alice");
+			bob = f.createIRI(EX_NS, "bob");
+			alice = f.createIRI(EX_NS, "alice");
 
-			graph1 = f.createURI(EX_NS, "graph1");
-			graph2 = f.createURI(EX_NS, "graph2");
+			graph1 = f.createIRI(EX_NS, "graph1");
+			graph2 = f.createIRI(EX_NS, "graph2");
 
 			logger.debug("setup complete.");
 		}
@@ -276,7 +276,7 @@ public abstract class SPARQLUpdateTest {
 
 			Update operation = con.prepareUpdate(QueryLanguage.SPARQL, update.toString());
 
-			URI age = f.createURI(EX_NS, "age");
+			IRI age = f.createIRI(EX_NS, "age");
 
 			assertFalse(con.hasStatement(alice, age, null, true));
 			assertTrue(con.hasStatement(bob, age, null, true));
@@ -313,8 +313,8 @@ public abstract class SPARQLUpdateTest {
 
 			Update operation = con.prepareUpdate(QueryLanguage.SPARQL, update.toString());
 
-			URI age = f.createURI(EX_NS, "age");
-			URI complexAge = f.createURI(EX_NS, "complexAge");
+			IRI age = f.createIRI(EX_NS, "age");
+			IRI complexAge = f.createIRI(EX_NS, "complexAge");
 
 			assertTrue(con.hasStatement(bob, age, null, true));
 
@@ -473,7 +473,7 @@ public abstract class SPARQLUpdateTest {
 
 			Update operation = con.prepareUpdate(QueryLanguage.SPARQL, update.toString());
 
-			URI age = f.createURI(EX_NS, "age");
+			IRI age = f.createIRI(EX_NS, "age");
 			Literal originalAgeValue = f.createLiteral("42", XMLSchema.INTEGER);
 			Literal correctAgeValue = f.createLiteral("43", XMLSchema.INTEGER);
 			Literal inCorrectAgeValue = f.createLiteral("46", XMLSchema.INTEGER);
@@ -735,8 +735,8 @@ public abstract class SPARQLUpdateTest {
 			assertFalse(msg, con.hasStatement(alice, FOAF.NAME, f.createLiteral("Alice"), true));
 
 			msg = "ex:containsPerson properties should not have been deleted";
-			assertTrue(msg, con.hasStatement(graph1, f.createURI(EX_NS, "containsPerson"), bob, true));
-			assertTrue(msg, con.hasStatement(graph2, f.createURI(EX_NS, "containsPerson"), alice, true));
+			assertTrue(msg, con.hasStatement(graph1, f.createIRI(EX_NS, "containsPerson"), bob, true));
+			assertTrue(msg, con.hasStatement(graph2, f.createIRI(EX_NS, "containsPerson"), alice, true));
 
 		}
 
@@ -753,7 +753,7 @@ public abstract class SPARQLUpdateTest {
 
 			Update operation = con.prepareUpdate(QueryLanguage.SPARQL, update.toString());
 
-			URI book1 = f.createURI(EX_NS, "book1");
+			IRI book1 = f.createIRI(EX_NS, "book1");
 
 			assertFalse(con.hasStatement(book1, DC.TITLE, f.createLiteral("book 1"), true));
 			assertFalse(con.hasStatement(book1, DC.CREATOR, f.createLiteral("Ringo"), true));
@@ -827,8 +827,8 @@ public abstract class SPARQLUpdateTest {
 
 			Update operation = con.prepareUpdate(QueryLanguage.SPARQL, update.toString());
 
-			URI book1 = f.createURI(EX_NS, "book1");
-			URI book2 = f.createURI(EX_NS, "book2");
+			IRI book1 = f.createIRI(EX_NS, "book1");
+			IRI book2 = f.createIRI(EX_NS, "book2");
 
 			assertFalse(con.hasStatement(book1, DC.TITLE, f.createLiteral("book 1"), true));
 			assertFalse(con.hasStatement(book1, DC.CREATOR, f.createLiteral("Ringo"), true));
@@ -854,7 +854,7 @@ public abstract class SPARQLUpdateTest {
 
 			Update operation = con.prepareUpdate(QueryLanguage.SPARQL, update.toString());
 
-			URI book1 = f.createURI(EX_NS, "book1");
+			IRI book1 = f.createIRI(EX_NS, "book1");
 
 			assertFalse(con.hasStatement(book1, DC.TITLE, f.createLiteral("book 1"), true, graph1));
 			assertFalse(con.hasStatement(book1, DC.CREATOR, f.createLiteral("Ringo"), true, graph1));
@@ -878,9 +878,9 @@ public abstract class SPARQLUpdateTest {
 
 			Update operation = con.prepareUpdate(QueryLanguage.SPARQL, update.toString());
 
-			URI human = f.createURI(EX_NS, "Human");
-			URI mammal = f.createURI(EX_NS, "Mammal");
-			URI george = f.createURI(EX_NS, "george");
+			IRI human = f.createIRI(EX_NS, "Human");
+			IRI mammal = f.createIRI(EX_NS, "Mammal");
+			IRI george = f.createIRI(EX_NS, "george");
 
 			operation.execute();
 
@@ -977,7 +977,7 @@ public abstract class SPARQLUpdateTest {
 			StringBuilder update = new StringBuilder();
 			update.append(getNamespaceDeclarations());
 
-			URI newGraph = f.createURI(EX_NS, "new-graph");
+			IRI newGraph = f.createIRI(EX_NS, "new-graph");
 
 			update.append("CREATE GRAPH <" + newGraph + "> ");
 
@@ -1064,7 +1064,7 @@ public abstract class SPARQLUpdateTest {
 			Update operation = con.prepareUpdate(QueryLanguage.SPARQL, update.toString());
 
 			operation.execute();
-			assertTrue(con.hasStatement(bob, FOAF.NAME, null, false, f.createURI(EX_NS, "graph3")));
+			assertTrue(con.hasStatement(bob, FOAF.NAME, null, false, f.createIRI(EX_NS, "graph3")));
 			assertTrue(con.hasStatement(bob, FOAF.NAME, null, false, graph1));
 		}
 
@@ -1085,8 +1085,8 @@ public abstract class SPARQLUpdateTest {
 			operation.execute();
 			assertTrue(con.hasStatement(graph1, DC.PUBLISHER, null, false, (Resource)null));
 			assertTrue(con.hasStatement(graph2, DC.PUBLISHER, null, false, (Resource)null));
-			assertTrue(con.hasStatement(graph1, DC.PUBLISHER, null, false, f.createURI(EX_NS, "graph3")));
-			assertTrue(con.hasStatement(graph2, DC.PUBLISHER, null, false, f.createURI(EX_NS, "graph3")));
+			assertTrue(con.hasStatement(graph1, DC.PUBLISHER, null, false, f.createIRI(EX_NS, "graph3")));
+			assertTrue(con.hasStatement(graph2, DC.PUBLISHER, null, false, f.createIRI(EX_NS, "graph3")));
 
 		}
 
@@ -1161,7 +1161,7 @@ public abstract class SPARQLUpdateTest {
 			Update operation = con.prepareUpdate(QueryLanguage.SPARQL, update.toString());
 
 			operation.execute();
-			assertTrue(con.hasStatement(bob, FOAF.NAME, null, false, f.createURI(EX_NS, "graph3")));
+			assertTrue(con.hasStatement(bob, FOAF.NAME, null, false, f.createIRI(EX_NS, "graph3")));
 			assertTrue(con.hasStatement(bob, FOAF.NAME, null, false, graph1));
 		}
 
@@ -1182,8 +1182,8 @@ public abstract class SPARQLUpdateTest {
 			operation.execute();
 			assertTrue(con.hasStatement(graph1, DC.PUBLISHER, null, false, (Resource)null));
 			assertTrue(con.hasStatement(graph2, DC.PUBLISHER, null, false, (Resource)null));
-			assertTrue(con.hasStatement(graph1, DC.PUBLISHER, null, false, f.createURI(EX_NS, "graph3")));
-			assertTrue(con.hasStatement(graph2, DC.PUBLISHER, null, false, f.createURI(EX_NS, "graph3")));
+			assertTrue(con.hasStatement(graph1, DC.PUBLISHER, null, false, f.createIRI(EX_NS, "graph3")));
+			assertTrue(con.hasStatement(graph2, DC.PUBLISHER, null, false, f.createIRI(EX_NS, "graph3")));
 
 		}
 
@@ -1239,7 +1239,7 @@ public abstract class SPARQLUpdateTest {
 			Update operation = con.prepareUpdate(QueryLanguage.SPARQL, update.toString());
 
 			operation.execute();
-			assertTrue(con.hasStatement(bob, FOAF.NAME, null, false, f.createURI(EX_NS, "graph3")));
+			assertTrue(con.hasStatement(bob, FOAF.NAME, null, false, f.createIRI(EX_NS, "graph3")));
 			assertFalse(con.hasStatement(null, null, null, false, graph1));
 		}
 
@@ -1259,8 +1259,8 @@ public abstract class SPARQLUpdateTest {
 			operation.execute();
 			assertFalse(con.hasStatement(graph1, DC.PUBLISHER, null, false, (Resource)null));
 			assertFalse(con.hasStatement(graph2, DC.PUBLISHER, null, false, (Resource)null));
-			assertTrue(con.hasStatement(graph1, DC.PUBLISHER, null, false, f.createURI(EX_NS, "graph3")));
-			assertTrue(con.hasStatement(graph2, DC.PUBLISHER, null, false, f.createURI(EX_NS, "graph3")));
+			assertTrue(con.hasStatement(graph1, DC.PUBLISHER, null, false, f.createIRI(EX_NS, "graph3")));
+			assertTrue(con.hasStatement(graph2, DC.PUBLISHER, null, false, f.createIRI(EX_NS, "graph3")));
 
 		}
 
@@ -1517,10 +1517,10 @@ public abstract class SPARQLUpdateTest {
 			con.commit();
 			loadDataset("/testdata-update/dataset-update-example9.trig");
 
-			URI book1 = f.createURI("http://example/book1");
-			URI book3 = f.createURI("http://example/book3");
-			URI bookStore = f.createURI("http://example/bookStore");
-			URI bookStore2 = f.createURI("http://example/bookStore2");
+			IRI book1 = f.createIRI("http://example/book1");
+			IRI book3 = f.createIRI("http://example/book3");
+			IRI bookStore = f.createIRI("http://example/bookStore");
+			IRI bookStore2 = f.createIRI("http://example/bookStore2");
 
 			StringBuilder update = new StringBuilder();
 			update.append("prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> ");
@@ -1570,7 +1570,7 @@ public abstract class SPARQLUpdateTest {
 			Update operation = con.prepareUpdate(QueryLanguage.SPARQL, update);
 
 			operation.execute();
-			assertTrue(con.hasStatement(null, RDF.TYPE, f.createURI(ns, "Family"), true));
+			assertTrue(con.hasStatement(null, RDF.TYPE, f.createIRI(ns, "Family"), true));
 		}
 
 		@Test
@@ -1584,8 +1584,8 @@ public abstract class SPARQLUpdateTest {
 			Update operation = con.prepareUpdate(QueryLanguage.SPARQL, update);
 
 			operation.execute();
-			assertFalse(con.hasStatement((Resource)null, RDF.TYPE, f.createURI(ns, "Family"), true, (Resource)null));
-			assertTrue(con.hasStatement((Resource)null, RDF.TYPE, f.createURI(ns, "Family"), true, f.createURI(ns)));
+			assertFalse(con.hasStatement((Resource)null, RDF.TYPE, f.createIRI(ns, "Family"), true, (Resource)null));
+			assertTrue(con.hasStatement((Resource)null, RDF.TYPE, f.createIRI(ns, "Family"), true, f.createIRI(ns)));
 		}
 		*/
 

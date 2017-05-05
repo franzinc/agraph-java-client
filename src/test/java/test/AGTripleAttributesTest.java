@@ -7,20 +7,17 @@ package test;
 import junit.framework.Assert;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 // import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.openrdf.model.Literal;
+import org.openrdf.model.IRI;
 import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
 import org.openrdf.model.vocabulary.RDF;
 // import org.junit.rules.ExpectedException;
 import org.openrdf.repository.RepositoryException;
 
 import com.franz.agraph.http.exception.AGHttpException;
-import com.franz.agraph.jena.AGStatement;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGValueFactory;
 import com.franz.agraph.repository.AGRepositoryConnection.AttributeDefinition;
@@ -271,11 +268,11 @@ public class AGTripleAttributesTest extends AGAbstractTest {
 		def3.add();
 		
 		// create some resources...
-		URI ref1 = vf.createURI("http://example.org/fifa/refs/CrookedReferee");
-        URI ref2 = vf.createURI("http://example.org/fifa/refs/HonestReferee");
-        URI ref = vf.createURI("http://example.org/ontology/HeadReferee");
-        URI c1 = vf.createURI("http://example.org/fifa/copa_america");
-        URI c2 = vf.createURI("http://example.org/fifa/copa_mundial");
+		IRI ref1 = vf.createIRI("http://example.org/fifa/refs/CrookedReferee");
+        IRI ref2 = vf.createIRI("http://example.org/fifa/refs/HonestReferee");
+        IRI ref = vf.createIRI("http://example.org/ontology/HeadReferee");
+        IRI c1 = vf.createIRI("http://example.org/fifa/copa_america");
+        IRI c2 = vf.createIRI("http://example.org/fifa/copa_mundial");
         
 	// and some attributes, including some which are null
         JSONObject attr1 = new JSONObject("{ canWork: [ AR, BR, null ], gameImportance: Semi, note: null }");
@@ -286,7 +283,7 @@ public class AGTripleAttributesTest extends AGAbstractTest {
         conn.add(ref2, RDF.TYPE, ref, attr2, c1, c2);
         
         // Statement API
-        Statement stmt1 = vf.createStatement(ref1, vf.createURI(RDFS.label.getURI()), vf.createLiteral("Don't trust this ref."));
+        Statement stmt1 = vf.createStatement(ref1, vf.createIRI(RDFS.label.getURI()), vf.createLiteral("Don't trust this ref."));
         conn.add(stmt1);
         
         // add a triple with an undefined attribute

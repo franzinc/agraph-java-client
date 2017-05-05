@@ -12,7 +12,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.openrdf.model.URI;
+import org.openrdf.model.IRI;
 import org.openrdf.model.vocabulary.XMLSchema;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.rio.RDFFormat;
@@ -31,15 +31,15 @@ public class SpinTest extends AGAbstractTest {
 	private final String ageFn = baseURI + "age";
 	private final String parentsMP = baseURI + "parents";
 
-	private URI context;
+	private IRI context;
 
     @Before
     public void installScripts() throws Exception {
     	conn.setAutoCommit(true);
-    	context = vf.createURI(kennedyNamespace);
+    	context = vf.createIRI(kennedyNamespace);
     	conn.setNamespace("ex", baseURI);
     	conn.setNamespace("kennedy", kennedyNamespace);
-//    	conn.registerPredicateMapping(vf.createURI(kennedyNamespace, "birth-year"), XMLSchema.INT);
+//    	conn.registerPredicateMapping(vf.createIRI(kennedyNamespace, "birth-year"), XMLSchema.INT);
     	Util.add(conn, "/tutorial/java-kennedy.ntriples", kennedyNamespace, RDFFormat.NTRIPLES, context);
     }
     

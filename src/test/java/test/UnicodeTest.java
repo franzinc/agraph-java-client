@@ -13,8 +13,6 @@ import info.aduna.iteration.Iterations;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.httpclient.Header;
@@ -26,7 +24,7 @@ import org.json.JSONException;
 
 import org.openrdf.model.Literal;
 import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
+import org.openrdf.model.IRI;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.QueryLanguage;
@@ -37,10 +35,6 @@ import org.openrdf.query.resultio.TupleQueryResultFormat;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
@@ -85,8 +79,8 @@ public class UnicodeTest extends AGAbstractTest {
 
     public void testAddUnicodeLiteral(RDFFormat format) throws RepositoryException {
         conn.getHttpRepoClient().setPreferredRDFFormat(format);
-        URI s = vf.createURI("http://franz.com/s");
-        URI p = vf.createURI("http://franz.com/p");
+        IRI s = vf.createIRI("http://franz.com/s");
+        IRI p = vf.createIRI("http://franz.com/p");
         Literal o = vf.createLiteral("जुप");
         conn.add(s, p, o);
         List<Statement> result = Iterations.asList(conn.getStatements(s, p, null, false));
@@ -106,8 +100,8 @@ public class UnicodeTest extends AGAbstractTest {
     
     public void testAddUnicodeSubject(RDFFormat format) throws RepositoryException {
         conn.getHttpRepoClient().setPreferredRDFFormat(format);
-        URI s = vf.createURI("http://franz.com/जुप");
-        URI p = vf.createURI("http://franz.com/p");
+        IRI s = vf.createIRI("http://franz.com/जुप");
+        IRI p = vf.createIRI("http://franz.com/p");
         Literal o = vf.createLiteral("o");
         conn.add(s, p, o);
         List<Statement> result = Iterations.asList(conn.getStatements(s, p, null, false));
@@ -147,8 +141,8 @@ public class UnicodeTest extends AGAbstractTest {
     
     public void testUnicodeSelect(TupleQueryResultFormat format) throws RepositoryException, QueryEvaluationException {
         conn.getHttpRepoClient().setPreferredTQRFormat(format);
-        URI s = vf.createURI("http://franz.com/s");
-        URI p = vf.createURI("http://franz.com/p");
+        IRI s = vf.createIRI("http://franz.com/s");
+        IRI p = vf.createIRI("http://franz.com/p");
         Literal o = vf.createLiteral("जुप");
         conn.add(s, p, o);
         AGTupleQuery query = conn.prepareTupleQuery(QueryLanguage.SPARQL,

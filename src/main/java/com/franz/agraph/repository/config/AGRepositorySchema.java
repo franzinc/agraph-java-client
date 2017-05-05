@@ -4,7 +4,7 @@
 
 package com.franz.agraph.repository.config;
 
-import org.openrdf.model.URI;
+import org.openrdf.model.IRI;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
 
@@ -21,26 +21,26 @@ public class AGRepositorySchema {
 	public static final String NAMESPACE = "http://franz.com/agraph/repository/config#";
 
 	/** <tt>http://franz.com/agraph/repository/config#serverUrl</tt> */
-	public final static URI SERVERURL;
+	public final static IRI SERVERURL;
 
 	/** <tt>http://franz.com/agraph/repository/config#username</tt> */
-	public final static URI USERNAME;
+	public final static IRI USERNAME;
 
 	/** <tt>http://franz.com/agraph/repository/config#password</tt> */
-	public final static URI PASSWORD;
+	public final static IRI PASSWORD;
 
 	/** <tt>http://franz.com/agraph/repository/config#catalogId</tt> */
-	public final static URI CATALOGID;
+	public final static IRI CATALOGID;
 	
 	/** <tt>http://franz.com/agraph/repository/config#repositoryId</tt> */
-	public final static URI REPOSITORYID;	
+	public final static IRI REPOSITORYID;
 	
 	static {
 		ValueFactory factory = ValueFactoryImpl.getInstance();
-		SERVERURL = factory.createURI(NAMESPACE, "serverUrl");
-		USERNAME = factory.createURI(NAMESPACE, "username");
-		PASSWORD = factory.createURI(NAMESPACE, "password");
-		CATALOGID = factory.createURI(NAMESPACE, "catalogId");
-		REPOSITORYID = factory.createURI(NAMESPACE, "repositoryId");		
+		SERVERURL = factory.createIRI(NAMESPACE, "serverUrl");
+		USERNAME = factory.createIRI(NAMESPACE, "username");
+		PASSWORD = factory.createIRI(NAMESPACE, "password");
+		CATALOGID = factory.createIRI(NAMESPACE, "catalogId");
+		REPOSITORYID = factory.createIRI(NAMESPACE, "repositoryId");
 	}
 }

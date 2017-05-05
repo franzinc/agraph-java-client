@@ -17,7 +17,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.openrdf.model.*;
-import org.openrdf.model.impl.GraphImpl;
+import org.openrdf.model.impl.LinkedHashModel;
 import org.openrdf.model.impl.URIImpl;
 import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.query.*;
@@ -63,17 +63,17 @@ public abstract class RepositoryConnectionTest {
 
     protected BNode alexander;
 
-    protected URI name;
+    protected IRI name;
 
-    protected URI mbox;
+    protected IRI mbox;
 
-    protected URI publisher;
+    protected IRI publisher;
 
-    protected URI unknownContext;
+    protected IRI unknownContext;
 
-    protected URI context1;
+    protected IRI context1;
 
-    protected URI context2;
+    protected IRI context2;
 
     protected Literal nameAlice;
 
@@ -105,10 +105,10 @@ public abstract class RepositoryConnectionTest {
         alice = vf.createBNode();
         alexander = vf.createBNode();
 
-        name = vf.createURI(FOAF_NS + "name");
-        mbox = vf.createURI(FOAF_NS + "mbox");
+        name = vf.createIRI(FOAF_NS + "name");
+        mbox = vf.createIRI(FOAF_NS + "mbox");
 
-        publisher = vf.createURI(DC_NS + "publisher");
+        publisher = vf.createIRI(DC_NS + "publisher");
 
         nameAlice = vf.createLiteral("Alice");
         nameBob = vf.createLiteral("Bob");
@@ -120,8 +120,8 @@ public abstract class RepositoryConnectionTest {
 
         unknownContext = new URIImpl("urn:unknownContext");
 
-        context1 = vf.createURI("urn:x-local:graph1");
-        context2 = vf.createURI("urn:x-local:graph2");
+        context1 = vf.createIRI("urn:x-local:graph1");
+        context2 = vf.createIRI("urn:x-local:graph2");
     }
 
     @After
@@ -924,13 +924,35 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
     }
 
     @Test
-    public void testDuplicateFilter()
+    public void testDuplicateFilterWithGraphs()
         throws Exception
     {
         testCon.setAutoCommit(false);
         testCon.add(bob, name, nameBob);
         testCon.add(bob, name, nameBob, context1);
         testCon.add(bob, name, nameBob, context2);
+        testCon.setAutoCommit(true);
+
+        RepositoryResult<Statement> result = testCon.getStatements(bob, name, null, true);
+        result.enableDuplicateFilter();
+
+        int count = 0;
+        while (result.hasNext()) {
+            result.next();
+            count++;
+        }
+        // In Sesame 4 the duplicate filter DOES take graphs into account.
+        assertEquals(3, count);
+    }
+
+    @Test
+    public void testDuplicateFilter()
+            throws Exception
+    {
+        testCon.setAutoCommit(false);
+        testCon.add(bob, name, nameBob);
+        testCon.add(bob, name, nameBob);
+        testCon.add(bob, name, nameBob);
         testCon.setAutoCommit(true);
 
         RepositoryResult<Statement> result = testCon.getStatements(bob, name, null, true);
@@ -1172,7 +1194,7 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
             statements.close();
         }
 
-        URI uri = st.getPredicate();
+        IRI uri = st.getPredicate();
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ObjectOutputStream out = new ObjectOutputStream(baos);
@@ -1181,7 +1203,7 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
 
         ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
         ObjectInputStream in = new ObjectInputStream(bais);
-        URI deserializedURI = (URI)in.readObject();
+        IRI deserializedURI = (IRI)in.readObject();
         in.close();
 
         assertTrue(uri.equals(deserializedURI));
@@ -1230,13 +1252,11 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
         testCon.add(bob, name, nameBob);
         testCon.add(alice, name, nameAlice);
 
-        Graph graph;
-        RepositoryResult<Statement> statements = testCon.getStatements(null, null, null, true);
-        try {
-            graph = new GraphImpl(vf, statements.asList());
-        }
-        finally {
-            statements.close();
+        Model graph;
+
+        try (RepositoryResult<Statement> statements =
+                     testCon.getStatements(null, null, null, true)) {
+            graph = new LinkedHashModel(statements.asList());
         }
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -1246,7 +1266,7 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
 
         ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
         ObjectInputStream in = new ObjectInputStream(bais);
-        Graph deserializedGraph = (Graph)in.readObject();
+        Model deserializedGraph = (Model)in.readObject();
         in.close();
 
         assertFalse(deserializedGraph.isEmpty());
@@ -1264,7 +1284,7 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
         assertTrue(testCon.isEmpty());
         assertTrue(testCon2.isEmpty());
         testCon.setAutoCommit(false);
-        testCon.add(vf.createBNode(), vf.createURI("urn:pred"), vf.createBNode());
+        testCon.add(vf.createBNode(), vf.createIRI("urn:pred"), vf.createBNode());
         assertFalse(testCon.isEmpty());
         assertTrue(testCon2.isEmpty());
         testCon.rollback();
@@ -1279,7 +1299,7 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
         assertTrue(testCon.isEmpty());
         assertTrue(testCon2.isEmpty());
         testCon.setAutoCommit(false);
-        testCon.add(vf.createBNode(), vf.createURI("urn:pred"), vf.createBNode());
+        testCon.add(vf.createBNode(), vf.createIRI("urn:pred"), vf.createBNode());
         assertFalse(testCon.isEmpty());
         assertTrue(testCon2.isEmpty());
         testCon.commit();
@@ -1305,10 +1325,10 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
         assertEquals(0, testCon.size());
         assertEquals(0, testCon2.size());
         testCon.setAutoCommit(false);
-        testCon.add(vf.createBNode(), vf.createURI("urn:pred"), vf.createBNode());
+        testCon.add(vf.createBNode(), vf.createIRI("urn:pred"), vf.createBNode());
         assertEquals(1, testCon.size());
         assertEquals(0, testCon2.size());
-        testCon.add(vf.createBNode(), vf.createURI("urn:pred"), vf.createBNode());
+        testCon.add(vf.createBNode(), vf.createIRI("urn:pred"), vf.createBNode());
         assertEquals(2, testCon.size());
         assertEquals(0, testCon2.size());
         testCon.rollback();
@@ -1323,10 +1343,10 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
         assertEquals(0, testCon.size());
         assertEquals(0, testCon2.size());
         testCon.setAutoCommit(false);
-        testCon.add(vf.createBNode(), vf.createURI("urn:pred"), vf.createBNode());
+        testCon.add(vf.createBNode(), vf.createIRI("urn:pred"), vf.createBNode());
         assertEquals(1, testCon.size());
         assertEquals(0, testCon2.size());
-        testCon.add(vf.createBNode(), vf.createURI("urn:pred"), vf.createBNode());
+        testCon.add(vf.createBNode(), vf.createIRI("urn:pred"), vf.createBNode());
         assertEquals(2, testCon.size());
         assertEquals(0, testCon2.size());
         testCon.commit();
@@ -1338,7 +1358,7 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
     public void testAddRemove()
         throws Exception
     {
-        URI FOAF_PERSON = vf.createURI("http://xmlns.com/foaf/0.1/Person");
+        IRI FOAF_PERSON = vf.createIRI("http://xmlns.com/foaf/0.1/Person");
         final Statement stmt = vf.createStatement(bob, name, nameBob);
 
         testCon.add(bob, RDF.TYPE, FOAF_PERSON);
@@ -1366,7 +1386,7 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
         assertTrue(testCon.isEmpty());
         int inferred = getTotalStatementCount(testCon);
 
-        URI root = vf.createURI("urn:root");
+        IRI root = vf.createIRI("urn:root");
 
         testCon.add(root, RDF.TYPE, RDF.LIST);
         testCon.remove(root, RDF.TYPE, RDF.LIST);
@@ -1407,13 +1427,13 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
         String SELECT_BY_DATE = "SELECT ?s ?d WHERE { ?s <http://www.w3.org/1999/02/22-rdf-syntax-ns#value> ?d . FILTER (?d <= ?date) }";
         DatatypeFactory data = DatatypeFactory.newInstance();
         for (int i = 1; i < 5; i++) {
-            URI uri = vf.createURI(NS, "date" + i);
+            IRI uri = vf.createIRI(NS, "date" + i);
             XMLGregorianCalendar xcal = data.newXMLGregorianCalendar();
             xcal.setYear(2000);
             xcal.setMonth(11);
             xcal.setDay(i * 2);
             testCon.add(uri, RDF.VALUE, vf.createLiteral(xcal));
-            URI uriz = vf.createURI(NS, "dateZ" + i);
+            IRI uriz = vf.createIRI(NS, "dateZ" + i);
             xcal = data.newXMLGregorianCalendar();
             xcal.setYear(2007);
             xcal.setMonth(11);
@@ -1441,9 +1461,9 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
         throws Exception
     {
         String optional = "{ ?s :p1 ?v1 OPTIONAL {?s :p2 ?v2 FILTER(?v1<3) } }";
-        URI s = vf.createURI("urn:test:s");
-        URI p1 = vf.createURI("urn:test:p1");
-        URI p2 = vf.createURI("urn:test:p2");
+        IRI s = vf.createIRI("urn:test:s");
+        IRI p1 = vf.createIRI("urn:test:p1");
+        IRI p2 = vf.createIRI("urn:test:p2");
         Literal v1 = vf.createLiteral(1);
         Literal v2 = vf.createLiteral(2);
         Literal v3 = vf.createLiteral(3);
@@ -1468,10 +1488,10 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
         throws Exception
     {
         String union = "{ :s ?p :o FILTER (?p = :p1 || ?p = :p2) }";
-        URI s = vf.createURI("urn:test:s");
-        URI p1 = vf.createURI("urn:test:p1");
-        URI p2 = vf.createURI("urn:test:p2");
-        URI o = vf.createURI("urn:test:o");
+        IRI s = vf.createIRI("urn:test:s");
+        IRI p1 = vf.createIRI("urn:test:p1");
+        IRI p2 = vf.createIRI("urn:test:p2");
+        IRI o = vf.createIRI("urn:test:o");
         testCon.add(s, p1, o);
         testCon.add(s, p2, o);
         String qry = "PREFIX :<urn:test:> SELECT ?p WHERE " + union;

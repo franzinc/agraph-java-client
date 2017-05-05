@@ -12,14 +12,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
+import org.openrdf.model.*;
 
 import org.openrdf.model.vocabulary.OWL;
 import org.openrdf.model.vocabulary.RDF;
@@ -29,7 +22,6 @@ import org.openrdf.query.*;
 import org.openrdf.query.impl.DatasetImpl;
 import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.ntriples.NTriplesWriter;
@@ -44,15 +36,11 @@ import com.franz.agraph.repository.AGFreetextIndexConfig;
 import com.franz.agraph.repository.AGFreetextQuery;
 import com.franz.agraph.repository.AGGraphQuery;
 import com.franz.agraph.repository.AGQueryLanguage;
-import com.franz.agraph.repository.AGRDFFormat;
 import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
 import com.franz.agraph.repository.AGTupleQuery;
 import com.franz.agraph.repository.AGValueFactory;
-import com.franz.agraph.repository.UserAttributesContext;
-
-import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 
 public class TutorialExamples {
     private static final String HOST = getenv("AGRAPH_HOST", "localhost");
@@ -156,10 +144,10 @@ public class TutorialExamples {
         AGValueFactory vf = conn.getRepository().getValueFactory();
         println("\nStarting example2().");
         // Create some resources and literals to make statements from.
-        URI alice = vf.createURI("http://example.org/people/alice");
-        URI bob = vf.createURI("http://example.org/people/bob");
-        URI name = vf.createURI("http://example.org/ontology/name");
-        URI person = vf.createURI("http://example.org/ontology/Person");
+        IRI alice = vf.createIRI("http://example.org/people/alice");
+        IRI bob = vf.createIRI("http://example.org/people/bob");
+        IRI name = vf.createIRI("http://example.org/ontology/name");
+        IRI person = vf.createIRI("http://example.org/ontology/Person");
         Literal bobsName = vf.createLiteral("Bob");
         Literal alicesName = vf.createLiteral("Alice");
         println("Triple count before inserts: " + 
@@ -282,7 +270,7 @@ public class TutorialExamples {
         closeBeforeExit(conn);
         Repository myRepository = conn.getRepository();
         println("\nStarting example4().");
-        URI alice = myRepository.getValueFactory().createURI("http://example.org/people/alice");
+        IRI alice = myRepository.getValueFactory().createIRI("http://example.org/people/alice");
         RepositoryResult<Statement> statements = conn.getStatements(alice, null, null, false);
         try {
             statements.enableDuplicateFilter();
@@ -305,14 +293,14 @@ public class TutorialExamples {
         println("\nStarting example5().");
         conn.clear();
         String exns = "http://people/";
-        URI alice = f.createURI("http://people/alice");
-        URI bob = f.createURI("http://people/bob");
-        URI carol = f.createURI("http://people/carol");
-        URI dave = f.createURI("http://people/dave");
-        URI eric = f.createURI("http://people/eric");
-        URI fred = f.createURI("http://people/fred");
-        URI greg = f.createURI("http://people/greg");
-        URI age = f.createURI(exns, "age");
+        IRI alice = f.createIRI("http://people/alice");
+        IRI bob = f.createIRI("http://people/bob");
+        IRI carol = f.createIRI("http://people/carol");
+        IRI dave = f.createIRI("http://people/dave");
+        IRI eric = f.createIRI("http://people/eric");
+        IRI fred = f.createIRI("http://people/fred");
+        IRI greg = f.createIRI("http://people/greg");
+        IRI age = f.createIRI(exns, "age");
         // Automatic typing of numbers
         Literal fortyTwo = f.createLiteral(42);          // creates int
         Literal fortyTwoDouble = f.createLiteral(42.0);  // creates double
@@ -672,7 +660,7 @@ public class TutorialExamples {
         println("------------------------------------------------------------------------------------");
         println("\nTests of string matching.");
  
-        URI favoriteColor = f.createURI(exns, "favoriteColor");
+        IRI favoriteColor = f.createIRI(exns, "favoriteColor");
         Literal UCred = f.createLiteral("Red", XMLSchema.STRING);
         Literal LCred = f.createLiteral("red", XMLSchema.STRING);
         Literal RedPlain = f.createLiteral("Red");
@@ -853,7 +841,7 @@ public class TutorialExamples {
         
         println("------------------------------------------------------------------------------------");
         // Boolean experiments.
-        URI senior = f.createURI(exns, "senior");
+        IRI senior = f.createIRI(exns, "senior");
         println("true = " + true);
         println("false = " + false);
 //      conn.add(alice, senior, true);  // illegal
@@ -959,7 +947,7 @@ public class TutorialExamples {
         }
         println("------------------------------------------------------------------------------------");
         // Dates, times and datetimes.
-        URI birthdate = f.createURI(exns, "birthdate");
+        IRI birthdate = f.createIRI(exns, "birthdate");
         Literal date = f.createLiteral("1984-12-06", XMLSchema.DATE);
         Literal datetime = f.createLiteral("1984-12-06T09:00:00", XMLSchema.DATETIME);
         Literal time = f.createLiteral("09:00:00", XMLSchema.TIME);
@@ -1174,7 +1162,7 @@ public class TutorialExamples {
         final File path1 = new File(DATA_DIRECTORY, "java-vcards.rdf");
         final File path2 = new File(DATA_DIRECTORY, "java-kennedy.ntriples");
         String baseURI = "http://example.org/example/local";
-        URI context = f.createURI("http://example.org#vcards");
+        IRI context = f.createIRI("http://example.org#vcards");
         // read vcards triples into the context 'context':
         conn.add(path1, baseURI, RDFFormat.RDFXML, context);
         // read Kennedy triples into the null context:
@@ -1215,7 +1203,7 @@ public class TutorialExamples {
      */
     public static void example8() throws Exception {
         RepositoryConnection conn = example6();
-        URI context = conn.getValueFactory().createURI(
+        IRI context = conn.getValueFactory().createIRI(
                 "http://example.org#vcards");
         String outputFile = TEMPORARY_DIRECTORY + "TutorialExamples.example8.nt";
         // outputFile = null;
@@ -1261,18 +1249,18 @@ public class TutorialExamples {
         ValueFactory f = conn.getValueFactory();
         String exns = "http://example.org/people/";
         // Create URIs for resources, predicates and classes.
-        URI alice = f.createURI(exns, "alice");
-        URI bob = f.createURI(exns, "bob");
-        URI ted = f.createURI(exns, "ted");        
-        URI person = f.createURI("http://example.org/ontology/Person");
-        URI name = f.createURI("http://example.org/ontology/name");
+        IRI alice = f.createIRI(exns, "alice");
+        IRI bob = f.createIRI(exns, "bob");
+        IRI ted = f.createIRI(exns, "ted");
+        IRI person = f.createIRI("http://example.org/ontology/Person");
+        IRI name = f.createIRI("http://example.org/ontology/name");
         // Create literal name values.
         Literal alicesName = f.createLiteral("Alice");
         Literal bobsName = f.createLiteral("Bob");
         Literal tedsName = f.createLiteral("Ted");   
         // Create URIs to identify the named contexts.
-        URI context1 = f.createURI(exns, "context1");      
-        URI context2 = f.createURI(exns, "context2");  
+        IRI context1 = f.createIRI(exns, "context1");
+        IRI context2 = f.createIRI(exns, "context2");
         // Assemble new statements and add them to the contexts. 
         conn.add(alice, RDF.TYPE, person, context1);
         conn.add(alice, name, alicesName, context1);
@@ -1418,8 +1406,8 @@ public class TutorialExamples {
         RepositoryConnection conn = example1(false);
         ValueFactory f = conn.getValueFactory();
 	    String exns = "http://example.org/people/";
-	    URI alice = f.createURI(exns, "alice");
-	    URI person = f.createURI(exns, "Person");
+	    IRI alice = f.createIRI(exns, "alice");
+	    IRI person = f.createIRI(exns, "Person");
 	    conn.add(alice, RDF.TYPE, person);
 	    conn.setNamespace("ex", exns);
 	    String queryString = "SELECT ?s ?p ?o WHERE { ?s ?p ?o . FILTER ((?p = rdf:type) && (?o = ex:Person) ) }";
@@ -1441,24 +1429,24 @@ public class TutorialExamples {
 	    conn.setNamespace("ex", exns);
 	    // Create index1
 	    AGFreetextIndexConfig config = AGFreetextIndexConfig.newInstance();
-	    config.getPredicates().add(f.createURI(exns,"fullname"));
+	    config.getPredicates().add(f.createIRI(exns,"fullname"));
 	    conn.createFreetextIndex("index1", config);
 	    println("listFreetextIndices(): " + conn.listFreetextIndices());
 	    println("index1 configuration: ");
 	    println(conn.getFreetextIndexConfig("index1"));
 	    
 	    // Create parts of person resources.	    
-	    URI alice = f.createURI(exns, "alice1");
-	    URI carroll = f.createURI(exns, "carroll");
-	    URI persontype = f.createURI(exns, "Person");
-	    URI fullname = f.createURI(exns, "fullname");    
+	    IRI alice = f.createIRI(exns, "alice1");
+	    IRI carroll = f.createIRI(exns, "carroll");
+	    IRI persontype = f.createIRI(exns, "Person");
+	    IRI fullname = f.createIRI(exns, "fullname");
 	    Literal alicename = f.createLiteral("Alice B. Toklas");
 	    Literal lewisCarroll = f.createLiteral("Lewis Carroll");
 	    // Create parts of book resources.
-	    URI book =  f.createURI(exns, "book1");
-	    URI booktype = f.createURI(exns, "Book");
-	    URI booktitle = f.createURI(exns, "title");
-	    URI author = f.createURI(exns, "author");
+	    IRI book =  f.createIRI(exns, "book1");
+	    IRI booktype = f.createIRI(exns, "Book");
+	    IRI booktitle = f.createIRI(exns, "title");
+	    IRI author = f.createIRI(exns, "author");
 	    Literal wonderland = f.createLiteral("Alice in Wonderland");
 	    // Add Alice B. Toklas triples
 	    conn.clear();    
@@ -1555,8 +1543,8 @@ public class TutorialExamples {
         conn.setNamespace("kdy", "http://www.franz.com/simple#");
         // We don't want the vcards this time. This is how to delete an entire subgraph.
         ValueFactory vf = conn.getValueFactory();
-        URI context = vf.createURI("http://example.org#vcards");
-        conn.remove((Resource)null, (URI)null, (Value)null, context);
+        IRI context = vf.createIRI("http://example.org#vcards");
+        conn.remove((Resource)null, (IRI)null, (Value)null, context);
         println("\nRemoved vcards.");
         // SELECT query
         String queryString = "select ?s where { ?s rdf:type kdy:person} limit 5";
@@ -1649,8 +1637,8 @@ public class TutorialExamples {
          * are based off the same consistent view of the repository
          */
         conn.begin();
-        URI alice = f.createURI("http://example.org/people/alice");
-        URI bob = f.createURI("http://example.org/people/bob");
+        IRI alice = f.createIRI("http://example.org/people/alice");
+        IRI bob = f.createIRI("http://example.org/people/bob");
         String queryString = "select ?s ?p ?o where { ?s ?p ?o} ";
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         tupleQuery.setBinding("s", alice);
@@ -1680,10 +1668,10 @@ public class TutorialExamples {
         conn.clear();
         String exns = "http://example.org/people/";
         conn.setNamespace("ex", exns);
-        URI alice = f.createURI(exns, "alice");
-        URI bob = f.createURI(exns, "bob");
-        URI carol = f.createURI(exns, "carol");    
-        URI age = f.createURI(exns, "age");    
+        IRI alice = f.createIRI(exns, "alice");
+        IRI bob = f.createIRI(exns, "bob");
+        IRI carol = f.createIRI(exns, "carol");
+        IRI age = f.createIRI(exns, "age");
         conn.add(alice, age, f.createLiteral(42));
         conn.add(bob, age, f.createLiteral(45.1));
         conn.add(carol, age, f.createLiteral("39"));
@@ -1755,10 +1743,10 @@ public class TutorialExamples {
         closeBeforeExit(rainbowConn);
         String ex = "http://example.com/";
         // add a few triples to the red and green stores:
-        redConn.add(rf.createURI(ex+"mcintosh"), RDF.TYPE, rf.createURI(ex+"Apple"));
-        redConn.add(rf.createURI(ex+"reddelicious"), RDF.TYPE, rf.createURI(ex+"Apple"));    
-        greenConn.add(gf.createURI(ex+"pippin"), RDF.TYPE, gf.createURI(ex+"Apple"));
-        greenConn.add(gf.createURI(ex+"kermitthefrog"), RDF.TYPE, gf.createURI(ex+"Frog"));
+        redConn.add(rf.createIRI(ex+"mcintosh"), RDF.TYPE, rf.createIRI(ex+"Apple"));
+        redConn.add(rf.createIRI(ex+"reddelicious"), RDF.TYPE, rf.createIRI(ex+"Apple"));
+        greenConn.add(gf.createIRI(ex+"pippin"), RDF.TYPE, gf.createIRI(ex+"Apple"));
+        greenConn.add(gf.createIRI(ex+"kermitthefrog"), RDF.TYPE, gf.createIRI(ex+"Frog"));
         redConn.setNamespace("ex", ex);
         greenConn.setNamespace("ex", ex);
         rainbowConn.setNamespace("ex", ex);
@@ -1850,14 +1838,14 @@ public class TutorialExamples {
         AGRepositoryConnection conn = example1(false);
         // Examples of RDFS++ inference.  Was originally example 2A.
         ValueFactory f = conn.getValueFactory();
-        URI robert = f.createURI("http://example.org/people/robert");
-        URI roberta = f.createURI("http://example.org/people/roberta");
-        URI bob = f.createURI("http://example.org/people/bob");
-        URI bobby = f.createURI("http://example.org/people/bobby");
+        IRI robert = f.createIRI("http://example.org/people/robert");
+        IRI roberta = f.createIRI("http://example.org/people/roberta");
+        IRI bob = f.createIRI("http://example.org/people/bob");
+        IRI bobby = f.createIRI("http://example.org/people/bobby");
         // create name and child predicates, and Person class.
-        URI name = f.createURI("http://example.org/ontology/name");
-        URI fatherOf = f.createURI("http://example.org/ontology/fatherOf");
-        URI person = f.createURI("http://example.org/ontology/Person");
+        IRI name = f.createIRI("http://example.org/ontology/name");
+        IRI fatherOf = f.createIRI("http://example.org/ontology/fatherOf");
+        IRI person = f.createIRI("http://example.org/ontology/Person");
         // create literal values for names    
         Literal bobsName = f.createLiteral("Bob");
         Literal bobbysName = f.createLiteral("Bobby");
@@ -1904,7 +1892,7 @@ public class TutorialExamples {
         conn.remove(bob, OWL.SAMEAS, robert);
         
         // Define new predicate, hasFather, as the inverse of fatherOf.
-        URI hasFather = f.createURI("http://example.org/ontology/hasFather");
+        IRI hasFather = f.createIRI("http://example.org/ontology/hasFather");
         conn.add(hasFather, OWL.INVERSEOF, fatherOf);
         // Search for people who have fathers, even though there are no hasFather triples.
         // With inference OFF.
@@ -1917,7 +1905,7 @@ public class TutorialExamples {
         // Remove owl:inverseOf property.
         conn.remove(hasFather, OWL.INVERSEOF, fatherOf);
 
-        URI parentOf = f.createURI("http://example.org/ontology/parentOf");
+        IRI parentOf = f.createIRI("http://example.org/ontology/parentOf");
         conn.add(fatherOf, RDFS.SUBPROPERTYOF, parentOf);
         // Now search for inferred parentOf links.
         // Search for parentOf links, even though there are no parentOf triples.
@@ -1932,8 +1920,8 @@ public class TutorialExamples {
         
         // The next example shows rdfs:range and rdfs:domain in action.
         // We'll create two new rdf:type classes.  Note that classes are capitalized.
-        URI parent = f.createURI("http://example.org/ontology/Parent");
-        URI child = f.createURI("http://exmaple.org/ontology/Child");
+        IRI parent = f.createIRI("http://example.org/ontology/Parent");
+        IRI child = f.createIRI("http://exmaple.org/ontology/Child");
         // The following triples say that a fatherOf link points from a parent to a child.
         conn.add(fatherOf, RDFS.DOMAIN, parent);
         conn.add(fatherOf, RDFS.RANGE, child);
@@ -1956,12 +1944,12 @@ public class TutorialExamples {
         println("Starting example20().");
         String exns = "http://example.org/people/";
         conn.setNamespace("ex", exns);
-        URI alice = vf.createURI(exns, "alice");
-        URI bob = vf.createURI(exns, "bob");
-        URI carol = vf.createURI(exns, "carol");
+        IRI alice = vf.createIRI(exns, "alice");
+        IRI bob = vf.createIRI(exns, "bob");
+        IRI carol = vf.createIRI(exns, "carol");
         println("\nCARTESIAN COORDINATE SYSTEM");
-        URI cartSystem = conn.registerCartesianType(10, 0, 100, 0, 100);
-        URI location = vf.createURI(exns, "location");
+        IRI cartSystem = conn.registerCartesianType(10, 0, 100, 0, 100);
+        IRI location = vf.createIRI(exns, "location");
 		Literal alice_loc = vf.createLiteral("+30.0+30.0", cartSystem);
 		Literal bob_loc = vf.createLiteral("+40.0+40.0", cartSystem);
 		Literal carol_loc = vf.createLiteral("+50.0+50.0", cartSystem);
@@ -1978,7 +1966,7 @@ public class TutorialExamples {
         printRows(result2);
         result2.close();
         //printRows( conn.getStatementsInCircle(cartSystem, location, 35, 35, 10, 0, false) ); 
-        URI polygon1 = vf.createURI("http://example.org/polygon1");
+        IRI polygon1 = vf.createIRI("http://example.org/polygon1");
         List<Literal> polygon1_points = new ArrayList<Literal>(4);
 
         polygon1_points.add(vf.createLiteral("+10.0+40.0", cartSystem));
@@ -1996,13 +1984,13 @@ public class TutorialExamples {
         println("\nSPHERICAL COORDINATE SYSTEM");
         //URI sphericalSystemKM = conn.registerSphericalType(5, AGProtocol.KM_PARAM_VALUE);
         //URI sphericalSystemDegree = conn.registerSphericalType(5, AGProtocol.DEGREE_PARAM_VALUE);
-        URI sphericalSystemDegree = conn.registerSphericalType(5, "degree");
+        IRI sphericalSystemDegree = conn.registerSphericalType(5, "degree");
 
-        URI amsterdam = vf.createURI(exns, "amsterdam");
-        URI london = vf.createURI(exns, "london");
-        URI sanfrancisco = vf.createURI(exns, "sanfrancisco");
-        URI salvador = vf.createURI(exns, "salvador");
-        location = vf.createURI(exns, "geolocation");
+        IRI amsterdam = vf.createIRI(exns, "amsterdam");
+        IRI london = vf.createIRI(exns, "london");
+        IRI sanfrancisco = vf.createIRI(exns, "sanfrancisco");
+        IRI salvador = vf.createIRI(exns, "salvador");
+        location = vf.createIRI(exns, "geolocation");
         conn.add(amsterdam, location, vf.createLiteral("+52.366665+004.883333",sphericalSystemDegree));
         conn.add(london, location, vf.createLiteral("+51.533333-000.08333333",sphericalSystemDegree));
         conn.add(sanfrancisco, location, vf.createLiteral("+37.783333-122.433334",sphericalSystemDegree));
@@ -2017,7 +2005,7 @@ public class TutorialExamples {
 		printRows(result5);
 		result5.close();
 		//printRows(conn.getGeoHaversine(sphericalSystemDegree, location, 19.3994f, -99.08f, 2000.0f, "km", 0, false) );
-        URI polygon2 = vf.createURI("http://example.org/polygon2");
+        IRI polygon2 = vf.createIRI("http://example.org/polygon2");
         List<Literal> polygon2_points = new ArrayList<Literal>(3);
         polygon2_points.add(vf.createLiteral("+51.0+002.0", sphericalSystemDegree));
         polygon2_points.add(vf.createLiteral("+60.0-005.0", sphericalSystemDegree));
@@ -2045,29 +2033,29 @@ public class TutorialExamples {
         // Create URIs for relationship predicates.
     	String lmns = "http://www.franz.com/lesmis#";
         conn.setNamespace("lm", lmns);
-        URI knows = vf.createURI(lmns, "knows");
-        URI barelyKnows = vf.createURI(lmns, "barely_knows");
-        URI knowsWell = vf.createURI(lmns, "knows_well");
+        IRI knows = vf.createIRI(lmns, "knows");
+        IRI barelyKnows = vf.createIRI(lmns, "barely_knows");
+        IRI knowsWell = vf.createIRI(lmns, "knows_well");
 
         // Create URIs for some characters.
-        URI valjean = vf.createURI(lmns, "character11");
-        //URI bossuet = vf.createURI(lmns, "character64");
+        IRI valjean = vf.createIRI(lmns, "character11");
+        //URI bossuet = vf.createIRI(lmns, "character64");
 
         // Create some generators
         //print "\nSNA generators known (should be none): '%s'" % (conn.listSNAGenerators())
-        List<URI> intimates = new ArrayList<URI>(1);
+        List<IRI> intimates = new ArrayList<IRI>(1);
         Collections.addAll(intimates, knowsWell);
         conn.registerSNAGenerator("intimates", null, null, intimates, null);
-        List<URI> associates = new ArrayList<URI>(2);
+        List<IRI> associates = new ArrayList<IRI>(2);
         Collections.addAll(associates, knowsWell, knows);
         conn.registerSNAGenerator("associates", null, null, associates, null);
-        List<URI> everyone = new ArrayList<URI>(3);
+        List<IRI> everyone = new ArrayList<IRI>(3);
         Collections.addAll(everyone, knowsWell, knows, barelyKnows);
         conn.registerSNAGenerator("everyone", null, null, everyone, null);
         println("Created three generators.");
 
         // Create neighbor matrix.
-        List<URI> startNodes = new ArrayList<URI>(1);
+        List<IRI> startNodes = new ArrayList<IRI>(1);
         startNodes.add(valjean);
         conn.registerSNANeighborMatrix("matrix1", "intimates", startNodes, 2);
         conn.registerSNANeighborMatrix("matrix2", "associates", startNodes, 5);
@@ -2607,8 +2595,8 @@ public class TutorialExamples {
         conn.setNamespace("kdy", "http://www.franz.com/simple#");
     	String exns = "http://www.franz.com/simple#";
         conn.setNamespace("exns", exns);
-        URI TedKennedy = vf.createURI(exns, "person17");
-        URI hasChild = vf.createURI(exns, "has-child");
+        IRI TedKennedy = vf.createIRI(exns, "person17");
+        IRI hasChild = vf.createIRI(exns, "has-child");
         printRows("\nUsing getStatements() find children of Ted Kennedy: three children.",
                 10000, conn.getStatements(TedKennedy, hasChild, null, false));
 
@@ -2821,10 +2809,10 @@ public class TutorialExamples {
     	println("pool getNumIdle is: "+pool.getNumIdle());        
 
     	try {        	
-    		URI alice = vf.createURI("http://example.org/people/alice");
-    		URI bob = vf.createURI("http://example.org/people/bob");
-    		URI name = vf.createURI("http://example.org/ontology/name");
-    		URI person = vf.createURI("http://example.org/ontology/Person");
+    		IRI alice = vf.createIRI("http://example.org/people/alice");
+    		IRI bob = vf.createIRI("http://example.org/people/bob");
+    		IRI name = vf.createIRI("http://example.org/ontology/name");
+    		IRI person = vf.createIRI("http://example.org/ontology/Person");
     		Literal bobsName = vf.createLiteral("Bob");
     		Literal alicesName = vf.createLiteral("Alice");
     		println("Triple count before inserts: " + 

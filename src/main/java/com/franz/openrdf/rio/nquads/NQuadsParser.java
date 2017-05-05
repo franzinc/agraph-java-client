@@ -12,7 +12,7 @@ import java.io.UnsupportedEncodingException;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
+import org.openrdf.model.IRI;
 import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
@@ -48,7 +48,7 @@ public class NQuadsParser extends RDFParserBase {
 
 	private Resource subject;
 
-	private URI predicate;
+	private IRI predicate;
 
 	private Value object;
 
@@ -499,7 +499,7 @@ public class NQuadsParser extends RDFParserBase {
 	}
 
 	@Override
-	protected URI createURI(String uri)
+	protected IRI createURI(String uri)
 		throws RDFParseException
 	{
 		try {
@@ -530,7 +530,7 @@ public class NQuadsParser extends RDFParserBase {
 			datatype = null;
 		}
 
-		URI dtURI = null;
+		IRI dtURI = null;
 		if (datatype != null) {
 			dtURI = createURI(datatype);
 		}

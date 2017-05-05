@@ -11,7 +11,7 @@ import com.hp.hpl.jena.rdf.model.*;
 import com.hp.hpl.jena.shared.ReificationStyle;
 import com.hp.hpl.jena.vocabulary.RDF;
 import org.junit.Test;
-import org.openrdf.model.URI;
+import org.openrdf.model.IRI;
 
 public class ReifiedStatementTest extends AGAbstractTest {
 
@@ -27,8 +27,8 @@ public class ReifiedStatementTest extends AGAbstractTest {
 		// Create index1
 		Property fullname = model.createProperty(exns + "fullname");
 
-		conn.createFreetextIndex("index1", new URI[] { conn.getValueFactory()
-				.createURI(exns + "fullname") });
+		conn.createFreetextIndex("index1", new IRI[] { conn.getValueFactory()
+				.createIRI(exns + "fullname") });
 		// Create parts of person resources.
 		Resource alice = model.createResource(exns + "alice1");
 		Resource carroll = model.createResource(exns + "carroll");
@@ -87,8 +87,8 @@ public class ReifiedStatementTest extends AGAbstractTest {
 		// Create index1
 		Property fullname = model.createProperty(exns + "fullname");
 
-		conn.createFreetextIndex("index1", new URI[] { conn.getValueFactory()
-				.createURI(exns + "fullname") });
+		conn.createFreetextIndex("index1", new IRI[] { conn.getValueFactory()
+				.createIRI(exns + "fullname") });
 		// Create parts of person resources.
 		Resource alice = model.createResource(exns + "alice1");
 		Resource carroll = model.createResource(exns + "carroll");

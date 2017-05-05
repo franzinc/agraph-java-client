@@ -27,11 +27,11 @@ public class Stmt implements Statement {
     private static final String XSD_DOUBLE = "http://www.w3.org/2001/XMLSchema#double";
 
     private final Resource s;
-    private final URI p;
+    private final IRI p;
     private final Value o;
     private final Resource c;
     
-    public Stmt(Resource s, URI p, Value o) {
+    public Stmt(Resource s, IRI p, Value o) {
         this(s, p, o, null);
     }
     
@@ -52,7 +52,7 @@ public class Stmt implements Statement {
 
     public static Stmt spog(BindingSet s, String... SPOGnames) {
         return new Stmt((Resource)value(s, get(SPOGnames, 0, "s")),
-                        (URI)value(s, get(SPOGnames, 1, "p")),
+                        (IRI)value(s, get(SPOGnames, 1, "p")),
                         (Value)value(s, get(SPOGnames, 2, "o")),
                         (Resource)value(s, get(SPOGnames, 3, "g")));
     }
@@ -119,7 +119,7 @@ public class Stmt implements Statement {
         return r;
     }
 
-    public Stmt(Resource s, URI p, Value o, Resource c) {
+    public Stmt(Resource s, IRI p, Value o, Resource c) {
         this.s = s;
         this.p = p;
         this.o = o;
@@ -129,7 +129,7 @@ public class Stmt implements Statement {
     public Resource getSubject() {
         return s;
     }
-    public URI getPredicate() {
+    public IRI getPredicate() {
         return p;
     }
     public Value getObject() {

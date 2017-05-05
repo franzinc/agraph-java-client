@@ -7,8 +7,8 @@ package test.openrdf;
 import junit.framework.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.openrdf.model.IRI;
 import org.openrdf.model.Literal;
-import org.openrdf.model.URI;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.Update;
 import org.openrdf.repository.Repository;
@@ -26,11 +26,11 @@ public class AGSparqlUpdateTest extends SPARQLUpdateTest {
 	@Test
     @Category(TestSuites.Prepush.class)
     public void batchUpdate() throws Exception {
-    	URI s = f.createURI("http://example/book1");
-    	URI p = f.createURI("http://purl.org/dc/elements/1.1/title");
+    	IRI s = f.createIRI("http://example/book1");
+    	IRI p = f.createIRI("http://purl.org/dc/elements/1.1/title");
     	Literal o_wrong = f.createLiteral("Fundamentals of Compiler Desing");
     	Literal o_right = f.createLiteral("Fundamentals of Compiler Design");
-    	URI g = f.createURI("http://example/bookStore");
+    	IRI g = f.createIRI("http://example/bookStore");
     	con.add(s,p,o_wrong,g);
     	
     	// Perform a sequence of SPARQL UPDATE queries in one request to correct the title
@@ -49,11 +49,11 @@ public class AGSparqlUpdateTest extends SPARQLUpdateTest {
     @Test
     @Category(TestSuites.Prepush.class)
     public void updateViaBooleanQuery() throws Exception {
-    	URI s = f.createURI("http://example/book1");
-    	URI p = f.createURI("http://purl.org/dc/elements/1.1/title");
+    	IRI s = f.createIRI("http://example/book1");
+    	IRI p = f.createIRI("http://purl.org/dc/elements/1.1/title");
     	Literal o_wrong = f.createLiteral("Fundamentals of Compiler Desing");
     	Literal o_right = f.createLiteral("Fundamentals of Compiler Design");
-    	URI g = f.createURI("http://example/bookStore");
+    	IRI g = f.createIRI("http://example/bookStore");
     	con.add(s,p,o_wrong,g);
     	
     	// Perform a sequence of SPARQL UPDATE queries in one request to correct the title

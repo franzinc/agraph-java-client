@@ -6,7 +6,7 @@ import junit.framework.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.openrdf.model.*;
-import org.openrdf.model.impl.GraphImpl;
+import org.openrdf.model.impl.LinkedHashModel;
 import org.openrdf.model.util.GraphUtil;
 import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.repository.Repository;
@@ -31,9 +31,9 @@ public class AGRepositoryFactoryTest extends AGAbstractTest {
     @Test
     @Category(TestSuites.Prepush.class)
     public void getRepositoryUsingConfig() throws Exception {
-    	Graph graph = parseTurtleGraph(configFile);
+    	Model graph = parseTurtleGraph(configFile);
     	updateGraphForTestServer(graph);
-		Resource implNode = GraphUtil.getUniqueSubject(graph, vf.createURI("http://www.openrdf.org/config/repository#repositoryType"), vf.createLiteral(AGRepositoryFactory.REPOSITORY_TYPE));
+		Resource implNode = GraphUtil.getUniqueSubject(graph, vf.createIRI("http://www.openrdf.org/config/repository#repositoryType"), vf.createLiteral(AGRepositoryFactory.REPOSITORY_TYPE));
 		AGRepositoryFactory factory = new AGRepositoryFactory();
     	AGRepositoryConfig config = factory.getConfig();
     	config.parse(graph , implNode);
@@ -43,7 +43,7 @@ public class AGRepositoryFactoryTest extends AGAbstractTest {
     	Repository repo = factory.getRepository(config);
     	Assert.assertEquals(0,repo.getConnection().size());
     	Assert.assertTrue(cat.hasRepository("callimachus"));
-    	Graph graph2 = new GraphImpl();
+    	Model graph2 = new LinkedHashModel();
     	config.export(graph2);
     	Assert.assertEquals(6, graph2.size());
     }
@@ -53,7 +53,7 @@ public class AGRepositoryFactoryTest extends AGAbstractTest {
     public void getRepositoryUsingManager() throws Exception {
     	RepositoryManager manager = new LocalRepositoryManager(new File("tmp/repomgr"));
     	manager.initialize();
-    	Graph graph = parseTurtleGraph(configFile);
+    	Model graph = parseTurtleGraph(configFile);
     	updateGraphForTestServer(graph);
     	Resource node = GraphUtil.getUniqueSubject(graph, RDF.TYPE, RepositoryConfigSchema.REPOSITORY);
     	String id = GraphUtil.getUniqueObjectLiteral(graph, node, RepositoryConfigSchema.REPOSITORYID).stringValue();
@@ -67,7 +67,7 @@ public class AGRepositoryFactoryTest extends AGAbstractTest {
     	repo.shutDown();
     }
 
-    private Graph parseTurtleGraph(final String configFile) throws IOException,
+    private Model parseTurtleGraph(final String configFile) throws IOException,
     RDFParseException, RDFHandlerException, FileNotFoundException {
     	RDFParser parser = Rio.createParser(RDFFormat.TURTLE, vf);
     	parser.setPreserveBNodeIDs(true);
@@ -77,19 +77,19 @@ public class AGRepositoryFactoryTest extends AGAbstractTest {
     	try (final InputStream fis = Util.resourceAsStream(configFile)){
     		parser.parse(fis, "");
     	}
-    	return new GraphImpl(collector.getStatements());
+    	return new LinkedHashModel(collector.getStatements());
     }
 
-    private void updateValue(Graph graph, URI pred, Value val) {
+    private void updateValue(Model graph, IRI pred, Value val) {
     	Iterator<Statement> it = graph.match(null, pred, null);
     	Statement s = it.next();
     	graph.remove(s);
     	graph.add(s.getSubject(),pred,val);
     }
     
-    private void updateGraphForTestServer(Graph graph) {
-    	updateValue(graph,vf.createURI(ns,"serverUrl"),vf.createURI(AGAbstractTest.findServerUrl()));
-    	updateValue(graph,vf.createURI(ns,"username"),vf.createLiteral(AGAbstractTest.username()));
-    	updateValue(graph,vf.createURI(ns,"password"),vf.createLiteral(AGAbstractTest.password()));
+    private void updateGraphForTestServer(Model graph) {
+    	updateValue(graph,vf.createIRI(ns,"serverUrl"),vf.createIRI(AGAbstractTest.findServerUrl()));
+    	updateValue(graph,vf.createIRI(ns,"username"),vf.createLiteral(AGAbstractTest.username()));
+    	updateValue(graph,vf.createIRI(ns,"password"),vf.createLiteral(AGAbstractTest.password()));
     }
 }

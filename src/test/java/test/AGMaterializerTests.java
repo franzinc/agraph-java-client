@@ -11,7 +11,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
+import org.openrdf.model.IRI;
 import org.openrdf.model.vocabulary.OWL;
 import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.model.vocabulary.RDFS;
@@ -43,9 +43,9 @@ public class AGMaterializerTests extends AGAbstractTest {
 	@Test
 	@Category(TestSuites.Prepush.class)
 	public void materializeOverDefaultGraph() throws Exception {
-		URI a = vf.createURI("http://a");
-		URI p = vf.createURI("http://p");
-		URI A = vf.createURI("http://A");
+		IRI a = vf.createIRI("http://a");
+		IRI p = vf.createIRI("http://p");
+		IRI A = vf.createIRI("http://A");
 		try {
 			conn.add(a, p, a);
 			conn.add(p, RDFS.DOMAIN, A);
@@ -69,10 +69,10 @@ public class AGMaterializerTests extends AGAbstractTest {
 	@Test
 	@Category(TestSuites.Prepush.class)
 	public void materializeIntoNamedGraph() throws Exception {
-		URI a = vf.createURI("http://a");
-		URI p = vf.createURI("http://p");
-		URI A = vf.createURI("http://A");
-		URI g = vf.createURI("http://g");
+		IRI a = vf.createIRI("http://a");
+		IRI p = vf.createIRI("http://p");
+		IRI A = vf.createIRI("http://A");
+		IRI g = vf.createIRI("http://g");
 		try {
 			conn.add(a, p, a);
 			conn.add(p, RDFS.DOMAIN, A);
@@ -102,9 +102,9 @@ public class AGMaterializerTests extends AGAbstractTest {
 	@Test
 	@Category(TestSuites.Prepush.class)
 	public void materializeOverDefaultGraphTransactional() throws Exception {
-		URI a = vf.createURI("http://a");
-		URI p = vf.createURI("http://p");
-		URI A = vf.createURI("http://A");
+		IRI a = vf.createIRI("http://a");
+		IRI p = vf.createIRI("http://p");
+		IRI A = vf.createIRI("http://A");
 		conn.setAutoCommit(false);
 		conn.add(a,p,a);
 		conn.add(p,RDFS.DOMAIN,A);
@@ -121,10 +121,10 @@ public class AGMaterializerTests extends AGAbstractTest {
 	@Test
 	@Category(TestSuites.Prepush.class)
 	public void materializeOverDefaultGraphUseTypeSubproperty() throws Exception {
-		URI a = vf.createURI("http://a");
-		URI A = vf.createURI("http://A");
-		URI B = vf.createURI("http://B");
-		URI mytype = vf.createURI("http://mytype");
+		IRI a = vf.createIRI("http://a");
+		IRI A = vf.createIRI("http://A");
+		IRI B = vf.createIRI("http://B");
+		IRI mytype = vf.createIRI("http://mytype");
 		conn.add(A,RDFS.SUBCLASSOF,B);
 		conn.add(mytype,RDFS.SUBPROPERTYOF,RDF.TYPE);
 		conn.add(a,mytype,A);
@@ -146,10 +146,10 @@ public class AGMaterializerTests extends AGAbstractTest {
     @Category(TestSuites.Broken.class)
     public void materializeOverNamedGraphs() throws Exception {
     	Util.add(conn, "/test/example.nq", null, RDFFormat.NQUADS);
-    	conn.add(vf.createURI("http://xmlns.com/foaf/0.1/name"),RDFS.DOMAIN, OWL.INDIVIDUAL);
+    	conn.add(vf.createIRI("http://xmlns.com/foaf/0.1/name"),RDFS.DOMAIN, OWL.INDIVIDUAL);
     	Assert.assertEquals("expected size 11", 11, conn.size());
     	conn.materialize(null);
-    	Assert.assertFalse(conn.hasStatement(vf.createURI("http://www.franz.com/materialized"), null, null,false));
+    	Assert.assertFalse(conn.hasStatement(vf.createIRI("http://www.franz.com/materialized"), null, null,false));
     	Assert.assertEquals("expected size 14", 14, conn.size());
     }
     

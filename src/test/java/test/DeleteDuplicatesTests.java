@@ -55,8 +55,8 @@ public class DeleteDuplicatesTests extends AGAbstractTest {
     	Util.add(conn, "/test/example.nq", null, RDFFormat.NQUADS);
     	Assert.assertEquals("expected size 10", 10, conn.size());
     	// add an spo duplicate
-    	conn.add(vf.createURI("http://example.org/alice/foaf.rdf#me"),
-    			RDF.TYPE,vf.createURI("http://xmlns.com/foaf/0.1/Person"));
+    	conn.add(vf.createIRI("http://example.org/alice/foaf.rdf#me"),
+    			RDF.TYPE,vf.createIRI("http://xmlns.com/foaf/0.1/Person"));
     	Assert.assertEquals("expected size 11", 11, conn.size());
 
     	conn.deleteDuplicates("spog");
@@ -78,8 +78,8 @@ public class DeleteDuplicatesTests extends AGAbstractTest {
     	Util.add(conn, "/test/example.nq", null, RDFFormat.NQUADS);
     	Assert.assertEquals("expected size 10", 10, conn.size());
     	// add an spo duplicate
-    	conn.add(vf.createURI("http://example.org/alice/foaf.rdf#me"),
-    			RDF.TYPE,vf.createURI("http://xmlns.com/foaf/0.1/Person"));
+    	conn.add(vf.createIRI("http://example.org/alice/foaf.rdf#me"),
+    			RDF.TYPE,vf.createIRI("http://xmlns.com/foaf/0.1/Person"));
     	Assert.assertEquals("expected size 11", 11, conn.size());
     	// null is the default, "spog"
     	conn.deleteDuplicates(null);

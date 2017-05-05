@@ -35,12 +35,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.openrdf.OpenRDFException;
 import org.openrdf.OpenRDFUtil;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Namespace;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
+import org.openrdf.model.*;
 import org.openrdf.model.impl.NamespaceImpl;
 import org.openrdf.model.impl.StatementImpl;
 import org.openrdf.model.vocabulary.XMLSchema;
@@ -178,11 +173,11 @@ import com.franz.util.Closer;
  * <ul>
  * <li>{@link #clearMappings()}</li>
  * <li>{@link #getDatatypeMappings()}</li>
- * <li>{@link #registerDatatypeMapping(URI, URI)}</li>
- * <li>{@link #deleteDatatypeMapping(URI)}</li>
+ * <li>{@link #registerDatatypeMapping(IRI, IRI)}</li>
+ * <li>{@link #deleteDatatypeMapping(IRI)}</li>
  * <li>{@link #getPredicateMappings()}</li>
- * <li>{@link #registerPredicateMapping(URI, URI)}</li>
- * <li>{@link #deletePredicateMapping(URI)}</li>
+ * <li>{@link #registerPredicateMapping(IRI, IRI)}</li>
+ * <li>{@link #deletePredicateMapping(IRI)}</li>
  * </ul>
  * 
  * @since v4.0
@@ -261,7 +256,7 @@ implements RepositoryConnection, Closeable {
 	}
 
 	@Override
-	protected void addWithoutCommit(Resource subject, URI predicate,
+	protected void addWithoutCommit(Resource subject, IRI predicate,
 			Value object, Resource... contexts) throws RepositoryException {
 		Statement st = new StatementImpl(subject, predicate, object);
 		JSONArray rows = encodeJSON(st, null, contexts);
@@ -272,7 +267,7 @@ implements RepositoryConnection, Closeable {
 		}
 	}
 	
-	protected void addWithoutCommit(Resource subject, URI predicate,
+	protected void addWithoutCommit(Resource subject, IRI predicate,
 			Value object, JSONObject attributes, Resource... contexts) throws RepositoryException {
 		Statement st = new StatementImpl(subject, predicate, object);
 		JSONArray rows = encodeJSON(st, attributes, contexts);
@@ -284,7 +279,7 @@ implements RepositoryConnection, Closeable {
 	}
 	
 	@Override
-	protected void removeWithoutCommit(Resource subject, URI predicate,
+	protected void removeWithoutCommit(Resource subject, IRI predicate,
 			Value object, Resource... contexts) throws RepositoryException {
 		getHttpRepoClient().deleteStatements(subject, predicate, object,
 				contexts);
@@ -486,7 +481,7 @@ implements RepositoryConnection, Closeable {
 		 			baseURI = file.toURI().toString();
 		 		}
 		 		if (dataFormat == null) {
-		 			dataFormat = Rio.getParserFormatForFileName(file.getName());
+		 			dataFormat = Rio.getParserFormatForFileName(file.getName()).orElse(null);
 		 		}
 
 		 		try (final FileInputStream in = new FileInputStream(file)) {
@@ -577,8 +572,6 @@ implements RepositoryConnection, Closeable {
 	 			}
 	 		}
 	 		
-	 		InputStream in = con.getInputStream();
-	 		
 	 		if (dataFormat == null) {
 	 			// Try to determine the data's MIME type
 	 			String mimeType = con.getContentType();
@@ -586,19 +579,16 @@ implements RepositoryConnection, Closeable {
 	 			if (semiColonIdx >= 0) {
 	 				mimeType = mimeType.substring(0, semiColonIdx);
 	 			}
-	 			dataFormat = Rio.getParserFormatForMIMEType(mimeType);
+	 			dataFormat = Rio.getParserFormatForMIMEType(mimeType).orElse(null);
 	 			
 	 			// Fall back to using file name extensions
 	 			if (dataFormat == null) {
-	 				dataFormat = Rio.getParserFormatForFileName(url.getPath());
+	 				dataFormat = Rio.getParserFormatForFileName(url.getPath()).orElse(null);
 	 			}
 	 		}
 	 		
-	 		try {
+	 		try (final InputStream in = con.getInputStream()) {
 	 			add(in, baseURI, dataFormat, attributes, contexts);
-	 		}
-	 		finally {
-	 			in.close();
 	 		}
 	 	}
 	 
@@ -716,16 +706,14 @@ implements RepositoryConnection, Closeable {
 	 		begin();
 	 		
 	 		try {
-	 			ZipInputStream zipIn = new ZipInputStream(in);
-	 			
-	 			try {
+	 			try (ZipInputStream zipIn = new ZipInputStream(in)) {
 	 				for (ZipEntry entry = zipIn.getNextEntry(); entry != null; entry = zipIn.getNextEntry()) {
 	 					if (entry.isDirectory()) {
 	 						continue;
 	 					}
 	 					
-	 					RDFFormat format = Rio.getParserFormatForFileName(entry.getName(), dataFormat);
-	 					
+	 					RDFFormat format = Rio.getParserFormatForFileName(entry.getName()).orElse(dataFormat);
+
 	 					try {
 	 						// Prevent parser (Xerces) from closing the input stream
 	 						FilterInputStream wrapper = new FilterInputStream(zipIn) {
@@ -749,9 +737,6 @@ implements RepositoryConnection, Closeable {
 	 						zipIn.closeEntry();
 	 					}
 	 				}
-	 			}
-	 			finally {
-	 				zipIn.close();
 	 			}
 	 		}
 	 		catch (IOException e) {
@@ -862,14 +847,14 @@ implements RepositoryConnection, Closeable {
 		 *         if the data could not be added to the repository, for example
 		 *         because the repository is not writable
 		 */
-	 public void add(Resource subject, URI predicate, Value object, Resource... contexts)
+	 public void add(Resource subject, IRI predicate, Value object, Resource... contexts)
 			throws RepositoryException
 		{
 			OpenRDFUtil.verifyContextNotNull(contexts);
 			addWithoutCommit(subject, predicate, object, contexts);
 		}
 	 
-	 public void add(Resource subject, URI predicate, Value object, JSONObject attributes, Resource... contexts)
+	 public void add(Resource subject, IRI predicate, Value object, JSONObject attributes, Resource... contexts)
 				throws RepositoryException
 		{
 			OpenRDFUtil.verifyContextNotNull(contexts);
@@ -891,7 +876,7 @@ implements RepositoryConnection, Closeable {
 	 *        if the statement(s) could not be removed from the repository, for
 	 *        example because the repository is not writable
 	 */
-	 public void remove(Resource subject, URI predicate, Value object, Resource... contexts)
+	 public void remove(Resource subject, IRI predicate, Value object, Resource... contexts)
 			throws RepositoryException
 		{
 			OpenRDFUtil.verifyContextNotNull(contexts);
@@ -1061,8 +1046,8 @@ implements RepositoryConnection, Closeable {
 		}
 	}
 
-	public void exportStatements(Resource subj, URI pred, Value obj,
-			boolean includeInferred, RDFHandler handler, Resource... contexts)
+	public void exportStatements(Resource subj, IRI pred, Value obj,
+								 boolean includeInferred, RDFHandler handler, Resource... contexts)
 			throws RDFHandlerException, RepositoryException {
 		getHttpRepoClient().getStatements(subj, pred, obj, Boolean.toString(includeInferred),
 					handler, contexts);
@@ -1146,7 +1131,7 @@ implements RepositoryConnection, Closeable {
 		}
 	}
 
-	public RepositoryResult<Statement> getStatements(Resource subj, URI pred,
+	public RepositoryResult<Statement> getStatements(Resource subj, IRI pred,
 			Value obj, boolean includeInferred, Resource... contexts)
 			throws RepositoryException {
 		try {
@@ -1681,7 +1666,7 @@ implements RepositoryConnection, Closeable {
 	public void createFreetextIndex(String indexName, AGFreetextIndexConfig config)
 	throws RepositoryException {
 		List<String> predicates = new ArrayList<String>();
-		for (URI uri: config.getPredicates()) {
+		for (IRI uri: config.getPredicates()) {
 			predicates.add(NTriplesUtil.toNTriplesString(uri));
 		}
 		getHttpRepoClient().createFreetextIndex(indexName, predicates, config.getIndexLiterals(), config.getIndexLiteralTypes(), config.getIndexResources(), config.getIndexFields(), config.getMinimumWordSize(), config.getStopWords(), config.getWordFilters(), config.getInnerChars(), config.getBorderChars(), config.getTokenizer());
@@ -1709,7 +1694,7 @@ implements RepositoryConnection, Closeable {
 	 * @deprecated
 	 * @see #createFreetextIndex(String, AGFreetextIndexConfig)
 	 */
-	public void createFreetextIndex(String name, URI[] predicates)
+	public void createFreetextIndex(String name, IRI[] predicates)
 			throws RepositoryException {
 		AGFreetextIndexConfig config = AGFreetextIndexConfig.newInstance();
 		config.getPredicates().addAll(Arrays.asList(predicates));
@@ -1786,7 +1771,7 @@ implements RepositoryConnection, Closeable {
 	 * @throws RepositoryException  if there is an error during the request
 	 * @see #getPredicateMappings()
 	 */
-	public void registerPredicateMapping(URI predicate, URI primtype)
+	public void registerPredicateMapping(IRI predicate, IRI primtype)
 			throws RepositoryException {
 		getHttpRepoClient().registerPredicateMapping(predicate, primtype);
 	}
@@ -1802,7 +1787,7 @@ implements RepositoryConnection, Closeable {
 	 * @throws RepositoryException  if there is an error during the request
 	 * @see #getPredicateMappings()
 	 */
-	public void deletePredicateMapping(URI predicate)
+	public void deletePredicateMapping(IRI predicate)
 			throws RepositoryException {
 		getHttpRepoClient().deletePredicateMapping(predicate);
 	}
@@ -1821,8 +1806,8 @@ implements RepositoryConnection, Closeable {
 	 * 
 	 * @return String[]  the predicate mappings that have been registered
 	 * @throws RepositoryException  if there is an error during the request
-	 * @see #registerPredicateMapping(URI, URI)
-	 * @see #deletePredicateMapping(URI)
+	 * @see #registerPredicateMapping(IRI, IRI)
+	 * @see #deletePredicateMapping(IRI)
 	 * @see #getDatatypeMappings()
 	 */
 	public String[] getPredicateMappings() throws RepositoryException {
@@ -1852,7 +1837,7 @@ implements RepositoryConnection, Closeable {
 	 * @throws RepositoryException  if there is an error during the request
 	 * @see #getDatatypeMappings()
 	 */
-	public void registerDatatypeMapping(URI datatype, URI primtype)
+	public void registerDatatypeMapping(IRI datatype, IRI primtype)
 			throws RepositoryException {
 		getHttpRepoClient().registerDatatypeMapping(datatype, primtype);
 	}
@@ -1869,7 +1854,7 @@ implements RepositoryConnection, Closeable {
 	 * @see #getDatatypeMappings()
 	 * @see #clearMappings()
 	 */
-	public void deleteDatatypeMapping(URI datatype) throws RepositoryException {
+	public void deleteDatatypeMapping(IRI datatype) throws RepositoryException {
 		getHttpRepoClient().deleteDatatypeMapping(datatype);
 	}
 
@@ -1886,9 +1871,9 @@ implements RepositoryConnection, Closeable {
 	 * 
 	 * @return String[]  the datatype mappings that have been registered
 	 * @throws RepositoryException  if there is an error during the request
-	 * @see #deleteDatatypeMapping(URI)
+	 * @see #deleteDatatypeMapping(IRI)
 	 * @see #clearMappings()
-	 * @see #registerDatatypeMapping(URI, URI)
+	 * @see #registerDatatypeMapping(IRI, IRI)
 	 * @see #getPredicateMappings()
 	 */
 	public String[] getDatatypeMappings() throws RepositoryException {
@@ -2040,8 +2025,8 @@ implements RepositoryConnection, Closeable {
 	 * @param contexts  zero or more contexts into which data will be loaded
 	 * @throws RepositoryException  if there is an error during the request
 	 */
-	public void load(URI source, String baseURI, RDFFormat dataFormat,
-			Resource... contexts) throws RepositoryException {
+	public void load(IRI source, String baseURI, RDFFormat dataFormat,
+					 Resource... contexts) throws RepositoryException {
 		getHttpRepoClient().load(source, baseURI, dataFormat, contexts);
 	}
 	
@@ -2059,8 +2044,8 @@ implements RepositoryConnection, Closeable {
 	 * @param contexts  zero or more contexts into which data will be loaded
 	 * @throws RepositoryException  if there is an error during the request
 	 */
-	public void load(URI source, String baseURI, RDFFormat dataFormat,
-			JSONObject attributes, Resource... contexts)
+	public void load(IRI source, String baseURI, RDFFormat dataFormat,
+					 JSONObject attributes, Resource... contexts)
 					throws RepositoryException {
 		getHttpRepoClient().load(source, baseURI, dataFormat, attributes, contexts);
 	}
@@ -2140,8 +2125,8 @@ implements RepositoryConnection, Closeable {
 	 * @return URI  the datatype encoding of this subtype
 	 * @throws RepositoryException  if there is an error during the request
 	 */
-	public URI registerCartesianType(float stripWidth, float xmin, float xmax,
-			float ymin, float ymax) throws RepositoryException {
+	public IRI registerCartesianType(float stripWidth, float xmin, float xmax,
+									 float ymin, float ymax) throws RepositoryException {
 		String nTriplesURI = getHttpRepoClient().registerCartesianType(stripWidth,
 				xmin, xmax, ymin, ymax);
 		return NTriplesUtil.parseURI(nTriplesURI, getValueFactory());
@@ -2159,15 +2144,15 @@ implements RepositoryConnection, Closeable {
 	 * @return URI  the datatype encoding of this subtype
 	 * @throws RepositoryException  if there is an error during the request
 	 */
-	public URI registerSphericalType(float stripWidth, String unit,
-			float latmin, float lonmin, float latmax, float lonmax)
+	public IRI registerSphericalType(float stripWidth, String unit,
+									 float latmin, float lonmin, float latmax, float lonmax)
 			throws RepositoryException {
 		String nTriplesURI = getHttpRepoClient().registerSphericalType(stripWidth,
 				unit, latmin, lonmin, latmax, lonmax);
 		return NTriplesUtil.parseURI(nTriplesURI, getValueFactory());
 	}
 
-	public URI registerSphericalType(float stripWidth, String unit) throws RepositoryException {
+	public IRI registerSphericalType(float stripWidth, String unit) throws RepositoryException {
 		return registerSphericalType(stripWidth,unit,-90,-180,90,180);
 	}
 	
@@ -2178,7 +2163,7 @@ implements RepositoryConnection, Closeable {
 	 * @param points  a List of points describing the polygon
 	 * @throws RepositoryException  if there is an error during the request
 	 */
-	public void registerPolygon(URI polygon, List<Literal> points)
+	public void registerPolygon(IRI polygon, List<Literal> points)
 	throws RepositoryException {
 		List<String> nTriplesPoints = new ArrayList<String>(points.size());
 		for (Literal point: points) {
@@ -2187,9 +2172,9 @@ implements RepositoryConnection, Closeable {
 		getHttpRepoClient().registerPolygon(NTriplesUtil.toNTriplesString(polygon), nTriplesPoints);
 	}
 	
-	public RepositoryResult<Statement> getStatementsInBox(URI type,
-			URI predicate, float xmin, float xmax, float ymin,
-			float ymax, int limit, boolean infer) throws RepositoryException {
+	public RepositoryResult<Statement> getStatementsInBox(IRI type,
+														  IRI predicate, float xmin, float xmax, float ymin,
+														  float ymax, int limit, boolean infer) throws RepositoryException {
 		StatementCollector collector = new StatementCollector();
 		AGResponseHandler handler = new AGRDFHandler(getHttpRepoClient().getPreferredRDFFormat(),
 				collector, getValueFactory(),getHttpRepoClient().getAllowExternalBlankNodeIds());
@@ -2199,9 +2184,9 @@ implements RepositoryConnection, Closeable {
 		return createRepositoryResult(collector.getStatements());
 	}
 
-	public RepositoryResult<Statement> getStatementsInCircle(URI type,
-			URI predicate, float x, float y, float radius,
-			int limit, boolean infer) throws RepositoryException {
+	public RepositoryResult<Statement> getStatementsInCircle(IRI type,
+															 IRI predicate, float x, float y, float radius,
+															 int limit, boolean infer) throws RepositoryException {
 		StatementCollector collector = new StatementCollector();
 		AGResponseHandler handler = new AGRDFHandler(getHttpRepoClient().getPreferredRDFFormat(),
 				collector, getValueFactory(),getHttpRepoClient().getAllowExternalBlankNodeIds());
@@ -2211,9 +2196,9 @@ implements RepositoryConnection, Closeable {
 		return createRepositoryResult(collector.getStatements());
 	}
 	
-	public RepositoryResult<Statement> getGeoHaversine(URI type,
-			URI predicate, float lat, float lon, float radius,
-			String unit, int limit, boolean infer) throws RepositoryException {
+	public RepositoryResult<Statement> getGeoHaversine(IRI type,
+													   IRI predicate, float lat, float lon, float radius,
+													   String unit, int limit, boolean infer) throws RepositoryException {
 		StatementCollector collector = new StatementCollector();
 		AGResponseHandler handler = new AGRDFHandler(getHttpRepoClient().getPreferredRDFFormat(),
 				collector, getValueFactory(),getHttpRepoClient().getAllowExternalBlankNodeIds());
@@ -2223,8 +2208,8 @@ implements RepositoryConnection, Closeable {
 		return createRepositoryResult(collector.getStatements());
 	}
 	
-	public RepositoryResult<Statement> getStatementsInPolygon(URI type,
-			URI predicate, URI polygon, int limit, boolean infer) throws RepositoryException {
+	public RepositoryResult<Statement> getStatementsInPolygon(IRI type,
+															  IRI predicate, IRI polygon, int limit, boolean infer) throws RepositoryException {
 		StatementCollector collector = new StatementCollector();
 		AGResponseHandler handler = new AGRDFHandler(getHttpRepoClient().getPreferredRDFFormat(),
 				collector, getValueFactory(),getHttpRepoClient().getAllowExternalBlankNodeIds());
@@ -2253,34 +2238,34 @@ implements RepositoryConnection, Closeable {
 	 * @param query  a string representation of a select clause
 	 * @throws RepositoryException  if there is an error during the request
 	 */
-	public void registerSNAGenerator(String generator, List<URI> objectOfs, List<URI> subjectOfs, List<URI> undirecteds, String query) throws RepositoryException {
+	public void registerSNAGenerator(String generator, List<IRI> objectOfs, List<IRI> subjectOfs, List<IRI> undirecteds, String query) throws RepositoryException {
 		List<String> objOfs = new ArrayList<String>();
 		if (objectOfs!=null) {
-			for (URI objectOf: objectOfs) {
+			for (IRI objectOf: objectOfs) {
 				objOfs.add(NTriplesUtil.toNTriplesString(objectOf));
 			}
 		}
 		List<String> subjOfs = new ArrayList<String>();
 		if (subjectOfs!=null) {
-			for (URI subjectOf: subjectOfs) {
+			for (IRI subjectOf: subjectOfs) {
 				subjOfs.add(NTriplesUtil.toNTriplesString(subjectOf));
 			}
 		}
 		List<String> undirs = new ArrayList<String>();
 		if (undirecteds!=null) {
-			for (URI undirected: undirecteds) {
+			for (IRI undirected: undirecteds) {
 				undirs.add(NTriplesUtil.toNTriplesString(undirected));
 			}
 		}
 		getHttpRepoClient().registerSNAGenerator(generator, objOfs, subjOfs, undirs, query);
 	}
 	
-	public void registerSNANeighborMatrix(String matrix, String generator, List<URI> group, int depth) throws RepositoryException {
+	public void registerSNANeighborMatrix(String matrix, String generator, List<IRI> group, int depth) throws RepositoryException {
 		if (group==null || group.size()==0) {
 			throw new IllegalArgumentException("group must be non-empty.");
 		}
 		List<String> grp = new ArrayList<String>(3);
-		for (URI node: group) {
+		for (IRI node: group) {
 			grp.add(NTriplesUtil.toNTriplesString(node));
 		}
 		getHttpRepoClient().registerSNANeighborMatrix(matrix, generator, grp, depth);

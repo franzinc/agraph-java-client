@@ -522,7 +522,7 @@ public class JenaTutorialExamples {
 		Property fullname = model.createProperty(exns + "fullname");
 		AGRepositoryConnection conn = maker.getRepositoryConnection();
 		config.getPredicates().add( // need a Sesame URI
-				conn.getValueFactory().createURI(exns, "fullname"));
+				conn.getValueFactory().createIRI(exns, "fullname"));
 		conn.createFreetextIndex("index1", config);
 		// Create parts of person resources.
 		Resource alice = model.createResource(exns + "alice1");

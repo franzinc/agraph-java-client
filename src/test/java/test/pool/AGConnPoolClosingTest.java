@@ -334,8 +334,8 @@ public class AGConnPoolClosingTest extends Closer {
     	Assert.assertEquals(pool.getNumActive(), 1);
     	
     	ValueFactory vf = conn.getValueFactory();
-    	conn.add( vf.createStatement(vf.createURI("http://ag/test-spr30491-test1"),
-					    				vf.createURI("http://ag/spr-name"),
+    	conn.add( vf.createStatement(vf.createIRI("http://ag/test-spr30491-test1"),
+					    				vf.createIRI("http://ag/spr-name"),
 					    				vf.createLiteral("spr30491")) );
     	
     	TupleQuery query = conn.prepareTupleQuery(QueryLanguage.SPARQL,"SELECT ?s ?p ?o WHERE { ?s ?p ?o . }");
@@ -361,7 +361,7 @@ public class AGConnPoolClosingTest extends Closer {
 					throws TupleQueryResultHandlerException {
 				
 				try {
-					RepositoryResult<Statement> statements = fconn.getStatements(fvf.createURI(bindingSet.getValue("s").stringValue()), null, null, false);
+					RepositoryResult<Statement> statements = fconn.getStatements(fvf.createIRI(bindingSet.getValue("s").stringValue()), null, null, false);
 					Assert.assertNotNull(statements);
                 } catch (Exception e) {
                     e.printStackTrace();

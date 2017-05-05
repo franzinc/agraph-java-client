@@ -9,10 +9,7 @@ import com.franz.agraph.repository.AGTupleQuery;
 import junit.framework.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.openrdf.model.BNode;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
+import org.openrdf.model.*;
 import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.query.TupleQueryResult;
 import org.openrdf.repository.RepositoryResult;
@@ -23,7 +20,7 @@ public class TripleIdTests extends AGAbstractTest {
     @Category(TestSuites.Prepush.class)
     public void tripleIds_rfe10177() throws Exception {
     	BNode bnode = vf.createBNode();
-    	URI foo = vf.createURI("http://Foo");
+    	IRI foo = vf.createIRI("http://Foo");
     	conn.add(bnode, RDF.TYPE, foo);
     	conn.add(foo, foo, foo);
     	String queryString = "(select (?id) (q ?s !rdf:type ?o ?g ?id))";

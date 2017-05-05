@@ -7,10 +7,7 @@ package test;
 import junit.framework.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.openrdf.model.BNode;
-import org.openrdf.model.Literal;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
+import org.openrdf.model.*;
 import org.openrdf.model.vocabulary.XMLSchema;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryLanguage;
@@ -31,7 +28,7 @@ public class LiteralAndResourceResultsTest extends AGAbstractTest {
 	 */
 	public void testGetTypedResults() throws Exception {
 		BNode b = vf.createBNode();
-		URI r = vf.createURI("http://r");
+		IRI r = vf.createIRI("http://r");
 		Literal lit = vf.createLiteral("42", XMLSchema.INT);
 		conn.add(b, r, lit);
 		String queryString = "SELECT ?s ?p ?o  WHERE {?s ?p ?o .}";
@@ -43,7 +40,7 @@ public class LiteralAndResourceResultsTest extends AGAbstractTest {
 		   BindingSet bindingSet = result.next();
 		   BNode s = (BNode)bindingSet.getValue("s");
 		   Assert.assertEquals(b, s);
-		   URI p = (URI)bindingSet.getValue("p");
+		   IRI p = (IRI)bindingSet.getValue("p");
 		   Assert.assertEquals(r, p);
 		   Value o = bindingSet.getValue("o");
 		   if (o instanceof Literal) {
@@ -51,7 +48,7 @@ public class LiteralAndResourceResultsTest extends AGAbstractTest {
 			   Assert.assertEquals(lit, l);
 			   int i = l.intValue();
 			   Assert.assertEquals(42, i);
-			   URI dt = l.getDatatype();
+			   IRI dt = l.getDatatype();
 			   Assert.assertEquals(XMLSchema.INT, dt);
 		   }
 		}			

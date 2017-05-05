@@ -8,17 +8,12 @@ import java.util.List;
 import java.util.ArrayList;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.openrdf.model.BNode;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
+import org.openrdf.model.*;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.TupleQuery;
 import org.openrdf.query.TupleQueryResult;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.RepositoryResult;
 
 import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGRepository;
@@ -54,10 +49,10 @@ public class AttributesExample {
     // Values filled in by populateRepository(), and used by main()
     private static BNode s;
     private static String ex;
-    private static URI pName;
-    private static URI pSalary;
-    private static URI pDept;
-    private static URI pInfractions;
+    private static IRI pName;
+    private static IRI pSalary;
+    private static IRI pDept;
+    private static IRI pInfractions;
 
     /**
      * 
@@ -213,10 +208,10 @@ public class AttributesExample {
     	ex = "http://example.org/ontology/";
 
     	// a set of predicates we will use.
-    	pName = vf.createURI(ex + "name");
-    	pSalary = vf.createURI(ex + "salary");
-    	pDept = vf.createURI(ex + "department");
-    	pInfractions = vf.createURI(ex + "infractions");
+    	pName = vf.createIRI(ex + "name");
+    	pSalary = vf.createIRI(ex + "salary");
+    	pDept = vf.createIRI(ex + "department");
+    	pInfractions = vf.createIRI(ex + "infractions");
 
     	println("Adding sample triples with attributes to the repository.");
 
@@ -350,7 +345,7 @@ public class AttributesExample {
      * @throws Exception  if any check fails
      */
     public static boolean checkAttributeValue(String attribute, String expectedValue,
-    		URI predicate, int numExpected)
+                                              IRI predicate, int numExpected)
     				throws Exception {
     	String queryString = "PREFIX attr: <http://franz.com/ns/allegrograph/6.2.0/> " +
     			"select ?value where { ('" + attribute + "' ?value) attr:attributesNameValue (?s <" +

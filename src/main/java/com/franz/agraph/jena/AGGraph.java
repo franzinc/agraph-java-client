@@ -10,7 +10,7 @@ import java.util.Arrays;
 import org.openrdf.http.protocol.UnauthorizedException;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
+import org.openrdf.model.IRI;
 import org.openrdf.query.Dataset;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.QueryLanguage;
@@ -37,10 +37,8 @@ import com.hp.hpl.jena.graph.impl.GraphBase;
 import com.hp.hpl.jena.shared.AddDeniedException;
 import com.hp.hpl.jena.shared.DeleteDeniedException;
 import com.hp.hpl.jena.shared.PrefixMapping;
-import com.hp.hpl.jena.shared.ReificationStyle;
 import com.hp.hpl.jena.util.iterator.ClosableIterator;
 import com.hp.hpl.jena.util.iterator.ExtendedIterator;
-import com.hp.hpl.jena.util.iterator.NullIterator;
 
 /**
  * Implements the Jena Graph interface for AllegroGraph.
@@ -182,9 +180,9 @@ public class AGGraph extends GraphBase implements Graph, Closeable {
 					// null means "the default graph".
 					// This will not work in AG < 6.1.1
 					dataset.addDefaultGraph(null);
-				} else if (c instanceof URI) {
-					dataset.addDefaultGraph((URI) c);
-					dataset.addNamedGraph((URI) c);
+				} else if (c instanceof IRI) {
+					dataset.addDefaultGraph((IRI) c);
+					dataset.addNamedGraph((IRI) c);
 				}
 			}
 		}

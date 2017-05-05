@@ -153,7 +153,7 @@ public class AGConnPoolSessionTest extends Closer {
 		AGValueFactory vf = conn.getValueFactory();
 		for (int i = 0; i < NUM * 10; i++) {
 			Util.add(conn, "/tutorial/java-kennedy.ntriples", ns,
-					RDFFormat.NTRIPLES, vf.createURI(ns + i));
+					RDFFormat.NTRIPLES, vf.createIRI(ns + i));
 		}
 		log.debug("size=" + conn.size());
 		close(conn);

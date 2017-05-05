@@ -16,8 +16,8 @@ import junit.framework.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.openrdf.model.BNode;
+import org.openrdf.model.IRI;
 import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
 import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.GraphQueryResult;
@@ -65,7 +65,7 @@ public class BlankNodeTests extends AGAbstractTest {
 	public void sesameExternalBlankNodeRoundTrips_spr38494() throws Exception {
 		BNode bnode = ValueFactoryImpl.getInstance().createBNode();
 		BNode bnode2 = vf.createBNode("external");
-		URI p = vf.createURI("http://p");
+		IRI p = vf.createIRI("http://p");
 		conn.clear();
     	try {
     		conn.add(bnode, p, bnode2, p);
@@ -98,7 +98,7 @@ public class BlankNodeTests extends AGAbstractTest {
 	@Category(TestSuites.Prepush.class)
 	public void sesameAGBlankNodeRoundTrips_spr38494() throws Exception {
 		BNode bnode = vf.createBNode();
-		URI p = vf.createURI("http://p");
+		IRI p = vf.createIRI("http://p");
 		conn.clear();
 		conn.add(bnode, p, bnode, p);
 		Assert.assertEquals(1, conn.size());

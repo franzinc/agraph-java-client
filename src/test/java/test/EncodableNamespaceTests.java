@@ -8,7 +8,7 @@ import com.franz.agraph.repository.AGFormattedNamespace;
 import junit.framework.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.openrdf.model.URI;
+import org.openrdf.model.IRI;
 import org.openrdf.repository.RepositoryException;
 
 import java.util.ArrayList;
@@ -28,7 +28,7 @@ public class EncodableNamespaceTests extends AGAbstractTest {
         AGFormattedNamespace ns = namespaces.get(0);
         Assert.assertEquals("unexpected prefix", NS0, ns.getNamespace());
         Assert.assertEquals("unexpected format", FORMAT0, ns.getFormat());
-		URI uri = vf.generateURI(NS0);
+		IRI uri = vf.generateURI(NS0);
 		Assert.assertTrue("expected prefix "+NS0, uri.stringValue().startsWith(NS0));
 		Assert.assertFalse("expected uniqueness", uri.stringValue().equals(vf.generateURI(NS0).stringValue()));
 		String NS1 = "http://franz.com/ns1";
@@ -77,7 +77,7 @@ public class EncodableNamespaceTests extends AGAbstractTest {
 			// expected
 			//System.out.println(e.getLocalizedMessage());
 		}
-		URI[] uris = vf.generateURIs("urn:franz-9999:", 5);
+		IRI[] uris = vf.generateURIs("urn:franz-9999:", 5);
 		Assert.assertEquals("expected 5 URI's", 5, uris.length);
 		for (int i=0;i<uris.length;i++) {
 			//System.out.println(uris[i]);

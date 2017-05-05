@@ -10,7 +10,7 @@ import org.openrdf.query.GraphQuery;
 import org.openrdf.query.GraphQueryResult;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.impl.GraphQueryResultImpl;
+import org.openrdf.query.impl.IteratingGraphQueryResult;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFHandler;
 import org.openrdf.rio.RDFHandlerException;
@@ -50,7 +50,7 @@ public class AGGraphQuery extends AGQuery implements GraphQuery {
 			// TODO: make this efficient for large result sets
 			StatementCollector collector = new StatementCollector();
 			evaluate(collector);
-			return new GraphQueryResultImpl(collector.getNamespaces(),
+			return new IteratingGraphQueryResult(collector.getNamespaces(),
 					collector.getStatements());
 		} catch (RDFHandlerException e) {
 			// Found a bug in StatementCollector?

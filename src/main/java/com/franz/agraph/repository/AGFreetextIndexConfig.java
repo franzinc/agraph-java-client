@@ -10,7 +10,7 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.openrdf.model.URI;
+import org.openrdf.model.IRI;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.rio.ntriples.NTriplesUtil;
@@ -42,7 +42,7 @@ public class AGFreetextIndexConfig {
 	
 	private static final ValueFactory vf = new ValueFactoryImpl(); 
 
-	private List<URI> predicates;
+	private List<IRI> predicates;
 	private boolean indexLiterals;
 	private List<String> indexLiteralTypes;
 	private String indexResources;
@@ -71,7 +71,7 @@ public class AGFreetextIndexConfig {
 	}
 	
 	private AGFreetextIndexConfig() {	
-		predicates = new ArrayList<URI>();
+		predicates = new ArrayList<IRI>();
 		indexLiterals = true;
 		indexLiteralTypes = new ArrayList<String>();
 		indexResources = "false";
@@ -111,13 +111,13 @@ public class AGFreetextIndexConfig {
 		return bool;
 	}
 	
-	private List<URI> initPredicates(JSONObject config) {
-		List<URI> predList = new ArrayList<URI>();
+	private List<IRI> initPredicates(JSONObject config) {
+		List<IRI> predList = new ArrayList<IRI>();
 		JSONArray preds = config.optJSONArray(PREDICATES);
 		if (preds!=null) {
 			for (int i = 0; i < preds.length(); i++) {
 				String uri_nt = preds.optString(i);
-				URI uri = NTriplesUtil.parseURI(uri_nt, vf);
+				IRI uri = NTriplesUtil.parseURI(uri_nt, vf);
 				predList.add(uri);
 			}
 		}
@@ -130,7 +130,7 @@ public class AGFreetextIndexConfig {
 	 * 
 	 * @return List  the Predicates being indexed
 	 */
-	public List<URI> getPredicates() {
+	public List<IRI> getPredicates() {
 		return predicates;
 	}
 	

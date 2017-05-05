@@ -9,11 +9,10 @@ import info.aduna.iteration.Iterations;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.openrdf.model.Literal;
-import org.openrdf.model.URI;
+import org.openrdf.model.IRI;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.QueryLanguage;
@@ -62,8 +61,8 @@ public class UnicodeTQRFormatTest extends AGAbstractTest {
 
     @Test
     public void testUnicodeSelect() throws RepositoryException, QueryEvaluationException {
-        URI s = vf.createURI("http://franz.com/s");
-        URI p = vf.createURI("http://franz.com/p");
+        IRI s = vf.createIRI("http://franz.com/s");
+        IRI p = vf.createIRI("http://franz.com/p");
         Literal o = vf.createLiteral("जुप");
         conn.add(s, p, o);
         AGTupleQuery query = conn.prepareTupleQuery(QueryLanguage.SPARQL,

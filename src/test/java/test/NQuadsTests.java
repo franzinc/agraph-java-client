@@ -10,7 +10,7 @@ import com.franz.agraph.jena.AGModel;
 import junit.framework.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.openrdf.model.URI;
+import org.openrdf.model.IRI;
 import org.openrdf.rio.RDFFormat;
 
 import java.io.FileInputStream;
@@ -23,9 +23,9 @@ public class NQuadsTests extends AGAbstractTest {
     public void nquads_sesame_rfe10201() throws Exception {
         Util.add(conn, "/test/example.nq", null, RDFFormat.NQUADS);
         Assert.assertEquals("expected size 10", 10, conn.size());
-        URI alice = vf.createURI("http://example.org/alice/foaf.rdf");
+        IRI alice = vf.createIRI("http://example.org/alice/foaf.rdf");
         Assert.assertEquals("expected size 7", 7, conn.size(alice));
-        URI bob = vf.createURI("http://example.org/bob/foaf.rdf");
+        IRI bob = vf.createIRI("http://example.org/bob/foaf.rdf");
         Assert.assertEquals("expected size 3", 3, conn.size(bob));
    }
 
@@ -47,7 +47,7 @@ public class NQuadsTests extends AGAbstractTest {
     @Test
     @Category(TestSuites.Broken.class)
     public void sesameAddContextOverridesNQuadsContext() throws Exception {
-    	URI bob = vf.createURI("http://example.org/bob/foaf.rdf");
+    	IRI bob = vf.createIRI("http://example.org/bob/foaf.rdf");
     	// the add context is ignored -- it should override
     	Util.add(conn, "/test/example.nq", null, RDFFormat.NQUADS, bob);
     	Assert.assertEquals("expected size 10", 10, conn.size(bob));

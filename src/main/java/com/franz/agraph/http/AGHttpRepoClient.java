@@ -28,10 +28,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.openrdf.OpenRDFUtil;
 import org.openrdf.http.protocol.Protocol;
-import org.openrdf.model.BNode;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
+import org.openrdf.model.*;
 import org.openrdf.model.impl.URIImpl;
 import org.openrdf.query.Binding;
 import org.openrdf.query.Dataset;
@@ -537,8 +534,8 @@ public class AGHttpRepoClient implements Closeable {
 		}
 	}
 
-	public void getStatements(Resource subj, URI pred, Value obj,
-			String includeInferred, RDFHandler handler, Resource... contexts)
+	public void getStatements(Resource subj, IRI pred, Value obj,
+                              String includeInferred, RDFHandler handler, Resource... contexts)
 			throws RDFHandlerException, AGHttpException {
 			getStatements(subj, pred, obj, includeInferred,
 					new AGRDFHandler(getPreferredRDFFormat(), handler,
@@ -609,8 +606,8 @@ public class AGHttpRepoClient implements Closeable {
 		get(uri, headers, params, handler);
 	}
 
-	public void addStatements(Resource subj, URI pred, Value obj,
-			Resource... contexts) throws AGHttpException {
+	public void addStatements(Resource subj, IRI pred, Value obj,
+                              Resource... contexts) throws AGHttpException {
 		String uri = Protocol.getStatementsLocation(getRoot());
 		List<Header> headers = new ArrayList<Header>(1);
 
@@ -637,8 +634,8 @@ public class AGHttpRepoClient implements Closeable {
 		post(uri, headers, params, null, null);
 	}
 
-	public void deleteStatements(Resource subj, URI pred, Value obj,
-			Resource... contexts) throws AGHttpException {
+	public void deleteStatements(Resource subj, IRI pred, Value obj,
+                                 Resource... contexts) throws AGHttpException {
 		String url = Protocol.getStatementsLocation(getRoot());
 
 		List<NameValuePair> params = new ArrayList<NameValuePair>(5);
@@ -687,7 +684,7 @@ public class AGHttpRepoClient implements Closeable {
 	 * Causes a commit to happen after every period=N added statements
 	 * inside a call to
 	 *
-	 * {@link #upload(String, RequestEntity, String, boolean, String, URI, RDFFormat, Resource...)}
+	 * {@link #upload(String, RequestEntity, String, boolean, String, IRI, RDFFormat, Resource...)}
 	 *
 	 * Defaults to period=0, meaning that no commits are done in an upload.
 	 *
@@ -834,13 +831,13 @@ public class AGHttpRepoClient implements Closeable {
 		uploadJSON(AGProtocol.getStatementsDeleteLocation(getRoot()), rows, contexts);
 	}
 
-	public void load(URI source, String baseURI, RDFFormat dataFormat,
-			Resource... contexts) throws AGHttpException {
+	public void load(IRI source, String baseURI, RDFFormat dataFormat,
+                     Resource... contexts) throws AGHttpException {
 		upload(null, baseURI, false, null, source, dataFormat, null, contexts);
 	}
 
-	public void load(URI source, String baseURI, RDFFormat dataFormat,
-			JSONObject attributes, Resource... contexts) throws AGHttpException {
+	public void load(IRI source, String baseURI, RDFFormat dataFormat,
+                     JSONObject attributes, Resource... contexts) throws AGHttpException {
 		upload(null, baseURI, false, null, source, dataFormat,
 				attributes, contexts);
 	}
@@ -860,7 +857,7 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	public void upload(RequestEntity reqEntity, String baseURI,
-					   boolean overwrite, String serverSideFile, URI serverSideURL,
+					   boolean overwrite, String serverSideFile, IRI serverSideURL,
 					   RDFFormat dataFormat, JSONObject attributes,
 					   Resource... contexts) throws AGHttpException  {
 		String url = Protocol.getStatementsLocation(getRoot());
@@ -869,7 +866,7 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	public void upload(RequestEntity reqEntity, String baseURI,
-			boolean overwrite, String serverSideFile, URI serverSideURL,
+			boolean overwrite, String serverSideFile, IRI serverSideURL,
 			RDFFormat dataFormat, JSONObject attributes, String contentEncoding,
 			Resource... contexts) throws AGHttpException {
 		String url = Protocol.getStatementsLocation(getRoot());
@@ -882,14 +879,14 @@ public class AGHttpRepoClient implements Closeable {
 	 * built into the input stream passed as part of the reqEntity.
 	 */
 	public void upload(String url, RequestEntity reqEntity, String baseURI,
-			boolean overwrite, String serverSideFile, URI serverSideURL,
+			boolean overwrite, String serverSideFile, IRI serverSideURL,
 			RDFFormat dataFormat, Resource... contexts) throws AGHttpException {
 		upload(url, reqEntity, baseURI, overwrite, serverSideFile, serverSideURL,
 				dataFormat, null, contexts);
 	}
 
 	public void upload(String url, RequestEntity reqEntity, String baseURI,
-					   boolean overwrite, String serverSideFile, URI serverSideURL,
+					   boolean overwrite, String serverSideFile, IRI serverSideURL,
 					   RDFFormat dataFormat, JSONObject attributes,
 					   Resource... contexts) throws AGHttpException {
 		upload(url, reqEntity, baseURI, overwrite, serverSideFile, serverSideURL,
@@ -897,7 +894,7 @@ public class AGHttpRepoClient implements Closeable {
 	}
 
 	public void upload(String url, RequestEntity reqEntity, String baseURI,
-			boolean overwrite, String serverSideFile, URI serverSideURL,
+			boolean overwrite, String serverSideFile, IRI serverSideURL,
 			RDFFormat dataFormat, JSONObject attributes, String contentEncoding,
 			Resource... contexts) throws AGHttpException {
 		OpenRDFUtil.verifyContextNotNull(contexts);
@@ -1125,20 +1122,20 @@ public class AGHttpRepoClient implements Closeable {
 
 			if (ql==QueryLanguage.SPARQL && dataset != null) {
 				if (q instanceof AGUpdate) {
-					for (URI graphURI : dataset.getDefaultRemoveGraphs()) {
+					for (IRI graphURI : dataset.getDefaultRemoveGraphs()) {
 						queryParams.add(new NameValuePair(Protocol.REMOVE_GRAPH_PARAM_NAME, String.valueOf(graphURI)));
 					}
 					if (dataset.getDefaultInsertGraph() != null) {
 						queryParams.add(new NameValuePair(Protocol.INSERT_GRAPH_PARAM_NAME, String.valueOf(dataset.getDefaultInsertGraph())));
 					}
-					for (URI defaultGraphURI : dataset.getDefaultGraphs()) {
+					for (IRI defaultGraphURI : dataset.getDefaultGraphs()) {
 						queryParams.add(new NameValuePair(Protocol.USING_GRAPH_PARAM_NAME, String.valueOf(defaultGraphURI)));
 					}
-					for (URI namedGraphURI : dataset.getNamedGraphs()) {
+					for (IRI namedGraphURI : dataset.getNamedGraphs()) {
 						queryParams.add(new NameValuePair(Protocol.USING_NAMED_GRAPH_PARAM_NAME, String.valueOf(namedGraphURI)));
 					}
 				} else {
-					for (URI defaultGraphURI : dataset.getDefaultGraphs()) {
+					for (IRI defaultGraphURI : dataset.getDefaultGraphs()) {
 						if (defaultGraphURI == null) {
 							queryParams.add(new NameValuePair(
 									Protocol.CONTEXT_PARAM_NAME, Protocol.NULL_PARAM_VALUE));
@@ -1147,7 +1144,7 @@ public class AGHttpRepoClient implements Closeable {
 									Protocol.DEFAULT_GRAPH_PARAM_NAME, defaultGraphURI.toString()));
 						}
 					}
-					for (URI namedGraphURI : dataset.getNamedGraphs()) {
+					for (IRI namedGraphURI : dataset.getNamedGraphs()) {
 						queryParams.add(new NameValuePair(
 								Protocol.NAMED_GRAPH_PARAM_NAME, namedGraphURI.toString()));
 					}
@@ -1365,7 +1362,7 @@ public class AGHttpRepoClient implements Closeable {
 		post(url, headers, queryParams, null, handler);
 	}
 
-	public void registerPredicateMapping(URI predicate, URI primitiveType)
+	public void registerPredicateMapping(IRI predicate, IRI primitiveType)
 			throws AGHttpException {
 		String url = AGProtocol.getPredicateMappingLocation(getRoot());
 		String pred_nt = NTriplesUtil.toNTriplesString(predicate);
@@ -1378,7 +1375,7 @@ public class AGHttpRepoClient implements Closeable {
 		post(url, null, params, null, null);
 	}
 
-	public void deletePredicateMapping(URI predicate)
+	public void deletePredicateMapping(IRI predicate)
 			throws AGHttpException {
 		String url = AGProtocol.getPredicateMappingLocation(getRoot());
 		String pred_nt = NTriplesUtil.toNTriplesString(predicate);
@@ -1401,7 +1398,7 @@ public class AGHttpRepoClient implements Closeable {
 		}
 	}
 
-	public void registerDatatypeMapping(URI datatype, URI primitiveType)
+	public void registerDatatypeMapping(IRI datatype, IRI primitiveType)
 			throws AGHttpException {
 		String url = AGProtocol.getDatatypeMappingLocation(getRoot());
 		String datatype_nt = NTriplesUtil.toNTriplesString(datatype);
@@ -1414,7 +1411,7 @@ public class AGHttpRepoClient implements Closeable {
 		post(url, null, params, null, null);
 	}
 
-	public void deleteDatatypeMapping(URI datatype) throws AGHttpException {
+	public void deleteDatatypeMapping(IRI datatype) throws AGHttpException {
 		String url = AGProtocol.getDatatypeMappingLocation(getRoot());
 		String datatype_nt = NTriplesUtil.toNTriplesString(datatype);
 
@@ -2286,7 +2283,7 @@ public class AGHttpRepoClient implements Closeable {
 	 */
 	public static Resource getApplicationResource(Resource stored, AGValueFactory vf) {
 		Resource app = stored;
-		if (stored instanceof URI && vf.isURIForExternalBlankNode(stored)) {
+		if (stored instanceof IRI && vf.isURIForExternalBlankNode(stored)) {
 			app = vf.createBNode(stored.stringValue().substring(vf.PREFIX_FOR_EXTERNAL_BNODES.length()));
 		}
 		return app;
@@ -2306,7 +2303,7 @@ public class AGHttpRepoClient implements Closeable {
 	 */
 	public static Value getApplicationValue(Value stored, AGValueFactory vf) {
 		Value app = stored;
-		if (stored instanceof URI && vf.isURIForExternalBlankNode(stored)) {
+		if (stored instanceof IRI && vf.isURIForExternalBlankNode(stored)) {
 			app = vf.createBNode(stored.stringValue().substring(vf.PREFIX_FOR_EXTERNAL_BNODES.length()));
 		}
 		return app;

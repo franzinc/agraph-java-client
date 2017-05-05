@@ -14,7 +14,7 @@ import com.hp.hpl.jena.vocabulary.RDFS;
 import junit.framework.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.openrdf.model.URI;
+import org.openrdf.model.IRI;
 import org.openrdf.repository.RepositoryException;
 
 import java.io.File;
@@ -487,10 +487,10 @@ public class JenaTests extends AGAbstractTest {
     	AGModel model = closeLater( new AGModel(unionGraph));
     	
     	// add quads somehow (here via the sesame api)
-    	URI s = conn.getValueFactory().createURI("http://s");
-    	URI p = conn.getValueFactory().createURI("http://p");
-    	URI o = conn.getValueFactory().createURI("http://o");
-    	URI g = conn.getValueFactory().createURI("http://g");
+    	IRI s = conn.getValueFactory().createIRI("http://s");
+    	IRI p = conn.getValueFactory().createIRI("http://p");
+    	IRI o = conn.getValueFactory().createIRI("http://o");
+    	IRI g = conn.getValueFactory().createIRI("http://g");
     	conn.add(s, p, o, g);
     	conn.add(g, p, o); // has the default "unnamed" graph
     	Assert.assertEquals("unexpected model size", 2, model.size());

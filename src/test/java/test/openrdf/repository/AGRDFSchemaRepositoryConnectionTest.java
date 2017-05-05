@@ -2,8 +2,8 @@ package test.openrdf.repository;
 
 import com.franz.agraph.repository.AGRepository;
 import org.junit.Test;
+import org.openrdf.model.IRI;
 import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
 import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.model.vocabulary.RDFS;
 import org.openrdf.repository.Repository;
@@ -17,11 +17,11 @@ public class AGRDFSchemaRepositoryConnectionTest extends AGRepositoryConnectionT
 
 	static AGRepository repo = null;
 	
-	private URI person;
+	private IRI person;
 	
-	private URI woman;
+	private IRI woman;
 	
-	private URI man;
+	private IRI man;
 	
 	@Override
 	protected Repository createRepository() throws Exception {
@@ -34,9 +34,9 @@ public class AGRDFSchemaRepositoryConnectionTest extends AGRepositoryConnectionT
 	{
 		super.setUp();
 
-		person = vf.createURI(FOAF_NS + "Person");
-		woman = vf.createURI("http://example.org/Woman");
-		man = vf.createURI("http://example.org/Man");
+		person = vf.createIRI(FOAF_NS + "Person");
+		woman = vf.createIRI("http://example.org/Woman");
+		man = vf.createIRI("http://example.org/Man");
 	}
 
     @Test

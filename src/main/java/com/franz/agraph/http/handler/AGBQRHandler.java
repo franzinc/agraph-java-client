@@ -32,7 +32,7 @@ public class AGBQRHandler extends AGResponseHandler {
 		InputStream response = getInputStream(method);
 		try {
 			BooleanQueryResultFormat format = BooleanQueryResultFormat.TEXT;
-			BooleanQueryResultParser parser = QueryResultIO.createParser(format);
+			BooleanQueryResultParser parser = QueryResultIO.createBooleanParser(format);
 			result = parser.parse(response);
 		} catch (QueryResultParseException e) {
 			throw new AGHttpException(e);

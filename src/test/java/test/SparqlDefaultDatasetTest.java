@@ -39,9 +39,9 @@ public class SparqlDefaultDatasetTest extends AGAbstractTest {
 	private void testSesameDefaultDataset(RepositoryConnection conn)
 			throws IOException, UpdateExecutionException, RepositoryException,
 			MalformedQueryException, QueryEvaluationException {
-		Resource g1 = conn.getValueFactory().createURI("eh:graph1");
-		Resource g2 = conn.getValueFactory().createURI("eh:graph2");
-		Resource g3 = conn.getValueFactory().createURI("eh:graph3");
+		Resource g1 = conn.getValueFactory().createIRI("eh:graph1");
+		Resource g2 = conn.getValueFactory().createIRI("eh:graph2");
+		Resource g3 = conn.getValueFactory().createIRI("eh:graph3");
 
 		String update = AGAbstractTest.readResourceAsString("/test/update-default.ru");
 		conn.prepareUpdate(QueryLanguage.SPARQL, update).execute();

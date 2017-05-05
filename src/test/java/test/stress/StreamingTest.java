@@ -8,8 +8,8 @@ import com.franz.agraph.repository.*;
 import com.franz.util.Closer;
 import org.junit.Before;
 import org.junit.Test;
+import org.openrdf.model.IRI;
 import org.openrdf.model.Literal;
-import org.openrdf.model.URI;
 import org.openrdf.query.*;
 import test.AGAbstractTest;
 
@@ -68,8 +68,8 @@ public class StreamingTest extends AGAbstractTest {
             vf = repo.getValueFactory();
             conn = closeLater(repo.getConnection());
             conn.setAutoCommit(false);
-            URI subj = vf.createURI("http://example.org/subj");
-            URI pred = vf.createURI("http://example.org/pred");
+            IRI subj = vf.createIRI("http://example.org/subj");
+            IRI pred = vf.createIRI("http://example.org/pred");
             long size = conn.size();
             while (size < SIZE) {
                 Literal obj = vf.createLiteral(size);

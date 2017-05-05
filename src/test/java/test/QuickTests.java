@@ -15,10 +15,7 @@ import org.junit.experimental.categories.Categories.IncludeCategory;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite.SuiteClasses;
-import org.openrdf.model.BNode;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
+import org.openrdf.model.*;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
@@ -50,7 +47,7 @@ public class QuickTests extends AGAbstractTest {
     public void bnode() throws Exception {
         assertEquals("size", 0, conn.size());
         BNode s = vf.createBNode();
-        URI p = vf.createURI(NS, "a");
+        IRI p = vf.createIRI(NS, "a");
         Literal o = vf.createLiteral("aaa");
         conn.add(s, p, o);
         assertEquals("size", 1, conn.size());
@@ -69,8 +66,8 @@ public class QuickTests extends AGAbstractTest {
     @Test
     @Category(TestSuites.Prepush.class)
     public void bnode_rfe9776() throws Exception {
-    	URI orderedCollection = vf.createURI("http://lumas#orderedCollection");
-    	URI property = vf.createURI("http://lumas#hasId");
+    	IRI orderedCollection = vf.createIRI("http://lumas#orderedCollection");
+    	IRI property = vf.createIRI("http://lumas#hasId");
     	BNode node = vf.createBNode("newId");
     	
     	conn.getHttpRepoClient().setAllowExternalBlankNodeIds(true);
@@ -105,8 +102,8 @@ public class QuickTests extends AGAbstractTest {
     @Test
     @Category(TestSuites.Prepush.class)
     public void namespaceAfterError() throws Exception {
-        URI alice = vf.createURI("http://example.org/people/alice");
-        URI name = vf.createURI("http://example.org/ontology/name");
+        IRI alice = vf.createIRI("http://example.org/people/alice");
+        IRI name = vf.createIRI("http://example.org/ontology/name");
         Literal alicesName = vf.createLiteral("Alice");
         conn.add(alice, name, alicesName);
         try {
@@ -125,9 +122,9 @@ public class QuickTests extends AGAbstractTest {
     @Test
     @Category(TestSuites.Prepush.class)
     public void bulkDelete() throws Exception {
-        URI alice = vf.createURI("http://example.org/people/alice");
-        URI firstname = vf.createURI("http://example.org/ontology/firstname");
-        URI lastname = vf.createURI("http://example.org/ontology/lastname");
+        IRI alice = vf.createIRI("http://example.org/people/alice");
+        IRI firstname = vf.createIRI("http://example.org/ontology/firstname");
+        IRI lastname = vf.createIRI("http://example.org/ontology/lastname");
         Literal alicesName = vf.createLiteral("Alice");
         List<Statement> input = new ArrayList<Statement>();
         input.add(vf.createStatement(alice, firstname, alicesName));
