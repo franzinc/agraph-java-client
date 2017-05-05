@@ -8,8 +8,8 @@ import com.franz.agraph.repository.AGGraphQuery;
 import junit.framework.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.rio.RDFFormat;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.rio.RDFFormat;
 
 public class AGGraphQueryTests extends AGAbstractTest {
 

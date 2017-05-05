@@ -1,7 +1,7 @@
 package test.openrdf.repository;
 
-import org.openrdf.repository.CascadeValueExceptionTest;
-import org.openrdf.repository.Repository;
+import org.eclipse.rdf4j.repository.CascadeValueExceptionTest;
+import org.eclipse.rdf4j.repository.Repository;
 import test.AGAbstractTest;
 
 public class AGCascadeValueExceptionTest extends CascadeValueExceptionTest {

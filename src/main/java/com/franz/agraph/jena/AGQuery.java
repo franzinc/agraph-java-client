@@ -4,7 +4,7 @@
 
 package com.franz.agraph.jena;
 
-import org.openrdf.query.QueryLanguage;
+import org.eclipse.rdf4j.query.QueryLanguage;
 
 import com.franz.agraph.repository.AGQueryLanguage;
 

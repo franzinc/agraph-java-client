@@ -4,7 +4,7 @@
 
 package com.franz.agraph.http;
 
-import info.aduna.io.IOUtil;
+import org.eclipse.rdf4j.common.io.IOUtil;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -26,25 +26,25 @@ import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.openrdf.OpenRDFUtil;
-import org.openrdf.http.protocol.Protocol;
-import org.openrdf.model.*;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.query.Binding;
-import org.openrdf.query.Dataset;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.TupleQueryResult;
-import org.openrdf.query.TupleQueryResultHandler;
-import org.openrdf.query.TupleQueryResultHandlerException;
-import org.openrdf.query.impl.TupleQueryResultBuilder;
-import org.openrdf.query.resultio.BooleanQueryResultFormat;
-import org.openrdf.query.resultio.TupleQueryResultFormat;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.rio.RDFFormat;
-import org.openrdf.rio.RDFHandler;
-import org.openrdf.rio.RDFHandlerException;
-import org.openrdf.rio.RDFParseException;
-import org.openrdf.rio.ntriples.NTriplesUtil;
+import org.eclipse.rdf4j.OpenRDFUtil;
+import org.eclipse.rdf4j.http.protocol.Protocol;
+import org.eclipse.rdf4j.model.*;
+import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.query.Binding;
+import org.eclipse.rdf4j.query.Dataset;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.TupleQueryResult;
+import org.eclipse.rdf4j.query.TupleQueryResultHandler;
+import org.eclipse.rdf4j.query.TupleQueryResultHandlerException;
+import org.eclipse.rdf4j.query.impl.TupleQueryResultBuilder;
+import org.eclipse.rdf4j.query.resultio.BooleanQueryResultFormat;
+import org.eclipse.rdf4j.query.resultio.TupleQueryResultFormat;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.RDFHandler;
+import org.eclipse.rdf4j.rio.RDFHandlerException;
+import org.eclipse.rdf4j.rio.RDFParseException;
+import org.eclipse.rdf4j.rio.ntriples.NTriplesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -2222,7 +2222,7 @@ public class AGHttpRepoClient implements Closeable {
 		Resource storable = r;
 		if (r instanceof BNode && !vf.isAGBlankNodeId(r.stringValue())) {
 			if (allowExternalBlankNodeIds) {
-				storable = vf.createURI(vf.PREFIX_FOR_EXTERNAL_BNODES + r.stringValue());
+				storable = vf.createIRI(vf.PREFIX_FOR_EXTERNAL_BNODES + r.stringValue());
 			} else {
 				throw new IllegalArgumentException("Cannot store external blank node " + r + " in AllegroGraph with the current settings. Please see javadoc for AGHttpRepoClient#setAllowExternalBlankNodeIds(boolean) for more details and options.");
 			}
@@ -2261,7 +2261,7 @@ public class AGHttpRepoClient implements Closeable {
 		Value storable = v;
 		if (v instanceof BNode && !vf.isAGBlankNodeId(v.stringValue())) {
 			if (allowExternalBlankNodeIds) {
-				storable = vf.createURI(vf.PREFIX_FOR_EXTERNAL_BNODES + v.stringValue());
+				storable = vf.createIRI(vf.PREFIX_FOR_EXTERNAL_BNODES + v.stringValue());
 			} else {
 				throw new IllegalArgumentException("Cannot store external blank node " + v + " in AllegroGraph with the current settings. Please see javadoc for AGHttpRepoClient#setAllowExternalBlankNodeIds(boolean) for more details and options.");
 			}

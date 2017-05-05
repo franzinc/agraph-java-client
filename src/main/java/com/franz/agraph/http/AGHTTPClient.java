@@ -6,8 +6,8 @@ package com.franz.agraph.http;
 
 import static com.franz.agraph.http.AGProtocol.AMOUNT_PARAM_NAME;
 import static com.franz.agraph.http.AGProtocol.OVERRIDE_PARAM_NAME;
-import static org.openrdf.http.protocol.Protocol.ACCEPT_PARAM_NAME;
-import static org.openrdf.http.protocol.Protocol.PROTOCOL;
+import static org.eclipse.rdf4j.http.protocol.Protocol.ACCEPT_PARAM_NAME;
+import static org.eclipse.rdf4j.http.protocol.Protocol.PROTOCOL;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,11 +31,11 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
-import org.openrdf.http.protocol.Protocol;
-import org.openrdf.http.protocol.UnauthorizedException;
-import org.openrdf.query.TupleQueryResult;
-import org.openrdf.query.impl.TupleQueryResultBuilder;
-import org.openrdf.query.resultio.TupleQueryResultFormat;
+import org.eclipse.rdf4j.http.protocol.Protocol;
+import org.eclipse.rdf4j.http.protocol.UnauthorizedException;
+import org.eclipse.rdf4j.query.TupleQueryResult;
+import org.eclipse.rdf4j.query.impl.TupleQueryResultBuilder;
+import org.eclipse.rdf4j.query.resultio.TupleQueryResultFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

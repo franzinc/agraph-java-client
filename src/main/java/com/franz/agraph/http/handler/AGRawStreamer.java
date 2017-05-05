@@ -7,9 +7,9 @@ package com.franz.agraph.http.handler;
 import com.franz.agraph.http.exception.AGHttpException;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.io.input.AutoCloseInputStream;
-import org.openrdf.query.resultio.BooleanQueryResultFormat;
-import org.openrdf.query.resultio.TupleQueryResultFormat;
-import org.openrdf.rio.RDFFormat;
+import org.eclipse.rdf4j.query.resultio.BooleanQueryResultFormat;
+import org.eclipse.rdf4j.query.resultio.TupleQueryResultFormat;
+import org.eclipse.rdf4j.rio.RDFFormat;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -7,10 +7,10 @@ package test.openrdf;
 import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.repository.AGServer;
 import junit.framework.Test;
-import org.openrdf.query.Dataset;
-import org.openrdf.query.parser.sparql.manifest.SPARQLQueryTest;
-import org.openrdf.repository.Repository;
-import org.openrdf.repository.RepositoryException;
+import org.eclipse.rdf4j.query.Dataset;
+import org.eclipse.rdf4j.query.parser.sparql.manifest.SPARQLQueryTest;
+import org.eclipse.rdf4j.repository.Repository;
+import org.eclipse.rdf4j.repository.RepositoryException;
 import test.AGAbstractTest;
 
 public class AGSparqlQueryTest extends SPARQLQueryTest {

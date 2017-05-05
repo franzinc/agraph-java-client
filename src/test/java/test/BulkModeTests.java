@@ -7,9 +7,9 @@ package test;
 import junit.framework.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.openrdf.model.IRI;
-import org.openrdf.model.Resource;
-import org.openrdf.rio.RDFFormat;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.rio.RDFFormat;
 
 import static org.junit.Assert.assertEquals;
 

@@ -1,10 +1,10 @@
 package test.openrdf;
 
 import junit.framework.Test;
-import org.openrdf.model.IRI;
-import org.openrdf.query.parser.sparql.manifest.SPARQLUpdateConformanceTest;
-import org.openrdf.repository.Repository;
-import org.openrdf.repository.contextaware.ContextAwareRepository;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.query.parser.sparql.manifest.SPARQLUpdateConformanceTest;
+import org.eclipse.rdf4j.repository.Repository;
+import org.eclipse.rdf4j.repository.contextaware.ContextAwareRepository;
 import test.AGAbstractTest;
 
 import java.util.Map;

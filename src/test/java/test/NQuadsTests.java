@@ -10,8 +10,8 @@ import com.franz.agraph.jena.AGModel;
 import junit.framework.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.openrdf.model.IRI;
-import org.openrdf.rio.RDFFormat;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.rio.RDFFormat;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;

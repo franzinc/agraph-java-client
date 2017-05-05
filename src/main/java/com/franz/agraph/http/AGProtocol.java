@@ -9,8 +9,8 @@ package com.franz.agraph.http;
 
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.util.URIUtil;
-import org.openrdf.http.protocol.Protocol;
-import org.openrdf.repository.RepositoryException;
+import org.eclipse.rdf4j.http.protocol.Protocol;
+import org.eclipse.rdf4j.repository.RepositoryException;
 
 import com.franz.agraph.http.exception.AGHttpException;
 

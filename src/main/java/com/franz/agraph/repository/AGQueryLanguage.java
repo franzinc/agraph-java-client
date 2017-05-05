@@ -4,7 +4,7 @@
 
 package com.franz.agraph.repository;
 
-import org.openrdf.query.QueryLanguage;
+import org.eclipse.rdf4j.query.QueryLanguage;
 
 /**
  * Extends the Sesame QueryLanguage class for AllegroGraph languages.

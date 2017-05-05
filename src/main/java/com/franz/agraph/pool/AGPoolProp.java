@@ -73,7 +73,7 @@ public enum AGPoolProp {
 	maxWait,
 	
 	/**
-	 * Calls {@link AGRepositoryConnection#size(org.openrdf.model.Resource...)}.
+	 * Calls {@link AGRepositoryConnection#size(org.eclipse.rdf4j.model.Resource...)}.
 	 * 
 	 * Redundant because {@link AGConnFactory#activateObject(Object)}
 	 * always calls {@link AGRepositoryConnection#rollback()}.
@@ -84,7 +84,7 @@ public enum AGPoolProp {
 	testOnBorrow,
 	
 	/**
-	 * Calls {@link AGRepositoryConnection#size(org.openrdf.model.Resource...)}.
+	 * Calls {@link AGRepositoryConnection#size(org.eclipse.rdf4j.model.Resource...)}.
 	 * @see GenericObjectPool#setTestOnReturn(boolean)
 	 * @see AGConnFactory#validateObject(Object)
 	 */

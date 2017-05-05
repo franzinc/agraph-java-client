@@ -5,7 +5,7 @@
 package test.lubm;
 
 import com.franz.agraph.repository.*;
-import org.openrdf.OpenRDFException;
+import org.eclipse.rdf4j.OpenRDFException;
 
 import java.util.Calendar;
 

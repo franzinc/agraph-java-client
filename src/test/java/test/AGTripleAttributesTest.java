@@ -11,11 +11,11 @@ import org.json.JSONObject;
 // import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.openrdf.model.IRI;
-import org.openrdf.model.Statement;
-import org.openrdf.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 // import org.junit.rules.ExpectedException;
-import org.openrdf.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.RepositoryException;
 
 import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.repository.AGRepositoryConnection;

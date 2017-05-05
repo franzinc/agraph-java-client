@@ -9,23 +9,23 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
 
-import org.openrdf.model.BNode;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.IRI;
-import org.openrdf.model.Value;
-import org.openrdf.rio.RDFFormat;
-import org.openrdf.rio.RDFHandlerException;
-import org.openrdf.rio.helpers.RDFWriterBase;
-import org.openrdf.rio.ntriples.NTriplesUtil;
+import org.eclipse.rdf4j.model.BNode;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.RDFHandlerException;
+import org.eclipse.rdf4j.rio.helpers.RDFWriterBase;
+import org.eclipse.rdf4j.rio.ntriples.NTriplesUtil;
 
 /**
  * An implementation of the RDFWriter interface that writes RDF documents in
  * N-Quads format. The N-Quads format is defined 
  * <a href="http://sw.deri.org/2008/07/n-quads/">here</a>.
  *
- * @deprecated Use {@link org.openrdf.rio.nquads.NQuadsWriter} instead
+ * @deprecated Use {@link org.eclipse.rdf4j.rio.nquads.NQuadsWriter} instead
  */
 @Deprecated
 public class NQuadsWriter extends RDFWriterBase {

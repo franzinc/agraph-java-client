@@ -7,9 +7,9 @@ package com.franz.agraph.jena;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.openrdf.model.Statement;
-import org.openrdf.model.impl.StatementImpl;
-import org.openrdf.repository.RepositoryException;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.impl.StatementImpl;
+import org.eclipse.rdf4j.repository.RepositoryException;
 
 import com.franz.agraph.repository.AGValueFactory;
 import com.hp.hpl.jena.graph.BulkUpdateHandler;

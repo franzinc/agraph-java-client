@@ -10,9 +10,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.xerces.util.XMLChar;
-import org.openrdf.model.Namespace;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.RepositoryResult;
+import org.eclipse.rdf4j.model.Namespace;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.RepositoryResult;
 
 import com.hp.hpl.jena.rdf.model.impl.Util;
 import com.hp.hpl.jena.shared.PrefixMapping;

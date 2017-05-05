@@ -6,11 +6,11 @@ package com.franz.agraph.repository;
 
 import javax.xml.stream.XMLStreamReader;
 
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.TupleQuery;
-import org.openrdf.query.TupleQueryResult;
-import org.openrdf.query.TupleQueryResultHandler;
-import org.openrdf.query.TupleQueryResultHandlerException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.TupleQuery;
+import org.eclipse.rdf4j.query.TupleQueryResult;
+import org.eclipse.rdf4j.query.TupleQueryResultHandler;
+import org.eclipse.rdf4j.query.TupleQueryResultHandlerException;
 
 import com.franz.agraph.http.handler.AGTQRStreamer;
 
@@ -35,7 +35,7 @@ import com.franz.agraph.http.handler.AGTQRStreamer;
  * ...
  * }</pre>
  * 
- * @see AGRepositoryConnection#prepareTupleQuery(org.openrdf.query.QueryLanguage, String)
+ * @see AGRepositoryConnection#prepareTupleQuery(org.eclipse.rdf4j.query.QueryLanguage, String)
  * @since v4.3
  */
 public class AGStreamTupleQuery extends AGTupleQuery implements TupleQuery {

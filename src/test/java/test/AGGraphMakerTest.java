@@ -14,7 +14,7 @@ import com.hp.hpl.jena.graph.test.AbstractTestGraphMaker;
 import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestSuite;
-import org.openrdf.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.RepositoryException;
 
 public class AGGraphMakerTest extends AbstractTestGraphMaker {
 

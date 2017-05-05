@@ -8,12 +8,12 @@ import java.util.List;
 import java.util.ArrayList;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.openrdf.model.*;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.TupleQuery;
-import org.openrdf.query.TupleQueryResult;
+import org.eclipse.rdf4j.model.*;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.TupleQuery;
+import org.eclipse.rdf4j.query.TupleQueryResult;
 
 import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGRepository;
@@ -23,7 +23,7 @@ import com.franz.agraph.repository.AGQuery;
 import com.franz.agraph.repository.AGValueFactory;
 import com.franz.agraph.repository.AGRepositoryConnection.AttributeDefinition;
 import com.franz.agraph.repository.UserAttributesContext;
-import info.aduna.iteration.CloseableIteration;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
 /**
  * A sample class demonstrating the capabilities of AllegroGraph Triple

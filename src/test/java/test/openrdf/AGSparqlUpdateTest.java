@@ -7,14 +7,14 @@ package test.openrdf;
 import junit.framework.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.openrdf.model.IRI;
-import org.openrdf.model.Literal;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.Update;
-import org.openrdf.repository.Repository;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.rio.*;
-import org.openrdf.rio.helpers.StatementCollector;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.Update;
+import org.eclipse.rdf4j.repository.Repository;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.rio.*;
+import org.eclipse.rdf4j.rio.helpers.StatementCollector;
 import test.AGAbstractTest;
 import test.TestSuites;
 
@@ -81,7 +81,7 @@ public class AGSparqlUpdateTest extends SPARQLUpdateTest {
 		throws RDFParseException, RepositoryException, IOException
 	{
 		logger.debug("loading dataset...");
-		InputStream dataset = org.openrdf.query.parser.sparql.SPARQLUpdateTest.class.getResourceAsStream(datasetFile);
+		InputStream dataset = org.eclipse.rdf4j.query.parser.sparql.SPARQLUpdateTest.class.getResourceAsStream(datasetFile);
 		try {
 			RDFParser parser = Rio.createParser(RDFFormat.TRIG, f);
 			parser.setPreserveBNodeIDs(true);

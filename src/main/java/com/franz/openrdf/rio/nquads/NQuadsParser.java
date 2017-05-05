@@ -9,20 +9,20 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 
-import org.openrdf.model.Literal;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.IRI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.rio.RDFFormat;
-import org.openrdf.rio.RDFHandlerException;
-import org.openrdf.rio.RDFParseException;
-import org.openrdf.rio.RioSetting;
-import org.openrdf.rio.helpers.NTriplesParserSettings;
-import org.openrdf.rio.helpers.RDFParserBase;
-import org.openrdf.rio.ntriples.NTriplesUtil;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.RDFHandlerException;
+import org.eclipse.rdf4j.rio.RDFParseException;
+import org.eclipse.rdf4j.rio.RioSetting;
+import org.eclipse.rdf4j.rio.helpers.NTriplesParserSettings;
+import org.eclipse.rdf4j.rio.helpers.RDFParserBase;
+import org.eclipse.rdf4j.rio.ntriples.NTriplesUtil;
 
 /**
  * RDF parser for N-Quads files. 
@@ -33,7 +33,7 @@ import org.openrdf.rio.ntriples.NTriplesUtil;
  *
  * Modified from openrdf's NTriplesParser.
  * 
- *  @deprecated Use {@link org.openrdf.rio.nquads.NQuadsParser} instead
+ *  @deprecated Use {@link org.eclipse.rdf4j.rio.nquads.NQuadsParser} instead
  */
 @Deprecated
 public class NQuadsParser extends RDFParserBase {

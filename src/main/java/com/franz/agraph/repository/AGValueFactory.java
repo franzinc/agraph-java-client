@@ -4,10 +4,10 @@
 
 package com.franz.agraph.repository;
 
-import org.openrdf.model.*;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.rio.ntriples.NTriplesUtil;
+import org.eclipse.rdf4j.model.*;
+import org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.rio.ntriples.NTriplesUtil;
 
 import com.franz.agraph.http.AGHTTPClient;
 import com.franz.agraph.http.AGHttpRepoClient;
@@ -166,7 +166,7 @@ public class AGValueFactory extends ValueFactoryImpl {
 		if (node==null || node==Node.ANY) {
 			val = null;
 		} else if (node.isURI()) {
-			val = createURI(node.getURI());
+			val = createIRI(node.getURI());
 		} else if (node.isBlank()) {
 			String id = node.getBlankNodeLabel();
 			val = createBNode(id); 
@@ -213,7 +213,7 @@ public class AGValueFactory extends ValueFactoryImpl {
 		if (node==null || node==Node.ANY) {
 			res = null;
 		} else if (node.isURI()) {
-			res = createURI(node.getURI());
+			res = createIRI(node.getURI());
 		} else if (node.isBlank()) {
 			res = createBNode(node.getBlankNodeLabel()); 
 		} else {

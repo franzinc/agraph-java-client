@@ -6,8 +6,8 @@ package com.franz.agraph.repository;
 
 import java.util.Arrays;
 
-import org.openrdf.model.Value;
-import org.openrdf.query.BindingSet;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.query.BindingSet;
 
 /**
  * Represents a SPIN function.

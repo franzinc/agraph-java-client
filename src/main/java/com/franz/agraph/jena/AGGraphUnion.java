@@ -4,7 +4,7 @@
 
 package com.franz.agraph.jena;
 
-import org.openrdf.model.Resource;
+import org.eclipse.rdf4j.model.Resource;
 
 public class AGGraphUnion extends AGGraph {
 

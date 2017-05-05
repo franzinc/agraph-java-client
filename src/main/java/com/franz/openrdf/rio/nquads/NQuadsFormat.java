@@ -3,15 +3,15 @@
 ******************************************************************************/
 package com.franz.openrdf.rio.nquads;
 
-import org.openrdf.rio.RDFFormat;
-import org.openrdf.rio.RDFParserRegistry;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.RDFParserRegistry;
 
 import java.nio.charset.Charset;
 
 /**
  * An {@link RDFFormat} for N-Quads.
  *
- * @deprecated Use {@link org.openrdf.rio.RDFFormat#NQUADS} instead
+ * @deprecated Use {@link org.eclipse.rdf4j.rio.RDFFormat#NQUADS} instead
  */
 @Deprecated
 public class NQuadsFormat extends RDFFormat {

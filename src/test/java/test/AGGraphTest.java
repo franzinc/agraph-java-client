@@ -16,7 +16,7 @@ import com.hp.hpl.jena.graph.test.AbstractTestGraph;
 import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestSuite;
-import org.openrdf.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.RepositoryException;
 
 public class AGGraphTest extends AbstractTestGraph {
 

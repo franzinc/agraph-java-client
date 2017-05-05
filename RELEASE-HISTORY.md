@@ -1,5 +1,14 @@
 # AllegroGraph Java client release history
 
+## 2.0.0
+
+### rfe14986: Upgrade to rdf4j 2.2.2
+
+The Sesame version used by the Java client has been updated from
+Sesame 2.9.0 to RDF4J 2.2.2. Since the Java client is an extension of
+the Sesame (now RDF4J) API, users should follow the migration guide at
+http://docs.rdf4j.org/migration/
+
 ## 1.0.10
 
 ### Moved to Sesame 2.9.0

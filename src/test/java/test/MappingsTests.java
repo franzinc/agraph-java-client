@@ -7,9 +7,9 @@ package test;
 import junit.framework.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.openrdf.model.*;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.repository.RepositoryResult;
+import org.eclipse.rdf4j.model.*;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.repository.RepositoryResult;
 
 public class MappingsTests extends AGAbstractTest {
 

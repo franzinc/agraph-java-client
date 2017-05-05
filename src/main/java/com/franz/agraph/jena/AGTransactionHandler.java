@@ -4,7 +4,7 @@
 
 package com.franz.agraph.jena;
 
-import org.openrdf.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.RepositoryException;
 
 import com.hp.hpl.jena.graph.TransactionHandler;
 import com.hp.hpl.jena.shared.Command;

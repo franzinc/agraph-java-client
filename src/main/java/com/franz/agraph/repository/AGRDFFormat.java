@@ -6,7 +6,7 @@ package com.franz.agraph.repository;
 
 import java.nio.charset.Charset;
 
-import org.openrdf.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.RDFFormat;
 
 public class AGRDFFormat extends RDFFormat {
 

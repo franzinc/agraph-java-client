@@ -8,8 +8,8 @@ import org.apache.commons.httpclient.HttpConnectionManager;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 import org.apache.commons.pool.PoolableObjectFactory;
-import org.openrdf.OpenRDFException;
-import org.openrdf.repository.RepositoryException;
+import org.eclipse.rdf4j.OpenRDFException;
+import org.eclipse.rdf4j.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -170,7 +170,7 @@ implements PoolableObjectFactory {
 	}
 	
 	/**
-	 * Calls {@link AGRepositoryConnection#size(org.openrdf.model.Resource...)}.
+	 * Calls {@link AGRepositoryConnection#size(org.eclipse.rdf4j.model.Resource...)}.
 	 */
 	@Override
 	public boolean validateObject(Object obj) {

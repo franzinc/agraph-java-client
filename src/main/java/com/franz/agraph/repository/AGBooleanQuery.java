@@ -6,13 +6,13 @@ package com.franz.agraph.repository;
 
 import com.franz.agraph.http.handler.AGDownloadHandler;
 import com.franz.agraph.http.handler.AGRawStreamer;
-import org.openrdf.query.BooleanQuery;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.QueryLanguage;
+import org.eclipse.rdf4j.query.BooleanQuery;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.resultio.BooleanQueryResultFormat;
 
 import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.http.handler.AGBQRHandler;
-import org.openrdf.query.resultio.BooleanQueryResultFormat;
 
 import java.io.File;
 import java.io.InputStream;

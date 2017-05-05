@@ -7,9 +7,9 @@ package com.franz.agraph.repository;
 import java.io.File;
 import java.util.concurrent.ScheduledExecutorService;
 
-import org.openrdf.model.Resource;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.base.RepositoryBase;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.base.RepositoryBase;
 
 import com.franz.agraph.http.AGHTTPClient;
 import com.franz.agraph.http.AGHttpRepoClient;

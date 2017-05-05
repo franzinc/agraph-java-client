@@ -1,8 +1,7 @@
 package test.openrdf.repository;
 
-import junit.framework.TestSuite;
-import org.openrdf.repository.EquivalentTest;
-import org.openrdf.repository.Repository;
+import org.eclipse.rdf4j.repository.EquivalentTest;
+import org.eclipse.rdf4j.repository.Repository;
 import test.AGAbstractTest;
 
 public class AGEquivalentTest extends EquivalentTest {

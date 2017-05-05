@@ -1,7 +1,7 @@
 package test.openrdf.repository;
 
-import org.openrdf.repository.Repository;
-import org.openrdf.repository.SparqlRegexTest;
+import org.eclipse.rdf4j.repository.Repository;
+import org.eclipse.rdf4j.repository.SparqlRegexTest;
 import test.AGAbstractTest;
 
 public class AGSparqlRegexTest extends SparqlRegexTest {

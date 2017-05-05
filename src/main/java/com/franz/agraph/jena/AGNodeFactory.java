@@ -4,7 +4,7 @@
 
 package com.franz.agraph.jena;
 
-import org.openrdf.model.*;
+import org.eclipse.rdf4j.model.*;
 
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.graph.Triple;

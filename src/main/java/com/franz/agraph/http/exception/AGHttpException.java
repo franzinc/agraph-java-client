@@ -4,7 +4,7 @@
 
 package com.franz.agraph.http.exception;
 
-import org.openrdf.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.RepositoryException;
 
 /**
  * A general exception for the AllegroGraph client's HTTP layer.

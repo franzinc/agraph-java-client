@@ -9,9 +9,9 @@ import com.franz.agraph.repository.AGRepositoryConnection;
 import junit.framework.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.openrdf.model.IRI;
-import org.openrdf.model.vocabulary.OWL;
-import org.openrdf.rio.ntriples.NTriplesUtil;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
+import org.eclipse.rdf4j.rio.ntriples.NTriplesUtil;
 
 public class MasqueradeAsUserTests extends AGAbstractTest {
 

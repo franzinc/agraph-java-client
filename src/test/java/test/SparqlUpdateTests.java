@@ -8,10 +8,10 @@ import com.hp.hpl.jena.sparql.vocabulary.FOAF;
 import junit.framework.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.openrdf.model.Literal;
-import org.openrdf.model.IRI;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.Update;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.Update;
 
 import com.franz.agraph.jena.AGGraph;
 import com.franz.agraph.jena.AGGraphMaker;

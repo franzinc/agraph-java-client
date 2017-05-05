@@ -8,8 +8,8 @@ import com.franz.agraph.repository.AGFormattedNamespace;
 import junit.framework.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.openrdf.model.IRI;
-import org.openrdf.repository.RepositoryException;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.repository.RepositoryException;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -4,7 +4,7 @@
 
 package com.franz.util;
 
-import info.aduna.iteration.CloseableIteration;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
 import javax.xml.stream.XMLStreamReader;
 

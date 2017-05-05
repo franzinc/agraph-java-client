@@ -4,12 +4,12 @@
 
 package com.franz.agraph.repository;
 
-import org.openrdf.model.Statement;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.repository.RepositoryResult;
-import org.openrdf.rio.RDFHandler;
-import org.openrdf.rio.RDFHandlerException;
-import org.openrdf.rio.helpers.StatementCollector;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.repository.RepositoryResult;
+import org.eclipse.rdf4j.rio.RDFHandler;
+import org.eclipse.rdf4j.rio.RDFHandlerException;
+import org.eclipse.rdf4j.rio.helpers.StatementCollector;
 
 import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.http.handler.AGRDFHandler;

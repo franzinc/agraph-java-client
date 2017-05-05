@@ -9,10 +9,10 @@ import static com.franz.agraph.repository.AGVirtualRepository.reasoningSpec;
 
 import java.util.Iterator;
 
-import org.openrdf.model.Resource;
-import org.openrdf.query.Dataset;
-import org.openrdf.query.impl.DatasetImpl;
-import org.openrdf.repository.RepositoryException;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.query.Dataset;
+import org.eclipse.rdf4j.query.impl.DatasetImpl;
+import org.eclipse.rdf4j.repository.RepositoryException;
 
 import com.franz.agraph.repository.AGAbstractRepository;
 import com.franz.agraph.repository.AGVirtualRepository;

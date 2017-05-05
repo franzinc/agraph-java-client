@@ -11,7 +11,7 @@ import com.hp.hpl.jena.rdf.model.*;
 import com.hp.hpl.jena.shared.ReificationStyle;
 import com.hp.hpl.jena.vocabulary.RDF;
 import org.junit.Test;
-import org.openrdf.model.IRI;
+import org.eclipse.rdf4j.model.IRI;
 
 public class ReifiedStatementTest extends AGAbstractTest {
 

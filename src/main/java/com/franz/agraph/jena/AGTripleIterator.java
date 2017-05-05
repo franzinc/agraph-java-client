@@ -4,9 +4,9 @@
 
 package com.franz.agraph.jena;
 
-import org.openrdf.model.Statement;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.RepositoryResult;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.RepositoryResult;
 
 import com.franz.util.Closeable;
 import com.hp.hpl.jena.graph.Triple;

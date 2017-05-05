@@ -5,13 +5,13 @@
   <artifactId>agq</artifactId>
   <packaging>jar</packaging>
   <version>1.0-SNAPSHOT</version>
-  <name>sesame-tutorial</name>
+  <name>agq</name>
   <description>Java query test</description>
 
   <properties>
     <main.class>com.franz.agq.Main</main.class>
     <!-- This should match Sesame version used by AG. -->
-    <sesame.version>2.9.0</sesame.version>
+    <rdf4j.version>2.2.2</rdf4j.version>
     <junit.jupiter.version>5.0.0-M4</junit.jupiter.version>
     <junit.platform.version>1.0.0-M4</junit.platform.version>
 
@@ -114,7 +114,7 @@
     <dependency>
       <groupId>com.franz</groupId>
       <artifactId>agraph-java-client</artifactId>
-      <version>1.0.11-SNAPSHOT</version>
+      <version>2.0.0-SNAPSHOT</version>
     </dependency>
     <!-- Command line parser -->
     <dependency>
@@ -122,41 +122,41 @@
       <artifactId>jcommander</artifactId>
       <version>1.69</version>
     </dependency>
-    <!-- Additional Sesame stuff. Should match the version used by AG. -->
+    <!-- Additional Rdf4j stuff. Should match the version used by AG. -->
     <dependency>
-      <groupId>org.openrdf.sesame</groupId>
-      <artifactId>sesame-queryresultio-text</artifactId>
-      <version>${sesame.version}</version>
+      <groupId>org.eclipse.rdf4j</groupId>
+      <artifactId>rdf4j-queryresultio-text</artifactId>
+      <version>${rdf4j.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.openrdf.sesame</groupId>
-      <artifactId>sesame-queryresultio-sparqljson</artifactId>
-      <version>${sesame.version}</version>
+      <groupId>org.eclipse.rdf4j</groupId>
+      <artifactId>rdf4j-queryresultio-sparqljson</artifactId>
+      <version>${rdf4j.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.openrdf.sesame</groupId>
-      <artifactId>sesame-rio-trix</artifactId>
-      <version>${sesame.version}</version>
+      <groupId>org.eclipse.rdf4j</groupId>
+      <artifactId>rdf4j-rio-trix</artifactId>
+      <version>${rdf4j.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.openrdf.sesame</groupId>
-      <artifactId>sesame-rio-rdfjson</artifactId>
-      <version>${sesame.version}</version>
+      <groupId>org.eclipse.rdf4j</groupId>
+      <artifactId>rdf4j-rio-rdfjson</artifactId>
+      <version>${rdf4j.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.openrdf.sesame</groupId>
-      <artifactId>sesame-rio-jsonld</artifactId>
-      <version>${sesame.version}</version>
+      <groupId>org.eclipse.rdf4j</groupId>
+      <artifactId>rdf4j-rio-jsonld</artifactId>
+      <version>${rdf4j.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.openrdf.sesame</groupId>
-      <artifactId>sesame-rio-n3</artifactId>
-      <version>${sesame.version}</version>
+      <groupId>org.eclipse.rdf4j</groupId>
+      <artifactId>rdf4j-rio-n3</artifactId>
+      <version>${rdf4j.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.openrdf.sesame</groupId>
-      <artifactId>sesame-rio-binary</artifactId>
-      <version>${sesame.version}</version>
+      <groupId>org.eclipse.rdf4j</groupId>
+      <artifactId>rdf4j-rio-binary</artifactId>
+      <version>${rdf4j.version}</version>
     </dependency>
 
     <!-- Testing libraries -->

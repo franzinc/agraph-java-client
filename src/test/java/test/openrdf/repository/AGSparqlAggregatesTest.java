@@ -1,7 +1,7 @@
 package test.openrdf.repository;
 
-import org.openrdf.repository.Repository;
-import org.openrdf.repository.SparqlAggregatesTest;
+import org.eclipse.rdf4j.repository.Repository;
+import org.eclipse.rdf4j.repository.SparqlAggregatesTest;
 import test.AGAbstractTest;
 
 public class AGSparqlAggregatesTest extends SparqlAggregatesTest {

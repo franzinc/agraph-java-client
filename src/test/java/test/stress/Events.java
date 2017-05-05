@@ -11,11 +11,11 @@ import com.franz.agraph.repository.*;
 import com.franz.util.Closeable;
 import com.franz.util.Closer;
 import org.apache.commons.cli.*;
-import org.openrdf.model.*;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.*;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.rio.ntriples.NTriplesUtil;
+import org.eclipse.rdf4j.model.*;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.*;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.rio.ntriples.NTriplesUtil;
 import test.Util;
 
 import javax.xml.datatype.DatatypeConfigurationException;

@@ -3,14 +3,14 @@
 ******************************************************************************/
 package com.franz.openrdf.rio.nquads;
 
-import org.openrdf.rio.RDFFormat;
-import org.openrdf.rio.RDFParser;
-import org.openrdf.rio.RDFParserFactory;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.RDFParser;
+import org.eclipse.rdf4j.rio.RDFParserFactory;
 
 /**
  * An {@link RDFParserFactory} for N-Quads parsers.
  * 
- * @deprecated Use {@link org.openrdf.rio.nquads.NQuadsParserFactory} instead
+ * @deprecated Use {@link org.eclipse.rdf4j.rio.nquads.NQuadsParserFactory} instead
  */
 @Deprecated
 public class NQuadsParserFactory implements RDFParserFactory {

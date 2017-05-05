@@ -12,10 +12,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.openrdf.model.IRI;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.rio.RDFFormat;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.rio.RDFFormat;
 
 import java.util.List;
 

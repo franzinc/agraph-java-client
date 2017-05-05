@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.franz</groupId>
   <artifactId>agraph-java-client</artifactId>
-  <version>1.0.11-SNAPSHOT</version>
+  <version>2.0.0-SNAPSHOT</version>
   <name>agraph-java-client</name>
   <description>Java client API for Franz AllegroGraph</description>
   <url>https://github.com/franzinc/agraph-java-client</url>
@@ -39,8 +39,8 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <tests.include>test.TestSuites$Prepush</tests.include>
     <tests.exclude />
-    <!-- All Sesame deps use the same version. -->
-    <sesame.version>4.1.2</sesame.version>
+    <!-- All RDF4J deps use the same version. -->
+    <rdf4j.version>2.2.2</rdf4j.version>
     <!-- Same thing applies to Jena. -->
     <jena.version>2.11.1</jena.version>
   </properties>
@@ -114,6 +114,22 @@
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
         <version>1.12</version>
+        <executions>
+          <!-- Extract first two components from the RDF4J version number.
+               These are needed to construct Javadoc URLs. -->
+          <execution>
+            <id>regex-property</id>
+            <goals>
+              <goal>regex-property</goal>
+            </goals>
+            <configuration>
+              <name>rdf4j.release</name>
+              <value>${rdf4j.version}</value>
+              <regex>([^.]*\.[^.])\..*</regex>
+              <replacement>$1</replacement>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
       
       <!-- Compiler settings. -->
@@ -236,9 +252,8 @@
               <location>${basedir}/lib/java</location>
             </offlineLink>
             <offlineLink>
-              <!-- Can't use ${sesame.version}, there are no docs for 2.7.11 -->
-              <url>http://archive.rdf4j.org/sesame-2.7.12/</url>
-              <location>${basedir}/lib/sesame</location>
+              <url>http://docs.rdf4j.org/javadoc/${rdf4j.release}/</url>
+              <location>${basedir}/lib/rdf4j</location>
             </offlineLink>
             <offlineLink>
               <!-- Apache only hosts the very latest version. -->
@@ -357,16 +372,16 @@
     </dependency>
 
     <dependency>
-      <groupId>org.openrdf.sesame</groupId>
-      <artifactId>sesame-sparql-testsuite</artifactId>
-      <version>${sesame.version}</version>
+      <groupId>org.eclipse.rdf4j</groupId>
+      <artifactId>rdf4j-sparql-testsuite</artifactId>
+      <version>${rdf4j.version}</version>
       <scope>test</scope>
     </dependency>
     
     <dependency>
-      <groupId>org.openrdf.sesame</groupId>
-      <artifactId>sesame-store-testsuite</artifactId>
-      <version>${sesame.version}</version>
+      <groupId>org.eclipse.rdf4j</groupId>
+      <artifactId>rdf4j-store-testsuite</artifactId>
+      <version>${rdf4j.version}</version>
       <scope>test</scope>
     </dependency>
 
@@ -385,23 +400,29 @@
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
-    
+
     <dependency>
-      <groupId>org.openrdf.sesame</groupId>
-      <artifactId>sesame-runtime</artifactId>
-      <version>${sesame.version}</version>
+      <groupId>org.eclipse.rdf4j</groupId>
+      <artifactId>rdf4j-model</artifactId>
+      <version>${rdf4j.version}</version>
     </dependency>
 
     <dependency>
-      <groupId>org.openrdf.sesame</groupId>
-      <artifactId>sesame-rio-nquads</artifactId>
-      <version>${sesame.version}</version>
+      <groupId>org.eclipse.rdf4j</groupId>
+      <artifactId>rdf4j-runtime</artifactId>
+      <version>${rdf4j.version}</version>
     </dependency>
 
     <dependency>
-      <groupId>org.openrdf.sesame</groupId>
-      <artifactId>sesame-rio-rdfxml</artifactId>
-      <version>${sesame.version}</version>
+      <groupId>org.eclipse.rdf4j</groupId>
+      <artifactId>rdf4j-rio-nquads</artifactId>
+      <version>${rdf4j.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.eclipse.rdf4j</groupId>
+      <artifactId>rdf4j-rio-rdfxml</artifactId>
+      <version>${rdf4j.version}</version>
     </dependency>
     
     <dependency>

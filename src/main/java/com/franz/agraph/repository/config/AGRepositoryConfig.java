@@ -10,12 +10,12 @@ import static com.franz.agraph.repository.config.AGRepositorySchema.REPOSITORYID
 import static com.franz.agraph.repository.config.AGRepositorySchema.SERVERURL;
 import static com.franz.agraph.repository.config.AGRepositorySchema.USERNAME;
 
-import org.openrdf.model.*;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.util.GraphUtil;
-import org.openrdf.model.util.GraphUtilException;
-import org.openrdf.repository.config.RepositoryConfigException;
-import org.openrdf.repository.config.RepositoryImplConfigBase;
+import org.eclipse.rdf4j.model.*;
+import org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
+import org.eclipse.rdf4j.model.util.GraphUtil;
+import org.eclipse.rdf4j.model.util.GraphUtilException;
+import org.eclipse.rdf4j.repository.config.RepositoryConfigException;
+import org.eclipse.rdf4j.repository.config.RepositoryImplConfigBase;
 
 /**
  * Configuration for an AllegroGraph Repository.
@@ -105,7 +105,7 @@ public class AGRepositoryConfig extends RepositoryImplConfigBase {
 		Resource implNode = super.export(graph);
 
 		if (serverUrl != null) {
-			graph.add(implNode, SERVERURL, getValueFactory().createURI(serverUrl));
+			graph.add(implNode, SERVERURL, getValueFactory().createIRI(serverUrl));
 		}
 		if (username != null) {
 			graph.add(implNode, USERNAME, getValueFactory().createLiteral(username));

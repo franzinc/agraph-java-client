@@ -4,7 +4,7 @@
 // text, you must update the link on the client download page.
 = Java client for Franz AllegroGraph
 
-:version: 1.0.10
+:version: 2.0.0
 
 This is the Java client for the http://franz.com/agraph/[Franz
 AllegroGraph] triple store.  It contains
@@ -13,7 +13,7 @@ https://jena.apache.org/[Jena]-compatible APIs.
 
 == Client prerequisites
 
-Java version 8 or higher, and any operating system should work with these jars
+Java version 8 or higher, and any operating system should work with these jars.
 
 === Usage
 
@@ -93,7 +93,7 @@ To build a distribution archive, do
 There are three tutorials located in tutorials/ that can be
 compiled and run. They are:
 
-  sesame/::  Example usage of the AG Sesame interface
+  sesame/::  Example usage of the AG Sesame/RDF4J interface
   jena/:: Example usage of the AG Jena interface
   attributes/:: Example usage of AG Triple Attributes
 

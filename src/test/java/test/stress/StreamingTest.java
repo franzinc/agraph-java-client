@@ -8,9 +8,9 @@ import com.franz.agraph.repository.*;
 import com.franz.util.Closer;
 import org.junit.Before;
 import org.junit.Test;
-import org.openrdf.model.IRI;
-import org.openrdf.model.Literal;
-import org.openrdf.query.*;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.query.*;
 import test.AGAbstractTest;
 
 import java.lang.management.ManagementFactory;

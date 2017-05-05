@@ -4,7 +4,7 @@
 
 package com.franz.agraph.repository;
 
-import org.openrdf.query.BindingSet;
+import org.eclipse.rdf4j.query.BindingSet;
 
 /**
  * Represents a SPIN magic property.

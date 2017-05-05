@@ -10,29 +10,29 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.franz.agraph.repository.*;
 import com.franz.util.Util;
-import info.aduna.lang.FileFormat;
-import info.aduna.lang.service.FileFormatServiceRegistry;
+import org.eclipse.rdf4j.common.lang.FileFormat;
+import org.eclipse.rdf4j.common.lang.service.FileFormatServiceRegistry;
 import org.apache.log4j.*;
-import org.openrdf.query.*;
-import org.openrdf.query.resultio.*;
-import org.openrdf.query.resultio.sparqljson.SPARQLBooleanJSONWriterFactory;
-import org.openrdf.query.resultio.sparqljson.SPARQLResultsJSONWriterFactory;
-import org.openrdf.query.resultio.sparqlxml.SPARQLBooleanXMLWriterFactory;
-import org.openrdf.query.resultio.sparqlxml.SPARQLResultsXMLWriterFactory;
-import org.openrdf.query.resultio.text.BooleanTextWriterFactory;
-import org.openrdf.query.resultio.text.csv.SPARQLResultsCSVWriterFactory;
-import org.openrdf.query.resultio.text.tsv.SPARQLResultsTSVWriterFactory;
-import org.openrdf.rio.RDFHandler;
-import org.openrdf.rio.RDFWriterFactory;
-import org.openrdf.rio.RDFWriterRegistry;
-import org.openrdf.rio.jsonld.JSONLDWriterFactory;
-import org.openrdf.rio.nquads.NQuadsWriterFactory;
-import org.openrdf.rio.ntriples.NTriplesWriterFactory;
-import org.openrdf.rio.rdfjson.RDFJSONWriterFactory;
-import org.openrdf.rio.rdfxml.RDFXMLWriterFactory;
-import org.openrdf.rio.trig.TriGWriterFactory;
-import org.openrdf.rio.trix.TriXWriterFactory;
-import org.openrdf.rio.turtle.TurtleWriterFactory;
+import org.eclipse.rdf4j.query.*;
+import org.eclipse.rdf4j.query.resultio.*;
+import org.eclipse.rdf4j.query.resultio.sparqljson.SPARQLBooleanJSONWriterFactory;
+import org.eclipse.rdf4j.query.resultio.sparqljson.SPARQLResultsJSONWriterFactory;
+import org.eclipse.rdf4j.query.resultio.sparqlxml.SPARQLBooleanXMLWriterFactory;
+import org.eclipse.rdf4j.query.resultio.sparqlxml.SPARQLResultsXMLWriterFactory;
+import org.eclipse.rdf4j.query.resultio.text.BooleanTextWriterFactory;
+import org.eclipse.rdf4j.query.resultio.text.csv.SPARQLResultsCSVWriterFactory;
+import org.eclipse.rdf4j.query.resultio.text.tsv.SPARQLResultsTSVWriterFactory;
+import org.eclipse.rdf4j.rio.RDFHandler;
+import org.eclipse.rdf4j.rio.RDFWriterFactory;
+import org.eclipse.rdf4j.rio.RDFWriterRegistry;
+import org.eclipse.rdf4j.rio.jsonld.JSONLDWriterFactory;
+import org.eclipse.rdf4j.rio.nquads.NQuadsWriterFactory;
+import org.eclipse.rdf4j.rio.ntriples.NTriplesWriterFactory;
+import org.eclipse.rdf4j.rio.rdfjson.RDFJSONWriterFactory;
+import org.eclipse.rdf4j.rio.rdfxml.RDFXMLWriterFactory;
+import org.eclipse.rdf4j.rio.trig.TriGWriterFactory;
+import org.eclipse.rdf4j.rio.trix.TriXWriterFactory;
+import org.eclipse.rdf4j.rio.turtle.TurtleWriterFactory;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -638,14 +638,14 @@ public class Main {
             return formats.get(normalized);
         }
         F format;
-        format = registry.getFileFormatForMIMEType(name);
+        format = registry.getFileFormatForMIMEType(name).orElse(null);;
         if (format == null) {
-            format = registry.getFileFormatForFileName(name);
+            format = registry.getFileFormatForFileName(name).orElse(null);
         }
         if (format == null) {
             throw new RuntimeException("Unknown output format: " + name);
         }
-        return registry.get(format);
+        return registry.get(format).orElse(null);
     }
 
     /**

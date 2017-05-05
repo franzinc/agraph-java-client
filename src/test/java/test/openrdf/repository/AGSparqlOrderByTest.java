@@ -1,7 +1,7 @@
 package test.openrdf.repository;
 
-import org.openrdf.repository.Repository;
-import org.openrdf.repository.SparqlOrderByTest;
+import org.eclipse.rdf4j.repository.Repository;
+import org.eclipse.rdf4j.repository.SparqlOrderByTest;
 import test.AGAbstractTest;
 
 public class AGSparqlOrderByTest extends SparqlOrderByTest {

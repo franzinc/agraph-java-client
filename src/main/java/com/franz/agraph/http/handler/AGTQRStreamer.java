@@ -15,12 +15,12 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
 import org.apache.commons.httpclient.HttpMethod;
-import org.openrdf.model.Value;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.TupleQueryResult;
-import org.openrdf.query.impl.MapBindingSet;
-import org.openrdf.query.resultio.TupleQueryResultFormat;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.TupleQueryResult;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.query.resultio.TupleQueryResultFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +30,7 @@ import com.franz.agraph.repository.AGValueFactory;
 import com.franz.util.Closer;
 
 /**
- * Similar to {@link org.openrdf.query.resultio.sparqlxml.SPARQLResultsXMLParser}
+ * Similar to {@link org.eclipse.rdf4j.query.resultio.sparqlxml.SPARQLResultsXMLParser}
  * but uses {@link XMLStreamReader} instead of SAXParser so the results
  * streaming in the http response can be processed in a
  * {@link TupleQueryResult} pulling from the stream.
@@ -168,7 +168,7 @@ public class AGTQRStreamer extends AGResponseHandler {
 								Value value = null;
 								if (datatype != null) {
 									try {
-										value = vf.createLiteral(text, vf.createURI(datatype));
+										value = vf.createLiteral(text, vf.createIRI(datatype));
 									} catch (IllegalArgumentException e) {
 										// Illegal datatype URI
 										throw new QueryEvaluationException(e.getMessage(), e);
@@ -183,7 +183,7 @@ public class AGTQRStreamer extends AGResponseHandler {
 								next.addBinding(bindingName, value);
 							}
 							else if ("uri".equals(name)) {
-								next.addBinding(bindingName, AGHttpRepoClient.getApplicationResource(vf.createURI(xml.getElementText()),vf));
+								next.addBinding(bindingName, AGHttpRepoClient.getApplicationResource(vf.createIRI(xml.getElementText()),vf));
 							}
 							else if ("bnode".equals(name)) {
 								next.addBinding(bindingName, vf.createBNode(xml.getElementText()));
