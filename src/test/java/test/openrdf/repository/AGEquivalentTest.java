@@ -6,16 +6,14 @@ import org.openrdf.repository.Repository;
 import test.AGAbstractTest;
 
 public class AGEquivalentTest extends EquivalentTest {
-
+    // This test extends a parameterized test class
+    public AGEquivalentTest(String operator,
+			    String term1,
+			    String term2) {
+	super(operator, term1, term2);
+    }
 	@Override
 	protected Repository newRepository() throws Exception {
 		return AGAbstractTest.sharedRepository();
 	}
-
-	public static TestSuite suite()
-			throws Exception
-		{
-			return suite(AGEquivalentTest.class);
-		}
-
 }

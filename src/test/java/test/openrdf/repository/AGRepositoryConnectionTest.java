@@ -5,6 +5,7 @@ import info.aduna.iteration.Iterations;
 import org.hamcrest.Matcher;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.openrdf.IsolationLevels;
 import org.openrdf.model.*;
 import org.openrdf.model.impl.GraphImpl;
 import org.openrdf.model.impl.StatementImpl;
@@ -43,7 +44,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 	
 	
 	public AGRepositoryConnectionTest() {		
-		super();
+		super(IsolationLevels.SNAPSHOT);
 	}
 
 	

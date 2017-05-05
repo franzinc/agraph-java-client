@@ -40,7 +40,7 @@
     <tests.include>test.TestSuites$Prepush</tests.include>
     <tests.exclude />
     <!-- All Sesame deps use the same version. -->
-    <sesame.version>2.7.11</sesame.version>
+    <sesame.version>2.9.0</sesame.version>
     <!-- Same thing applies to Jena. -->
     <jena.version>2.11.1</jena.version>
   </properties>
