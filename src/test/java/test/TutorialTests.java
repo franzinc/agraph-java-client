@@ -216,21 +216,21 @@ public class TutorialTests extends AGAbstractTest {
         {
             File outputFile = File.createTempFile(getClass().getSimpleName(), ".nt");
             println("Writing n-triples to: " + outputFile.getCanonicalPath());
-            OutputStream out = new FileOutputStream(outputFile);
-            NTriplesWriter ntriplesWriter = new NTriplesWriter(out);
-            conn.export(ntriplesWriter, context);
-            close(out);
+            try (OutputStream out = new FileOutputStream(outputFile)) {
+                NTriplesWriter ntriplesWriter = new NTriplesWriter(out);
+                conn.export(ntriplesWriter, context);
+            }
             assertFiles(Util.resourceAsTempFile("/test/tutorial-test8-expected.nt"), outputFile);
             outputFile.delete(); // delete if success
         }
         {
             File outputFile = File.createTempFile(getClass().getSimpleName(), ".rdf");
             println("Writing RDF to: " + outputFile);
-            OutputStream out = new FileOutputStream(outputFile);
-            RDFXMLWriter rdfxmlfWriter = new RDFXMLWriter(out);
-            conn.export(rdfxmlfWriter, context);
-            out.write('\n');
-            close(out);
+            try (OutputStream out = new FileOutputStream(outputFile)) {
+                RDFXMLWriter rdfxmlfWriter = new RDFXMLWriter(out);
+                conn.export(rdfxmlfWriter, context);
+                out.write('\n');
+            }
 	    // Sesame 2.9 started adding a datatype declaration to strings
 	    // Since this test is likely going to break after every single
 	    // upgrade, I've disabled it. We need a more robust method of
@@ -247,10 +247,10 @@ public class TutorialTests extends AGAbstractTest {
     public void example9() throws Exception {    
         example6();
         File f = File.createTempFile(getClass().getSimpleName(), ".rdf");
-        FileWriter out = new FileWriter(f);
-        println("export to " + f.getCanonicalFile());
-        conn.exportStatements(null, RDF.TYPE, null, false, new RDFXMLWriter(out));
-        close(out);
+        try (FileWriter out = new FileWriter(f)) {
+            println("export to " + f.getCanonicalFile());
+            conn.exportStatements(null, RDF.TYPE, null, false, new RDFXMLWriter(out));
+        }
         assertFiles(Util.resourceAsTempFile("/test/tutorial-test9-expected.rdf"), f);
         f.delete(); // delete if success
     }
@@ -1130,84 +1130,85 @@ public class TutorialTests extends AGAbstractTest {
     public void example22() throws Exception {
         AGValueFactory vf = repo.getValueFactory();
         // Create conn1 (autoCommit) and conn2 (no autoCommit).
-        AGRepositoryConnection conLesmis = getConnection();
-        conLesmis.clear();
-        AGRepositoryConnection conKennedy = getConnection();
-        conKennedy.setAutoCommit(false);
-        String baseURI = "http://example.org/example/local";
-        Util.add(conLesmis, "/tutorial/lesmis.rdf", baseURI, RDFFormat.RDFXML);
-        assertEquals("Loaded lesmis.rdf triples via conn1.", 916, conLesmis.size());
-        
-        Util.add(conKennedy, "/tutorial/java-kennedy.ntriples", baseURI, RDFFormat.NTRIPLES);
-        assertEquals("Loaded java-kennedy.ntriples via conn2.", 1214, conKennedy.size());
-        
-        //        println("Since conn1 is in autoCommit mode, lesmis.rdf triples are committed " +
-        //        		"and retrievable via conn2.  Since conn2 is not in autoCommit mode, and " +
-        //        		"no commit() has yet been issued on conn2, kennedy.rdf triples are not " +
-        //        		" retrievable via conn1.");
-        // Check transaction isolation semantics:
-        Literal valjean = vf.createLiteral("Valjean");
-        Literal kennedy = vf.createLiteral("Kennedy");
-        String lmns = "http://www.franz.com/lesmis#";
-        //conn.setNamespace("lm", lmns);
-        IRI char11 = vf.createIRI(lmns, "character11");
-        IRI title = vf.createIRI("http://purl.org/dc/elements/1.1/title");
-        IRI lastname = vf.createIRI("http://www.franz.com/simple#last-name");
-        
-        assert22("Using getStatements() on conn1; should find Valjean:",
-                new Stmt(char11, title, valjean),
-                conLesmis, valjean);
-        assert22("Using getStatements() on conn1; should not find Kennedys:",
-                null,
-                conLesmis, kennedy);
-        assert22("Using getStatements() on conn2; should not find Valjean (until a rollback or commit occurs on conn2):",
-                null,
-                conKennedy, valjean);
-        assert22k("Using getStatements() on conn2; should find Kennedys:",
-                new Stmt(null, lastname, kennedy),
-                conKennedy, lastname, kennedy);
-        
-        // Rollback
-        //println("Rolling back contents of conn2.");
-        conKennedy.rollback();
-        // rollback turns on autocommit with sesame 2.7 transaction
-        // semantics, make sure it's off
-        conKennedy.setAutoCommit(false);
-        assertEquals("There are now triples visible via conn2.", 916, conKennedy.size());
-        assert22("Using getStatements() on conn1; should find Valjean:",
-                new Stmt(char11, title, valjean),
-                conLesmis, valjean);
-        assert22("Using getStatements() on conn1; should not find Kennedys:",
-                null,
-                conLesmis, kennedy);
-        assert22("Using getStatements() on conn2; should not find Kennedys:",
-                null,
-                conKennedy, kennedy);
-        assert22("Using getStatements() on conn2; should find Valjean:",
-                new Stmt(char11, title, valjean),
-                conKennedy, valjean);
-        
-        // Reload and Commit
-        //println("Reload java-kennedy.ntriples into conn2.");
-        Util.add(conKennedy, "/tutorial/java-kennedy.ntriples", baseURI, RDFFormat.NTRIPLES);
-        assertEquals("There are now triples visible on conn1.", 916, conLesmis.size());
-        assertEquals("There are now triples visible on conn2.", 2130, conKennedy.size());
-        //println("Committing contents of conn2.");
-        conKennedy.commit();
-        assertEquals("There are now triples visible on conn1.", 2130, conLesmis.size());
-        assertEquals("There are now triples visible on conn2.", 2130, conKennedy.size());
-        assert22("Using getStatements() on conn1; should find Valjean:",
-                new Stmt(char11, title, valjean),
-                conLesmis, valjean);
-        assert22k("Using getStatements() on conn1; should find Kennedys:",
-                new Stmt(null, lastname, kennedy),
-                conLesmis, lastname, kennedy);
-        assert22k("Using getStatements() on conn2; should find Kennedys:",
-                new Stmt(null, lastname, kennedy),
-                conKennedy, lastname, kennedy);
-        assert22("Using getStatements() on conn2; should find Valjean:",
-                new Stmt(char11, title, valjean),
-                conKennedy, valjean);
+        try (AGRepositoryConnection conLesmis = getConnection();
+             AGRepositoryConnection conKennedy = getConnection()) {
+            conLesmis.clear();
+            conKennedy.setAutoCommit(false);
+            String baseURI = "http://example.org/example/local";
+            Util.add(conLesmis, "/tutorial/lesmis.rdf", baseURI, RDFFormat.RDFXML);
+            assertEquals("Loaded lesmis.rdf triples via conn1.", 916, conLesmis.size());
+
+            Util.add(conKennedy, "/tutorial/java-kennedy.ntriples", baseURI, RDFFormat.NTRIPLES);
+            assertEquals("Loaded java-kennedy.ntriples via conn2.", 1214, conKennedy.size());
+
+            //        println("Since conn1 is in autoCommit mode, lesmis.rdf triples are committed " +
+            //        		"and retrievable via conn2.  Since conn2 is not in autoCommit mode, and " +
+            //        		"no commit() has yet been issued on conn2, kennedy.rdf triples are not " +
+            //        		" retrievable via conn1.");
+            // Check transaction isolation semantics:
+            Literal valjean = vf.createLiteral("Valjean");
+            Literal kennedy = vf.createLiteral("Kennedy");
+            String lmns = "http://www.franz.com/lesmis#";
+            //conn.setNamespace("lm", lmns);
+            IRI char11 = vf.createIRI(lmns, "character11");
+            IRI title = vf.createIRI("http://purl.org/dc/elements/1.1/title");
+            IRI lastname = vf.createIRI("http://www.franz.com/simple#last-name");
+
+            assert22("Using getStatements() on conn1; should find Valjean:",
+                    new Stmt(char11, title, valjean),
+                    conLesmis, valjean);
+            assert22("Using getStatements() on conn1; should not find Kennedys:",
+                    null,
+                    conLesmis, kennedy);
+            assert22("Using getStatements() on conn2; should not find Valjean (until a rollback or commit occurs on conn2):",
+                    null,
+                    conKennedy, valjean);
+            assert22k("Using getStatements() on conn2; should find Kennedys:",
+                    new Stmt(null, lastname, kennedy),
+                    conKennedy, lastname, kennedy);
+
+            // Rollback
+            //println("Rolling back contents of conn2.");
+            conKennedy.rollback();
+            // rollback turns on autocommit with sesame 2.7 transaction
+            // semantics, make sure it's off
+            conKennedy.setAutoCommit(false);
+            assertEquals("There are now triples visible via conn2.", 916, conKennedy.size());
+            assert22("Using getStatements() on conn1; should find Valjean:",
+                    new Stmt(char11, title, valjean),
+                    conLesmis, valjean);
+            assert22("Using getStatements() on conn1; should not find Kennedys:",
+                    null,
+                    conLesmis, kennedy);
+            assert22("Using getStatements() on conn2; should not find Kennedys:",
+                    null,
+                    conKennedy, kennedy);
+            assert22("Using getStatements() on conn2; should find Valjean:",
+                    new Stmt(char11, title, valjean),
+                    conKennedy, valjean);
+
+            // Reload and Commit
+            //println("Reload java-kennedy.ntriples into conn2.");
+            Util.add(conKennedy, "/tutorial/java-kennedy.ntriples", baseURI, RDFFormat.NTRIPLES);
+            assertEquals("There are now triples visible on conn1.", 916, conLesmis.size());
+            assertEquals("There are now triples visible on conn2.", 2130, conKennedy.size());
+            //println("Committing contents of conn2.");
+            conKennedy.commit();
+            assertEquals("There are now triples visible on conn1.", 2130, conLesmis.size());
+            assertEquals("There are now triples visible on conn2.", 2130, conKennedy.size());
+            assert22("Using getStatements() on conn1; should find Valjean:",
+                    new Stmt(char11, title, valjean),
+                    conLesmis, valjean);
+            assert22k("Using getStatements() on conn1; should find Kennedys:",
+                    new Stmt(null, lastname, kennedy),
+                    conLesmis, lastname, kennedy);
+            assert22k("Using getStatements() on conn2; should find Kennedys:",
+                    new Stmt(null, lastname, kennedy),
+                    conKennedy, lastname, kennedy);
+            assert22("Using getStatements() on conn2; should find Valjean:",
+                    new Stmt(char11, title, valjean),
+                    conKennedy, valjean);
+        }
     }
 
 }

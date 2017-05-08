@@ -6,8 +6,8 @@ package com.franz.agraph.repository;
 
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryException;
-import com.franz.util.Closeable;
 
+import java.io.Closeable;
 import java.util.concurrent.ScheduledExecutorService;
 
 /**

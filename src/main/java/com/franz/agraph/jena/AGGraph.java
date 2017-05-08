@@ -4,6 +4,7 @@
 
 package com.franz.agraph.jena;
 
+import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -24,7 +25,6 @@ import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.repository.AGBooleanQuery;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGValueFactory;
-import com.franz.util.Closeable;
 import com.hp.hpl.jena.graph.BulkUpdateHandler;
 import com.hp.hpl.jena.graph.Capabilities;
 import com.hp.hpl.jena.graph.Graph;

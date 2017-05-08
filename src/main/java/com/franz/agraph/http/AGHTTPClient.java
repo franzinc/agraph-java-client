@@ -45,8 +45,6 @@ import com.franz.agraph.http.handler.AGResponseHandler;
 import com.franz.agraph.http.handler.AGStringHandler;
 import com.franz.agraph.http.handler.AGTQRHandler;
 import com.franz.agraph.repository.AGValueFactory;
-import com.franz.util.Closeable;
-import com.franz.util.Closer;
 
 /**
  * Class responsible for handling HTTP connections.
@@ -56,9 +54,7 @@ import com.franz.util.Closer;
  * Also contains methods for accessing AG services that operate above
  * the repository level - such as managing repositories.
  */
-public class AGHTTPClient
-implements Closeable {
-    
+public class AGHTTPClient implements AutoCloseable {
 	private static final Logger logger = LoggerFactory.getLogger(AGHTTPClient.class);
 	
 	private final String serverURL;
@@ -380,7 +376,10 @@ implements Closeable {
     @Override
     public void close() {
         logger.debug("close: " + serverURL + " " + mManager);
-        mManager = Closer.Close(mManager);
+        if (mManager != null) {
+			mManager.shutdown();
+			mManager = null;
+		}
         isClosed = true;
     }
     

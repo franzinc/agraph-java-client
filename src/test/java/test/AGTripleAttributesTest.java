@@ -4,17 +4,16 @@
 
 package test;
 
-import junit.framework.Assert;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
-// import org.junit.Rule;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
-// import org.junit.rules.ExpectedException;
 import org.eclipse.rdf4j.repository.RepositoryException;
 
 import com.franz.agraph.http.exception.AGHttpException;
@@ -28,12 +27,6 @@ import java.util.List;
 
 
 public class AGTripleAttributesTest extends AGAbstractTest {
-
-	// Leaving as a reminder that there are better annotations available
-	// for testing exceptions if we use the JUnit test Runner class.
-	// @Rule
-    // private ExpectedException thrown = ExpectedException.none();
-	
 	private int id = 0;
 	
 	// Utility. Generates a unique attribute name for tests.
@@ -41,22 +34,32 @@ public class AGTripleAttributesTest extends AGAbstractTest {
 		id = id + 1;
 		return "attrdef" + id;
 	}
-		
+
+	// Connection recreated before each test
+	private AGRepositoryConnection conn;
+
+	@Before
+	public void connect() {
+		conn = getConnection();
+	}
+
+	@After
+	public void disconnect() {
+		conn.close();
+	}
+
 	@Test
 	@Category(TestSuites.Prepush.class)
-    public void testAttributeDefinitionsBasic() throws Exception
-    {
-    	AGRepositoryConnection conn = getConnection();
-    	
+    public void testAttributeDefinitionsBasic() throws Exception  {
     	JSONArray attrs;
     	
     	// test adding allowed values one at a time.
-    	AttributeDefinition defn1 = conn.new AttributeDefinition("remoteAttr1").add();
+    	conn.new AttributeDefinition("remoteAttr1").add();
     	// implicit fetch test, to validate the add operation.
     	attrs = conn.getAttributeDefinitions();
     	Assert.assertEquals("Verifying 1 attribute definition", 1, attrs.length());
     	
-    	AttributeDefinition defn2 = conn.new AttributeDefinition("remoteAttr2")
+    	conn.new AttributeDefinition("remoteAttr2")
     		.allowedValue("sales")
     		.allowedValue("devel")
     		.allowedValue("hr")
@@ -65,7 +68,7 @@ public class AGTripleAttributesTest extends AGAbstractTest {
     	Assert.assertEquals("Verifying 2 attribute definitions", 2, attrs.length());
     	
     	// test ordered
-    	AttributeDefinition defn3 = conn.new AttributeDefinition("remoteAttr3")
+    	conn.new AttributeDefinition("remoteAttr3")
     		.allowedValue("low")
     		.allowedValue("medium")
     		.allowedValue("high")
@@ -75,7 +78,7 @@ public class AGTripleAttributesTest extends AGAbstractTest {
     	Assert.assertEquals("Verifying 3 attribute definitions", 3, attrs.length());
     	
     	// test passing allowed values as a list, include a maximum.
-    	List<String> values4 = new ArrayList<String>(3);
+    	List<String> values4 = new ArrayList<>(3);
     	values4.add("moe"); values4.add("larry"); values4.add("curly");
     	
     	AttributeDefinition defn4 = conn.new AttributeDefinition("remoteAttr4");
@@ -106,105 +109,67 @@ public class AGTripleAttributesTest extends AGAbstractTest {
     }
 	
 	@Category(TestSuites.Prepush.class)
-	@Test//(expected = AGHttpException.class)
+	@Test
 	public void testInvalidNameException() throws Exception {
-    	AGRepositoryConnection conn = getConnection();
-
     	try {
     		conn.new AttributeDefinition("no spaces allowed").add();
-    		throw new Exception("no exception for invalid name.");
+    		Assert.fail("no exception for invalid name.");
     	} catch (AGHttpException e) {
-    		if (! e.getMessage().contains("Invalid name:")) {
-    			throw e;
-    		}
+    		Assert.assertTrue(e.getMessage().contains("Invalid name:"));
     	}
 	}
 	
 	@Category(TestSuites.Prepush.class)
 	@Test
 	public void testNegativeMinimum() throws Exception {
-		AGRepositoryConnection conn = getConnection();
-		
-		// thrown.expect(Exception.class);
-		// thrown.expectMessage("minimum must be a non-negative integer.");
-		
 		try {
 			conn.new AttributeDefinition(genAttributeName()).minimum(-5);
-			throw new Exception("no exception for negative value.");
+			Assert.fail("no exception for negative value.");
 		} catch (Exception e) {
-			if (! e.getMessage().contains("minimum")) {
-				throw e;
-			}
+			Assert.assertTrue(e.getMessage().contains("minimum"));
 		}
 	}
 	
 	@Test
 	@Category(TestSuites.Prepush.class)
 	public void testNegativeMaximum() throws Exception {
-		AGRepositoryConnection conn = getConnection();
-		
-		// thrown.expect(Exception.class);
-		// thrown.expectMessage("maximum must be greater than 0.");
-		
 		try {
 			conn.new AttributeDefinition(genAttributeName()).maximum(-5);
-			throw new Exception("no exception for negative value.");
+			Assert.fail("no exception for negative value.");
 		} catch (Exception e) {
-			if (! e.getMessage().contains("maximum")) {
-				throw e;
-			}
+			Assert.assertTrue(e.getMessage().contains("maximum"));
 		}
 	}
 	
-	@Test
+	@Test(expected=AGHttpException.class)
 	@Category(TestSuites.Prepush.class)
 	public void testMaximumTooBig() throws Exception {
-		AGRepositoryConnection conn = getConnection();
-		
-		try {
-			conn.new AttributeDefinition(genAttributeName())
-				.maximum(Long.MAX_VALUE)
-				.add();
-			throw new Exception("no exception when maximum too large");
-		} catch (AGHttpException e) {
-		}
+		conn.new AttributeDefinition(genAttributeName())
+			.maximum(Long.MAX_VALUE)
+			.add();
 	}
 	
-	@Test
+	@Test(expected=AGHttpException.class)
 	@Category(TestSuites.Prepush.class)
 	public void testMinimumTooBig() throws Exception {
-		AGRepositoryConnection conn = getConnection();
-		
-		try {
-			conn.new AttributeDefinition(genAttributeName())
-				.minimum(Long.MAX_VALUE)
-				.add();
-			throw new Exception("no exception when minimum too large");
-		} catch (AGHttpException e) {
-		}
+		conn.new AttributeDefinition(genAttributeName())
+			.minimum(Long.MAX_VALUE)
+			.add();
 	}
 	
-	@Test
+	@Test(expected=AGHttpException.class)
 	@Category(TestSuites.Prepush.class)
 	public void testMinGreaterThanMax() throws Exception {
-		AGRepositoryConnection conn = getConnection();
-		
-		try {
-			conn.new AttributeDefinition(genAttributeName())
-				.maximum(2)
-				.minimum(10)
-				.add();
-			throw new Exception("no exception when minimum > maximum");
-		} catch (AGHttpException e) {
-		}
+		conn.new AttributeDefinition(genAttributeName())
+			.maximum(2)
+			.minimum(10)
+			.add();
 	}
 	
-	@Test
+	@Test(expected=AGHttpException.class)
 	@Category(TestSuites.Prepush.class)
 	public void testMaxOfOneWhenOrdered() throws Exception {
-		AGRepositoryConnection conn = getConnection();
-		
-		List<String> values = new ArrayList<String>(3);
+		List<String> values = new ArrayList<>(3);
     	values.add("low"); values.add("medium"); values.add("high");
     	
     	// valid, maximum must be one when ordered.
@@ -215,35 +180,24 @@ public class AGTripleAttributesTest extends AGAbstractTest {
     		.add();
     	
     	// invalid
-		try {
-			conn.new AttributeDefinition(genAttributeName())
-				.ordered(true)
-				.maximum(5)
-				.allowedValues(values)
-				.add();
-			throw new Exception("no exception when ordered, and maximum != 1");
-		} catch (AGHttpException e) {
-		}
+		conn.new AttributeDefinition(genAttributeName())
+			.ordered(true)
+			.maximum(5)
+			.allowedValues(values)
+			.add();
 	}
 	
-	@Test
+	@Test(expected=AGHttpException.class)
 	@Category(TestSuites.Prepush.class)
 	public void testOrderedSansValues() throws Exception {
-		AGRepositoryConnection conn = getConnection();
-		
-		try {
-			conn.new AttributeDefinition(genAttributeName())
-				.ordered(true)
-				.add();
-			throw new Exception("no exception when ordered, and no allowedValues specified");
-		} catch (AGHttpException e) {
-		}
+		conn.new AttributeDefinition(genAttributeName())
+			.ordered(true)
+			.add();
 	}
-	
+
+	@Test(expected=RepositoryException.class)
 	@Category(TestSuites.Prepush.class)
-	@Test
 	public void testAddTriplesWithAttributes() throws Exception {
-		AGRepositoryConnection conn = getConnection();
 		AGValueFactory vf = conn.getRepository().getValueFactory();
 
 		// define an interesting couple of attributes.
@@ -289,11 +243,7 @@ public class AGTripleAttributesTest extends AGAbstractTest {
         // add a triple with an undefined attribute
         JSONObject badAttrs = new JSONObject("{ canWork: [ AR, CH ], nationality: AR }");
         
-        try {
-        	conn.add(ref2, RDF.TYPE, ref, badAttrs);
-        	throw new Exception("no exception when adding an undefined attribute");
-        } catch (RepositoryException e) {
-        }
+        conn.add(ref2, RDF.TYPE, ref, badAttrs);
 	}
 	
 	// TODO: Add test where maximum is exceeded.
@@ -303,13 +253,11 @@ public class AGTripleAttributesTest extends AGAbstractTest {
 	@Category(TestSuites.Prepush.class)
 	@Test
 	public void testStaticAttributeFiltersBasic() throws Exception {
-		AGRepositoryConnection conn = getConnection();
-		
 		setupStaticAttributeFilters();
 		
-		String filter = new String("(and (attribute>= user.access-level triple.access-level)\n"
+		String filter = "(and (attribute>= user.access-level triple.access-level)\n"
                 + "(attribute-contains-one-of user.department triple.department)\n"
-                + "(attribute-contains-all-of user.token triple.token))");
+                + "(attribute-contains-all-of user.token triple.token))";
 		
 		// no filter defined yet, should get null
 		String result = conn.getStaticAttributeFilter();
@@ -330,39 +278,39 @@ public class AGTripleAttributesTest extends AGAbstractTest {
 	}
 	
 	private void setupStaticAttributeFilters() throws Exception {
-		
-		AGRepositoryConnection conn = getConnection();
-		
-		conn.new AttributeDefinition("access-level")
-				.allowedValue("low")
-				.allowedValue("medium")
-				.allowedValue("high")
-				.ordered(true)
-				.minimum(1)
-				.add();
-		
-		conn.new AttributeDefinition("department")
-				.allowedValue("tech")
-				.allowedValue("hr")
-				.allowedValue("sales")
-				.allowedValue("accounting")
-				.add();
-		
-		conn.new AttributeDefinition("token")
-				.allowedValue("A").allowedValue("B")
-				.allowedValue("C").allowedValue("D")
-				.allowedValue("E").allowedValue("F")
-				.add();
+		try (AGRepositoryConnection conn = getConnection()) {
 
+			conn.new AttributeDefinition("access-level")
+					.allowedValue("low")
+					.allowedValue("medium")
+					.allowedValue("high")
+					.ordered(true)
+					.minimum(1)
+					.add();
+
+			conn.new AttributeDefinition("department")
+					.allowedValue("tech")
+					.allowedValue("hr")
+					.allowedValue("sales")
+					.allowedValue("accounting")
+					.add();
+
+			conn.new AttributeDefinition("token")
+					.allowedValue("A").allowedValue("B")
+					.allowedValue("C").allowedValue("D")
+					.allowedValue("E").allowedValue("F")
+					.add();
+		}
 	}
 
-	@Category(TestSuites.Prepush.class)
 	@Test
+	@Category(TestSuites.Prepush.class)
 	public void testPassingUserAttributesHeader() throws Exception {
 		// make sure no old attribute definitions are lurking.
+		conn.close();
 		cat.deleteRepository(REPO_ID);
 		cat.createRepository(REPO_ID);
-		AGRepositoryConnection conn = getConnection();
+		conn = getConnection();
 		
 		JSONObject userAttrs = new JSONObject("{ access-level: medium, token: [ A, B, F ], department: sales }");
 		
@@ -372,8 +320,9 @@ public class AGTripleAttributesTest extends AGAbstractTest {
 		// this test is sufficient to verify that the header is being passed correctly.
 		try {
 			conn.size();
-			throw new Exception("No exception thrown when passing undefined user-attributes.");
+			Assert.fail("No exception thrown when passing undefined user-attributes.");
 		} catch (AGHttpException e) {
+			// as expected
 		}
 		
 		// clear userAttributes
@@ -386,6 +335,5 @@ public class AGTripleAttributesTest extends AGAbstractTest {
 		setupStaticAttributeFilters();
 		// should not error.
 		conn.size();
-		
 	}
 }

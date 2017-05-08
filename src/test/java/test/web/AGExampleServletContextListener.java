@@ -16,16 +16,15 @@ public class AGExampleServletContextListener implements ServletContextListener {
 
 	@Override
 	public void contextDestroyed(ServletContextEvent event) {
-        Closer c = new Closer();
-        try {
-            Context initCtx = c.closeLater(new InitialContext());
-            Context envCtx = (Context) c.closeLater(initCtx.lookup("java:comp/env"));
+        try (final Closer c = new Closer()) {
+            Context initCtx = new InitialContext();
+            c.closeLater(initCtx::close);
+            Context envCtx = (Context) initCtx.lookup("java:comp/env");
+            c.closeLater(envCtx::close);
             AGConnPool pool = (AGConnPool) envCtx.lookup("connection-pool/agraph");
             pool.close();
         } catch (Exception e) {
         	e.printStackTrace();
-        } finally{
-            c.close();
         }
 	}
 

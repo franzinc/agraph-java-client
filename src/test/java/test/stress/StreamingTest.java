@@ -53,8 +53,8 @@ public class StreamingTest extends AGAbstractTest {
     		repoSize = conn.size();
         	if (repoSize < SIZE) {
                     log.info("size of " + repo.getCatalogPrefixedRepositoryID() + " = " + repoSize);
-                    conn = Closer.Close(conn);
-                    repo = Closer.Close(repo);
+                    closer.close(conn);
+					closer.close(repo);
                     cat = null;
         	} else {
                     vf = repo.getValueFactory();
@@ -145,8 +145,7 @@ public class StreamingTest extends AGAbstractTest {
 					}
         		});
         	} else {
-        		TupleQueryResult results = qu.evaluate();
-        		try {
+        		try (TupleQueryResult results = qu.evaluate()) {
         			log.debug("bindings: " + results.getBindingNames());
         			while (results.hasNext()) {
         				results.next();
@@ -155,8 +154,6 @@ public class StreamingTest extends AGAbstractTest {
         					stats.memUsed = Math.max(stats.memUsed, memUsed(mem));
         				}
         			}
-        		} finally {
-        			Closer.Close(results);
         		}
         	}
     	} catch (Exception e) {

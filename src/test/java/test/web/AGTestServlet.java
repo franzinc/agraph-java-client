@@ -26,10 +26,11 @@ public class AGTestServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        Closer c = new Closer();
-        try {
-            Context initCtx = c.closeLater(new InitialContext());
-            Context envCtx = (Context) c.closeLater(initCtx.lookup("java:comp/env"));
+        try (Closer c = new Closer()) {
+            Context initCtx = new InitialContext();
+            c.closeLater(initCtx::close);
+            Context envCtx = (Context) initCtx.lookup("java:comp/env");
+            c.closeLater(envCtx::close);
             AGConnPool pool = (AGConnPool) envCtx.lookup("connection-pool/agraph");
             AGRepositoryConnection conn = c.closeLater(pool.borrowConnection());
             
@@ -37,27 +38,23 @@ public class AGTestServlet extends HttpServlet {
             resp.getWriter().flush();
         } catch (Exception e) {
             throw new ServletException(e);
-        } finally{
-            c.close();
         }
     }
     
     @Override
     public void destroy() {
-        Closer c = new Closer();
         AGConnPool pool = null;
-        try {
-        	Context initCtx = c.closeLater(new InitialContext());
-        	Context envCtx = (Context) c.closeLater(initCtx.lookup("java:comp/env"));
+        try (Closer c = new Closer()) {
+        	Context initCtx = new InitialContext();
+            c.closeLater(initCtx::close);
+        	Context envCtx = (Context) initCtx.lookup("java:comp/env");
+            c.closeLater(envCtx::close);
         	pool = (AGConnPool) envCtx.lookup("connection-pool/agraph");
         	pool.close();
         } catch (Exception e) {
-        	RuntimeException re = new RuntimeException("Error closing the AGConnPool: " + pool, e);
-        	log.error(re.getMessage(), re);
+            RuntimeException re = new RuntimeException("Error closing the AGConnPool: " + pool, e);
+            log.error(re.getMessage(), re);
             throw re;
-        } finally{
-            c.close();
         }
     }
-    
 }

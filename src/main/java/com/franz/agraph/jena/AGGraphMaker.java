@@ -4,6 +4,7 @@
 
 package com.franz.agraph.jena;
 
+import java.io.Closeable;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
@@ -13,7 +14,6 @@ import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.repository.RepositoryException;
 
 import com.franz.agraph.repository.AGRepositoryConnection;
-import com.franz.util.Closeable;
 import com.hp.hpl.jena.graph.GraphMaker;
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.rdf.model.AnonId;

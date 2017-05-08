@@ -8,7 +8,6 @@ import com.franz.agraph.pool.AGConnPool;
 import com.franz.agraph.pool.AGConnProp;
 import com.franz.agraph.pool.AGPoolProp;
 import com.franz.agraph.repository.*;
-import com.franz.util.Closeable;
 import com.franz.util.Closer;
 import org.apache.commons.cli.*;
 import org.eclipse.rdf4j.model.*;
@@ -20,10 +19,7 @@ import test.Util;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -32,11 +28,17 @@ import java.util.concurrent.*;
 
 import static test.AGAbstractTest.*;
 
-public class Events extends Closer {
+public class Events implements Closeable {
     
     static private final test.Util.RandomLong RANDOM = new test.Util.RandomLong();
-    
-    long errors = 0;
+
+    private int errors;
+    private final Closer closer = new Closer();
+
+    @Override
+    public void close() {
+        closer.close();
+    }
 
     static class Defaults {
         
@@ -353,11 +355,11 @@ public class Events extends Closer {
     }
 
     private AGRepositoryConnection connect() throws RepositoryException {
-        AGServer server = closeLater( new AGServer(Defaults.URL, Defaults.USERNAME, Defaults.PASSWORD) );
+        AGServer server = closer.closeLater( new AGServer(Defaults.URL, Defaults.USERNAME, Defaults.PASSWORD) );
         AGCatalog cat = server.getCatalog(Defaults.CATALOG);
-        AGRepository repo = closeLater( cat.createRepository(Defaults.REPOSITORY) );
+        AGRepository repo = closer.closeLater( cat.createRepository(Defaults.REPOSITORY) );
         repo.initialize();
-        AGRepositoryConnection conn = closeLater( repo.getConnection() );
+        AGRepositoryConnection conn = closer.closeLater( repo.getConnection() );
         if (!Defaults.SHARED) {
             // Force an auto-committing non-shared backend 
             conn.setAutoCommit(false);
@@ -542,7 +544,7 @@ public class Events extends Closer {
         void close() {
             if (repoPool == null) {
                 ThreadVars.valueFactory.set(null);
-                Events.this.close(conn);
+                closer.close(conn);
             }
         }
     }
@@ -916,7 +918,7 @@ public class Events extends Closer {
         }
     }
     
-    class Loader implements Callable<Object>, Closeable {
+    class Loader implements Task {
         private int id;
         private long loopCount;
         private int eventsPerCommit;
@@ -995,8 +997,12 @@ public class Events extends Closer {
             triples = theTriples;
         }
     }
-    
-    class Querier implements Callable<Object>, Closeable {
+
+    // This exists because Java can't handle stuff like
+    // List<? extends A & B>. #$%#$%^!!! generics....
+    private interface Task extends Callable<Object>, AutoCloseable {}
+
+    class Querier implements Task {
         private int secondsToRun;
         private int id;
         private String timestamp;
@@ -1071,7 +1077,7 @@ public class Events extends Closer {
                 e.printStackTrace();
                 count = -1;
             } finally {
-                Events.this.close(result);
+                closer.close(result);
             }
             
             return count;
@@ -1134,7 +1140,7 @@ public class Events extends Closer {
                 e.printStackTrace();
                 count = -1;
             } finally {
-                Events.this.close(result);
+                closer.close(result);
             }
             
             return count;
@@ -1237,7 +1243,7 @@ public class Events extends Closer {
         }
     }
     
-    class Deleter implements Callable<Object>, Closeable {
+    class Deleter implements Task {
             
         private final RandomDateMaker range;
         private ConnectionHolder connHolder;
@@ -1479,14 +1485,12 @@ public class Events extends Closer {
      */
     public static void main(String[] args) throws Exception {
             Events events = new Events();
-            try {
+            try (Events ignored = events) {
                 events.run(args);
             } catch (Exception e) {
                 System.err.println(e);
                 e.printStackTrace();
                 System.exit(-1);
-            } finally {
-                Closer.Close(events);
             }
             if (events.errors > 0) {
                 // exit with error
@@ -1551,7 +1555,7 @@ public class Events extends Closer {
             if (Defaults.START_PHASE <= 1) {
                 start = System.currentTimeMillis();
                 trace("Phase 0 Begin: Launching child load workers.");
-                List<Callable<Object>> tasks = new ArrayList<Callable<Object>>(Defaults.LOAD_WORKERS);
+                List<Loader> tasks = new ArrayList<>(Defaults.LOAD_WORKERS);
                     for (int task = 0; task < Defaults.LOAD_WORKERS; task++) {
                             tasks.add(new Loader(task, Defaults.SIZE / 10, 1, BaselineRange));
                     }
@@ -1574,7 +1578,7 @@ public class Events extends Closer {
                                 logtime(triples/seconds),
                                 logtime(triples/Defaults.EVENT_SIZE/seconds), triplesEnd);
 
-                closeAll(tasks);
+                closer.close(tasks);
                 Monitor.stop(1, conn); 
 
             }
@@ -1582,7 +1586,7 @@ public class Events extends Closer {
             /////////////////////////////////////////////////////////////////////// PHASE 2
             if (Defaults.START_PHASE <= 2) {
                 triplesStart = triplesEnd;
-                List<Callable<Object>> tasks = new ArrayList<Callable<Object>>(Defaults.LOAD_WORKERS);
+                List<Loader> tasks = new ArrayList<>(Defaults.LOAD_WORKERS);
                 for (int task = 0; task < (Defaults.LOAD_WORKERS); task++) {
                     tasks.add(new Loader(task, (Defaults.SIZE/10)*9, Defaults.BULK_EVENTS, BulkRange));
                 }
@@ -1600,7 +1604,7 @@ public class Events extends Closer {
                                 "Store contains %d triples.", triples, seconds, triples/seconds,
                                 triples/Defaults.BULK_EVENTS/Defaults.EVENT_SIZE/seconds, triplesEnd);
 
-                closeAll(tasks);
+                closer.close(tasks);
                 Monitor.stop(2, conn);
 
             }
@@ -1608,7 +1612,7 @@ public class Events extends Closer {
             /////////////////////////////////////////////////////////////////////// PHASE 3
             if (Defaults.START_PHASE <= 3) {
                 triplesStart = triplesEnd;
-                List<Callable<Object>> tasks = new ArrayList<Callable<Object>>(Defaults.LOAD_WORKERS);
+                List<Loader> tasks = new ArrayList<>(Defaults.LOAD_WORKERS);
                 for (int task = 0; task < Defaults.LOAD_WORKERS; task++) {
                     tasks.add(task, new Loader(task, Defaults.SIZE/10, 1, SmallCommitsRange));
                 }
@@ -1628,7 +1632,7 @@ public class Events extends Closer {
                                 triples/Defaults.EVENT_SIZE/seconds, triplesEnd);
 
                 executor.shutdown();
-                closeAll(tasks);
+                closer.close(tasks);
                 Monitor.stop(3, conn);
 
             }
@@ -1642,8 +1646,8 @@ public class Events extends Closer {
 
                 trace("Phase 0 Begin: Launching child query workers.");
                 ExecutorService executor = Executors.newFixedThreadPool(Defaults.QUERY_WORKERS);
-                List<Callable<Object>> sparqlQueriers = new ArrayList<Callable<Object>>(Defaults.QUERY_WORKERS);
-                List<Callable<Object>> prologQueriers = new ArrayList<Callable<Object>>(Defaults.QUERY_WORKERS);
+                List<Querier> sparqlQueriers = new ArrayList<>(Defaults.QUERY_WORKERS);
+                List<Querier> prologQueriers = new ArrayList<>(Defaults.QUERY_WORKERS);
                 for (int task = 0; task < Defaults.QUERY_WORKERS; task++) {
                     sparqlQueriers.add(new Querier(task, Defaults.QUERY_TIME*60, FullDateRange,
                                                    AGQueryLanguage.SPARQL));
@@ -1686,7 +1690,7 @@ public class Events extends Closer {
                       ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getUsed());
                 Monitor.stop(4, conn);
 
-                closeAll(sparqlQueriers);
+                closer.close(sparqlQueriers);
 
                 trace("Phase 5 Begin: Perform Prolog queries with %d processes for %d %s.",
                       Defaults.QUERY_WORKERS,
@@ -1719,7 +1723,7 @@ public class Events extends Closer {
                       logtime(triples/seconds), logtime(queries/seconds), triples/queries);
                 Monitor.stop(5, conn);
 
-                closeAll(prologQueriers);
+                closer.close(prologQueriers);
 
                 executor.shutdown();
             }
@@ -1734,7 +1738,7 @@ public class Events extends Closer {
             trace("Phase 0 Begin: Launching child delete workers.");
 
             ExecutorService executor = Executors.newFixedThreadPool(2);
-            List<Callable<Object>> tasks = new ArrayList<Callable<Object>>(2);
+            List<Deleter> tasks = new ArrayList<>(2);
             tasks.add(new Deleter(DeleteRangeOne));
             if (Defaults.DELETE_WORKERS > 1) {
                 tasks.add(new Deleter(DeleteRangeTwo));
@@ -1747,7 +1751,7 @@ public class Events extends Closer {
             start = System.currentTimeMillis();
             invokeAndGetAll(executor, tasks);
             end = System.currentTimeMillis();
-            closeAll(tasks);
+            closer.close(tasks);
             executor.shutdown();
             long triplesEnd = conn.size();
             long triples = triplesStart - triplesEnd;
@@ -1779,7 +1783,7 @@ public class Events extends Closer {
                 deleteRangeTwo = deleteRangeOne.next(Calendar.DAY_OF_YEAR, 15);
                 
                 trace("Phase 7 Begin: Mixed workload - adds, queries, deletes. %s", run);
-                List<Callable<Object>> tasks = new ArrayList<Callable<Object>>(Defaults.LOAD_WORKERS + Defaults.QUERY_WORKERS + 2);
+                List<Task> tasks = new ArrayList<>(Defaults.LOAD_WORKERS + Defaults.QUERY_WORKERS + 2);
                 
                 for (int task = 0; task < Defaults.LOAD_WORKERS; task++) {
                     tasks.add(new Loader(task, Defaults.SIZE/10, 1, smallCommitsRange));
@@ -1826,7 +1830,7 @@ public class Events extends Closer {
                                 "%d triples/query, %d triples added, %d deletes).", triples, queries,
                                 logtime(seconds), logtime(triples/seconds), logtime(queries/seconds),
                                 (queries==0 ? 0 : triples/queries), added, deleted);
-                closeAll(tasks);
+                closer.close(tasks);
             }
             executor.shutdown();
             Monitor.stop(7, conn);
@@ -1847,16 +1851,13 @@ public class Events extends Closer {
     }
     
     private <Type> void invokeAndGetAll(ExecutorService executor,
-            List<Callable<Type>> tasks) {
+            List<? extends Callable<Type>> tasks) {
         try {
             List<Future<Type>> fs = executor.invokeAll(tasks);
             for (Future<Type> f : fs) {
                 f.get();
             }
-        } catch (InterruptedException e) {
-            errors++;
-            e.printStackTrace();
-        } catch (ExecutionException e) {
+        } catch (InterruptedException|ExecutionException e) {
             errors++;
             e.printStackTrace();
         }

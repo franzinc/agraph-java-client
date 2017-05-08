@@ -4,7 +4,6 @@
 
 package test;
 
-import com.franz.util.Closer;
 import org.eclipse.rdf4j.model.*;
 import org.eclipse.rdf4j.query.Binding;
 import org.eclipse.rdf4j.query.BindingSet;
@@ -58,48 +57,41 @@ public class Stmt implements Statement {
     }
    
     public static Set<Stmt> statementSet(RepositoryResult<Statement> results) throws Exception {
-        try {
+        try (RepositoryResult<Statement> ignored = results) {
             Set<Stmt> ret = new HashSet<Stmt>();
             while (results.hasNext()) {
                 ret.add(new Stmt(results.next()));
             }
             return ret;
-        } finally {
-        	Closer.Close(results);
         }
     }
     
-    public static Set<Stmt> stmtsSP(Collection c) throws Exception {
+    public static Set<Stmt> stmtsSP(Collection<? extends Statement> c) throws Exception {
         Set<Stmt> ret = new HashSet<Stmt>();
-        for (Iterator iter = c.iterator(); iter.hasNext();) {
-            Statement s = (Statement) iter.next();
+        for (Statement s : c) {
             ret.add(new Stmt(s.getSubject(), s.getPredicate(), null, null));
         }
         return ret;
     }
     
     public static Set<Stmt> statementSet(QueryResult<Statement> results) throws Exception {
-        try {
-            Set<Stmt> ret = new HashSet<Stmt>();
+        try (QueryResult<Statement> ignored = results) {
+            Set<Stmt> ret = new HashSet<>();
             while (results.hasNext()) {
                 ret.add(new Stmt(results.next()));
             }
             return ret;
-        } finally {
-        	Closer.Close(results);
         }
     }
     
     public static Set<Stmt> statementSet(TupleQueryResult result, String... SPOGnames) throws Exception {
-        try {
-            Set<Stmt> ret = new HashSet<Stmt>();
+        try (TupleQueryResult ignored = result) {
+            Set<Stmt> ret = new HashSet<>();
             while (result.hasNext()) {
                 BindingSet bindingSet = result.next();
                 ret.add(Stmt.spog(bindingSet, SPOGnames));
             }
             return ret;
-        } finally {
-        	Closer.Close(result);
         }
     }
 

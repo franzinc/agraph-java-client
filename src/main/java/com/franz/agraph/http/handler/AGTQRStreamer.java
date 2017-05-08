@@ -239,11 +239,11 @@ public class AGTQRStreamer extends AGResponseHandler {
 			if ( ! closed) {
 				closed = true;
 				try {
-					Closer.Close(xml);
-					Closer.Close(method.getResponseBodyAsStream());
+					xml.close();
+					method.getResponseBodyAsStream().close();
 					method.releaseConnection();
-				} catch (Exception e) {
-					log.warn("I/O error closing resources", e);
+				} catch (XMLStreamException|IOException e) {
+					throw new QueryEvaluationException("I/O error closing resources", e);
 				}
 			}
 		}

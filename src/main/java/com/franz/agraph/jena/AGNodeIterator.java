@@ -7,18 +7,17 @@ package com.franz.agraph.jena;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
 import org.eclipse.rdf4j.query.TupleQueryResult;
 
-import com.franz.util.Closeable;
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.util.iterator.NiceIterator;
+
+import java.io.Closeable;
 
 /**
  * 
  * A utility class for iterating over Jena Nodes.
  *
  */
-public class AGNodeIterator extends NiceIterator<Node>
-implements Closeable {
-	
+public class AGNodeIterator extends NiceIterator<Node> implements Closeable {
 	private final TupleQueryResult result;
 	
 	/**

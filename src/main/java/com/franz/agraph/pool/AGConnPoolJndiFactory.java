@@ -20,7 +20,6 @@ import org.apache.commons.pool.impl.GenericObjectPool;
 import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
-import com.franz.util.Closeable;
 
 /**
  * JNDI factory for {@link AGConnPool}.
@@ -39,7 +38,7 @@ import com.franz.util.Closeable;
  * by {@link AGPoolProp}.
  * </p>
  * 
- * <p>Note, when {@link Closeable#close()} is called
+ * <p>Note, when {@link AutoCloseable#close()} is called
  * on an {@link AGConnPool},
  * connections will be closed whether they are
  * idle (have been returned) or not.

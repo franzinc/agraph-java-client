@@ -2,7 +2,9 @@ package test;
 
 import com.franz.agraph.repository.config.AGRepositoryConfig;
 import com.franz.agraph.repository.config.AGRepositoryFactory;
+import com.franz.util.Closer;
 import junit.framework.Assert;
+import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.eclipse.rdf4j.model.*;
@@ -21,6 +23,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Iterator;
 
 public class AGRepositoryFactoryTest extends AGAbstractTest {
@@ -51,20 +55,24 @@ public class AGRepositoryFactoryTest extends AGAbstractTest {
     @Test
     @Category(TestSuites.Prepush.class)
     public void getRepositoryUsingManager() throws Exception {
-    	RepositoryManager manager = new LocalRepositoryManager(new File("tmp/repomgr"));
-    	manager.initialize();
-    	Model graph = parseTurtleGraph(configFile);
-    	updateGraphForTestServer(graph);
-    	Resource node = GraphUtil.getUniqueSubject(graph, RDF.TYPE, RepositoryConfigSchema.REPOSITORY);
-    	String id = GraphUtil.getUniqueObjectLiteral(graph, node, RepositoryConfigSchema.REPOSITORYID).stringValue();
-    	RepositoryConfig config = RepositoryConfig.create(graph, node);
-    	config.validate();
-    	manager.addRepositoryConfig(config);
-    	Repository repo = manager.getRepository(id);
-    	repo.initialize();
-    	Assert.assertEquals(0,repo.getConnection().size());
-    	Assert.assertTrue(cat.hasRepository("callimachus"));
-    	repo.shutDown();
+    	final Path confDir = Files.createTempDirectory("repomgr");
+    	closeLater(() -> FileUtils.deleteDirectory(confDir.toFile()));
+
+		RepositoryManager manager = new LocalRepositoryManager(confDir.toFile());
+		manager.initialize();
+		closeLater(manager::shutDown);
+		Model graph = parseTurtleGraph(configFile);
+		updateGraphForTestServer(graph);
+		Resource node = GraphUtil.getUniqueSubject(graph, RDF.TYPE, RepositoryConfigSchema.REPOSITORY);
+		String id = GraphUtil.getUniqueObjectLiteral(graph, node, RepositoryConfigSchema.REPOSITORYID).stringValue();
+		RepositoryConfig config = RepositoryConfig.create(graph, node);
+		config.validate();
+		manager.addRepositoryConfig(config);
+		Repository repo = manager.getRepository(id);
+		repo.initialize();
+		closeLater(repo::shutDown);
+		Assert.assertEquals(0, repo.getConnection().size());
+		Assert.assertTrue(cat.hasRepository("callimachus"));
     }
 
     private Model parseTurtleGraph(final String configFile) throws IOException,

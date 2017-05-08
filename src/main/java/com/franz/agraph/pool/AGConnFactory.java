@@ -19,8 +19,10 @@ import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
-import com.franz.util.Closeable;
 import com.franz.util.Closer;
+
+import java.io.Closeable;
+import java.io.IOException;
 
 /**
  * Adapts the {@link AGRepositoryConnection} API
@@ -30,9 +32,7 @@ import com.franz.util.Closer;
  * 
  * @since v4.3.3
  */
-public class AGConnFactory
-extends Closer
-implements PoolableObjectFactory {
+public class AGConnFactory implements PoolableObjectFactory, Closeable {
 
 	private final static Logger log = LoggerFactory.getLogger(AGConnFactory.class);
 	
@@ -40,7 +40,19 @@ implements PoolableObjectFactory {
 
 	@SuppressWarnings("unused")
 	private final AGPoolConfig poolProps;
-	
+
+	private final Closer closer = new Closer() {
+		@Override
+		protected void handleCloseException(Object o, Throwable e) {
+			if (e.getCause() instanceof java.net.ConnectException && e.getCause().getMessage().equals("Connection refused")) {
+				// squelch this (debug instead of warn) because it's common that the session has timed out
+				log.debug("ignoring error with close (probably session timeout): " + o, e);
+			} else {
+				log.warn("ignoring error with close: " + o, e);
+			}
+		}
+	};
+
 	public AGConnFactory(AGConnConfig props) {
 		this.props = props;
 		this.poolProps = null;
@@ -56,7 +68,7 @@ implements PoolableObjectFactory {
 		return makeConnection();
 	}
 	
-	protected AGRepositoryConnection makeConnection() throws Exception {
+	private AGRepositoryConnection makeConnection() throws Exception {
 		HttpConnectionManagerParams params = new HttpConnectionManagerParams();
 		//params.setDefaultMaxConnectionsPerHost(Integer.MAX_VALUE);
 		//params.setMaxTotalConnections(Integer.MAX_VALUE);
@@ -64,11 +76,11 @@ implements PoolableObjectFactory {
 		if (props.httpSocketTimeout != null) {
 			params.setSoTimeout(props.httpSocketTimeout);
 		}
-		
-		HttpConnectionManager manager = closeLater( new MultiThreadedHttpConnectionManager());
+
+		MultiThreadedHttpConnectionManager manager = new MultiThreadedHttpConnectionManager();
 		manager.setParams(params);
 		AGHTTPClient httpClient = new AGHTTPClient(props.serverUrl, manager);
-		AGServer server = closeLater( new AGServer(props.username, props.password, httpClient) );
+		AGServer server = new AGServer(props.username, props.password, httpClient);
 		AGCatalog cat;
 		if (props.catalog != null) {
 			cat = server.getCatalog(props.catalog);
@@ -78,13 +90,14 @@ implements PoolableObjectFactory {
 		
 		final AGRepository repo;
 		if (!cat.hasRepository(props.repository)) {
-			repo = closeLater( createRepo(cat));
+			repo = createRepo(cat);
 		} else {
-			repo = closeLater( new AGRepository(cat, props.repository));
+			repo = new AGRepository(cat, props.repository);
 		}
 		repo.initialize();
-		
-		AGRepositoryConnection conn = closeLater( new AGRepositoryConnectionCloseup(this, closeLater( repo.getConnection()), manager));
+
+		AGRepositoryConnection conn = closer.closeLater(
+				new AGRepositoryConnectionCloseup(closer, closer.closeLater(repo.getConnection()), manager));
 		if (props.sessionLifetime != null) {
 			conn.setSessionLifetime(props.sessionLifetime);
 		}
@@ -153,7 +166,7 @@ implements PoolableObjectFactory {
 	
 	@Override
 	public void destroyObject(Object obj) throws Exception {
-		close(obj);
+		closer.close((AGRepositoryConnection)obj);
 	}
 	
 	@Override
@@ -190,17 +203,12 @@ implements PoolableObjectFactory {
 		}
 	}
 
+	/** Release resources. */
 	@Override
-	public <Obj> Obj handleCloseException(Obj o, Throwable e) {
-		if (e.getCause() instanceof java.net.ConnectException && e.getCause().getMessage().equals("Connection refused")) {
-			// squelch this (debug instead of warn) because it's common that the session has timed out
-			log.debug("ignoring error with close (probably session timeout): " + o, e);
-		} else {
-			log.warn("ignoring error with close: " + o, e);
-		}
-		return o;
+	public void close() throws IOException {
+		closer.close();
 	}
-	
+
 	/**
 	 * Delegates all methods to the wrapped conn except for close.
 	 */
@@ -208,9 +216,10 @@ implements PoolableObjectFactory {
 		
 		private final AGRepositoryConnection conn;
 		private final Closer closer;
-		private final HttpConnectionManager manager;
+		private final MultiThreadedHttpConnectionManager manager;
 		
-		public AGRepositoryConnectionCloseup(Closer closer, AGRepositoryConnection conn, HttpConnectionManager manager) {
+		public AGRepositoryConnectionCloseup(Closer closer, AGRepositoryConnection conn,
+											 MultiThreadedHttpConnectionManager manager) {
 			super((AGRepository) conn.getRepository(), conn.getHttpRepoClient());
 			this.closer = closer;
 			this.conn = conn;
@@ -222,17 +231,13 @@ implements PoolableObjectFactory {
 		 */
 		@Override
 		public void close() throws RepositoryException {
-			closer.close(new Closeable() {
-				public void close() throws Exception {
-					AGRepositoryConnectionCloseup.super.close();
-				}
-			});
+			AGRepositoryConnectionCloseup.super.close();
 			closer.close(conn);
 			closer.close(conn.getRepository());
 			closer.close(conn.getRepository().getCatalog().getServer());
-			closer.close(manager);
+			closer.close(manager::shutdown);
 		}
-		
+
 	}
 
 }

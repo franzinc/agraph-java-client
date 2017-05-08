@@ -8,6 +8,8 @@ import com.franz.agraph.http.AGProtocol;
 import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.repository.*;
 import com.franz.util.Closer;
+import com.hp.hpl.jena.rdf.model.StmtIterator;
+import org.apache.commons.io.FileUtils;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.apache.commons.io.IOUtils;
 import org.junit.*;
@@ -23,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -31,7 +34,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static test.Util.*;
 
-public class AGAbstractTest extends Closer {
+public class AGAbstractTest {
 
     static public final String CATALOG_ID = "java-catalog";
     static public final String REPO_ID = "javatest";
@@ -50,6 +53,8 @@ public class AGAbstractTest extends Closer {
     private static AGRepository sharedRepo = null;
     
     private String testName = null;
+
+	protected Closer closer = new Closer();
 
     public static String findServerUrl() {
     	if (serverUrl == null) {
@@ -77,7 +82,7 @@ public class AGAbstractTest extends Closer {
 				host = "localhost";
 				if (portFile.exists()) {
 					System.out.println("Reading agraph.port: " + portFile.getAbsolutePath());
-					port = readLines(portFile).get(0);
+					port = FileUtils.readFileToString(portFile).trim();
 				} else {
 					port = "10035";
 				}
@@ -101,7 +106,7 @@ public class AGAbstractTest extends Closer {
 				host = "localhost";
 				if (portFile.exists()) {
 					System.out.println("Reading agraph.sslport: " + portFile.getAbsolutePath());
-					port = readLines(portFile).get(0);
+					port = FileUtils.readFileToString(portFile).trim();
 				} else {
 					port = "10036";
 				}
@@ -168,35 +173,25 @@ public class AGAbstractTest extends Closer {
     }
     
     public static void deleteRepository(String catalog, String repo) throws RepositoryException {
-    	AGServer server = new AGServer(findServerUrl(), username(), password());
-    	try {
+    	try (AGServer server = new AGServer(findServerUrl(), username(), password()) ){
             AGCatalog cat = server.getCatalog(catalog);
     		cat.deleteRepository(repo);
-    	} finally {
-    		Closer.Close(server);
     	}
     }
 
 	private static void ping() throws RepositoryException {
-		AGRepository repo = cat.createRepository(REPO_ID);
-        try {
+        try (AGRepository repo = cat.createRepository(REPO_ID)) {
             repo.initialize();
-            AGRepositoryConnection conn = repo.getConnection();
-            try {
+            try (AGRepositoryConnection conn = repo.getConnection()) {
                 conn.ping();
-            } finally {
-            	Closer.Close(conn);
             }
-        } finally {
-        	Closer.Close(repo);
         }
 	}
 	
 	public static Map<String, String> processes(AGServer server) throws AGHttpException {
 		String url = server.getServerURL() + "/" + AGProtocol.PROCESSES;
-		TupleQueryResult results = server.getHTTPClient().getTupleQueryResult(url);
 		Map<String, String> map = new HashMap<String, String>();
-		try {
+		try (TupleQueryResult results = server.getHTTPClient().getTupleQueryResult(url)) {
 			while (results.hasNext()) {
 				BindingSet bindingSet = results.next();
 				Value id = bindingSet.getValue("pid");
@@ -205,8 +200,6 @@ public class AGAbstractTest extends Closer {
 			}
 		} catch (QueryEvaluationException e) {
 			throw new AGHttpException(e);
-		} finally {
-			Closer.Close(results);
 		}
 		return map;
 	}
@@ -218,9 +211,8 @@ public class AGAbstractTest extends Closer {
 	 */
 	public static Map<String, String> sessions(AGServer server) throws AGHttpException {
 		String url = server.getServerURL() + "/" + AGProtocol.SESSION;
-		TupleQueryResult results = server.getHTTPClient().getTupleQueryResult(url);
 		Map<String, String> map = new HashMap<String, String>();
-		try {
+		try (TupleQueryResult results = server.getHTTPClient().getTupleQueryResult(url)) {
 			while (results.hasNext()) {
 				BindingSet bindingSet = results.next();
 				Value k = bindingSet.getValue("uri");
@@ -229,8 +221,6 @@ public class AGAbstractTest extends Closer {
 			}
 		} catch (QueryEvaluationException e) {
 			throw new AGHttpException(e);
-		} finally {
-			Closer.Close(results);
 		}
 		return map;
 	}
@@ -252,7 +242,6 @@ public class AGAbstractTest extends Closer {
 //			// Ignore - it's probably the first test.
 //		}
 		repo = cat.createRepository(REPO_ID);
-        closeLater(repo);
         repo.initialize();
         vf = repo.getValueFactory();
         conn = getConnection();
@@ -268,28 +257,44 @@ public class AGAbstractTest extends Closer {
     
     @After
     public void tearDown() throws Exception {
+		closer.close();
+		conn.close();
+		repo.close();
         vf = null;
-        super.close();
         conn = null;
         repo = null;
     }
 
     @AfterClass
     public static void tearDownOnce() throws Exception {
-        cat = null;
-        server = Closer.Close(server);
+        server.close();
     }
 
+	/**
+	 * Causes close() to be called on an object after the test.
+	 *
+	 * @param closeable Object to be closed after the current test.
+	 * @param <T> the type of the argument.
+	 * @return the argument (for chaining).
+	 */
+	protected<T extends AutoCloseable> T closeLater(final T closeable) {
+		closer.closeLater(closeable);
+		return closeable;
+	}
+
+	// Special version, because Jena developers are ... different:
+	// https://github.com/apache/jena/pull/133
+	protected StmtIterator closeLater(final StmtIterator iter) {
+		closeLater(iter::close);
+		return iter;
+	}
+
     AGRepositoryConnection getConnection() throws RepositoryException {
-        AGRepositoryConnection conn = repo.getConnection();
-        closeLater(conn);
-        return conn;
+        return getConnection(repo);
    }
    
     AGRepositoryConnection getConnection(AGAbstractRepository repo) throws RepositoryException {
-        AGRepositoryConnection conn = repo.getConnection();
-        closeLater(conn);
-        return conn;
+        return repo.getConnection();
    }
    
     public static void assertSetsEqual(Collection expected, Set actual) {
@@ -376,8 +381,8 @@ public class AGAbstractTest extends Closer {
     
     public static void assertFiles(File expected, File actual) throws Exception {
         assertSetsEqual("diff " + expected.getCanonicalPath() + " " + actual.getCanonicalPath(),
-            stripBlankNodes(readLines(expected)),
-            stripBlankNodes(readLines(actual)));
+            stripBlankNodes(FileUtils.readLines(expected, StandardCharsets.UTF_8)),
+            stripBlankNodes(FileUtils.readLines(actual, StandardCharsets.UTF_8)));
     }
     
     private static List<String> stripBlankNodes(List<String> strings) {
@@ -420,21 +425,27 @@ public class AGAbstractTest extends Closer {
     }
     
     public static void printRows(CloseableIteration rows) throws Exception {
-        while (rows.hasNext()) {
-            println(rows.next());
-        }
-        Closer.Close(rows);
+		// We need to declare a variable. Ugh.
+		// https://bugs.openjdk.java.net/browse/JDK-8068948
+        try (CloseableIteration ignored = rows) {
+			while (rows.hasNext()) {
+				println(rows.next());
+			}
+		}
     }
 
     public static void printRows(String headerMsg, int limit, CloseableIteration rows) throws Exception {
         println(headerMsg);
-        int count = 0;
-        while (count < limit && rows.hasNext()) {
-            println(rows.next());
-            count++;
-        }
+		int count = 0;
+		// We need to declare a variable. Ugh.
+		// https://bugs.openjdk.java.net/browse/JDK-8068948
+		try (CloseableIteration ignored = rows) {
+			while (count < limit && rows.hasNext()) {
+				println(rows.next());
+				count++;
+			}
+		}
         println("Number of results: " + count);
-        Closer.Close(rows);
     }
 
 }

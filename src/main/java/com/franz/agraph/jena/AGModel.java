@@ -4,6 +4,7 @@
 
 package com.franz.agraph.jena;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -19,7 +20,6 @@ import org.eclipse.rdf4j.rio.nquads.NQuadsWriter;
 import com.franz.agraph.http.AGHttpRepoClient;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGValueFactory;
-import com.franz.util.Closeable;
 import com.hp.hpl.jena.graph.GraphUtil;
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.rdf.model.AnonId;

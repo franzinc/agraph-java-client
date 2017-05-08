@@ -1,5 +1,24 @@
 # AllegroGraph Java client release history
 
+## 2.0.1
+
+### rfe14993: Make AG resources usable in try-with-resources statements
+
+Various resource classes, such as AGServer and
+AGRepositoryConnection, now implement the AutoCloseable interface
+introduced in Java 7. This makes it possible to use instances of
+these classes in try-with-resources statements:
+
+try (AGServer server = ...;
+     AGRepository repo = ...;
+     AGRepositoryConnection conn = ...;
+     TupleQueryResult result = ...) {
+    while (result.hasNext()) { ... }
+}
+
+The com.franz.util.Closeable interface has been removed, since it
+is identical to AutoCloseable.
+
 ## 2.0.0
 
 ### rfe14986: Upgrade to rdf4j 2.2.2

@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 
 import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
-import com.franz.util.Closeable;
 import com.franz.util.Closer;
 
 /**
@@ -55,7 +54,7 @@ import com.franz.util.Closer;
  * <p>This pool delegates the pooling implementation to another
  * pool (a {@link GenericObjectPool}).
  * When {@link AGRepositoryConnection Connections} are {@link #borrowObject() borrowed},
- * they are wrapped so that {@link Closeable#close()}
+ * they are wrapped so that {@link AutoCloseable#close()}
  * will call {@link #returnObject(Object)} instead of actually closing.
  * </p>
  * 
@@ -80,7 +79,7 @@ import com.franz.util.Closer;
  */
 public class AGConnPool
 extends Closer
-implements ObjectPool, Closeable {
+implements ObjectPool, AutoCloseable {
 
 	private static final Logger log = LoggerFactory.getLogger(AGConnPool.class);
 
@@ -150,7 +149,7 @@ implements ObjectPool, Closeable {
 		
 	}
 	
-	private static class ShutdownHookCloser extends Thread implements Closeable {
+	private static class ShutdownHookCloser extends Thread implements AutoCloseable {
 		
 		private static final Logger log = LoggerFactory.getLogger(ShutdownHookCloser.class);
 		
@@ -165,7 +164,8 @@ implements ObjectPool, Closeable {
 			log.info("closing " + closer);
 			// remove this before closing, because removeShutdownHook will throw if inside of run
 			closer.remove(this);
-			Closer.Close(closer);
+			// This will ignore any exceptions, even unchecked ones
+			closer.close(closer);
 			log.debug("closed " + closer);
 		}
 
@@ -184,7 +184,7 @@ implements ObjectPool, Closeable {
 	 */
 	private AGConnPool(AGConnFactory factory, AGPoolConfig poolConfig) {
 		this.delegate = new GenericObjectPool(new ClosingFactory(factory), poolConfig);
-		closeLater(delegate);
+		closeLater(delegate::close);
 		this.factory = factory;
 
 		if (poolConfig.initialSize > 0) {
@@ -197,7 +197,7 @@ implements ObjectPool, Closeable {
 				throw new RuntimeException(e);
 			}
 			// return them to the pool
-			closeAll(conns);
+			close(conns);
 		}
 		if (poolConfig.shutdownHook) {
 			Runtime.getRuntime().addShutdownHook( closeLater( new ShutdownHookCloser(this)));
@@ -329,7 +329,7 @@ implements ObjectPool, Closeable {
 	@Override
 	public void close() {
 		if (log.isDebugEnabled()) log.debug("close " + this);
-		close(delegate);
+		close(delegate::close);
 		super.close();
 	}
 

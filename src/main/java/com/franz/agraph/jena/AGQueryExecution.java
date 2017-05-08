@@ -4,6 +4,7 @@
 
 package com.franz.agraph.jena;
 
+import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -18,7 +19,6 @@ import com.franz.agraph.repository.AGBooleanQuery;
 import com.franz.agraph.repository.AGGraphQuery;
 import com.franz.agraph.repository.AGTupleQuery;
 import com.franz.agraph.repository.AGUpdate;
-import com.franz.util.Closeable;
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.query.Query;

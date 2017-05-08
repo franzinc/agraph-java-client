@@ -1,81 +1,60 @@
 /******************************************************************************
-** See the file LICENSE for the full license governing this code.
-******************************************************************************/
+ ** See the file LICENSE for the full license governing this code.
+ ******************************************************************************/
 
 package com.franz.util;
 
-import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.common.iteration.Iteration;
 
-import javax.xml.stream.XMLStreamReader;
-
-import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
+import java.util.Iterator;
 
 /**
- * @see Closer
+ * Various static utility functions.
  */
-public class Util {
-	// String that separated the catalog from the repository
-	private static final String CAT_SEPARATOR = ":";
-	
-	/**
-	 * @param <CloseableType>  .
-	 * @param o  the object to close
-	 * @return the closed object <code>o</code>
-	 * @deprecated in v4.4 use Closer
-	 * @see Closer
-	 */
-	public static <CloseableType extends Closeable>
-	CloseableType close(CloseableType o) {
-		return Closer.Close(o);
-	}
-	
-	/**
-	 * @param <CloseableType>  .
-	 * @param o  the object to close
-	 * @return the closed object <code>o</code>
-	 * @deprecated in v4.4 use Closer
-	 * @see Closer
-	 */
-	public static <CloseableType extends java.io.Closeable>
-	CloseableType close(CloseableType o) {
-		return Closer.Close(o);
-	}
-	
-	/**
-	 * 
-	 * @param o  the connection manager to close
-	 * @return the closed object <code>o</code>
-	 * @deprecated in v4.4 use Closer
-	 * @see Closer
-	 */
-	public static MultiThreadedHttpConnectionManager close(MultiThreadedHttpConnectionManager o) {
-		return Closer.Close(o);
-	}
-	
-	/**
-	 * 
-	 * @param <Elem>  the element type of the ClosableIteration
-	 * @param <Exc>   the exception type of the ClosableIteration
-	 * @param o  the object to close
-	 * @return the closed object <code>o</code>
-	 * @deprecated in v4.4 use Closer
-	 * @see Closer
-	 */
-	public static <Elem extends Object, Exc extends Exception>
-	CloseableIteration<Elem, Exc> close(CloseableIteration<Elem, Exc> o) {
-		return Closer.Close(o);
-	}
-	
-	/**
-	 * @param o  the stream to close
-	 * @return  the closed stream <code>o</code>
-	 * @deprecated in v4.4 use Closer
-	 * @see Closer
-	 */
-	public static XMLStreamReader close(XMLStreamReader o) {
-		return Closer.Close(o);
-	}
-	
+public final class Util {
+    // String that separated the catalog from the repository
+    private static final String CAT_SEPARATOR = ":";
+
+    /** Private constructor - no instances can be created. */
+    private Util() {}
+
+    /**
+     * Converts an RDF4J iteration object into a Java iterable.
+     * <p>
+     * Note that the 'iterable' can be iterated over only once.
+     * The purpose of this method is to enable RDF4J iterable objects
+     * to be used in for-each loops:
+     * <p>
+     * <code>
+     * try (TupleQueryResult result = ...) {
+     *     for (BindingSet set : Util.iter(result)) { ... }
+     * }
+     * </code>
+     *
+     * @param i RDF4J iterable object.
+     * @param <T> Type of objects returned from the iteration.
+     *
+     * @return An iterable to be used in a for-each loop.
+     */
+    public static <T> Iterable<T> iter(final Iteration<T, ? extends RuntimeException> i) {
+        return () -> new Iterator<T>() {
+            @Override
+            public boolean hasNext() {
+                return i.hasNext();
+            }
+
+            @Override
+            public T next() {
+                return i.next();
+            }
+
+            @Override
+            public void remove() {
+                i.remove();
+            }
+        };
+    }
+
     /**
      * Parses a store spec of the form [CATALOG:]REPO and returns
      * the CATALOG. Returns {@code null} if there is no CATALOG.

@@ -65,13 +65,12 @@ import com.franz.agraph.repository.AGSpinFunction;
 import com.franz.agraph.repository.AGSpinMagicProperty;
 import com.franz.agraph.repository.AGUpdate;
 import com.franz.agraph.repository.AGValueFactory;
-import com.franz.util.Closeable;
 
 /**
  * The HTTP layer for interacting with AllegroGraph.
  *
  */
-public class AGHttpRepoClient implements Closeable {
+public class AGHttpRepoClient implements AutoCloseable {
 
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
 

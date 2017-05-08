@@ -8,17 +8,17 @@ import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 
-import com.franz.util.Closeable;
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.util.iterator.NiceIterator;
+
+import java.io.Closeable;
 
 /**
  * 
  * A utility class for iterating over Jena Triples.
  *
  */
-public class AGTripleIterator extends NiceIterator<Triple>
-implements Closeable {
+public class AGTripleIterator extends NiceIterator<Triple> implements Closeable {
 	
 	private final AGGraph graph;
 	private final RepositoryResult<Statement> result;

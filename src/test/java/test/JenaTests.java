@@ -5,13 +5,14 @@
 package test;
 
 import com.franz.agraph.jena.*;
+import com.franz.agraph.repository.AGRepositoryConnection;
 import com.hp.hpl.jena.query.QueryException;
 import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.*;
 import com.hp.hpl.jena.vocabulary.OWL;
 import com.hp.hpl.jena.vocabulary.RDF;
 import com.hp.hpl.jena.vocabulary.RDFS;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.eclipse.rdf4j.model.IRI;
@@ -45,12 +46,12 @@ public class JenaTests extends AGAbstractTest {
     	AGModel model = closeLater( new AGModel(graph) );
     	addOne(model);
     	
-    	Assert.assertEquals("a different connection, triple was already committed", 1, getConnection().size());
+    	Assert.assertEquals("a different connection, triple was already committed", 1, getSize());
     	
     	model.commit();
     	Assert.assertEquals(1, conn.size());
     	
-    	Assert.assertEquals("a different connection", 1, getConnection().size());
+    	Assert.assertEquals("a different connection", 1, getSize());
     }
 
     @Test
@@ -67,12 +68,12 @@ public class JenaTests extends AGAbstractTest {
         	
         	addOne(model);
         	
-    		Assert.assertEquals("a different connection, empty", 0, getConnection().size());
+    		Assert.assertEquals("a different connection, empty", 0, getSize());
     		
     		model.commit();
     		Assert.assertEquals(1, conn.size());
     		
-    		Assert.assertEquals("a different connection", 1, getConnection().size());
+    		Assert.assertEquals("a different connection", 1, getSize());
     	} catch (Exception e) {
     		model.abort();
     		throw e;
@@ -517,4 +518,11 @@ public class JenaTests extends AGAbstractTest {
     	model.removeAll();
     	Assert.assertEquals("unexpected model size", 0, model.size());
     }
+
+    /** Creates a fresh connection and returns the repository size. */
+    private long getSize() {
+		try (final AGRepositoryConnection conn = getConnection()) {
+			return conn.size();
+		}
+	}
 }

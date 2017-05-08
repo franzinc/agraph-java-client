@@ -4,6 +4,7 @@
 
 package com.franz.agraph.repository;
 
+import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
@@ -11,7 +12,6 @@ import java.util.concurrent.*;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.NameValuePair;
 import org.json.JSONArray;
-import org.eclipse.rdf4j.OpenRDFException;
 import org.eclipse.rdf4j.http.protocol.Protocol;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.BindingSet;
@@ -23,8 +23,6 @@ import com.franz.agraph.http.AGHTTPClient;
 import com.franz.agraph.http.AGProtocol;
 import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.http.handler.AGJSONArrayHandler;
-import com.franz.util.Closeable;
-import com.franz.util.Closer;
 
 /**
  * The starting point for interacting with an
@@ -369,7 +367,7 @@ public class AGServer implements Closeable {
 	 */
     @Override
     public void close() {
-        Closer.Close(httpClient);
+        httpClient.close();
     }
 
 	/**

@@ -64,8 +64,6 @@ import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.http.exception.AGMalformedDataException;
 import com.franz.agraph.http.handler.AGRDFHandler;
 import com.franz.agraph.http.handler.AGResponseHandler;
-import com.franz.util.Closeable;
-import com.franz.util.Closer;
 
 /**
  * Implements the <a href="http://www.openrdf.org/">Sesame</a>
@@ -184,7 +182,7 @@ import com.franz.util.Closer;
  */
 public class AGRepositoryConnection
 extends RepositoryConnectionBase
-implements RepositoryConnection, Closeable {
+implements RepositoryConnection, AutoCloseable {
 
 	private final AGAbstractRepository repository;
 	private final AGHttpRepoClient repoclient;
@@ -2660,15 +2658,12 @@ implements RepositoryConnection, Closeable {
 	 * @since v4.4
 	 */
 	public List<AGSpinFunction> listSpinFunctions() throws OpenRDFException {
-        TupleQueryResult list = getHttpRepoClient().listSpinFunctions();
-		try {
-			List<AGSpinFunction> result = new ArrayList<AGSpinFunction>();
+		try (TupleQueryResult list = getHttpRepoClient().listSpinFunctions()) {
+			List<AGSpinFunction> result = new ArrayList<>();
 			while (list.hasNext()) {
 				result.add(new AGSpinFunction(list.next()));
 			}
 			return result;
-		} finally {
-			Closer.Close(list);
 		}
 	}
 	
@@ -2721,15 +2716,12 @@ implements RepositoryConnection, Closeable {
 	 * @since v4.4
 	 */
 	public List<AGSpinMagicProperty> listSpinMagicProperties() throws OpenRDFException {
-        TupleQueryResult list = getHttpRepoClient().listSpinMagicProperties();
-		try {
+		try (TupleQueryResult list = getHttpRepoClient().listSpinMagicProperties()) {
 			List<AGSpinMagicProperty> result = new ArrayList<AGSpinMagicProperty>();
 			while (list.hasNext()) {
 				result.add(new AGSpinMagicProperty(list.next()));
 			}
 			return result;
-		} finally {
-			Closer.Close(list);
 		}
 	}
 	

@@ -126,27 +126,6 @@ public class Util {
         }
         return defaultVal;
     }
-    
-    public static List<String> readLines(File file) {
-        List list = new ArrayList<String>();
-        FileReader f = null;
-        BufferedReader s = null;
-        try {
-            f = new FileReader(file);
-            s = new BufferedReader(f);
-            String l = s.readLine();
-            while (l != null) {
-                list.add(l);
-                l = s.readLine();
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(file.getAbsolutePath(), e);
-        } finally {
-        	Closer.Close(f);
-        	Closer.Close(s);
-        }
-        return list;
-    }
 
     /**
      * null-safe hashCode
