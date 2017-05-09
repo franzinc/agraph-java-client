@@ -30,7 +30,7 @@ default: build
 clean: dist-clean
 	mvn clean
 
-prepush: tutorial jena-tutorial attributes-tutorial agq-tests javadoc
+prepush: tutorial jena-tutorial attributes-tutorial agq-tests jena-compliance-tests javadoc
 	mvn test -Dtests.include=test.TestSuites\$$Prepush
 	# Force Java to use ASCII (i.e. not UTF-8) as the default encoding.
 	env LC_ALL=C mvn test -Dtests.include=test.TestSuites\$$Unicode
@@ -87,8 +87,7 @@ repository-tests: FORCE
 	mvn test -Dtests.include=test.openrdf.repository.AGAllRepositoryTests
 
 jena-compliance-tests: FORCE
-	mvn test -Dcom.franz.agraph.test.serverURL=http://$(AGRAPH_HOST):$(AGRAPH_PORT) \
-		-Dtests.include="test.AGGraphMakerTest,\
+	mvn test -Dtests.include="test.AGGraphMakerTest,\
 			test.AGGraphTest,\
 			test.AGModelTest,\
 			test.AGPrefixMappingTest,\

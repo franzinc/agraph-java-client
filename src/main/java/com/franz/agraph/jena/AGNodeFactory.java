@@ -4,11 +4,12 @@
 
 package com.franz.agraph.jena;
 
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.sparql.core.Quad;
 import org.eclipse.rdf4j.model.*;
 
-import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.graph.Triple;
-import com.hp.hpl.jena.rdf.model.AnonId;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
 
 /**
  * 
@@ -25,24 +26,32 @@ public class AGNodeFactory {
 		return new Triple(s,p,o);
 	}
 
+	public static Quad asQuad(Statement st) {
+		Node s = asNode(st.getSubject());
+		Node p = asNode(st.getPredicate());
+		Node o = asNode(st.getObject());;
+		Node g = asNode(st.getContext());
+		return new Quad(s,p,o,g);
+	}
+
 	public static Node asNode(Value v) {
 		Node node = null;
 		if (v==null) {
 			node = Node.ANY; // TODO or Node.NULL or null?
 		} else if (v instanceof IRI) {
-			node = Node.createURI(v.stringValue());
+			node = NodeFactory.createURI(v.stringValue());
 		} else if (v instanceof BNode) {
-			node = Node.createAnon(new AnonId(v.stringValue()));
+			node = NodeFactory.createBlankNode(((BNode) v).getID());
 		} else if (v instanceof Literal) {
 			Literal lit = (Literal)v;
 			IRI datatype = lit.getDatatype();
 			String lang = lit.getLanguage().orElse(null);
 			if (lang!=null) {
-				node = Node.createLiteral(lit.getLabel(), lang, null);
+				node = NodeFactory.createLiteral(lit.getLabel(), lang, null);
 			} else if (datatype!=null) {
-				node = Node.createLiteral(lit.getLabel(), null, Node.getType(datatype.toString()));
+				node = NodeFactory.createLiteral(lit.getLabel(), null, NodeFactory.getType(datatype.toString()));
 			} else {
-				node = Node.createLiteral(lit.stringValue());
+				node = NodeFactory.createLiteral(lit.stringValue());
 			}
 		} else {
 			throw new IllegalArgumentException("Cannot create Node from Value: " + v);

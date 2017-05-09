@@ -1,6 +1,24 @@
 # AllegroGraph Java client release history
 
-## 2.0.1
+## 2.0.0
+
+### rfe14986: Upgrade to rdf4j 2.2.2
+
+The Sesame version used by the Java client has been updated from
+Sesame 2.9.0 to RDF4J 2.2.2. Since the Java client is an extension of
+the Sesame (now RDF4J) API, users should follow the migration guide at
+http://docs.rdf4j.org/migration/
+
+### rfe14997: Smarter clear operation for Jena
+
+Performance of `AGGraph.clear()` and `AGGraph.remove()` operations has
+been significantly improved.
+
+### rfe14994: Move to Jena 3 
+
+The Jena client is now based on Jena 3.3.0 instead of Jena 2. Users
+should follow the migration guide at
+https://jena.apache.org/documentation/migrate_jena2_jena3.html
 
 ### rfe14993: Make AG resources usable in try-with-resources statements
 
@@ -18,20 +36,6 @@ try (AGServer server = ...;
 
 The com.franz.util.Closeable interface has been removed, since it
 is identical to AutoCloseable.
-
-## 2.0.0
-
-### rfe14986: Upgrade to rdf4j 2.2.2
-
-The Sesame version used by the Java client has been updated from
-Sesame 2.9.0 to RDF4J 2.2.2. Since the Java client is an extension of
-the Sesame (now RDF4J) API, users should follow the migration guide at
-http://docs.rdf4j.org/migration/
-
-### rfe14997: Smarter clear operation for Jena
-
-Performance of `AGGraph.clear()` and `AGGraph.remove()` operations has
-been significantly improved.
 
 ## 1.0.10
 

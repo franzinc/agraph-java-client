@@ -4,9 +4,14 @@
 
 package test;
 
-import com.hp.hpl.jena.graph.Graph;
+import junit.framework.Test;
+import org.apache.jena.graph.Graph;
 
-public class AGAnonGraphTest extends AGGraphTest {
+public class AGAnonGraphTest extends AGNamedGraphTest {
+	public static Test suite() {
+		util = new JenaUtil(AGAnonGraphTest.class);
+		return util;
+	}
 
 	public AGAnonGraphTest(String name) {
 		super(name);

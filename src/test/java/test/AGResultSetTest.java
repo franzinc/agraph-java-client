@@ -4,47 +4,27 @@
 
 package test;
 
-import com.franz.agraph.jena.AGModel;
-import com.franz.agraph.jena.AGQuery;
-import com.franz.agraph.jena.AGQueryExecutionFactory;
-import com.franz.agraph.jena.AGQueryFactory;
-import com.hp.hpl.jena.query.QueryExecution;
-import com.hp.hpl.jena.query.QuerySolution;
-import com.hp.hpl.jena.query.ResultSet;
-import com.hp.hpl.jena.rdf.model.Literal;
-import com.hp.hpl.jena.rdf.model.RDFNode;
-import com.hp.hpl.jena.rdf.model.Resource;
-import junit.extensions.TestSetup;
+import com.franz.agraph.jena.*;
 import junit.framework.Test;
-import junit.framework.TestSuite;
-
+import org.apache.jena.query.QueryExecution;
+import org.apache.jena.query.QuerySolution;
+import org.apache.jena.query.ResultSet;
+import org.apache.jena.rdf.model.Literal;
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
 import java.io.FileNotFoundException;
 import java.util.Iterator;
 
 
 public class AGResultSetTest extends AGModelTest {
-
+	public static Test suite() {
+		util = new JenaUtil(AGResultSetTest.class);
+		return util;
+	}
 	public AGResultSetTest(String name) {
 		super(name);
 	}
 
-	public static Test suite() {
-		TestSuite suite = new TestSuite();
-		suite.addTestSuite(AGResultSetTest.class);
-
-		TestSetup wrapper = new TestSetup(suite) {
-			protected void setUp() {
-				setUpOnce();
-			}
-
-			protected void tearDown() {
-				tearDownOnce();
-			}
-		};
-
-		return wrapper;
-	}
-	
 	public void testResultSet() throws FileNotFoundException {
 		AGModel model = (AGModel)getModel();
 		model.read(Util.resourceAsStream("/test/default-graph.nt"), null, "N-TRIPLE");

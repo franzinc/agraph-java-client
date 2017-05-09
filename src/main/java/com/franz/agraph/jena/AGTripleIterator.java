@@ -8,8 +8,8 @@ import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 
-import com.hp.hpl.jena.graph.Triple;
-import com.hp.hpl.jena.util.iterator.NiceIterator;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.util.iterator.NiceIterator;
 
 import java.io.Closeable;
 

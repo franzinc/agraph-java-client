@@ -9,21 +9,20 @@ import static com.franz.agraph.repository.AGVirtualRepository.reasoningSpec;
 
 import java.util.Iterator;
 
-import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.query.Dataset;
 import org.eclipse.rdf4j.query.impl.DatasetImpl;
 import org.eclipse.rdf4j.repository.RepositoryException;
 
 import com.franz.agraph.repository.AGAbstractRepository;
 import com.franz.agraph.repository.AGVirtualRepository;
-import com.hp.hpl.jena.graph.Graph;
-import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.graph.Triple;
-import com.hp.hpl.jena.reasoner.Derivation;
-import com.hp.hpl.jena.reasoner.InfGraph;
-import com.hp.hpl.jena.reasoner.Reasoner;
-import com.hp.hpl.jena.reasoner.ValidityReport;
-import com.hp.hpl.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.reasoner.Derivation;
+import org.apache.jena.reasoner.InfGraph;
+import org.apache.jena.reasoner.Reasoner;
+import org.apache.jena.reasoner.ValidityReport;
+import org.apache.jena.util.iterator.ExtendedIterator;
 
 /**
  * Implements the Jena InfGraph interface for AllegroGraph.

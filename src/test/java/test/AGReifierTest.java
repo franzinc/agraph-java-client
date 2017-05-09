@@ -5,93 +5,37 @@
 package test;
 
 import com.franz.agraph.jena.AGGraphMaker;
-import com.franz.agraph.repository.AGCatalog;
-import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
-import com.franz.agraph.repository.AGServer;
-import com.hp.hpl.jena.graph.Graph;
-import com.hp.hpl.jena.graph.GraphMaker;
-import com.hp.hpl.jena.graph.test.AbstractTestReifier;
-import com.hp.hpl.jena.shared.ReificationStyle;
-import junit.extensions.TestSetup;
 import junit.framework.Test;
-import junit.framework.TestSuite;
-import org.eclipse.rdf4j.repository.RepositoryException;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphMaker;
+import org.apache.jena.graph.test.AbstractTestReifier;
 
 public class AGReifierTest extends AbstractTestReifier {
+	private static final JenaUtil util = new JenaUtil(AGReifierTest.class);
+	protected AGRepositoryConnection conn = null;
+	protected AGGraphMaker maker = null;
 
-	public static String SERVER_URL = System.getProperty(
-			"com.franz.agraph.test.serverURL", "http://localhost:10035");
-	public static String CATALOG_ID = System.getProperty(
-			"com.franz.agraph.test.catalogID", "/");
-	public static String REPOSITORY_ID = System.getProperty(
-			"com.franz.agraph.test.repositoryID", "testRepo");
-	public static String USERNAME = System.getProperty(
-			"com.franz.agraph.test.username", "test");
-	public static String PASSWORD = System.getProperty(
-			"com.franz.agraph.test.password", "xyzzy");
-
-	protected static AGRepositoryConnection conn = null;
-	protected static AGGraphMaker maker = null;
+	public static Test suite() {
+		return util;
+	}
 
 	private static int graphId = 0;
-	
 
 	public AGReifierTest(String name) {
 		super(name);
 	}
 
-	public static Test suite() {
-		TestSuite suite = new TestSuite();
-		suite.addTestSuite(AGReifierTest.class);
-
-		TestSetup wrapper = new TestSetup(suite) {
-			protected void setUp() {
-				setUpOnce();
-			}
-
-			protected void tearDown() {
-				tearDownOnce();
-			}
-		};
-
-		return wrapper;
-	}
-
-	public static void setUpOnce() {
-		AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
-		AGCatalog catalog = server.getRootCatalog();
-		try {
-			catalog.deleteRepository(REPOSITORY_ID);
-			AGRepository repo = catalog.createRepository(REPOSITORY_ID);
-			repo.initialize();
-			conn = repo.getConnection();
-			maker = new AGGraphMaker(conn);
-		} catch (RepositoryException e) {
-			e.printStackTrace();
-		}
-	}
-
 	@Override
-	public void setUp() {
-		try {
-			conn.clear();
-		} catch (RepositoryException e) {
-			throw new RuntimeException("Unable to clear connection.");
-		}
-	}
-
-	public static void tearDownOnce() {
-		try {
-			conn.close();
-		} catch (RepositoryException e) {
-			throw new RuntimeException("Unable to close connection.");
-		}
+	public void setUp() throws Exception {
+		super.setUp();
+		conn = util.getConn();
+		maker = util.getMaker();
 	}
 
 	@Override
 	public Graph getGraph() {
-		GraphMaker maker = new AGGraphMaker(conn,ReificationStyle.Standard);
+		GraphMaker maker = new AGGraphMaker(conn);
 		Graph graph = maker.createGraph("http://named" + graphId);
 		graphId++;
 		return graph;
@@ -101,7 +45,7 @@ public class AGReifierTest extends AbstractTestReifier {
 	/**
 	 * Override as AG doesn't test for reification clash.
 	 * 
-	 * @see com.hp.hpl.jena.graph.test.AbstractTestReifier#testReificationClash(java.lang.String)
+	 * @see org.apache.jena.graph.test.AbstractTestReifier#testReificationClash(java.lang.String)
 	 */
 	@Override
 	protected void testReificationClash( String clashingStatement )

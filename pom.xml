@@ -42,7 +42,7 @@
     <!-- All RDF4J deps use the same version. -->
     <rdf4j.version>2.2.2</rdf4j.version>
     <!-- Same thing applies to Jena. -->
-    <jena.version>2.11.1</jena.version>
+    <jena.version>3.3.0</jena.version>
   </properties>
 
   <!--Use a separate profile for release deployment. -->
@@ -257,7 +257,7 @@
             </offlineLink>
             <offlineLink>
               <!-- Apache only hosts the very latest version. -->
-              <url>http://www.atetric.com/atetric/javadoc/org.apache.jena/jena-core/${jena.version}/</url>
+              <url>https://www.javadoc.io/doc/org.apache.jena/jena-core/${jena.version}/</url>
               <location>${basedir}/lib/jena</location>
             </offlineLink>
           </offlineLinks>
@@ -432,21 +432,29 @@
     </dependency>
 
     <dependency>
-      <groupId>com.hp.hpl.jena</groupId>
-      <artifactId>json-jena</artifactId> 
-      <version>1.0</version>
-    </dependency>
-
-    <dependency>
       <groupId>org.apache.jena</groupId>
       <artifactId>jena-arq</artifactId>
       <version>${jena.version}</version>
     </dependency>
-    
+
+    <!-- TODO: Switch to Jackson. -->
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+      <version>20160810</version>
+    </dependency>
+
+
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>1.6.4</version>
+      <version>1.7.25</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>1.7.25</version>
     </dependency>
     
     <dependency>

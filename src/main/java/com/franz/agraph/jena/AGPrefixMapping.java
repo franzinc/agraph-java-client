@@ -14,8 +14,8 @@ import org.eclipse.rdf4j.model.Namespace;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 
-import com.hp.hpl.jena.rdf.model.impl.Util;
-import com.hp.hpl.jena.shared.PrefixMapping;
+import org.apache.jena.rdf.model.impl.Util;
+import org.apache.jena.shared.PrefixMapping;
 
 /**
  * Implements the Jena PrefixMapping interface for AllegroGraph.
@@ -98,8 +98,13 @@ public class AGPrefixMapping implements PrefixMapping {
 	}
 
 	@Override
+	public boolean hasNoMappings() {
+		return getNsPrefixMap().isEmpty();
+	}
+
+	@Override
 	public String qnameFor(String uri) {
-        int split = Util.splitNamespace( uri );
+        int split = Util.splitNamespaceXML( uri );
         String ns = uri.substring( 0, split ), local = uri.substring( split );
         if (local.equals( "" )) return null;
         String prefix = getNsURIPrefix(ns);
@@ -114,6 +119,12 @@ public class AGPrefixMapping implements PrefixMapping {
 		} catch (RepositoryException e) {
 			throw new RuntimeException(e);
 		}
+		return this;
+	}
+
+	@Override
+	public PrefixMapping clearNsPrefixMap() {
+		getGraph().getConnection().clearNamespaces();
 		return this;
 	}
 
@@ -169,6 +180,11 @@ public class AGPrefixMapping implements PrefixMapping {
 			}
 		}
 		return uri;
+	}
+
+	@Override
+	public int numPrefixes() {
+		return getNsPrefixMap().size();
 	}
 
 	@Override

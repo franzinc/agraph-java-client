@@ -5,94 +5,35 @@
 package test;
 
 import com.franz.agraph.jena.AGGraphMaker;
-import com.franz.agraph.repository.AGCatalog;
-import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
-import com.franz.agraph.repository.AGServer;
-import com.hp.hpl.jena.graph.Graph;
-import com.hp.hpl.jena.shared.AbstractTestPrefixMapping;
-import com.hp.hpl.jena.shared.PrefixMapping;
-import junit.extensions.TestSetup;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.shared.AbstractTestPrefixMapping;
+import org.apache.jena.shared.PrefixMapping;
 import junit.framework.Test;
-import junit.framework.TestSuite;
-import org.eclipse.rdf4j.repository.RepositoryException;
 
 public class AGPrefixMappingTest extends AbstractTestPrefixMapping {
+	private static final JenaUtil util = new JenaUtil(AGPrefixMappingTest.class);
+	protected AGRepositoryConnection conn = null;
+	protected AGGraphMaker maker = null;
 
-	public static String SERVER_URL = System.getProperty(
-			"com.franz.agraph.test.serverURL", "http://localhost:10035");
-	public static String CATALOG_ID = System.getProperty(
-			"com.franz.agraph.test.catalogID", "/");
-	public static String REPOSITORY_ID = System.getProperty(
-			"com.franz.agraph.test.repositoryID", "testRepo");
-	public static String USERNAME = System.getProperty(
-			"com.franz.agraph.test.username", "test");
-	public static String PASSWORD = System.getProperty(
-			"com.franz.agraph.test.password", "xyzzy");
+	public static Test suite() {
+		return util;
+	}
 
-	protected static AGRepositoryConnection conn = null;
-	protected static AGGraphMaker maker = null;
-
-	private static int graphId = 0;
-	
 	public AGPrefixMappingTest(String name) {
 		super(name);
 	}
 
-	public static Test suite() {
-		TestSuite suite = new TestSuite();
-		suite.addTestSuite(AGPrefixMappingTest.class);
-
-		TestSetup wrapper = new TestSetup(suite) {
-			protected void setUp() {
-				setUpOnce();
-			}
-
-			protected void tearDown() {
-				tearDownOnce();
-			}
-		};
-
-		return wrapper;
-	}
-
-	public static void setUpOnce() {
-		AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
-		AGCatalog catalog = server.getRootCatalog();
-		try {
-			catalog.deleteRepository(REPOSITORY_ID);
-			AGRepository repo = catalog.createRepository(REPOSITORY_ID);
-			repo.initialize();
-			conn = repo.getConnection();
-			maker = new AGGraphMaker(conn);
-		} catch (RepositoryException e) {
-			e.printStackTrace();
-		}
-	}
-
 	@Override
-	public void setUp() {
-		try {
-			conn.clear();
-			conn.clearNamespaces();
-		} catch (RepositoryException e) {
-			throw new RuntimeException("Unable to clear connection.");
-		}
-	}
-
-	public static void tearDownOnce() {
-		maker.close();
-		try {
-			conn.close();
-		} catch (RepositoryException e) {
-			throw new RuntimeException("Unable to close connection.");
-		}
+	public void setUp() throws Exception {
+		conn = util.getConn();
+		maker = util.getMaker();
+		super.setUp();
 	}
 
 	@Override
 	public PrefixMapping getMapping() {
-		Graph graph = maker.createGraph();
-		graphId++;
+		Graph graph = util.getMaker().createGraph();
 		return graph.getPrefixMapping();
 	}
 

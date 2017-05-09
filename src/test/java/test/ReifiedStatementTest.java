@@ -7,9 +7,8 @@ package test;
 import com.franz.agraph.jena.AGGraph;
 import com.franz.agraph.jena.AGGraphMaker;
 import com.franz.agraph.jena.AGModel;
-import com.hp.hpl.jena.rdf.model.*;
-import com.hp.hpl.jena.shared.ReificationStyle;
-import com.hp.hpl.jena.vocabulary.RDF;
+import org.apache.jena.rdf.model.*;
+import org.apache.jena.vocabulary.RDF;
 import org.junit.Test;
 import org.eclipse.rdf4j.model.IRI;
 
@@ -18,7 +17,7 @@ public class ReifiedStatementTest extends AGAbstractTest {
 	@Test
 	public void test1() throws Exception {
 
-		AGGraphMaker maker = new AGGraphMaker(conn, ReificationStyle.Standard);
+		AGGraphMaker maker = new AGGraphMaker(conn);
 
 		AGGraph graph = maker.getGraph();
 		AGModel model = new AGModel(graph);
@@ -78,7 +77,7 @@ public class ReifiedStatementTest extends AGAbstractTest {
 	@Test
 	public void test2() throws Exception {
 
-		AGGraphMaker maker = new AGGraphMaker(conn,ReificationStyle.Standard);
+		AGGraphMaker maker = new AGGraphMaker(conn);
 
 		AGGraph graph = maker.getGraph();
 		AGModel model = new AGModel(graph);

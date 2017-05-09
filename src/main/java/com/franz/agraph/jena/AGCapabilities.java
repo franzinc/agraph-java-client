@@ -4,8 +4,8 @@
 
 package com.franz.agraph.jena;
 
-import com.hp.hpl.jena.graph.Capabilities;
-import com.hp.hpl.jena.graph.impl.AllCapabilities;
+import org.apache.jena.graph.Capabilities;
+import org.apache.jena.graph.impl.AllCapabilities;
 
 /**
  * Implements the Jena Capabilities interface for AllegroGraph.

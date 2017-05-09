@@ -371,7 +371,7 @@ implements RepositoryConnection, AutoCloseable {
 			if(st.getContext() != null) {
 				row.put(encodeValueForStorageJSON(st.getContext()));
 			} else {
-				row.put(null);
+				row.put((Object)null);
 			}
 			if (attrs != null) {
 				row.put(attrs);
@@ -387,7 +387,7 @@ implements RepositoryConnection, AutoCloseable {
 				if (c != null) {
 					row.put(encodeValueForStorageJSON(c));
 				} else {
-					row.put(null);
+					row.put((Object)null);
 				}
 				if (attrs != null) {
 					row.put(attrs);

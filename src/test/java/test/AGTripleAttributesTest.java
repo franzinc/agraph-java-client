@@ -20,7 +20,7 @@ import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGValueFactory;
 import com.franz.agraph.repository.AGRepositoryConnection.AttributeDefinition;
-import com.hp.hpl.jena.vocabulary.RDFS;
+import org.apache.jena.vocabulary.RDFS;
 
 import java.util.ArrayList;
 import java.util.List;

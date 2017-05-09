@@ -10,6 +10,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.jena.query.*;
+import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.core.Quad;
 import org.eclipse.rdf4j.query.GraphQueryResult;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
 import org.eclipse.rdf4j.query.QueryLanguage;
@@ -19,18 +22,11 @@ import com.franz.agraph.repository.AGBooleanQuery;
 import com.franz.agraph.repository.AGGraphQuery;
 import com.franz.agraph.repository.AGTupleQuery;
 import com.franz.agraph.repository.AGUpdate;
-import com.hp.hpl.jena.graph.Triple;
-import com.hp.hpl.jena.query.Dataset;
-import com.hp.hpl.jena.query.Query;
-import com.hp.hpl.jena.query.QueryException;
-import com.hp.hpl.jena.query.QueryExecution;
-import com.hp.hpl.jena.query.QueryFactory;
-import com.hp.hpl.jena.query.QuerySolution;
-import com.hp.hpl.jena.query.ResultSet;
-import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.ModelFactory;
-import com.hp.hpl.jena.sparql.util.Context;
-import com.hp.hpl.jena.util.FileManager;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.sparql.util.Context;
+import org.apache.jena.util.FileManager;
 
 /**
  * Implements the Jena QueryExecution interface for AllegroGraph.
@@ -43,6 +39,7 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 	private QuerySolution binding;	
 	private static final long   TIMEOUT_UNSET = -1 ;
 	protected long timeout = TIMEOUT_UNSET;
+	private boolean closed = false;
 		
 	public AGQueryExecution(AGQuery query, AGModel model) {
 		this.query = query;
@@ -57,6 +54,12 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 
 	@Override
 	public void close() {
+		closed = true;
+	}
+
+	@Override
+	public boolean isClosed() {
+		return closed;
 	}
 
 	@Override
@@ -92,8 +95,7 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 		return execConstruct(null);
 	}
 
-	@Override
-	public Model execConstruct(Model m) {
+	private GraphQueryResult getConstructResult() {
 		if (query.getLanguage()!=QueryLanguage.SPARQL) {
 			throw new UnsupportedOperationException(query.getLanguage().getName() + " language does not support CONSTRUCT queries.");
 		}
@@ -119,6 +121,12 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 		} catch (QueryEvaluationException e) {
 			throw new QueryException(e);
 		}
+		return result;
+	}
+
+	@Override
+	public Model execConstruct(Model m) {
+		GraphQueryResult result = getConstructResult();
 		if (m==null) {
 			m = ModelFactory.createDefaultModel();
 		}
@@ -263,57 +271,23 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 	}
 
 	@Override
-	public void setFileManager(FileManager fm) {
-		throw new UnsupportedOperationException(AGUnsupportedOperation.message);
-	}
-
-	@Override
 	public void setInitialBinding(QuerySolution binding) {
 		this.binding = binding;
 	}
 
-
 	@Override
 	public Iterator<Triple> execConstructTriples() {
-		Iterator<Triple> it = null;		
-		if (query.getLanguage()!=QueryLanguage.SPARQL) {
-			throw new UnsupportedOperationException(query.getLanguage().getName() + " language does not support CONSTRUCT queries.");
-		}		
-		AGGraphQuery gq = model.getGraph().getConnection().prepareGraphQuery(query.getLanguage(), query.getQueryString());
-		gq.setIncludeInferred(model.getGraph() instanceof AGInfGraph);
-		gq.setEntailmentRegime(model.getGraph().getEntailmentRegime());
-		gq.setCheckVariables(query.isCheckVariables());
-		gq.setLimit(query.getLimit());
-		gq.setOffset(query.getOffset());		
-		if (binding!=null) {
-			Iterator<String> vars = binding.varNames();
-			while (vars.hasNext()) {
-				String var = vars.next();
-				gq.setBinding(var, model.getGraph().vf.asValue(binding.get(var).asNode()));
-			}
-		}		
-		GraphQueryResult result;		
-		try {
-			gq.setDataset(model.getGraph().getDataset());
-			if(timeout > 0)
-				gq.setMaxQueryTime((int) (timeout/1000));
-			result = gq.evaluate();
-		} catch (QueryEvaluationException e) {
-			throw new QueryException(e);
-		}		
-		try {
-			List<Triple> tripleArrayList = new ArrayList<Triple>();			
+		try (GraphQueryResult result = getConstructResult()) {
+			List<Triple> tripleArrayList = new ArrayList<>();
 	        while (result.hasNext()) {	        	
 				tripleArrayList.add(AGNodeFactory.asTriple(result.next()));				
 			}
 			//Getting Iterator from List
-			it = tripleArrayList.iterator();
+			return tripleArrayList.iterator();
 		} catch (QueryEvaluationException e) {
 			throw new QueryException(e);
-		}		
-		return it;		
+		}
 	}
-
 
 	@Override
 	public Iterator<Triple> execDescribeTriples() {
@@ -364,7 +338,38 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 	@Override
 	public long getTimeout2() {
 		return 0;
-	}	
-	   
-	
+	}
+
+	@Override
+	public Iterator<Quad> execConstructQuads() {
+		try (GraphQueryResult result = getConstructResult()) {
+			List<Quad> quadArrayList = new ArrayList<>();
+			while (result.hasNext()) {
+				quadArrayList.add(AGNodeFactory.asQuad(result.next()));
+			}
+			//Getting Iterator from List
+			return quadArrayList.iterator();
+		} catch (QueryEvaluationException e) {
+			throw new QueryException(e);
+		}
+	}
+
+	@Override
+	public Dataset execConstructDataset() {
+		final Dataset result = DatasetFactory.createGeneral();
+		execConstructDataset(result);
+		return result;
+	}
+
+	@Override
+	public Dataset execConstructDataset(Dataset dataset) {
+		DatasetGraph dsg = dataset.asDatasetGraph() ;
+		try {
+			execConstructQuads().forEachRemaining(dsg::add);
+		} finally {
+			this.close();
+		}
+		return dataset;
+	}
+
 }

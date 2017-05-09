@@ -8,7 +8,7 @@ import com.franz.agraph.http.AGProtocol;
 import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.repository.*;
 import com.franz.util.Closer;
-import com.hp.hpl.jena.rdf.model.StmtIterator;
+import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.apache.commons.io.IOUtils;

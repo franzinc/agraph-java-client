@@ -8,6 +8,7 @@ import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import org.apache.jena.graph.*;
 import org.eclipse.rdf4j.http.protocol.UnauthorizedException;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
@@ -25,20 +26,12 @@ import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.repository.AGBooleanQuery;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGValueFactory;
-import com.hp.hpl.jena.graph.BulkUpdateHandler;
-import com.hp.hpl.jena.graph.Capabilities;
-import com.hp.hpl.jena.graph.Graph;
-import com.hp.hpl.jena.graph.GraphUtil;
-import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.graph.TransactionHandler;
-import com.hp.hpl.jena.graph.Triple;
-import com.hp.hpl.jena.graph.TripleMatch;
-import com.hp.hpl.jena.graph.impl.GraphBase;
-import com.hp.hpl.jena.shared.AddDeniedException;
-import com.hp.hpl.jena.shared.DeleteDeniedException;
-import com.hp.hpl.jena.shared.PrefixMapping;
-import com.hp.hpl.jena.util.iterator.ClosableIterator;
-import com.hp.hpl.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.graph.impl.GraphBase;
+import org.apache.jena.shared.AddDeniedException;
+import org.apache.jena.shared.DeleteDeniedException;
+import org.apache.jena.shared.PrefixMapping;
+import org.apache.jena.util.iterator.ClosableIterator;
+import org.apache.jena.util.iterator.ExtendedIterator;
 
 /**
  * Implements the Jena Graph interface for AllegroGraph.
@@ -104,15 +97,6 @@ public class AGGraph extends GraphBase implements Graph, Closeable {
 
 	String getEntailmentRegime() {
 		return entailmentRegime;
-	}
-	
-	//@Override
-	//public void close() {
-	//}
-
-	@Override
-	public BulkUpdateHandler getBulkUpdateHandler() {
-		return new AGBulkUpdateHandler(this);
 	}
 
     @Override
@@ -196,12 +180,13 @@ public class AGGraph extends GraphBase implements Graph, Closeable {
 	 *================*/
 
 	@Override
-	protected ExtendedIterator<Triple> graphBaseFind(TripleMatch m) {
+	protected ExtendedIterator<Triple> graphBaseFind(Triple m) {
 		RepositoryResult<Statement> result;
 		try {
 			// TODO: allow arbitrary values in subject and predicate positions? 
 			Node s = m.getMatchSubject();
 			Node p = m.getMatchPredicate();
+			Node o = m.getMatchObject();
 			// quickly return no results if RDF constraints for subject and predicate
 			// are violated, as occurs in the Jena test suite for Graph. 
 			if ((s!=null && s.isLiteral()) || 
@@ -209,13 +194,12 @@ public class AGGraph extends GraphBase implements Graph, Closeable {
 				result = conn.createRepositoryResult(new ArrayList<Statement>());
 			} else {
 				StatementCollector collector = new StatementCollector();
-				conn.getHttpRepoClient().getStatements(vf.asResource(s), vf.asURI(p), vf.asValue(m
-						.getMatchObject()), entailmentRegime, collector, contexts);
+				conn.getHttpRepoClient().getStatements(
+						vf.asResource(s), vf.asURI(p), vf.asValue(o),
+						entailmentRegime, collector, contexts);
 				result = conn.createRepositoryResult(collector.getStatements());
 			}
-		} catch (AGHttpException e) {
-			throw new RuntimeException(e);
-		} catch (RDFHandlerException e) {
+		} catch (AGHttpException|RDFHandlerException e) {
 			throw new RuntimeException(e);
 		}
 		return new AGTripleIterator(this, result);
@@ -285,12 +269,14 @@ public class AGGraph extends GraphBase implements Graph, Closeable {
 	/** {@inheritDoc} */
 	@Override
 	public void clear() {
-		this.remove(Node.ANY, Node.ANY, Node.ANY);
+		conn.remove((Resource)null, null, null);
+		this.getEventManager().notifyEvent(this, GraphEvents.removeAll);
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public void remove(final Node s, final Node p, final Node o) {
 		conn.remove(vf.asResource(s), vf.asURI(p), vf.asValue(o));
+		this.getEventManager().notifyEvent(this, GraphEvents.remove(s, p, o));
 	}
 }

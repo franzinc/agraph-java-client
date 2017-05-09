@@ -2,10 +2,10 @@ package test;
 
 import com.franz.agraph.jena.*;
 import com.franz.agraph.repository.AGCatalog;
-import com.hp.hpl.jena.graph.Triple;
-import com.hp.hpl.jena.query.ResultSet;
-import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.StmtIterator;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.query.ResultSet;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.StmtIterator;
 import junit.framework.Assert;
 import org.junit.Test;
 import org.eclipse.rdf4j.model.ValueFactory;

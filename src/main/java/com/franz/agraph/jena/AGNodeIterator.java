@@ -7,8 +7,8 @@ package com.franz.agraph.jena;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
 import org.eclipse.rdf4j.query.TupleQueryResult;
 
-import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.util.iterator.NiceIterator;
+import org.apache.jena.graph.Node;
+import org.apache.jena.util.iterator.NiceIterator;
 
 import java.io.Closeable;
 

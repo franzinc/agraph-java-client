@@ -4,7 +4,7 @@
 
 package com.franz.agraph.jena;
 
-import com.hp.hpl.jena.query.QuerySolution;
+import org.apache.jena.query.QuerySolution;
 
 
 /**

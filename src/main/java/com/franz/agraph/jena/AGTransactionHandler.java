@@ -4,17 +4,18 @@
 
 package com.franz.agraph.jena;
 
+import org.apache.jena.graph.impl.TransactionHandlerBase;
 import org.eclipse.rdf4j.repository.RepositoryException;
 
-import com.hp.hpl.jena.graph.TransactionHandler;
-import com.hp.hpl.jena.shared.Command;
-import com.hp.hpl.jena.shared.JenaException;
+import org.apache.jena.graph.TransactionHandler;
+import org.apache.jena.shared.Command;
+import org.apache.jena.shared.JenaException;
 
 /**
  * Implements the Jena TransactionHandler interface for AllegroGraph.
  * 
  */
-public class AGTransactionHandler implements TransactionHandler {
+public class AGTransactionHandler extends TransactionHandlerBase {
 
 	private final AGGraph graph;
 	

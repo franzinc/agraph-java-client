@@ -4,7 +4,7 @@
 
 package test;
 
-import com.hp.hpl.jena.sparql.vocabulary.FOAF;
+import org.apache.jena.sparql.vocabulary.FOAF;
 import junit.framework.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -20,8 +20,8 @@ import com.franz.agraph.jena.AGQuery;
 import com.franz.agraph.jena.AGQueryExecution;
 import com.franz.agraph.jena.AGQueryExecutionFactory;
 import com.franz.agraph.jena.AGQueryFactory;
-import com.hp.hpl.jena.rdf.model.Resource;
-import com.hp.hpl.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Property;
 
 public class SparqlUpdateTests extends AGAbstractTest {
 

@@ -14,15 +14,13 @@ import com.franz.agraph.repository.AGGraphQuery;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGTupleQuery;
 import com.franz.agraph.repository.AGValueFactory;
-import com.hp.hpl.jena.graph.Graph;
-import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.graph.Triple;
-import com.hp.hpl.jena.graph.TripleMatch;
-import com.hp.hpl.jena.shared.AlreadyReifiedException;
-import com.hp.hpl.jena.shared.CannotReifyException;
-import com.hp.hpl.jena.shared.ReificationStyle;
-import com.hp.hpl.jena.util.iterator.ExtendedIterator;
-import com.hp.hpl.jena.vocabulary.RDF;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.shared.AlreadyReifiedException;
+import org.apache.jena.shared.CannotReifyException;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.vocabulary.RDF;
 
 public class AGReifier {
 
@@ -59,12 +57,12 @@ public class AGReifier {
 	}
 
 	
-	public ExtendedIterator<Triple> find(TripleMatch m) {
+	public ExtendedIterator<Triple> find(Triple m) {
 		return graph.graphBaseFind(m);
 	}
 	
 
-	public ExtendedIterator<Triple> findExposed(TripleMatch m) {
+	public ExtendedIterator<Triple> findExposed(Triple m) {
 		if (matchesReification(m)) {
 			if (m.getMatchPredicate()!=null) {
 				return graph.graphBaseFind(m);
@@ -95,7 +93,7 @@ public class AGReifier {
 	}
 
 	
-	public ExtendedIterator<Triple> findEither(TripleMatch m, boolean showHidden) {
+	public ExtendedIterator<Triple> findEither(Triple m, boolean showHidden) {
 		return showHidden ? Triple.None : find( m );
 	}
 
@@ -104,10 +102,6 @@ public class AGReifier {
 		return 0;
 	}
 
-	
-	public ReificationStyle getStyle() {
-		return ReificationStyle.Standard;
-	}
 
 	
 	public Graph getParentGraph() {
@@ -282,13 +276,13 @@ public class AGReifier {
 	/**
 	 * Answer true iff <code>m</code> might match a reification triple.
 	 */
-	private boolean matchesReification(TripleMatch m) {
-		Node predicate = m.asTriple().getPredicate();
+	private boolean matchesReification(Triple m) {
+		Node predicate = m.getPredicate();
 		return !predicate.isConcrete() || predicate.equals(RDF.Nodes.subject)
 				|| predicate.equals(RDF.Nodes.predicate)
 				|| predicate.equals(RDF.Nodes.object)
 				|| predicate.equals(RDF.Nodes.type)
-				&& matchesStatement(m.asTriple().getObject());
+				&& matchesStatement(m.getObject());
 	}
 
 	private boolean matchesStatement(Node x) {

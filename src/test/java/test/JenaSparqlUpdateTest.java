@@ -1,8 +1,9 @@
 package test;
 
-import com.hp.hpl.jena.query.Dataset;
-import com.hp.hpl.jena.query.DatasetFactory;
-import com.hp.hpl.jena.update.*;
+import org.apache.jena.query.Dataset;
+import org.apache.jena.query.DatasetFactory;
+import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.update.*;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -13,20 +14,19 @@ public class JenaSparqlUpdateTest {
     @Test
     @Category(TestSuites.Prepush.class)
     public void dataset() throws Exception {
-    	Dataset ds = DatasetFactory.createMem();
+    	Dataset ds = DatasetFactory.create();
     	Iterator<String> it = ds.listNames();
     	while (it.hasNext()) {
     		System.out.println(it.next());
     	}
-    	GraphStore graphStore = GraphStoreFactory.create(ds);
 		UpdateRequest request = UpdateFactory.read(
 				Util.resourceAsStream("/test/insertdata2.ru"));
-		UpdateAction.execute(request, graphStore);
-    	Dataset ds2 = graphStore.toDataset();
-    	it = ds2.listNames();
+		UpdateAction.execute(request, ds);
+    	it = ds.listNames();
     	while (it.hasNext()) {
     		System.out.println(it.next());
     	}
+    	// TODO: It would be **really nice** if this 'test' contained any assertions...
     }
 
 }

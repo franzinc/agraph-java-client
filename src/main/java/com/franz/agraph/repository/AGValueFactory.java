@@ -4,6 +4,7 @@
 
 package com.franz.agraph.repository;
 
+import org.apache.jena.vocabulary.RDF;
 import org.eclipse.rdf4j.model.*;
 import org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
 import org.eclipse.rdf4j.repository.RepositoryException;
@@ -12,7 +13,7 @@ import org.eclipse.rdf4j.rio.ntriples.NTriplesUtil;
 import com.franz.agraph.http.AGHTTPClient;
 import com.franz.agraph.http.AGHttpRepoClient;
 import com.franz.agraph.http.exception.AGHttpException;
-import com.hp.hpl.jena.graph.Node;
+import org.apache.jena.graph.Node;
 
 import java.util.regex.Pattern;
 
@@ -22,6 +23,15 @@ import java.util.regex.Pattern;
  */
 public class AGValueFactory extends ValueFactoryImpl {
 	private static final Pattern AG_BNODE_ID_PATTERN = Pattern.compile("\\Ab[0-9A-Fa-f]{8}x\\d+\\z");
+	// Expected type of tagged literals
+	private static final String RDF_LANG_STRING = RDF.langString.toString();
+
+	// Jena sometimes creates empty urls - for instance in RDF/XML writer
+	// it tries to create an URI representing the file containing the data,
+	// when that is not known an empty string is used.
+	// But RDF4J will not allow URIs without ':', so we convert these
+	// to the URI specified below.
+	private static final String JENA_EMPTY_URL = "http://franz.com/jena-empty-uri";
 
 	private final AGRepository repository;
 	private final AGRepositoryConnection conn;
@@ -172,11 +182,19 @@ public class AGValueFactory extends ValueFactoryImpl {
 			val = createBNode(id); 
 		} else if (node.isLiteral()) {
 			String lang = node.getLiteralLanguage();
-			if (node.getLiteralDatatypeURI()!=null) {
-				IRI datatype = createIRI(node.getLiteralDatatypeURI());
+			String datatypeURI = node.getLiteralDatatypeURI();
+			if (lang != null && !lang.equals("")) {
+				if (datatypeURI != null
+						&& !datatypeURI.equals(RDF_LANG_STRING)) {
+					String msg = String.format(
+							"Wrong tagged literal type: %s, should be: %s",
+							datatypeURI, RDF_LANG_STRING);
+					throw new IllegalArgumentException(msg);
+				}
+				val = createLiteral(node.getLiteralLexicalForm(), lang);
+			} else if (datatypeURI != null) {
+				IRI datatype = createIRI(datatypeURI);
 				val = createLiteral(node.getLiteralLexicalForm(), datatype);
-			} else if (lang!=null && !lang.equals("")) {
-				val = createLiteral(node.getLiteralLexicalForm(),lang);
 			} else {
 				// TODO
 				val = createLiteral(node.getLiteralLexicalForm());
@@ -213,7 +231,12 @@ public class AGValueFactory extends ValueFactoryImpl {
 		if (node==null || node==Node.ANY) {
 			res = null;
 		} else if (node.isURI()) {
-			res = createIRI(node.getURI());
+			String uri = node.getURI();
+			// See comment for JENA_EMPTY_URL
+			if (uri.isEmpty()) {
+				uri = JENA_EMPTY_URL;
+			}
+			res = createIRI(uri);
 		} else if (node.isBlank()) {
 			res = createBNode(node.getBlankNodeLabel()); 
 		} else {

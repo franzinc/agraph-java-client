@@ -10,43 +10,36 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.jena.graph.NodeFactory;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.repository.RepositoryException;
 
 import com.franz.agraph.repository.AGRepositoryConnection;
-import com.hp.hpl.jena.graph.GraphMaker;
-import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.rdf.model.AnonId;
-import com.hp.hpl.jena.shared.AlreadyExistsException;
-import com.hp.hpl.jena.shared.DoesNotExistException;
-import com.hp.hpl.jena.shared.ReificationStyle;
-import com.hp.hpl.jena.util.CollectionFactory;
-import com.hp.hpl.jena.util.iterator.ExtendedIterator;
-import com.hp.hpl.jena.util.iterator.NiceIterator;
+import org.apache.jena.graph.GraphMaker;
+import org.apache.jena.graph.Node;
+import org.apache.jena.rdf.model.AnonId;
+import org.apache.jena.shared.AlreadyExistsException;
+import org.apache.jena.shared.DoesNotExistException;
+import org.apache.jena.util.CollectionFactory;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.NiceIterator;
 
 /**
  * Implements the Jena GraphMaker interface for AllegroGraph.
  * 
  */
 public class AGGraphMaker implements GraphMaker, Closeable {
-
 	private AGRepositoryConnection conn;
-	private ReificationStyle style;
 	private AGGraph defaultGraph;
 	
 	// TODO make this persistent?
     protected Map<String, AGGraph> created = CollectionFactory.createHashedMap();
 
     public AGGraphMaker(AGRepositoryConnection conn) {
-    	this(conn,ReificationStyle.Minimal);
-	}
-
-    public AGGraphMaker(AGRepositoryConnection conn, ReificationStyle style) {
     	this.conn = conn;
     	// It's common enough for Jena applications to use ResourceFactory to 
     	// create new blank nodes, so experimentally enable this by default
     	conn.getHttpRepoClient().setAllowExternalBlankNodeIds(true);
-    	this.style = style;
     }
     
 	public AGRepositoryConnection getRepositoryConnection() {
@@ -70,7 +63,7 @@ public class AGGraphMaker implements GraphMaker, Closeable {
 		// Get an unused blank node id from the server.  Note that using
 		// createAnon() would generate an illegal id based on a uuid. 
 		String id = conn.getValueFactory().createBNode().getID();
-		Node anon = Node.createAnon(AnonId.create(id));
+		Node anon = NodeFactory.createBlankNode(id);
 		return new AGGraph(this,anon);
 	}
 
@@ -83,7 +76,7 @@ public class AGGraphMaker implements GraphMaker, Closeable {
 	public AGGraph createGraph(String uri, boolean strict) {
         AGGraph g = created.get( uri );
         if (g == null) {
-        	Node node = Node.createURI(absUriFromString(uri));
+        	Node node = NodeFactory.createURI(absUriFromString(uri));
         	g = new AGGraph(this, node);
         	created.put(uri, g);
         } else if (strict) {
@@ -100,11 +93,6 @@ public class AGGraphMaker implements GraphMaker, Closeable {
 			uri = "urn:x-franz:"+name;
 		}
 		return uri;
-	}
-
-	@Override
-	public ReificationStyle getReificationStyle() {
-		return style;
 	}
 
 	@Override
@@ -134,7 +122,7 @@ public class AGGraphMaker implements GraphMaker, Closeable {
         	if (strict) {
         		throw new DoesNotExistException( uri );
         	} else {
-        		Node node = Node.createURI(absUriFromString(uri));
+        		Node node = NodeFactory.createURI(absUriFromString(uri));
         		g = new AGGraph(this, node);
         		created.put(uri, g);
         	}
