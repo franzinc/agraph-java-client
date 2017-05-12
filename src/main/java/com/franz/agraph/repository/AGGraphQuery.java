@@ -16,11 +16,11 @@ import org.openrdf.rio.RDFHandler;
 import org.openrdf.rio.RDFHandlerException;
 import org.openrdf.rio.helpers.StatementCollector;
 
+import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.http.handler.AGLongHandler;
 import com.franz.agraph.http.handler.AGRDFHandler;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -122,7 +122,7 @@ public class AGGraphQuery extends AGQuery implements GraphQuery {
 		evaluate(handler);
 		try {
 			return handler.getStream();
-		} catch (final IOException e) {
+		} catch (final AGHttpException e) {
 			throw new QueryEvaluationException(e);
 		}
 	}

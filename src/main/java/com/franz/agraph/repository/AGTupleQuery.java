@@ -14,12 +14,12 @@ import org.openrdf.query.TupleQueryResultHandler;
 import org.openrdf.query.TupleQueryResultHandlerException;
 import org.openrdf.query.impl.TupleQueryResultBuilder;
 
+import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.http.handler.AGLongHandler;
 import com.franz.agraph.http.handler.AGTQRHandler;
 import org.openrdf.query.resultio.TupleQueryResultFormat;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -105,7 +105,7 @@ public class AGTupleQuery extends AGQuery implements TupleQuery {
 		evaluate(handler);
 		try {
 			return handler.getStream();
-		} catch (final IOException e) {
+		} catch (final AGHttpException e) {
 			throw new QueryEvaluationException(e);
 		}
 	}

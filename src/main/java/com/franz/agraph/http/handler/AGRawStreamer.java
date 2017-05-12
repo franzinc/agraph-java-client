@@ -65,22 +65,35 @@ public class AGRawStreamer extends AGResponseHandler {
         this(format.getDefaultMIMEType());
     }
 
-    public InputStream getStream() throws IOException {
+    /**
+     * Gets the data stream contaning the server's response.
+     *
+     * @return An input stream. It must be closed by the caller.
+     * @throws AGHttpException if an error happens when decoding
+     *                         the response (e.g. if the server sent an
+     *                         invalid GZIP stream).
+     */
+    public InputStream getStream() throws AGHttpException {
         // Return the stream, but make sure that:
         //   1. It releases the connection once closed
         //   2. It is closed once exhausted
-        return new AutoCloseInputStream(getInputStream(method)) {
-            private boolean closed = false;
+	try {
+	    return new AutoCloseInputStream(getInputStream(method)) {
+		private boolean closed = false;
 
-            @Override
-            public void close() throws IOException {
-                if (!closed) {
-                    super.close();
-                    closed = true;
-                    method.releaseConnection();
-                }
-            }
-        };
+		@Override
+		public void close() throws IOException {
+		    if (!closed) {
+			super.close();
+			closed = true;
+			method.releaseConnection();
+		    }
+		}
+	    };
+	} catch (final IOException e) {
+	    // Convert to AGHttpException to make the interface neater.
+	    throw new AGHttpException(e);
+	}
     }
 
     @Override

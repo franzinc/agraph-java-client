@@ -5,7 +5,6 @@
 package com.franz.agraph.repository;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
 
@@ -361,7 +360,7 @@ public abstract class AGQuery extends AbstractQuery {
 		evaluate(handler);
 		try {
 			return handler.getStream();
-		} catch (final IOException e) {
+		} catch (final AGHttpException e) {
 			throw new QueryEvaluationException(e);
 		}
 	}

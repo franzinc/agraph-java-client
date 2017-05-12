@@ -31,7 +31,7 @@ endif
 clean: dist-clean
 	mvn clean
 
-prepush: tutorial jena-tutorial attributes-tutorial
+prepush: tutorial jena-tutorial attributes-tutorial javadoc
 	mvn test -Dtests.include=test.TestSuites\$$Prepush
 	# Force Java to use ASCII (i.e. not UTF-8) as the default encoding.
 	env LC_ALL=C mvn test -Dtests.include=test.TestSuites\$$Unicode
@@ -103,7 +103,11 @@ build: FORCE
 javadoc: FORCE
     # Note: if we do not call 'validate' explicitly, the plugin that
     # computes the current year will run too late.
-	mvn validate javadoc:javadoc
+	mvn validate javadoc:javadoc | tee target/javadoc.log
+	@if grep -q ^"\[WARNING\]" target/javadoc.log; then \
+            echo "[ERROR] Javadoc warnings found,"; \
+            exit 1; \
+        fi
 
 checkstyle: FORCE
 	mvn checkstyle:check

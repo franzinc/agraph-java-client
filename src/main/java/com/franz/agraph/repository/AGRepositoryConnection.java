@@ -1314,7 +1314,7 @@ implements RepositoryConnection, Closeable {
 	public InputStream streamStatements(final Resource subj, final URI pred, final Value obj,
 										final boolean includeInferred,
 										final Resource... contexts)
-			throws IOException, AGHttpException {
+			throws AGHttpException {
 		final AGRawStreamer handler = new AGRawStreamer();
 		getHttpRepoClient().getStatements(
 				subj, pred, obj, Boolean.toString(includeInferred),
@@ -1342,7 +1342,7 @@ implements RepositoryConnection, Closeable {
 						                final Resource subj, final URI pred, final Value obj,
 								        final boolean includeInferred,
 								        final Resource... contexts)
-			throws IOException, AGHttpException {
+			throws AGHttpException {
 		final AGRawStreamer handler = new AGRawStreamer(mimeType);
 		getHttpRepoClient().getStatements(
 				subj, pred, obj, Boolean.toString(includeInferred),
@@ -1370,7 +1370,7 @@ implements RepositoryConnection, Closeable {
 										final Resource subj, final URI pred, final Value obj,
 										final boolean includeInferred,
 										final Resource... contexts)
-			throws IOException, AGHttpException {
+			throws AGHttpException {
 		final AGRawStreamer handler = new AGRawStreamer(format);
 		getHttpRepoClient().getStatements(
 				subj, pred, obj, Boolean.toString(includeInferred),
@@ -1481,7 +1481,7 @@ implements RepositoryConnection, Closeable {
 	 */
 	public InputStream streamStatements(final RDFFormat format,
 										final String... ids)
-			throws IOException, AGHttpException {
+			throws AGHttpException {
 		final AGRawStreamer handler = new AGRawStreamer(format);
 		getHttpRepoClient().getStatements(handler, ids);
 		return handler.getStream();
@@ -1503,7 +1503,7 @@ implements RepositoryConnection, Closeable {
 	 */
 	public InputStream streamStatements(final String mimeType,
 										final String... ids)
-			throws IOException, AGHttpException {
+			throws AGHttpException {
 		final AGRawStreamer handler = new AGRawStreamer(mimeType);
 		getHttpRepoClient().getStatements(handler, ids);
 		return handler.getStream();

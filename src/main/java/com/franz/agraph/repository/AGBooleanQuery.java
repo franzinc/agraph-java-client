@@ -10,11 +10,11 @@ import org.openrdf.query.BooleanQuery;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.QueryLanguage;
 
+import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.http.handler.AGBQRHandler;
 import org.openrdf.query.resultio.BooleanQueryResultFormat;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -86,7 +86,7 @@ public class AGBooleanQuery extends AGQuery implements BooleanQuery {
 		evaluate(handler);
 		try {
 			return handler.getStream();
-		} catch (final IOException e) {
+		} catch (final AGHttpException e) {
 			throw new QueryEvaluationException(e);
 		}
 	}
