@@ -134,7 +134,7 @@ approved on OSSRH. To do that:
      * Make sure you're logged in (there is a 'Log In' button in the 
        upper right hand corner.
      * Click 'Staging Repositories.
-     * Scroll down until you find an item named `comfranz-something`.
+     * Enter 'comfranz' into the search box on the top right.
      * Select that item and then click 'Release` at the top fo the list.
          
          * You can also choose 'Drop' if something is wrong with the 
