@@ -1,67 +1,19 @@
-= Franz AllegroGraph client API for Java
+// This header text is used by Github to form an anchor on the project page.
+// We link to this anchor from the AllegroGraph client download page
+// (https://franz.com/agraph/downloads/clients) so if you change this header
+// text, you must update the link on the client download page.
+= Java client for Franz AllegroGraph
 
 :version: 1.0.8
 
-Client API to http://franz.com/agraph/[Franz AllegroGraph]
-triple store database.
+This is the Java client for the http://franz.com/agraph/[Franz
+AllegroGraph] triple store.  It contains
+http://rdf4j.org/[Sesame/RDF4J-] and
+https://jena.apache.org/[Jena]-compatible APIs.
 
-This http://github.com/franzinc/agraph-java-client[agraph-java-client] provides:
+== Client prerequisites
 
-* Java client API
-  * Adapter for Sesame
-  * Adapter for Jena
-
-http://franz.com/agraph/support/documentation/current/[AllegroGraph Docs]
-
-
-== Server prerequisites
-
-* http://franz.com/agraph/downloads/[Download AllegroGraph]
-  * Requires Linux 64-bit or a Linux VM on Windows or Mac OS X
-* Install AllegroGraph
-* Java version 8 or higher, and any operating system should work
-  with these jars
-
-
-== Download options
-
-http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.franz%22[Maven Central]
-
-http://franz.com/agraph/downloads/clients[Distribution from Franz]
-
-http://github.com/franzinc/agraph-java-client[Git repository]
-
-
-== Java
-
-Communicates to AGraph server over http.
-
-Supports SPARQL and Prolog queries.
-
-
-=== OpenRDF/Sesame
-
-http://www.rdf4j.org/[Sesame] 2.7.11,
-(http://archive.rdf4j.org/javadoc/sesame-2.7.12/[API])
-
-The primary public package is
-`com.franz.agraph.repository`.
-
-http://franz.com/agraph/support/documentation/current/javadoc/index.html[Javadocs]
-
-http://franz.com/agraph/support/documentation/current/java-tutorial/java-tutorial.html[Tutorial]
-
-
-=== Jena
-
-http://jena.apache.org/[Jena] 2.11.1
-
-The primary public package is `com.franz.agraph.jena`.
-
-http://franz.com/agraph/support/documentation/current/javadoc/index.html[Javadocs]
-
-http://franz.com/agraph/support/documentation/current/java-tutorial/jena-tutorial.html[Tutorial]
-
+Java version 8 or higher, and any operating system should work with these jars
 
 === Usage
 
@@ -195,7 +147,7 @@ run.
 
 == License
 
-Copyright (c) 2008-2016 Franz Inc.
+Copyright (c) 2008-2017 Franz Inc.
 All rights reserved. This program and the accompanying materials
 are made available under the terms of the Eclipse Public License v1.0
 which accompanies this distribution, and is available at
