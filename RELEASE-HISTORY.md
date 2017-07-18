@@ -1,5 +1,18 @@
 # AllegroGraph Java client release history
 
+## 1.0.10
+
+### Moved to Sesame 2.9.0
+
+The Sesame library that the client is based on has been updated to
+version 2.9.0. There have been no changes to the client's API.
+
+### Query demo
+
+A new tutorial program has been added and can be found in the
+`tutorials` directory. This program can be used to send SPARQL queries
+to the server and output results in any format supported by Sesame.
+
 ## 1.0.7 - 1.0.9
 
 No changes
