@@ -14,9 +14,9 @@ one that we use is called OSSRH (https://oss.sonatype.org)
 The deployment process has two phases:
 
   * First the project is uploaded to OSSRH ("staged")
-  * Then it is manually approved through the web interface of OSSRH.
+  * Then it is approved and released to the central repository.
 
-Unapproved artfiacts can be downloaded directly from OSSRH, but will not 
+Unapproved artifacts can be downloaded directly from OSSRH, but will not 
 be synced to the central repository.
 
 Coordinates
@@ -127,15 +127,26 @@ version. Calling `make deploy` will:
    a working AllegroGraph server. If that is not desired, set the
    AG_SKIP_TESTS variable to something.
 
-Once `make deploy` finishes successfully, the staged release must be 
-approved on OSSRH. To do that:
+Once `make deploy` finishes successfully, the staged release must be
+approved on OSSRH. This can be done by running `make release-staged`
+in the same tree in which the deployment happened. `make drop-staged`
+can be used to remove the staged build without releasing it.
+
+To approve a release made in another tree (or after the tree has been
+cleaned) it is necessary to obtain a staging repository id. Use `make
+list-staged` to view all such repositories (there will likely be only
+one). Then pass the id to `make` like this: `make release-staged
+STAGING_ID=<id>`.
+
+It is also possible (but tedious) to approve a release using the web
+interface of OSSRH. To do that:
    
      * Go to https://oss.sonatype.org/ 
      * Make sure you're logged in (there is a 'Log In' button in the 
        upper right hand corner.
      * Click 'Staging Repositories.
      * Enter 'comfranz' into the search box on the top right.
-     * Select that item and then click 'Release` at the top fo the list.
+     * Select that item and then click 'Release` at the top of the list.
          
          * You can also choose 'Drop' if something is wrong with the 
            release and you do *not* want to approve it.

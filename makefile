@@ -20,6 +20,13 @@ EXEC_JAVA = mvn exec:java $(MVN_EXEC_ARGS)
 # Repo directory used to deploy the artifact locally, for use by the tutorials
 REPO = $(abspath repo)
 
+# Options used by release-staged and drop-staged
+ifdef STAGING_ID
+	MVN_STAGED_OPTS=-DstagingRepository.id=$(STAGING_ID)
+else
+	MVN_STAGED_OPTS=
+endif
+
 default: build
 
 check-version: FORCE
@@ -143,6 +150,15 @@ TARNAME = $(TARDIR)/$(TARGET_DIST_DIR).tar.gz
 
 deploy: FORCE
 	./deploy.sh
+
+release-staged: FORCE
+	mvn nexus-staging:release $(MVN_STAGED_OPTS)
+
+drop-staged: FORCE
+	mvn nexus-staging:drop $(MVN_STAGED_OPTS)
+
+list-staged: FORCE
+	@mvn nexus-staging:rc-list | grep franz || echo 'No staged releases found'.
 
 dist: check-version
 # Make sure we're not trying to make a release with a snaphost version.
