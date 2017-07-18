@@ -56,9 +56,10 @@ Leiningen (Clojure):
 
 ==== Distribution archive
 
-The http://franz.com/agraph/downloads/clients[agraph-java-client
-download]
-includes jar files for agraph-java-client and jars on which it depends.
+Tar distributions of the AllegroGraph Java client are available from
+ftp://ftp.franz.com/pub/agraph/java-client/.  A tar distribution
+includes jar files for agraph-java-client and jars on which it
+depends.
 
 Programs that use the API should include all JAR files from the `lib/` directory of the distribution on their classpath.
 

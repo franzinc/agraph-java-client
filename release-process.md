@@ -105,11 +105,14 @@ The release process consists of the following steps:
 1. The `-SNAPSHOT` qualifier must be stripped from the version number in 
    the POM file and all other files that mention it. The result must
    be committed to git. This is done by invoking `make prepare-release`.
-2. The regular AG release process can then build the archive to be
-   uploaded to the webpage with `make dist`. This step will fail
-   if the version number is still a snapshot (i.e. if the previous step
-   has been skipped). At this step it is recommended to release 
-   the client to the Maven central repository (see next section).
+
+2. Build the distribution tarball and upload to the internal FTP
+   server using `make publish-dist`. Note that it can take up to an
+   hour before the external FTP servers are synchronized.
+
+   At this step it is recommended to release the client to the Maven
+   central repository (see next section).
+
 3. After that the version number must be incremented, -SNAPSHOT needs to
    be added back and the result must be placed in git. This is done
    with `make post-release`.

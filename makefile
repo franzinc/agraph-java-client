@@ -1,9 +1,7 @@
 # Standard Franz make rules forward to Maven.
 
-# Client version, not AG version. It must match the POM.
+# Client version, not AG version.  This is extracted from pom.xml
 override VERSION = $(shell ./version.sh)
-
-RELEASE_VERSION = $(VERSION:-SNAPSHOT=)
 
 export AGRAPH_HOST ?= $(shell echo $${AGRAPH_HOST:-localhost})
 export AGRAPH_PORT ?= $(shell echo $${AGRAPH_PORT-`cat ../agraph/lisp/agraph.port 2> /dev/null || echo 10035`})
@@ -28,12 +26,6 @@ else
 endif
 
 default: build
-
-check-version: FORCE
-ifndef AGVERSION
-	@echo AGVERSION is not set.
-	@exit 1
-endif
 
 clean: dist-clean
 	mvn clean
@@ -136,17 +128,9 @@ tags: FORCE
 ## distribution building
 
 # It is pretty hard to convince Maven to use another name.
-DIST_DIR = agraph-java-client-$(VERSION)
-# But we want our old name, and we want the AG version.
-TARGET_DIST_DIR = agraph-$(AGVERSION)-client-java
-ifdef CUSTOMER_DIST
-TARDIR = DIST
-TAROPTS = --owner=root --group=root
-else
-TARDIR = .
-TAROPTS =
-endif
-TARNAME = $(TARDIR)/$(TARGET_DIST_DIR).tar.gz
+PACKAGE_NAME = agraph-java-client-$(VERSION)
+DIST_DIR=DIST
+TARNAME = $(DIST_DIR)/$(PACKAGE_NAME).tar.gz
 
 deploy: FORCE
 	./deploy.sh
@@ -160,28 +144,14 @@ drop-staged: FORCE
 list-staged: FORCE
 	@mvn nexus-staging:rc-list | grep franz || echo 'No staged releases found'.
 
-dist: check-version
-# Make sure we're not trying to make a release with a snaphost version.
-ifdef CUSTOMER_DIST
-	if [[ $(VERSION) == *-SNAPSHOT ]]; then \
-	   echo "ERROR: Cannot make a public release of a snapshot ($(VERSION))" 1>&2 ; \
-	   exit 1; \
-	fi
-endif
+dist: FORCE
 	mvn -DskipTests=true package
-	mkdir -p DIST
-# Note that maven creates target/$(DIST_DIR)/$(DIST_DIR) for some reason.
-# Rename the directory
-	rm -rf target/$(DIST_DIR)/$(TARGET_DIST_DIR)
-	mv target/$(DIST_DIR)/$(DIST_DIR) target/$(DIST_DIR)/$(TARGET_DIST_DIR)
-	tar  -c -h -z $(TAROPTS) -f $(TARNAME) -C target/$(DIST_DIR) $(TARGET_DIST_DIR)
-# Copy the result if requested.
-ifdef DESTDIR
-ifneq "$(DESTDIR)" "$(TARDIR)"
-	mkdir -p $(DESTDIR)
-	cp -p $(TARNAME) $(DESTDIR)/
-endif
-endif
+	# Note that maven creates target/$(PACKAGE_NAME)/$(PACKAGE_NAME) for some reason.
+	mkdir -p $(DIST_DIR)
+	tar -c -h -z --owner=root --group=root -f $(TARNAME) -C target/$(PACKAGE_NAME) $(PACKAGE_NAME)
+
+publish-dist: dist
+	cp $(TARNAME) RELEASE-HISTORY.md /fi/ftp/pub/agraph/java-client/
 
 prepare-release: FORCE
 	./unsnapshot.sh
