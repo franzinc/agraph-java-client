@@ -33,6 +33,3 @@ git commit -m "Release ${VERSION}"
 # Use -f in case there was a problem with this release
 # and the tag already exists.
 git tag -f -m "Release ${VERSION}" -a "release_v${VERSION}"
-
-# Push directly, skipping gerrit
-git push origin HEAD

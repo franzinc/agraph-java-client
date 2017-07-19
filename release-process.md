@@ -102,9 +102,9 @@ process to succeed.
 
 The release process consists of the following steps:
 
-1. The `-SNAPSHOT` qualifier must be stripped from the version number in 
-   the POM file and all other files that mention it. The result must
-   be committed to git. This is done by invoking `make prepare-release`.
+1. The `-SNAPSHOT` qualifier must be stripped from the version number
+   in the POM file and all other files that mention it. This is done
+   by invoking `make prepare-release`.
 
 2. Build the distribution tarball and upload to the internal FTP
    server using `make publish-dist`. Note that it can take up to an
@@ -113,9 +113,9 @@ The release process consists of the following steps:
    At this step it is recommended to release the client to the Maven
    central repository (see next section).
 
-3. After that the version number must be incremented, -SNAPSHOT needs to
-   be added back and the result must be placed in git. This is done
-   with `make post-release`.
+3. After that the version number must be incremented, -SNAPSHOT needs
+   to be added back and the result must be pushed to the git
+   server. This is done with `make post-release`.
 
 # Maven central releases
 
