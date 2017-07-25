@@ -30,7 +30,7 @@ default: build
 clean: dist-clean
 	mvn clean
 
-prepush: tutorial jena-tutorial attributes-tutorial javadoc
+prepush: tutorial jena-tutorial attributes-tutorial agq-tests javadoc
 	mvn test -Dtests.include=test.TestSuites\$$Prepush
 	# Force Java to use ASCII (i.e. not UTF-8) as the default encoding.
 	env LC_ALL=C mvn test -Dtests.include=test.TestSuites\$$Unicode
