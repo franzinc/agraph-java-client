@@ -87,12 +87,13 @@ repository-tests: FORCE
 	mvn test -Dtests.include=test.openrdf.repository.AGAllRepositoryTests
 
 jena-compliance-tests: FORCE
-	mvn test -Dtests.include=test.AGGraphMakerTest,\
-	  test.AGGraphTest,\
-	  test.AGModelTest,\
-	  test.AGPrefixMappingTest,\
-	  test.AGResultSetTest,\
-	  test.AGReifierTest
+	mvn test -Dcom.franz.agraph.test.serverURL=http://$(AGRAPH_HOST):$(AGRAPH_PORT) \
+		-Dtests.include="test.AGGraphMakerTest,\
+			test.AGGraphTest,\
+			test.AGModelTest,\
+			test.AGPrefixMappingTest,\
+			test.AGResultSetTest,\
+			test.AGReifierTest"
 
 test-release: FORCE
 	python test-release/make-pom.py > test-release/pom.xml
