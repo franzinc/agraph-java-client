@@ -147,7 +147,7 @@ list-staged: FORCE
 
 dist: FORCE
 	mvn -DskipTests=true package
-	# Note that maven creates target/$(PACKAGE_NAME)/$(PACKAGE_NAME) for some reason.
+	@# Note that maven creates target/$(PACKAGE_NAME)/$(PACKAGE_NAME) for some reason.
 	mkdir -p $(DIST_DIR)
 	tar -c -h -z --owner=root --group=root -f $(TARNAME) -C target/$(PACKAGE_NAME) $(PACKAGE_NAME)
 
