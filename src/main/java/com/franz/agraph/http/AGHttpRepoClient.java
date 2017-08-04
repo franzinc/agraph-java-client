@@ -70,8 +70,6 @@ import com.franz.util.Closeable;
 /**
  * The HTTP layer for interacting with AllegroGraph.
  *
- * TODO: rename this class. 
- * Addendum: If anyone can remember why.
  */
 public class AGHttpRepoClient implements Closeable {
 
