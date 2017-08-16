@@ -838,7 +838,7 @@ implements RepositoryConnection, Closeable {
 		 * @param predicate  the statement's predicate
 		 * @param object  the statement's object
 		 * @param contexts
-		 *        he contexts to add the data to. Note that this parameter is a
+		 *        the contexts to add the data to. Note that this parameter is a
 		 *        vararg and as such is optional. If the data contains no context,
 		 *        it is added to the default context. If one or more contexts are
 		 *        specified the data is added to these contexts, ignoring any context
