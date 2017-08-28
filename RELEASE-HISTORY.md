@@ -28,6 +28,11 @@ Sesame 2.9.0 to RDF4J 2.2.2. Since the Java client is an extension of
 the Sesame (now RDF4J) API, users should follow the migration guide at
 http://docs.rdf4j.org/migration/
 
+### rfe14997: Smarter clear operation for Jena
+
+Performance of `AGGraph.clear()` and `AGGraph.remove()` operations has
+been significantly improved.
+
 ## 1.0.10
 
 ### Moved to Sesame 2.9.0

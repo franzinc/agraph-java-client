@@ -279,4 +279,18 @@ public class AGGraph extends GraphBase implements Graph, Closeable {
 		}
 	}
 
+	// The default implementation of these methods tries to retrieve matching
+	// nodes and delete one by one...
+
+	/** {@inheritDoc} */
+	@Override
+	public void clear() {
+		this.remove(Node.ANY, Node.ANY, Node.ANY);
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	public void remove(final Node s, final Node p, final Node o) {
+		conn.remove(vf.asResource(s), vf.asURI(p), vf.asValue(o));
+	}
 }
