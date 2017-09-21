@@ -4,6 +4,9 @@
 
 package com.franz.agraph.http;
 
+import com.franz.agraph.repository.repl.DurabilityLevel;
+import com.franz.agraph.repository.repl.DurabilityVisitor;
+import com.franz.agraph.repository.repl.TransactionSettings;
 import org.eclipse.rdf4j.common.io.IOUtil;
 
 import java.io.*;
@@ -77,6 +80,31 @@ public class AGHttpRepoClient implements AutoCloseable {
 	private static int defaultSessionLifetimeInSeconds = 3600;
 
 	/**
+	 * Used when constructing distributed transaction headers, to turn a durability
+	 * level into a string that can be included in the header.
+	 */
+	private static final DurabilityVisitor<String> durabilityToString =
+			new DurabilityVisitor<String>() {
+				@Override
+				public String visitInteger(final int numberOfInstances) {
+					return "durability=" + Integer.toString(numberOfInstances);
+				}
+
+				@Override
+				public String visitDurabilityLevel(final DurabilityLevel level) {
+					switch (level) {
+						case MIN: return "durability=min";
+						case MAX: return "durability=max";
+						case QUORUM: return "durability=quorum";
+						case DEFAULT: return "";
+						default:
+							assert false : "Unsupported symbolic durability level.";
+							return "";
+					}
+				}
+			};
+
+	/**
 	 * Gets the default lifetime of sessions spawned by any instance
 	 * unless otherwise specified by {@link #setSessionLifetime(int)}
 	 * 
@@ -139,6 +167,9 @@ public class AGHttpRepoClient implements AutoCloseable {
 	 * directly as those will not insert the x-user-attributes header.
 	 */
 	private String userAttributes;
+
+	/** Multi-master replication transaction config. */
+	private TransactionSettings transactionSettings;
 
 	// When true, any request made by this instance will include an `x-rollback' header.
 	private boolean sendRollbackHeader = false;
@@ -346,7 +377,43 @@ public class AGHttpRepoClient implements AutoCloseable {
 		if (sendRollbackHeader) {
 			headers.add(new Header(AGProtocol.X_ROLLBACK_HEADER, "yes"));
 		}
+		addReplHeader(headers);
 		return headers.toArray(new Header[headers.size()]);
+	}
+
+	private void addReplHeader(List<Header> headers) {
+		// Do not add any headers if there is no transaction config.
+		if (transactionSettings == null) {
+			return;
+		}
+
+		// Accumulate the header value here
+		final StringBuilder value = new StringBuilder();
+
+		value.append(transactionSettings.visitDurability(durabilityToString));
+
+		final Integer distributedTransactionTimeout =
+				transactionSettings.getDistributedTransactionTimeout();
+		if (distributedTransactionTimeout != null) {
+			if (value.length() > 0) {
+				value.append(' ');
+			}
+			value.append("distributedTransactionTimeout=");
+			value.append(distributedTransactionTimeout.toString());
+		}
+
+		final Integer transactionLatencyCount =
+				transactionSettings.getTransactionLatencyCount();
+		if (transactionLatencyCount != null) {
+			if (value.length() > 0) {
+				value.append(' ');
+			}
+			value.append("transactionLatencyCount=");
+			value.append(transactionLatencyCount.toString());
+		}
+		if (value.length() > 0) {
+			headers.add(new Header(AGProtocol.X_REPL_SETTINGS, value.toString()));
+		}
 	}
 
 	private static NameValuePair[] emptyParams = new NameValuePair[0];
@@ -2466,5 +2533,23 @@ public class AGHttpRepoClient implements AutoCloseable {
 		} else {
 			userAttributes = value;
 		}
+	}
+
+	/**
+	 * Change the transaction settings related to multi-master replication.
+	 *
+	 * @param transactionSettings New settings or {@code null}, meaning
+	 *                            "use server-chosen defaults for all settings".
+	 */
+	public void setTransactionSettings(final TransactionSettings transactionSettings) {
+		this.transactionSettings = transactionSettings;
+	}
+
+	/**
+	 * Gets the distributed transaction settings.
+	 * @return Settings (possibly {@code null}).
+	 */
+	public TransactionSettings getTransactionSettings() {
+		return transactionSettings;
 	}
 }

@@ -487,6 +487,11 @@ public class AGProtocol extends Protocol {
 	public static final String X_ROLLBACK_HEADER = "x-rollback";
 
 	/**
+	 * Header used to transfer settings related to multi-master replication.
+	 */
+	public static final String X_REPL_SETTINGS = "x-repl-settings";
+
+	/**
 	 * Location of the root catalog service
 	 * 
 	 * @param serverURL  the server url

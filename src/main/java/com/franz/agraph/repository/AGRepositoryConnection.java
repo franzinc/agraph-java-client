@@ -6,6 +6,8 @@ package com.franz.agraph.repository;
 
 import com.franz.agraph.http.handler.AGDownloadHandler;
 import com.franz.agraph.http.handler.AGRawStreamer;
+import com.franz.agraph.repository.repl.TransactionSettings;
+import com.franz.util.Ctx;
 import org.eclipse.rdf4j.common.io.GZipUtil;
 import org.eclipse.rdf4j.common.io.ZipUtil;
 import org.eclipse.rdf4j.common.iteration.CloseableIteratorIteration;
@@ -991,6 +993,21 @@ implements RepositoryConnection, AutoCloseable {
 	 */
 	public void commit() throws RepositoryException {
 		getHttpRepoClient().commit();		
+	}
+
+	/**
+	 * Commit the current transaction.
+	 *
+	 * See <a href="#sessions">session overview</a> and
+	 * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#post-commit"
+	 * target="_top">POST commit</a> for more details.
+	 *
+	 * @param transactionSettings Distributed transaction settings to be used by this commit.
+	 */
+	public void commit(final TransactionSettings transactionSettings) throws RepositoryException {
+		try (Ctx ignored = transactionSettingsCtx(transactionSettings)) {
+			getHttpRepoClient().commit();
+		}
 	}
 
 	/**
@@ -3113,5 +3130,35 @@ implements RepositoryConnection, AutoCloseable {
 	
 	public void setUserAttributes(JSONObject value) {
 		setUserAttributes(value.toString());
+	}
+
+	/**
+	 * Configure distributed transaction behavior.
+	 *
+	 * @param transactionSettings Distributed transaction settings.
+	 */
+	public void setTransactionSettings(final TransactionSettings transactionSettings) {
+		getHttpRepoClient().setTransactionSettings(transactionSettings);
+	}
+
+	/**
+	 * A 'context manager' for temporarily changing transaction settings.
+	 *
+	 * Use it in a try-with-resources block, like this:
+	 *
+	 * <pre>{@code
+	 * try (Ctx ignored = conn.transactionSettingsCtx(newSettings)) {
+	 *     // Any explicit or implicit commits here will use new settings
+	 * }
+	 * }</pre>
+	 *
+	 * @param transactionSettings New distributed transaction settings.
+	 * @return A closeable object that can be used in try-with-resources statement.
+	 *         When closed the object will restore old transaction settings.
+	 */
+	public Ctx transactionSettingsCtx(final TransactionSettings transactionSettings) {
+		final TransactionSettings oldSettings = getHttpRepoClient().getTransactionSettings();
+		setTransactionSettings(transactionSettings);
+		return () -> setTransactionSettings(oldSettings);
 	}
 }

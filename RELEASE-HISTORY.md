@@ -1,5 +1,20 @@
 # AllegroGraph Java client release history
 
+## 2.0.1
+
+### Multi-master replication commit dettings
+
+It is now possible to specify distributed transaction behavior by:
+   
+   - using the new `setTransactionSettings` method of the 
+     connection object 
+     
+   - passing a `TransactionSettings` instance to the `commit` method.
+   
+   - Wrapping code in a `try-wtih-resources` statement using
+     the object returned by the `transactionSettingsCtx` method
+     of the connection object.
+ 
 ## 2.0.0
 
 ### rfe14986: Upgrade to rdf4j 2.2.2
