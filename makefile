@@ -158,7 +158,7 @@ prepare-release: FORCE
 
 post-release: FORCE
 	./increment-version.sh
-	git push origin HEAD
+	git push gerrit HEAD:refs/for/master%submit
 
 dist-clean: FORCE
 	rm -fr target
