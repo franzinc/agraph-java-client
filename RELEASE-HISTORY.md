@@ -2,7 +2,7 @@
 
 ## 2.0.1
 
-### Multi-master replication commit dettings
+### Multi-master replication commit settings
 
 It is now possible to specify distributed transaction behavior by:
    
@@ -11,9 +11,15 @@ It is now possible to specify distributed transaction behavior by:
      
    - passing a `TransactionSettings` instance to the `commit` method.
    
-   - Wrapping code in a `try-wtih-resources` statement using
+   - Wrapping code in a `try-with-resources` statement using
      the object returned by the `transactionSettingsCtx` method
      of the connection object.
+
+Note that use of these settings will only have effect when using
+multi-master replication on AllegroGraph 7 (which is not yet
+released).  If an older version of AllegroGraph is used, or if you're
+connected to a repository that is not a member of a replica set, the
+settings will be ignored.
  
 ## 2.0.0
 
