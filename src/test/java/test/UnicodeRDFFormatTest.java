@@ -45,13 +45,13 @@ public class UnicodeRDFFormatTest extends AGAbstractTest {
 
     @Before
     public void setUpFormat() {
-        oldFormat = conn.getHttpRepoClient().getPreferredRDFFormat();
-        conn.getHttpRepoClient().setPreferredRDFFormat(format);
+        oldFormat = conn.prepareHttpRepoClient().getPreferredRDFFormat();
+        conn.prepareHttpRepoClient().setPreferredRDFFormat(format);
     }
 
     @After
     public void tearDownFormat() {
-        conn.getHttpRepoClient().setPreferredRDFFormat(oldFormat);
+        conn.prepareHttpRepoClient().setPreferredRDFFormat(oldFormat);
     }
 
     public UnicodeRDFFormatTest(final RDFFormat format) {

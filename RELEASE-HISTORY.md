@@ -18,6 +18,19 @@ have been borrowed from a pool, but not returned. Such
 connections will now be closed as soon as they are returned
 to the pool.
 
+### Optionally buffer AGRepositoryConnection.add() for efficiency
+
+Inside a transaction add() statements can optionally be buffered, then
+sent to the backend in batches to improve efficiency.
+
+New methods:
+ - AGRepositoryConnection.setAddStatementBufferEnabled
+ - AGRepositoryConnection.setAddStatementBufferMaxSize
+
+New properties:
+ - com.franz.agraph.repository.AGRepositoryConnection.useAddStatementBuffer
+ - com.franz.agraph.repository.AGRepositoryConnection.addStatementBufferMaxSize
+
 ## 2.0.1
 
 ### Multi-master replication commit settings

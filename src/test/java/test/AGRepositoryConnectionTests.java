@@ -10,10 +10,15 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.json.JSONObject;
+import com.franz.agraph.pool.AGConnPool;
+import com.franz.agraph.pool.AGConnProp;
+import com.franz.agraph.pool.AGPoolProp;
 import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGServer;
 import org.junit.Test;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.experimental.categories.Categories;
 import org.junit.experimental.categories.Categories.ExcludeCategory;
 import org.junit.experimental.categories.Categories.IncludeCategory;
@@ -44,6 +49,8 @@ import java.io.StringReader;
 
 
 public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
+
+    private static final String TEST_REPO_1 = "testRepo1";
     
     @RunWith(Categories.class)
     @ExcludeCategory(NonPrepushTest.class)
@@ -55,13 +62,44 @@ public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
     @SuiteClasses( { AGRepositoryConnectionTests.class })
     public static class Broken {}
 
+    private String oldUseAddStatementBuffer;
+    private String oldAddStatementBufferMaxSize;
+
+    @Before
+    public void setUp()
+        throws Exception
+    {
+	super.setUp();
+
+        oldUseAddStatementBuffer = System.getProperty(AGRepositoryConnection.PROP_USE_ADD_STATEMENT_BUFFER, null);
+        oldAddStatementBufferMaxSize = System.getProperty(AGRepositoryConnection.PROP_ADD_STATEMENT_BUFFER_MAX_SIZE, null);
+    }
+
+    @After
+    public void tearDown()
+        throws Exception
+    {
+	if (oldUseAddStatementBuffer != null) {
+	    System.setProperty(AGRepositoryConnection.PROP_USE_ADD_STATEMENT_BUFFER, oldUseAddStatementBuffer);
+	} else {
+	    System.clearProperty(AGRepositoryConnection.PROP_USE_ADD_STATEMENT_BUFFER);
+	}
+	if (oldAddStatementBufferMaxSize != null) {
+	    System.setProperty(AGRepositoryConnection.PROP_ADD_STATEMENT_BUFFER_MAX_SIZE, oldAddStatementBufferMaxSize);
+	} else {
+	    System.clearProperty(AGRepositoryConnection.PROP_ADD_STATEMENT_BUFFER_MAX_SIZE);
+	}
+
+	super.tearDown();
+    }
+
     protected Repository createRepository() throws Exception {
         AGServer server = new AGServer(AGAbstractTest.findServerUrl(), AGAbstractTest.username(), AGAbstractTest.password());
         AGCatalog catalog = server.getCatalog(AGAbstractTest.CATALOG_ID);
         if (catalog == null) {
             throw new Exception("Test catalog " + AGAbstractTest.CATALOG_ID + " not available");
         }
-        AGRepository repo = catalog.createRepository("testRepo1");
+        AGRepository repo = catalog.createRepository(TEST_REPO_1);
         return repo;
     }
 
@@ -650,11 +688,371 @@ public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
         conn.setAutoCommit(false);
 	conn.add(bob, name, nameBob);
         assertEquals(1, conn.size());
-	conn.getHttpRepoClient().setSendRollbackHeader(true);
+	conn.prepareHttpRepoClient().setSendRollbackHeader(true);
 	assertEquals(0, conn.size());
-	conn.getHttpRepoClient().setSendRollbackHeader(false);
+	conn.prepareHttpRepoClient().setSendRollbackHeader(false);
 	conn.add(bob, name, nameBob);
 	assertEquals(1, conn.size());
 	conn.rollback();
+    }
+
+    @Test
+    public void testNoBufferedAddStatementsInTransactionByDefault()
+        throws Exception
+    {
+	int bufSize = 5;
+	System.setProperty(AGRepositoryConnection.PROP_ADD_STATEMENT_BUFFER_MAX_SIZE, "" + bufSize);
+	// Not setting AGRepositoryConnection.PROP_USE_ADD_STATEMENT_BUFFER to "true"
+
+	try (AGRepositoryConnection testConBuffered = (AGRepositoryConnection) testRepository.getConnection()) {
+		assertEquals(0, testConBuffered.getNumBufferedAddStatements());
+
+		testConBuffered.begin();
+		assertEquals(0, testConBuffered.getNumBufferedAddStatements());
+
+		testConBuffered.add(bob, mbox, mboxBob);
+		assertEquals(0, testConBuffered.getNumBufferedAddStatements());
+
+		testConBuffered.commit();
+		assertEquals(0, testConBuffered.getNumBufferedAddStatements());
+	    }
+    }
+
+    @Test
+    public void testNoBufferedAddStatementsInAutocommit()
+        throws Exception
+    {
+	int bufSize = 5;
+	System.setProperty(AGRepositoryConnection.PROP_USE_ADD_STATEMENT_BUFFER, "true");
+	System.setProperty(AGRepositoryConnection.PROP_ADD_STATEMENT_BUFFER_MAX_SIZE, "" + bufSize);
+
+	try (AGRepositoryConnection testConBuffered = (AGRepositoryConnection) testRepository.getConnection()) {
+		testConBuffered.setAutoCommit(true);
+
+		for (int i = 0; i < 2 * bufSize; i++) {
+		    testConBuffered.add(bob, mbox, vf.createLiteral("bob" + i + "@example.org"));
+		    assertEquals("Buffer should not be used in autocommit mode", false, testConBuffered.isUseAddStatementBuffer());
+		    assertEquals("Buffer should be empty in autocommit mode", 0, testConBuffered.getNumBufferedAddStatements());
+		    assertEquals("testCon sees the statements immediately", i+1, getTotalStatementCount(testCon));
+		}
+	    }
+    }
+
+    @Test
+    public void testBufferedAddStatementInTransaction()
+        throws Exception
+    {
+        int bufSize = 5;
+	System.setProperty(AGRepositoryConnection.PROP_USE_ADD_STATEMENT_BUFFER, "true");
+	System.setProperty(AGRepositoryConnection.PROP_ADD_STATEMENT_BUFFER_MAX_SIZE, "" + bufSize);
+
+	try (AGRepositoryConnection testConBuffered = (AGRepositoryConnection) testRepository.getConnection()) {
+		testConBuffered.begin();
+
+		assertEquals(0, testConBuffered.getNumBufferedAddStatements());
+
+		int numLoops = 10;
+		for (int loopIter = 0; loopIter < numLoops; loopIter++) {
+		    // Fill buffer
+		    for (int i = 0; i < bufSize - 1; i++) {
+			testConBuffered.add(bob, mbox, vf.createLiteral("bob" + loopIter + "-" + i + "@example.org"));
+			assertEquals(i+1, testConBuffered.getNumBufferedAddStatements());
+			// testCon is independent, so does not see the buffered inserts
+			assertEquals(0, ((AGRepositoryConnection) testCon).getNumBufferedAddStatements());
+		    }
+		    // Add one more into the buffer, so the buffer reaches max size and will be sent over
+		    testConBuffered.add(bob, mbox, vf.createLiteral("bob"+ loopIter + "-" + bufSize + "@example.org"));
+		    // Buffer is empty again
+		    assertEquals(0, testConBuffered.getNumBufferedAddStatements());
+
+		    // testCon does not see the statements yet, because not committed
+		    assertEquals(0, getTotalStatementCount(testCon));
+		}
+
+		testConBuffered.commit();
+		assertEquals(numLoops * bufSize, getTotalStatementCount(testCon));
+		assertEquals(numLoops * bufSize, getTotalStatementCount(testConBuffered));
+	    }
+    }
+
+    @Test
+    public void testBufferedAddStatementsInCancelledTransaction()
+        throws Exception
+    {
+	int bufSize = 5;
+	System.setProperty(AGRepositoryConnection.PROP_ADD_STATEMENT_BUFFER_MAX_SIZE, "" + bufSize);
+	System.setProperty(AGRepositoryConnection.PROP_USE_ADD_STATEMENT_BUFFER, "true");
+
+	try (AGRepositoryConnection testConBuffered = (AGRepositoryConnection) testRepository.getConnection()) {
+		testConBuffered.begin();
+
+		testConBuffered.add(bob, mbox, mboxBob);
+		assertEquals(1, testConBuffered.getNumBufferedAddStatements());
+
+		testConBuffered.rollback();
+		assertEquals(0, testConBuffered.getNumBufferedAddStatements());
+		assertEquals(0, getTotalStatementCount(testConBuffered));
+	    }
+    }
+
+    @Test
+    public void testBufferedAddStatementsHandled()
+        throws Exception
+    {
+	int bufSize = 5;
+	System.setProperty(AGRepositoryConnection.PROP_ADD_STATEMENT_BUFFER_MAX_SIZE, "" + bufSize);
+	System.setProperty(AGRepositoryConnection.PROP_USE_ADD_STATEMENT_BUFFER, "true");
+
+	for (int i = 0;; i++) {
+	    try (AGRepositoryConnection testConBuffered = (AGRepositoryConnection) testRepository.getConnection()) {
+		    testConBuffered.begin();
+
+		    testConBuffered.add(bob, mbox, mboxBob);
+		    assertEquals(1, testConBuffered.getNumBufferedAddStatements());
+
+		    // Calling a method on testConBuffered that does HTTP interaction (except .add(stmt))
+		    // triggers buffer upload. Try a variety of methods:
+		    switch (i) {
+		    case 0:
+			testConBuffered.prepareHttpRepoClient();
+			break;
+		    case 1:
+			testConBuffered.getUserAttributes();
+			break;
+		    case 2:
+			testConBuffered.getAttributeDefinitions();
+			break;
+		    case 3:
+			testConBuffered.getContextIDs();
+			break;
+		    case 4:
+			testConBuffered.getNamespaces();
+			break;
+		    case 5:
+			testConBuffered.remove(alice, mbox, mboxAlice, context1); // no such stmt
+			break;
+		    case 6:
+			testConBuffered.commit();
+			// After this, the connection is in autocommit mode again...
+			break;
+		    case 7:
+			// ... therefore stop the test: asserts below don't hold anymore
+			return;
+		    }
+
+		    assertEquals(0, testConBuffered.getNumBufferedAddStatements());
+		    assertEquals("In iter #" + i + " there should be 1 statement", 1, getTotalStatementCount(testConBuffered));
+		}
+	}
+    }
+
+    @Test
+    public void testBufferedAddStatementsCanBeRemoved()
+        throws Exception
+    {
+	int bufSize = 5;
+	System.setProperty(AGRepositoryConnection.PROP_ADD_STATEMENT_BUFFER_MAX_SIZE, "" + bufSize);
+	System.setProperty(AGRepositoryConnection.PROP_USE_ADD_STATEMENT_BUFFER, "true");
+
+	try (AGRepositoryConnection testConBuffered = (AGRepositoryConnection) testRepository.getConnection()) {
+		testConBuffered.begin();
+		testConBuffered.add(bob, mbox, mboxBob);
+		assertEquals("item should be buffered", 1, testConBuffered.getNumBufferedAddStatements());
+		testConBuffered.remove(bob, mbox, mboxBob);
+		assertEquals("item should not be buffered, because remove() calls prepareHttpRepoClient()",
+			     0, testConBuffered.getNumBufferedAddStatements());
+		testConBuffered.commit();
+
+		assertEquals("Nothing should be added in the end", 0, getTotalStatementCount(testCon));
+	    }
+    }
+
+    @Test
+    public void testBufferedAddStatementsHandledWhenStartingAutoCommit()
+        throws Exception
+    {
+	int bufSize = 5;
+	System.setProperty(AGRepositoryConnection.PROP_ADD_STATEMENT_BUFFER_MAX_SIZE, "" + bufSize);
+	System.setProperty(AGRepositoryConnection.PROP_USE_ADD_STATEMENT_BUFFER, "true");
+
+	try (AGRepositoryConnection testConBuffered = (AGRepositoryConnection) testRepository.getConnection()) {
+
+		int numStatements = 0;
+
+		assertEquals("Starting in autocommit is the default", true, testConBuffered.isAutoCommit());
+		assertEquals("Buffering is initially disabled", false, testConBuffered.isUseAddStatementBuffer());
+		assertEquals("Buffer is initially empty", 0, testConBuffered.getNumBufferedAddStatements());
+
+		testConBuffered.add(bob, mbox, mboxBob);
+		assertEquals("item should not be buffered", 0, testConBuffered.getNumBufferedAddStatements());
+		assertEquals("Stmt #1 should be visible to other connection", 1, getTotalStatementCount(testCon));
+
+		testConBuffered.setAutoCommit(false);
+		assertEquals("Disabling autocommit should enable buffer", true, testConBuffered.isUseAddStatementBuffer());
+		assertEquals("Disabling autocommit should start with empty buffer", 0, testConBuffered.getNumBufferedAddStatements());
+		testConBuffered.add(alice, mbox, mboxAlice);
+
+		assertEquals(1, testConBuffered.getNumBufferedAddStatements());
+		assertEquals("Stmt #2 should not yet be visible to other connection", 1, getTotalStatementCount(testCon));
+
+		testConBuffered.setAutoCommit(true);
+		assertEquals("Enabling autocomit should handle and then disable buffering", 0, testConBuffered.getNumBufferedAddStatements());
+		assertEquals("Stmt #2 should now be visible to other connection", 2, getTotalStatementCount(testCon));
+	    }
+    }
+
+    @Test
+    public void testBufferedAddStatementsProgrammaticallyDisableNoop()
+        throws Exception
+    {
+	try (AGRepositoryConnection testConUnbuffered = (AGRepositoryConnection) testRepository.getConnection()) {
+		testConUnbuffered.add(alice, mbox, mboxAlice);
+
+		assertEquals(1, getTotalStatementCount(testCon));
+		assertEquals(0, testConUnbuffered.getNumBufferedAddStatements());
+
+		testConUnbuffered.setAddStatementBufferEnabled(false); // no effect, was already disabled
+		testConUnbuffered.add(bob, mbox, mboxBob);
+
+		assertEquals(2, getTotalStatementCount(testCon));
+		assertEquals(0, testConUnbuffered.getNumBufferedAddStatements());
+
+		testConUnbuffered.clear();
+		assertEquals(0, getTotalStatementCount(testCon));
+	    }
+    }
+
+    @Test
+    public void testBufferedAddStatementsProgrammaticallyEnableDisable()
+        throws Exception
+    {
+	try (AGRepositoryConnection c = (AGRepositoryConnection) testRepository.getConnection()) {
+		assertEquals(false, c.isUseAddStatementBuffer());
+
+		c.add(alice, mbox, mboxAlice);
+
+		assertEquals("Unbuffered stmt should be seen", 1, getTotalStatementCount(testCon));
+		assertEquals("No buffer applicable", 0, c.getNumBufferedAddStatements());
+
+		c.setAddStatementBufferEnabled(true);
+		assertEquals("buffering now enabled, but no transaction started so buffer should have no effect",
+			     false, c.isUseAddStatementBuffer());
+
+		c.add(bob, mbox, mboxBob);
+
+		assertEquals(2, getTotalStatementCount(testCon));
+		assertEquals(0, c.getNumBufferedAddStatements());
+
+		c.clear();
+		c.add(alice, mbox, mboxAlice);
+		c.begin();
+		assertEquals("now in a transaction, so buffering should be active", true, c.isUseAddStatementBuffer());
+
+		c.add(bob, mbox, mboxBob);
+		assertEquals(1, getTotalStatementCount(testCon));
+		assertEquals(1, c.getNumBufferedAddStatements());
+
+		c.setAddStatementBufferEnabled(false);
+		assertEquals("Disabling buffer should send pending stmt", 0, c.getNumBufferedAddStatements());
+		assertEquals("Disabling buffer should send pending stmt", 1, getTotalStatementCount(testCon));
+	    }
+    }
+
+    @Test
+    public void testBufferedAddStatementsProgrammaticallyResize()
+        throws Exception
+    {
+	try (AGRepositoryConnection c = (AGRepositoryConnection) testRepository.getConnection()) {
+		c.setAddStatementBufferEnabled(true);
+		c.setAddStatementBufferMaxSize(10);
+		c.begin();
+		// buffer enabled, 10 items
+
+		for (int i = 0; i < 8; i++) {
+		    c.add(alice, mbox, vf.createLiteral("alice" + i + "@example.org"));
+		}
+
+		assertEquals(0, getTotalStatementCount(testCon));
+		assertEquals(8, c.getNumBufferedAddStatements());
+
+		c.setAddStatementBufferMaxSize(15);
+		assertEquals("upsizing buffer should keep items", 8, c.getNumBufferedAddStatements());
+
+		c.setAddStatementBufferMaxSize(9);
+		assertEquals("downsizing buffer should keep items", 8, c.getNumBufferedAddStatements());
+
+		c.setAddStatementBufferMaxSize(7);
+		assertEquals("downsizing buffer should forcee all items out", 0, c.getNumBufferedAddStatements());
+		assertEquals("not committed yet", 0, getTotalStatementCount(testCon));
+
+		c.commit();
+		assertEquals("downsizing buffer should force all items out", 8, getTotalStatementCount(testCon));
+	    }
+    }
+
+    @Test
+    public void testBufferedAddStatementsProgrammaticallyWithContext()
+        throws Exception
+    {
+	try (AGRepositoryConnection c = (AGRepositoryConnection) testRepository.getConnection()) {
+
+		// Add in one connection, remove in another, to check that context is included properly
+		// First without buffering, sanity check
+		c.add(alice, mbox, mboxAlice, context1);
+		assertEquals(1, getTotalStatementCount(testCon));
+
+		testCon.remove(alice, mbox, mboxAlice, context2);
+		assertEquals("Remove with different context should have no effect", 1, getTotalStatementCount(testCon));
+		testCon.remove(alice, mbox, mboxAlice, context1);
+		assertEquals("Remove with matching context should have effect", 0, getTotalStatementCount(testCon));
+
+		// Now with buffering
+		c.setAddStatementBufferMaxSize(3);
+		c.setAddStatementBufferEnabled(true);
+		c.begin();
+		assertEquals(true, c.isUseAddStatementBuffer());
+		c.add(alice, mbox, mboxAlice, context1);
+		c.add(bob, mbox, mboxBob, context1);
+		c.add(bob, mbox, mboxBob, context2);
+		assertEquals("3 statements should have filled the buffer", 0, c.getNumBufferedAddStatements());
+
+		assertEquals("Statements should not yet be committed", 0, getTotalStatementCount(testCon));
+		c.commit();
+
+		assertEquals(3, getTotalStatementCount(testCon));
+		testCon.remove(alice, mbox, mboxAlice, context1);
+		assertEquals(2, getTotalStatementCount(testCon));
+		testCon.remove(bob, mbox, mboxBob, context1);
+		assertEquals(1, getTotalStatementCount(testCon));
+		testCon.remove(bob, mbox, mboxBob, context2);
+		assertEquals(0, getTotalStatementCount(testCon));
+	    }
+    }
+
+    @Test
+    public void testBufferedAddStatementsAndPool()
+	throws Exception
+    {
+	assertEquals(0, getTotalStatementCount(testCon));
+
+	AGConnPool pool =
+	    AGConnPool.create(AGConnProp.serverUrl, AGAbstractTest.findServerUrl(),
+			      AGConnProp.username, AGAbstractTest.username(),
+			      AGConnProp.password, AGAbstractTest.password(),
+			      AGConnProp.catalog, AGAbstractTest.CATALOG_ID,
+			      AGConnProp.repository, TEST_REPO_1, // not AGAbstractTest.REPO_ID
+			      AGConnProp.session, AGConnProp.Session.TX,
+			      AGPoolProp.maxActive, 1,
+			      AGPoolProp.initialSize, 1);
+
+	AGRepositoryConnection conn = pool.borrowConnection();
+	assertEquals(0, getTotalStatementCount(conn));
+	conn.setAddStatementBufferEnabled(true);
+	conn.setAddStatementBufferMaxSize(10);
+	conn.add(bob, mbox, mboxBob);
+	conn.close();
+
+	conn = pool.borrowConnection();
+	assertEquals(0, getTotalStatementCount(conn));
     }
 }

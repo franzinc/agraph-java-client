@@ -50,12 +50,12 @@ public class SpinTest extends AGAbstractTest {
     
     @After
     public void cleanup1() throws Exception {
-    	conn.getHttpRepoClient().deleteHardSpinFunction(ageFn);
+    	conn.prepareHttpRepoClient().deleteHardSpinFunction(ageFn);
     }
     
     @After
     public void cleanup2() throws Exception {
-    	conn.getHttpRepoClient().deleteHardSpinMagicProperty(parentsMP);
+    	conn.prepareHttpRepoClient().deleteHardSpinMagicProperty(parentsMP);
     }
 
     /**
@@ -73,7 +73,7 @@ public class SpinTest extends AGAbstractTest {
     			throw e;
     		}
     	}
-    	conn.getHttpRepoClient().deleteHardSpinMagicProperty(ageFn);
+    	conn.prepareHttpRepoClient().deleteHardSpinMagicProperty(ageFn);
     	
     	String ageFnSparql = "prefix kennedy: <" + kennedyNamespace + ">\n"
     	+ "prefix xs: <http://www.w3.org/2001/XMLSchema#>\n"
@@ -161,7 +161,7 @@ public class SpinTest extends AGAbstractTest {
     			throw e;
     		}
     	}
-    	conn.getHttpRepoClient().deleteHardSpinMagicProperty(parentsMP);
+    	conn.prepareHttpRepoClient().deleteHardSpinMagicProperty(parentsMP);
     	
     	String parentsFnSparql = "prefix kennedy: <" + kennedyNamespace+ ">\n"
     	+ "select ?parent { ?parent kennedy:has-child ?child . }";

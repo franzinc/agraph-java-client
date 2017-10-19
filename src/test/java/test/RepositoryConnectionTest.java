@@ -1493,7 +1493,7 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
         assertTrue(list.contains(p2));
     }
 
-    private int getTotalStatementCount(RepositoryConnection connection)
+    protected int getTotalStatementCount(RepositoryConnection connection)
         throws RepositoryException
     {
         CloseableIteration<? extends Statement, RepositoryException> iter = connection.getStatements(null,

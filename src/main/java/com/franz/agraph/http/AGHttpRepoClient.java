@@ -2179,7 +2179,7 @@ public class AGHttpRepoClient implements AutoCloseable {
 	 * <p>
 	 * Disabled by default.  Enable it from an AGRepositoryConnection using:
 	 * <p>
-	 * conn.getHttpRepoClient().setAllowExternalBlankNodeIds(true);
+	 * conn.prepareHttpRepoClient().setAllowExternalBlankNodeIds(true);
 	 * <p>
 	 * An external blank node is a blank node whose id is not generated
 	 * by AllegroGraph.  Applications should normally request new blank
@@ -2330,6 +2330,11 @@ public class AGHttpRepoClient implements AutoCloseable {
 	 * @since v4.4
 	 */
 	public Value getStorableValue(Value v, AGValueFactory vf) {
+		return getStorableValue(v, vf, getAllowExternalBlankNodeIds());
+	}
+
+	// Helper method for AGRepositoryConnection
+	public static Value getStorableValue(Value v, AGValueFactory vf, boolean allowExternalBlankNodeIds) {
 		Value storable = v;
 		if (v instanceof BNode && !vf.isAGBlankNodeId(v.stringValue())) {
 			if (allowExternalBlankNodeIds) {

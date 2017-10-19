@@ -287,7 +287,7 @@ public abstract class AGQuery extends AbstractQuery {
 	protected void evaluate(boolean analyzeOnly, AGResponseHandler handler)
 			throws QueryEvaluationException {
 		try {
-			httpCon.getHttpRepoClient().query(this, analyzeOnly, handler);
+			httpCon.prepareHttpRepoClient().query(this, analyzeOnly, handler);
 		} catch (AGQueryTimeoutException e) {
 			throw new QueryInterruptedException(e);
 		} catch (AGHttpException e) {
@@ -435,7 +435,7 @@ public abstract class AGQuery extends AbstractQuery {
 	@Override
 	protected void finalize() throws Throwable {
 		if (saveName!=null) { 
-			httpCon.getHttpRepoClient().savedQueryDeleteQueue.add(saveName);
+			httpCon.prepareHttpRepoClient().savedQueryDeleteQueue.add(saveName);
 		}
 		super.finalize();
 	}

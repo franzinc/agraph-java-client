@@ -58,9 +58,9 @@ public class AGStreamTupleQuery extends AGTupleQuery implements TupleQuery {
 	 */
 	@Override
 	public TupleQueryResult evaluate() throws QueryEvaluationException {
-		AGTQRStreamer handler = new AGTQRStreamer(httpCon.getHttpRepoClient().getPreferredTQRFormat(),httpCon.getRepository().getValueFactory());
+		AGTQRStreamer handler = new AGTQRStreamer(httpCon.prepareHttpRepoClient().getPreferredTQRFormat(),httpCon.getRepository().getValueFactory());
 		try {
-			httpCon.getHttpRepoClient().query(this, false, handler);
+			httpCon.prepareHttpRepoClient().query(this, false, handler);
 		} catch (Exception e) {
 			throw new QueryEvaluationException(e);
 		}

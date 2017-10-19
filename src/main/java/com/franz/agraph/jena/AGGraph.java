@@ -194,7 +194,7 @@ public class AGGraph extends GraphBase implements Graph, Closeable {
 				result = conn.createRepositoryResult(new ArrayList<Statement>());
 			} else {
 				StatementCollector collector = new StatementCollector();
-				conn.getHttpRepoClient().getStatements(
+				conn.prepareHttpRepoClient().getStatements(
 						vf.asResource(s), vf.asURI(p), vf.asValue(o),
 						entailmentRegime, collector, contexts);
 				result = conn.createRepositoryResult(collector.getStatements());

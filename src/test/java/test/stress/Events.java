@@ -364,9 +364,9 @@ public class Events implements Closeable {
             // Force an auto-committing non-shared backend 
             conn.setAutoCommit(false);
             conn.setAutoCommit(true);
-            trace("Dedicated backend: " + conn.getHttpRepoClient().getRoot());
+            trace("Dedicated backend: " + conn.prepareHttpRepoClient().getRoot());
         } else {
-            trace("Shared backend: " + conn.getHttpRepoClient().getRoot());
+            trace("Shared backend: " + conn.prepareHttpRepoClient().getRoot());
         }
         return conn;
     }
@@ -1399,7 +1399,7 @@ public class Events implements Closeable {
             public void run() {
                 while (true) {
                     try {
-                        trace("pinger running for " + conn.getHttpRepoClient().getRoot());
+                        trace("pinger running for " + conn.prepareHttpRepoClient().getRoot());
                         conn.ping();
                         Thread.sleep(Math.round(conn.getSessionLifetime() * 1000 /2));
                     } catch (InterruptedException e) {
@@ -1621,7 +1621,7 @@ public class Events implements Closeable {
                 start = System.currentTimeMillis();
                 invokeAndGetAll(executor, tasks);
                 end = System.currentTimeMillis();
-                trace("p3: trying to get repo size on conn " + conn.getHttpRepoClient().getRoot());
+                trace("p3: trying to get repo size on conn " + conn.prepareHttpRepoClient().getRoot());
                 triplesEnd = conn.size();
                 triples = triplesEnd - triplesStart;
                 seconds = (end - start) / 1000.0;

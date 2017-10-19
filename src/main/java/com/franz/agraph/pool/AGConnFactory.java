@@ -98,16 +98,16 @@ public class AGConnFactory extends BasePooledObjectFactory<AGRepositoryConnectio
 				// it must have been set by the user, but restore it anyway
 				// it is no longer actually SHARED but DEDICATED
 				conn.setAutoCommit(true);
-				log.debug("Dedicated (not shared) backend: " + conn.getHttpRepoClient().getRoot());
+				log.debug("Dedicated (not shared) backend: " + conn.prepareHttpRepoClient().getRoot());
 			}
 			break;
 		case DEDICATED:
 			// Dedicated Session in autoCommit mode.
 			// Ensure conn is a dedicated session, with autoCommit set to true.
-			if (!conn.getHttpRepoClient().isDedicatedSession() || !conn.isAutoCommit()) {
+			if (!conn.prepareHttpRepoClient().isDedicatedSession() || !conn.isAutoCommit()) {
 				// forces conn to a dedicated session if not already.
 				conn.setAutoCommit(true);
-				log.debug("Dedicated backend: " + conn.getHttpRepoClient().getRoot());
+				log.debug("Dedicated backend: " + conn.prepareHttpRepoClient().getRoot());
 			}
 			break;
 		case TX:
@@ -115,7 +115,7 @@ public class AGConnFactory extends BasePooledObjectFactory<AGRepositoryConnectio
 			if (conn.isAutoCommit()) {
 				// forces conn to a dedicated session if not already.
 				conn.setAutoCommit(false);
-				log.debug("TX dedicated backend: " + conn.getHttpRepoClient().getRoot());
+				log.debug("TX dedicated backend: " + conn.prepareHttpRepoClient().getRoot());
 			}
 			break;
 		}
@@ -140,7 +140,7 @@ public class AGConnFactory extends BasePooledObjectFactory<AGRepositoryConnectio
 		try {
 			// ping() only checks that the network is up, so we call size(),
 			// which ensures the repo exists.
-			AGHttpRepoClient client = conn.getHttpRepoClient();
+			AGHttpRepoClient client = conn.prepareHttpRepoClient();
 			// Have the server perform a rollback as part of the size request.
 			client.setSendRollbackHeader(true);
 			conn.size();

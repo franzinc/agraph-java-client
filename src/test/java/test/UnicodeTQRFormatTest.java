@@ -46,13 +46,13 @@ public class UnicodeTQRFormatTest extends AGAbstractTest {
 
     @Before
     public void setUpFormat() {
-        oldFormat = conn.getHttpRepoClient().getPreferredTQRFormat();
-        conn.getHttpRepoClient().setPreferredTQRFormat(format);
+        oldFormat = conn.prepareHttpRepoClient().getPreferredTQRFormat();
+        conn.prepareHttpRepoClient().setPreferredTQRFormat(format);
     }
 
     @After
     public void tearDownFormat() {
-        conn.getHttpRepoClient().setPreferredTQRFormat(oldFormat);
+        conn.prepareHttpRepoClient().setPreferredTQRFormat(oldFormat);
     }
 
     public UnicodeTQRFormatTest(final TupleQueryResultFormat format) {

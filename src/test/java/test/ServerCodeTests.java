@@ -212,7 +212,7 @@ public class ServerCodeTests extends AGAbstractTest {
     @Test
     public void storedProcsEncoded_rfe10189() throws Exception {
     	String response = (String) AGDeserializer.decodeAndDeserialize(
-    			conn.getHttpRepoClient().callStoredProcEncoded("add-two-strings", SProcTest.SCRIPT,
+    			conn.prepareHttpRepoClient().callStoredProcEncoded("add-two-strings", SProcTest.SCRIPT,
     					AGSerializer.serializeAndEncode(
     							new String[] {"123", "456"})));
     	assertEquals(579, Integer.parseInt(response));

@@ -63,8 +63,8 @@ public class AGGraphQuery extends AGQuery implements GraphQuery {
 	 */
 	public void evaluate(RDFHandler handler) throws QueryEvaluationException,
 			RDFHandlerException {
-		final RDFFormat format = httpCon.getHttpRepoClient().getPreferredRDFFormat();
-		evaluate(new AGRDFHandler(format, handler, httpCon.getValueFactory(),httpCon.getHttpRepoClient().getAllowExternalBlankNodeIds()));
+		final RDFFormat format = httpCon.prepareHttpRepoClient().getPreferredRDFFormat();
+		evaluate(new AGRDFHandler(format, handler, httpCon.getValueFactory(),httpCon.prepareHttpRepoClient().getAllowExternalBlankNodeIds()));
 	}
 
 	/**

@@ -73,7 +73,7 @@ public class BlankNodeTests extends AGAbstractTest {
     	} catch (IllegalArgumentException e) {
     		// expected
     	}
-    	conn.getHttpRepoClient().setAllowExternalBlankNodeIds(true);
+    	conn.prepareHttpRepoClient().setAllowExternalBlankNodeIds(true);
     	conn.add(bnode, p, bnode, p);
 		Assert.assertEquals(1, conn.size());
 		Assert.assertTrue(conn.hasStatement(bnode, p, bnode, false, p));

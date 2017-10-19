@@ -68,7 +68,7 @@ public class SessionTests extends AGAbstractTest {
 		}
 
 	private int getPort(AGRepositoryConnection conn) throws AGHttpException, MalformedURLException {
-		URL url = new URL(conn.getHttpRepoClient().getRoot());
+		URL url = new URL(conn.prepareHttpRepoClient().getRoot());
 		return url.getPort();
 		}
 

@@ -60,7 +60,7 @@ public class AGConnPoolSessionTest extends Closer {
         AGCatalog catalog = server.getCatalog(AGAbstractTest.CATALOG_ID);
         AGRepository repo = closeLater( catalog.createRepository("pool.testPlain"));
         AGRepositoryConnection conn = closeLater( repo.getConnection());
-        Assert.assertTrue(conn.toString(), conn.getHttpRepoClient().getRoot().contains(AGAbstractTest.findServerUrl()));
+        Assert.assertTrue(conn.toString(), conn.prepareHttpRepoClient().getRoot().contains(AGAbstractTest.findServerUrl()));
         Assert.assertEquals(0, conn.size());
         conn.deleteDatatypeMapping(XMLSchema.DOUBLE);
         conn.setSessionLifetime(60);
@@ -90,7 +90,7 @@ public class AGConnPoolSessionTest extends Closer {
     	AGRepository repo = closeLater( catalog.createRepository("pool.testPoolDedicated"));
     	repo.setConnPool(pool);
         AGRepositoryConnection conn = closeLater( repo.getConnection());
-        Assert.assertFalse(conn.toString(), conn.getHttpRepoClient().getRoot().contains(AGAbstractTest.findServerUrl()));
+        Assert.assertFalse(conn.toString(), conn.prepareHttpRepoClient().getRoot().contains(AGAbstractTest.findServerUrl()));
         Assert.assertEquals(0, conn.size());
         conn.deleteDatatypeMapping(XMLSchema.DOUBLE);
         conn.deleteDatatypeMapping(XMLSchema.FLOAT);
@@ -122,7 +122,7 @@ public class AGConnPoolSessionTest extends Closer {
     	AGRepository repo = closeLater( catalog.createRepository("pool.testPoolTx"));
     	repo.setConnPool(pool);
         AGRepositoryConnection conn = closeLater( repo.getConnection());
-        Assert.assertFalse(conn.toString(), conn.getHttpRepoClient().getRoot().contains(AGAbstractTest.findServerUrl()));
+        Assert.assertFalse(conn.toString(), conn.prepareHttpRepoClient().getRoot().contains(AGAbstractTest.findServerUrl()));
         Assert.assertEquals(0, conn.size());
         conn.deleteDatatypeMapping(XMLSchema.DOUBLE);
         conn.deleteDatatypeMapping(XMLSchema.FLOAT);
@@ -148,7 +148,7 @@ public class AGConnPoolSessionTest extends Closer {
 		final AGRepository repo = closeLater(catalog
 				.createRepository("pool.deleteDatatypeMapping"));				
 		AGRepositoryConnection conn = closeLater(repo.getConnection());
-		Assert.assertTrue(conn.toString(), conn.getHttpRepoClient().getRoot().contains(AGAbstractTest.findServerUrl()));
+		Assert.assertTrue(conn.toString(), conn.prepareHttpRepoClient().getRoot().contains(AGAbstractTest.findServerUrl()));
 
 		AGValueFactory vf = conn.getValueFactory();
 		for (int i = 0; i < NUM * 10; i++) {

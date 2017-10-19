@@ -47,7 +47,7 @@ public class AGTupleQuery extends AGQuery implements TupleQuery {
 
 	public void evaluate(TupleQueryResultHandler handler)
 			throws QueryEvaluationException, TupleQueryResultHandlerException {
-		evaluate(new AGTQRHandler(httpCon.getHttpRepoClient().getPreferredTQRFormat(), handler, httpCon.getValueFactory(),httpCon.getHttpRepoClient().getAllowExternalBlankNodeIds()));
+		evaluate(new AGTQRHandler(httpCon.prepareHttpRepoClient().getPreferredTQRFormat(), handler, httpCon.getValueFactory(),httpCon.prepareHttpRepoClient().getAllowExternalBlankNodeIds()));
 	}
 
 	/**

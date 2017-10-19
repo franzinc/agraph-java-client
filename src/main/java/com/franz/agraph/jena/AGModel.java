@@ -134,7 +134,7 @@ public class AGModel extends ModelCom implements Model, Closeable {
 	 * See also the javadoc for allowing external blank nodes for more discussion.
 	 *    
 	 * @see AGHttpRepoClient#setAllowExternalBlankNodeIds(boolean)
-	 * @see AGRepositoryConnection#getHttpRepoClient()
+	 * @see AGRepositoryConnection#prepareHttpRepoClient()
 	 */
 	@Override
 	public Resource createResource() {
@@ -154,7 +154,7 @@ public class AGModel extends ModelCom implements Model, Closeable {
 	 * discussion.
 	 *    
 	 * @see AGHttpRepoClient#setAllowExternalBlankNodeIds(boolean)
-	 * @see AGRepositoryConnection#getHttpRepoClient()
+	 * @see AGRepositoryConnection#prepareHttpRepoClient()
 	 */
 	@Override
 	public Resource createResource(AnonId id) {

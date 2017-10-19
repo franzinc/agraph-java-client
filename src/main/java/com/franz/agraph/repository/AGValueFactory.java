@@ -67,7 +67,7 @@ public class AGValueFactory extends ValueFactoryImpl {
 			if (conn == null) {
 				blankNodeIds = getHTTPClient().getBlankNodes(getRepository().getRepositoryURL(), blankNodesPerRequest);
 			} else {
-				blankNodeIds = conn.getHttpRepoClient().getBlankNodes(blankNodesPerRequest);
+				blankNodeIds = conn.prepareHttpRepoClient().getBlankNodes(blankNodesPerRequest);
 			}
 			index = blankNodeIds.length - 1;
 		} catch (AGHttpException e) {
@@ -136,7 +136,7 @@ public class AGValueFactory extends ValueFactoryImpl {
 	 * allowing external blank nodes for more discussion.
 	 *    
 	 * @see AGHttpRepoClient#setAllowExternalBlankNodeIds(boolean)
-	 * @see AGRepositoryConnection#getHttpRepoClient()
+	 * @see AGRepositoryConnection#prepareHttpRepoClient()
 	 */
 	@Override
 	public BNode createBNode(String nodeID) {
@@ -154,7 +154,7 @@ public class AGValueFactory extends ValueFactoryImpl {
 	 * allowing external blank nodes for more discussion.
 	 *    
 	 * @see AGHttpRepoClient#setAllowExternalBlankNodeIds(boolean)
-	 * @see AGRepositoryConnection#getHttpRepoClient()
+	 * @see AGRepositoryConnection#prepareHttpRepoClient()
 	 */
 	@Override
 	public BNode createBNode() {

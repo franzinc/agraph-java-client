@@ -48,14 +48,14 @@ public class UnicodeTest extends AGAbstractTest {
     
     @Before
     public void setUpFormat() {
-        oldRDFFormat = conn.getHttpRepoClient().getPreferredRDFFormat();
-        oldTQRFormat = conn.getHttpRepoClient().getPreferredTQRFormat();
+        oldRDFFormat = conn.prepareHttpRepoClient().getPreferredRDFFormat();
+        oldTQRFormat = conn.prepareHttpRepoClient().getPreferredTQRFormat();
     }
 
     @After
     public void tearDownFormat() {
-        conn.getHttpRepoClient().setPreferredRDFFormat(oldRDFFormat);
-        conn.getHttpRepoClient().setPreferredTQRFormat(oldTQRFormat);
+        conn.prepareHttpRepoClient().setPreferredRDFFormat(oldRDFFormat);
+        conn.prepareHttpRepoClient().setPreferredTQRFormat(oldTQRFormat);
     }
 
     @Test
@@ -78,7 +78,7 @@ public class UnicodeTest extends AGAbstractTest {
     }
 
     public void testAddUnicodeLiteral(RDFFormat format) throws RepositoryException {
-        conn.getHttpRepoClient().setPreferredRDFFormat(format);
+        conn.prepareHttpRepoClient().setPreferredRDFFormat(format);
         IRI s = vf.createIRI("http://franz.com/s");
         IRI p = vf.createIRI("http://franz.com/p");
         Literal o = vf.createLiteral("जुप");
@@ -99,7 +99,7 @@ public class UnicodeTest extends AGAbstractTest {
     }
     
     public void testAddUnicodeSubject(RDFFormat format) throws RepositoryException {
-        conn.getHttpRepoClient().setPreferredRDFFormat(format);
+        conn.prepareHttpRepoClient().setPreferredRDFFormat(format);
         IRI s = vf.createIRI("http://franz.com/जुप");
         IRI p = vf.createIRI("http://franz.com/p");
         Literal o = vf.createLiteral("o");
@@ -121,7 +121,7 @@ public class UnicodeTest extends AGAbstractTest {
     }
     
     public void testUnicodeCreate(RDFFormat format) throws RepositoryException, QueryEvaluationException {
-        conn.getHttpRepoClient().setPreferredRDFFormat(format);
+        conn.prepareHttpRepoClient().setPreferredRDFFormat(format);
         AGGraphQuery query = conn.prepareGraphQuery(QueryLanguage.SPARQL,
                 "CONSTRUCT { <s> <p> \"जुप\"} WHERE {}");
         List<Statement> result = Iterations.asList(query.evaluate());
@@ -140,7 +140,7 @@ public class UnicodeTest extends AGAbstractTest {
     }
     
     public void testUnicodeSelect(TupleQueryResultFormat format) throws RepositoryException, QueryEvaluationException {
-        conn.getHttpRepoClient().setPreferredTQRFormat(format);
+        conn.prepareHttpRepoClient().setPreferredTQRFormat(format);
         IRI s = vf.createIRI("http://franz.com/s");
         IRI p = vf.createIRI("http://franz.com/p");
         Literal o = vf.createLiteral("जुप");

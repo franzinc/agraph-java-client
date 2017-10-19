@@ -39,7 +39,7 @@ public class AGGraphMaker implements GraphMaker, Closeable {
     	this.conn = conn;
     	// It's common enough for Jena applications to use ResourceFactory to 
     	// create new blank nodes, so experimentally enable this by default
-    	conn.getHttpRepoClient().setAllowExternalBlankNodeIds(true);
+    	conn.prepareHttpRepoClient().setAllowExternalBlankNodeIds(true);
     }
     
 	public AGRepositoryConnection getRepositoryConnection() {

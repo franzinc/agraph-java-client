@@ -187,12 +187,23 @@ public class AGRepositoryConnection
 extends RepositoryConnectionBase
 implements RepositoryConnection, AutoCloseable {
 
+	public static final String PROP_STREAM_RESULTS = "com.franz.agraph.repository.AGRepositoryConnection.streamResults";
+
+	public static final String PROP_USE_ADD_STATEMENT_BUFFER = "com.franz.agraph.repository.AGRepositoryConnection.useAddStatementBuffer";
+	public static final String PROP_ADD_STATEMENT_BUFFER_MAX_SIZE = "com.franz.agraph.repository.AGRepositoryConnection.addStatementBufferMaxSize";
+	public static final int DEFAULT_ADD_STATEMENT_BUFFER_SIZE = 10000;
+
 	private final AGAbstractRepository repository;
 	private final AGHttpRepoClient repoclient;
 	private boolean streamResults;
 	private final AGValueFactory vf;
 	// If not null close will return the connection to this pool instead of closing.
 	private AGConnPool pool;
+
+	/** Whether buffering of "Add" statements is enabled. (Not activated in autocommit mode). */
+	private boolean addStatementBufferEnabled;
+	private int addStatementBufferMaxSize;
+	private final List<JSONArray> addStatementBuffer; // never null
 
 	/**
 	 * 
@@ -202,28 +213,31 @@ implements RepositoryConnection, AutoCloseable {
 	 * @see AGVirtualRepository#getConnection()
 	 */
 	public AGRepositoryConnection(AGRepository repository, AGHttpRepoClient client) {
-		super(repository);
-		this.repository = repository;
-		this.repoclient = client;
-		// use system property so this can be tested from build.xml
-		setStreamResults("true".equals(System.getProperty("com.franz.agraph.repository.AGRepositoryConnection.streamResults")));
-		vf = new AGValueFactory(repository, this);
+		this((AGAbstractRepository) repository, client, repository);
 	}
 
 	public AGRepositoryConnection(AGVirtualRepository repository, AGHttpRepoClient client) {
+		this((AGAbstractRepository) repository, client, repository.wrapped);
+	}
+
+	private AGRepositoryConnection(AGAbstractRepository repository, AGHttpRepoClient client, AGRepository realRepo) {
 		super(repository);
 		this.repository = repository;
 		this.repoclient = client;
 		// use system property so this can be tested from build.xml
-		setStreamResults("true".equals(System.getProperty("com.franz.agraph.repository.AGRepositoryConnection.streamResults")));
-		vf = new AGValueFactory(repository.wrapped, this);
+		setStreamResults(Boolean.parseBoolean(System.getProperty(PROP_STREAM_RESULTS)));
+		vf = new AGValueFactory(realRepo, this);
+
+		addStatementBufferEnabled = Boolean.parseBoolean(System.getProperty(PROP_USE_ADD_STATEMENT_BUFFER));
+		addStatementBufferMaxSize = Integer.parseInt(System.getProperty(PROP_ADD_STATEMENT_BUFFER_MAX_SIZE, "" + DEFAULT_ADD_STATEMENT_BUFFER_SIZE));
+		addStatementBuffer = new ArrayList<JSONArray>();
 	}
 	
 	@Override
 	public String toString() {
 		return "{" + super.toString()
-		+ " " + repoclient
-		+ "}";
+			+ " " + getHttpRepoClientInternal()
+			+ "}";
 	}
 
 	/*
@@ -244,14 +258,115 @@ implements RepositoryConnection, AutoCloseable {
         return getRepository().getCatalog().getServer();
     }
 
-	/**
-	 * 
-	 * @return the AGHttpRepoclient used by this connection
-	 * 
-	 */
-	public AGHttpRepoClient getHttpRepoClient() {
-		return repoclient;
+    /**
+     * This is the method to call, in this or other classes, if you want to do HTTP interaction with the repository.
+     * As a side effect (what the "prepare" stands for) any buffered statements are sent over.
+     *
+     * @return the AGHttpRepoclient used by this connection (after the addStatementBuffer is cleared)
+     */
+    // Methods in this class should use the private method "getHttpRepoClientInternal()"
+    // for side effect free access.
+    public AGHttpRepoClient prepareHttpRepoClient() {
+	return getHttpRepoClientHandlingBuffer(true);
+    }
+
+    /**
+     * This is the method to call inside this class, where you need to do HTTP interaction with the repository
+     * but don't want to trigger sending buffered statements (as happens in {@link #prepareHttpRepoClient()}).
+     *
+     * @return the AGHttpRepoclient used by this connection (without influencing the addStatementBuffer)
+     */
+    private AGHttpRepoClient getHttpRepoClientInternal() {
+	return getHttpRepoClientHandlingBuffer(false);
+    }
+
+    private AGHttpRepoClient getHttpRepoClientHandlingBuffer(boolean handleBuffer) {
+	if (handleBuffer && addStatementBufferEnabled) {
+	    forwardBufferedAddStatements();
 	}
+	return repoclient;
+    }
+
+    /** @return whether the addStatementBuffer is in principle enabled (by the {@link #PROP_USE_ADD_STATEMENT_BUFFER} property
+     * or a call to {@link #setAddStatementBufferEnabled(boolean) setAddStatementBufferEnabled}).
+     */
+    public boolean isAddStatementBufferEnabled() {
+	return addStatementBufferEnabled;
+    }
+
+    /** Enable or disable the use of the addStatementBuffer. This can be called within an active transaction and will affect
+     * (speed up) the rest of the transaction. When called in autocommit mode, it has no immediate effect, but in a subsequent
+     * transaction the buffer functionality will be used.
+     * <p>
+     * The buffer can also be enabled by setting property {@link #PROP_USE_ADD_STATEMENT_BUFFER}.
+     * @param enabled whether to enable buffering
+     */
+    public void setAddStatementBufferEnabled(boolean enabled) {
+	addStatementBufferEnabled = enabled;
+
+	if (!addStatementBufferEnabled) {
+	    forwardBufferedAddStatements();
+	}
+    }
+
+    /** @return whether the addStatementBuffer is actually used right now for the connection. */
+    public boolean isUseAddStatementBuffer() {
+	return addStatementBufferEnabled && !getHttpRepoClientInternal().isAutoCommit();
+    }
+
+    /** Arrange for the JSON to be buffered and then later sent in a batch. */
+    private void bufferAddStatement(JSONArray rows) {
+	addStatementBuffer.add(rows);
+	if (addStatementBuffer.size() >= addStatementBufferMaxSize) {
+	    forwardBufferedAddStatements();
+	}
+    }
+
+    public int getAddStatementBufferMaxSize() {
+        return addStatementBufferMaxSize;
+    }
+
+    /** Set the maximum size of the addStatementBuffer.
+     * <p>
+     * This size can also be set by using property {@link #PROP_ADD_STATEMENT_BUFFER_MAX_SIZE}.
+     * @param size new maximum buffer size
+     */
+    public void setAddStatementBufferMaxSize(int size) {
+	if (size < 0) {
+	    throw new IllegalArgumentException("Buffer maxSize must be positive integer");
+	}
+	addStatementBufferMaxSize = size;
+	if (addStatementBuffer.size() >= addStatementBufferMaxSize) {
+	    forwardBufferedAddStatements(); // simply send them all
+	}
+    }
+
+    /** Forward the buffered statements to the repo, by sending the JSON over the HTTP connection.
+     * Afterwards the buffer will be empty (even if the upload failed: those statements are lost).
+     */
+    private void forwardBufferedAddStatements() throws RepositoryException {
+	if (!addStatementBuffer.isEmpty()) {
+	    // System.out.println("Now uploading " + addStatementBuffer.size()+ " pending \"Add Statement\"");
+	    JSONArray totalArray = new JSONArray();
+	    for (JSONArray addStmtJson : addStatementBuffer) {
+		append(totalArray, addStmtJson);
+	    }
+	    try {
+		getHttpRepoClientInternal().uploadJSON(totalArray);
+	    } catch (AGHttpException e) {
+		throw new RepositoryException(e);
+	    } finally {
+		addStatementBuffer.clear();
+	    }
+	}
+    }
+
+    /**
+     * @return the number of buffered statements to be added
+     */
+    public int getNumBufferedAddStatements() {
+	return addStatementBuffer.size();
+    }
 
 	@Override
 	public AGValueFactory getValueFactory() {
@@ -263,10 +378,15 @@ implements RepositoryConnection, AutoCloseable {
 			Value object, Resource... contexts) throws RepositoryException {
 		Statement st = new StatementImpl(subject, predicate, object);
 		JSONArray rows = encodeJSON(st, null, contexts);
-		try {
-			getHttpRepoClient().uploadJSON(rows);
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
+
+		if (isUseAddStatementBuffer()) {
+			bufferAddStatement(rows);
+		} else {
+			try {
+				prepareHttpRepoClient().uploadJSON(rows);
+			} catch (AGHttpException e) {
+				throw new RepositoryException(e);
+			}
 		}
 	}
 	
@@ -274,17 +394,22 @@ implements RepositoryConnection, AutoCloseable {
 			Value object, JSONObject attributes, Resource... contexts) throws RepositoryException {
 		Statement st = new StatementImpl(subject, predicate, object);
 		JSONArray rows = encodeJSON(st, attributes, contexts);
-		try {
-			getHttpRepoClient().uploadJSON(rows);
-		} catch (AGHttpException e) {
-			throw new RepositoryException(e);
+
+		if (isUseAddStatementBuffer()) {
+			bufferAddStatement(rows);
+		} else {
+			try {
+				prepareHttpRepoClient().uploadJSON(rows);
+			} catch (AGHttpException e) {
+				throw new RepositoryException(e);
+			}
 		}
 	}
 	
 	@Override
 	protected void removeWithoutCommit(Resource subject, IRI predicate,
 			Value object, Resource... contexts) throws RepositoryException {
-		getHttpRepoClient().deleteStatements(subject, predicate, object,
+		prepareHttpRepoClient().deleteStatements(subject, predicate, object,
 				contexts);
 	}
 
@@ -297,7 +422,7 @@ implements RepositoryConnection, AutoCloseable {
 			append(rows, rows_st);
 		}
 		try {
-			getHttpRepoClient().uploadJSON(rows, contexts);
+			prepareHttpRepoClient().uploadJSON(rows, contexts);
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
@@ -313,7 +438,7 @@ implements RepositoryConnection, AutoCloseable {
 			append(rows, rows_st);
 		}
 		try {
-			getHttpRepoClient().uploadJSON(rows, contexts);
+			prepareHttpRepoClient().uploadJSON(rows, contexts);
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
@@ -338,7 +463,7 @@ implements RepositoryConnection, AutoCloseable {
 			append(rows, encodeJSON(statementIter.next(), null, contexts));
 		}
 		try {
-			getHttpRepoClient().uploadJSON(rows);
+			prepareHttpRepoClient().uploadJSON(rows);
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
@@ -354,7 +479,7 @@ implements RepositoryConnection, AutoCloseable {
 			append(rows, encodeJSON(statementIter.next(), attributes, contexts));
 		}
 		try {
-			getHttpRepoClient().uploadJSON(rows);
+			prepareHttpRepoClient().uploadJSON(rows);
 		} catch (AGHttpException e) {
 			throw new RepositoryException(e);
 		}
@@ -404,7 +529,8 @@ implements RepositoryConnection, AutoCloseable {
 	}
 
 	private String encodeValueForStorageJSON(Value v) {
-		return NTriplesUtil.toNTriplesString(repoclient.getStorableValue(v,vf));
+		Value storableValue = AGHttpRepoClient.getStorableValue(v, vf, getHttpRepoClientInternal().getAllowExternalBlankNodeIds());
+		return NTriplesUtil.toNTriplesString(storableValue);
 	}
 	
 	/**
@@ -681,7 +807,7 @@ implements RepositoryConnection, AutoCloseable {
 		  if (ZipUtil.isZipStream(in)) {
 			  addZip(in, baseURI, dataFormat, contexts);
 		  } else {
-			   getHttpRepoClient().upload(in, baseURI, dataFormat,
+			   prepareHttpRepoClient().upload(in, baseURI, dataFormat,
 					   false,    // overwrite = false
 					   size,
 					   GZipUtil.isGZipStream(in) ? "gzip" : null,
@@ -827,7 +953,7 @@ implements RepositoryConnection, AutoCloseable {
 	 		throws IOException, RDFParseException, RepositoryException
 	 	{
 			try {
-			    getHttpRepoClient().upload(reader, baseURI, dataFormat, false, attributes, contexts);
+			    prepareHttpRepoClient().upload(reader, baseURI, dataFormat, false, attributes, contexts);
 			} catch (AGMalformedDataException e) {
 				throw new RDFParseException(e);
 			}
@@ -944,7 +1070,7 @@ implements RepositoryConnection, AutoCloseable {
 		for (Statement st : statements) {
 			append(rows, encodeJSON(st, null, contexts));
 		}
-		getHttpRepoClient().deleteJSON(rows);
+		prepareHttpRepoClient().deleteJSON(rows);
 	}
     
 	public <E extends Exception> void remove(
@@ -955,7 +1081,7 @@ implements RepositoryConnection, AutoCloseable {
 		while (statements.hasNext()) {
 			append(rows, encodeJSON(statements.next(), null, contexts));
 		}
-		getHttpRepoClient().deleteJSON(rows);
+		prepareHttpRepoClient().deleteJSON(rows);
 	}
 
 	/**
@@ -976,7 +1102,7 @@ implements RepositoryConnection, AutoCloseable {
 	 */
 	@Override
 	public void setAutoCommit(boolean autoCommit) throws RepositoryException {
-		getHttpRepoClient().setAutoCommit(autoCommit);
+		prepareHttpRepoClient().setAutoCommit(autoCommit);
 	}
 
 	/**
@@ -985,7 +1111,7 @@ implements RepositoryConnection, AutoCloseable {
 	 */
 	@Override
 	public boolean isAutoCommit() throws RepositoryException {
-		return getHttpRepoClient().isAutoCommit();
+		return prepareHttpRepoClient().isAutoCommit();
 	}
 
 	/**
@@ -995,7 +1121,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * target="_top">POST commit</a> for more details.
 	 */
 	public void commit() throws RepositoryException {
-		getHttpRepoClient().commit();		
+		prepareHttpRepoClient().commit();		
 	}
 
 	/**
@@ -1009,7 +1135,7 @@ implements RepositoryConnection, AutoCloseable {
 	 */
 	public void commit(final TransactionSettings transactionSettings) throws RepositoryException {
 		try (Ctx ignored = transactionSettingsCtx(transactionSettings)) {
-			getHttpRepoClient().commit();
+			prepareHttpRepoClient().commit();
 		}
 	}
 
@@ -1020,7 +1146,9 @@ implements RepositoryConnection, AutoCloseable {
 	 * target="_top">POST rollback</a> for more details.
 	 */
 	public void rollback() throws RepositoryException {
-		getHttpRepoClient().rollback();		
+		// This could first clear addStatementBuffer in order to avoid sending it over needlessly.
+		// To keep the buffering logic simple and without further side effects, we don't for now.
+		prepareHttpRepoClient().rollback();		
 	}
 
 	/**
@@ -1047,7 +1175,7 @@ implements RepositoryConnection, AutoCloseable {
 	
 	@Override
 	public void clearNamespaces() throws RepositoryException {
-		getHttpRepoClient().clearNamespaces();
+		prepareHttpRepoClient().clearNamespaces();
 	}
 
 	/**
@@ -1066,7 +1194,7 @@ implements RepositoryConnection, AutoCloseable {
 			}
 		} else {
 			if (isOpen()) {
-				getHttpRepoClient().close();
+				prepareHttpRepoClient().close();
 				super.close();
 			}
 		}
@@ -1075,13 +1203,13 @@ implements RepositoryConnection, AutoCloseable {
 	public void exportStatements(Resource subj, IRI pred, Value obj,
 								 boolean includeInferred, RDFHandler handler, Resource... contexts)
 			throws RDFHandlerException, RepositoryException {
-		getHttpRepoClient().getStatements(subj, pred, obj, Boolean.toString(includeInferred),
+		prepareHttpRepoClient().getStatements(subj, pred, obj, Boolean.toString(includeInferred),
 					handler, contexts);
 	}
 
 	public void exportStatements(RDFHandler handler, String... ids)
 	throws RDFHandlerException, RepositoryException {
-		getHttpRepoClient().getStatements(handler, ids);
+		prepareHttpRepoClient().getStatements(handler, ids);
 	}
 	
 	public RepositoryResult<Resource> getContextIDs()
@@ -1089,7 +1217,7 @@ implements RepositoryConnection, AutoCloseable {
 		try {
 			List<Resource> contextList = new ArrayList<Resource>();
 
-			TupleQueryResult contextIDs = getHttpRepoClient().getContextIDs();
+			TupleQueryResult contextIDs = prepareHttpRepoClient().getContextIDs();
 			try {
 				while (contextIDs.hasNext()) {
 					BindingSet bindingSet = contextIDs.next();
@@ -1124,7 +1252,7 @@ implements RepositoryConnection, AutoCloseable {
 	}
 
 	public String getNamespace(String prefix) throws RepositoryException {
-		return getHttpRepoClient().getNamespace(prefix);
+		return prepareHttpRepoClient().getNamespace(prefix);
 	}
 
 	public RepositoryResult<Namespace> getNamespaces()
@@ -1132,7 +1260,7 @@ implements RepositoryConnection, AutoCloseable {
 		try {
 			List<Namespace> namespaceList = new ArrayList<Namespace>();
 
-			TupleQueryResult namespaces = getHttpRepoClient().getNamespaces();
+			TupleQueryResult namespaces = prepareHttpRepoClient().getNamespaces();
 			try {
 				while (namespaces.hasNext()) {
 					BindingSet bindingSet = namespaces.next();
@@ -1189,7 +1317,7 @@ implements RepositoryConnection, AutoCloseable {
 								   final boolean includeInferred,
 								   final Resource... contexts)
 			throws AGHttpException {
-		getHttpRepoClient().getStatements(
+		prepareHttpRepoClient().getStatements(
 				subj, pred, obj, Boolean.toString(includeInferred),
 				new AGDownloadHandler(file), contexts);
 	}
@@ -1212,7 +1340,7 @@ implements RepositoryConnection, AutoCloseable {
 								   final boolean includeInferred,
 								   final Resource... contexts)
 			throws AGHttpException {
-		getHttpRepoClient().getStatements(
+		prepareHttpRepoClient().getStatements(
 				subj, pred, obj, Boolean.toString(includeInferred),
 				new AGDownloadHandler(file), contexts);
 	}
@@ -1234,7 +1362,7 @@ implements RepositoryConnection, AutoCloseable {
 								   final boolean includeInferred,
 								   final Resource... contexts)
 			throws AGHttpException {
-		getHttpRepoClient().getStatements(
+		prepareHttpRepoClient().getStatements(
 				subj, pred, obj, Boolean.toString(includeInferred),
 				new AGDownloadHandler(file, format), contexts);
 	}
@@ -1256,7 +1384,7 @@ implements RepositoryConnection, AutoCloseable {
 								   final boolean includeInferred,
 								   final Resource... contexts)
 			throws AGHttpException {
-		getHttpRepoClient().getStatements(
+		prepareHttpRepoClient().getStatements(
 				subj, pred, obj, Boolean.toString(includeInferred),
 				new AGDownloadHandler(file, format), contexts);
 	}
@@ -1278,7 +1406,7 @@ implements RepositoryConnection, AutoCloseable {
 								   final boolean includeInferred,
 								   final Resource... contexts)
 			throws AGHttpException {
-		getHttpRepoClient().getStatements(
+		prepareHttpRepoClient().getStatements(
 				subj, pred, obj, Boolean.toString(includeInferred),
 				new AGDownloadHandler(file, mimeType), contexts);
 	}
@@ -1300,7 +1428,7 @@ implements RepositoryConnection, AutoCloseable {
 								   final boolean includeInferred,
 								   final Resource... contexts)
 			throws AGHttpException {
-		getHttpRepoClient().getStatements(
+		prepareHttpRepoClient().getStatements(
 				subj, pred, obj, Boolean.toString(includeInferred),
 				new AGDownloadHandler(file, mimeType), contexts);
 	}
@@ -1327,7 +1455,7 @@ implements RepositoryConnection, AutoCloseable {
 										final Resource... contexts)
 			throws AGHttpException {
 		final AGRawStreamer handler = new AGRawStreamer();
-		getHttpRepoClient().getStatements(
+		prepareHttpRepoClient().getStatements(
 				subj, pred, obj, Boolean.toString(includeInferred),
 				handler, contexts);
 		return handler.getStream();
@@ -1355,7 +1483,7 @@ implements RepositoryConnection, AutoCloseable {
 								        final Resource... contexts)
 			throws AGHttpException {
 		final AGRawStreamer handler = new AGRawStreamer(mimeType);
-		getHttpRepoClient().getStatements(
+		prepareHttpRepoClient().getStatements(
 				subj, pred, obj, Boolean.toString(includeInferred),
 				handler, contexts);
 		return handler.getStream();
@@ -1383,7 +1511,7 @@ implements RepositoryConnection, AutoCloseable {
 										final Resource... contexts)
 			throws AGHttpException {
 		final AGRawStreamer handler = new AGRawStreamer(format);
-		getHttpRepoClient().getStatements(
+		prepareHttpRepoClient().getStatements(
 				subj, pred, obj, Boolean.toString(includeInferred),
 				handler, contexts);
 		return handler.getStream();
@@ -1427,7 +1555,7 @@ implements RepositoryConnection, AutoCloseable {
 	public void downloadStatements(final File file, final RDFFormat format,
 								   final String ids)
 			throws AGHttpException {
-		getHttpRepoClient().getStatements(new AGDownloadHandler(file, format), ids);
+		prepareHttpRepoClient().getStatements(new AGDownloadHandler(file, format), ids);
 	}
 
 	/**
@@ -1441,7 +1569,7 @@ implements RepositoryConnection, AutoCloseable {
 	public void downloadStatements(final String file, final RDFFormat format,
 								   final String ids)
 			throws AGHttpException {
-		getHttpRepoClient().getStatements(new AGDownloadHandler(file, format), ids);
+		prepareHttpRepoClient().getStatements(new AGDownloadHandler(file, format), ids);
 	}
 
 	/**
@@ -1457,7 +1585,7 @@ implements RepositoryConnection, AutoCloseable {
 	public void downloadStatements(final File file, final String mimeType,
 								   final String ids)
 			throws AGHttpException {
-		getHttpRepoClient().getStatements(
+		prepareHttpRepoClient().getStatements(
 				new AGDownloadHandler(file, mimeType), ids);
 	}
 
@@ -1474,7 +1602,7 @@ implements RepositoryConnection, AutoCloseable {
 	public void downloadStatements(final String file, final String mimeType,
 								   final String ids)
 			throws AGHttpException {
-		getHttpRepoClient().getStatements(
+		prepareHttpRepoClient().getStatements(
 				new AGDownloadHandler(file, mimeType), ids);
 	}
 
@@ -1494,7 +1622,7 @@ implements RepositoryConnection, AutoCloseable {
 										final String... ids)
 			throws AGHttpException {
 		final AGRawStreamer handler = new AGRawStreamer(format);
-		getHttpRepoClient().getStatements(handler, ids);
+		prepareHttpRepoClient().getStatements(handler, ids);
 		return handler.getStream();
 	}
 
@@ -1516,7 +1644,7 @@ implements RepositoryConnection, AutoCloseable {
 										final String... ids)
 			throws AGHttpException {
 		final AGRawStreamer handler = new AGRawStreamer(mimeType);
-		getHttpRepoClient().getStatements(handler, ids);
+		prepareHttpRepoClient().getStatements(handler, ids);
 		return handler.getStream();
 	}
 
@@ -1661,17 +1789,17 @@ implements RepositoryConnection, AutoCloseable {
 	
 	@Override
 	public void removeNamespace(String prefix) throws RepositoryException {
-		getHttpRepoClient().removeNamespacePrefix(prefix);
+		prepareHttpRepoClient().removeNamespacePrefix(prefix);
 	}
 
 	@Override
 	public void setNamespace(String prefix, String name)
 			throws RepositoryException {
-		getHttpRepoClient().setNamespacePrefix(prefix, name);
+		prepareHttpRepoClient().setNamespacePrefix(prefix, name);
 	}
 
 	public long size(Resource... contexts) throws RepositoryException {
-		return getHttpRepoClient().size(contexts);
+		return prepareHttpRepoClient().size(contexts);
 	}
 
 	/************************************
@@ -1695,7 +1823,7 @@ implements RepositoryConnection, AutoCloseable {
 		for (IRI uri: config.getPredicates()) {
 			predicates.add(NTriplesUtil.toNTriplesString(uri));
 		}
-		getHttpRepoClient().createFreetextIndex(indexName, predicates, config.getIndexLiterals(), config.getIndexLiteralTypes(), config.getIndexResources(), config.getIndexFields(), config.getMinimumWordSize(), config.getStopWords(), config.getWordFilters(), config.getInnerChars(), config.getBorderChars(), config.getTokenizer());
+		prepareHttpRepoClient().createFreetextIndex(indexName, predicates, config.getIndexLiterals(), config.getIndexLiteralTypes(), config.getIndexResources(), config.getIndexFields(), config.getMinimumWordSize(), config.getStopWords(), config.getWordFilters(), config.getInnerChars(), config.getBorderChars(), config.getTokenizer());
 	}
 	
 	/**
@@ -1706,7 +1834,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @see #createFreetextIndex(String, AGFreetextIndexConfig)
 	 */
 	public void deleteFreetextIndex(String indexName) throws RepositoryException {
-		getHttpRepoClient().deleteFreetextIndex(indexName);
+		prepareHttpRepoClient().deleteFreetextIndex(indexName);
 	}
 	
 	/**
@@ -1737,7 +1865,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @see #getFreetextIndexConfig(String)
 	 */
 	public String[] getFreetextPredicates(String index) throws RepositoryException {
-		return getHttpRepoClient().getFreetextPredicates(index);
+		return prepareHttpRepoClient().getFreetextPredicates(index);
 	}
 
 	/**
@@ -1750,7 +1878,7 @@ implements RepositoryConnection, AutoCloseable {
 	 */
 	public AGFreetextIndexConfig getFreetextIndexConfig(String indexName)
 			throws RepositoryException, JSONException {
-		return new AGFreetextIndexConfig(getHttpRepoClient().getFreetextIndexConfiguration(indexName));
+		return new AGFreetextIndexConfig(prepareHttpRepoClient().getFreetextIndexConfiguration(indexName));
 	}
 	
 	/**
@@ -1762,7 +1890,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @see #listFreetextIndices()
 	 */
 	public String[] getFreetextIndices() throws RepositoryException {
-		return getHttpRepoClient().getFreetextIndices();
+		return prepareHttpRepoClient().getFreetextIndices();
 	}
 
 	/**
@@ -1772,7 +1900,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @throws RepositoryException  if there is an error during the request
 	 */
 	public List<String> listFreetextIndices() throws RepositoryException {
-		return getHttpRepoClient().listFreetextIndices();
+		return prepareHttpRepoClient().listFreetextIndices();
 	}
 	
 	/**
@@ -1799,7 +1927,7 @@ implements RepositoryConnection, AutoCloseable {
 	 */
 	public void registerPredicateMapping(IRI predicate, IRI primtype)
 			throws RepositoryException {
-		getHttpRepoClient().registerPredicateMapping(predicate, primtype);
+		prepareHttpRepoClient().registerPredicateMapping(predicate, primtype);
 	}
 
 	/**
@@ -1815,7 +1943,7 @@ implements RepositoryConnection, AutoCloseable {
 	 */
 	public void deletePredicateMapping(IRI predicate)
 			throws RepositoryException {
-		getHttpRepoClient().deletePredicateMapping(predicate);
+		prepareHttpRepoClient().deletePredicateMapping(predicate);
 	}
 
 	// TODO: return RepositoryResult<Mapping>?
@@ -1837,7 +1965,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @see #getDatatypeMappings()
 	 */
 	public String[] getPredicateMappings() throws RepositoryException {
-		return getHttpRepoClient().getPredicateMappings();
+		return prepareHttpRepoClient().getPredicateMappings();
 	}
 
 	// TODO: are all primtypes available as URI constants?
@@ -1865,7 +1993,7 @@ implements RepositoryConnection, AutoCloseable {
 	 */
 	public void registerDatatypeMapping(IRI datatype, IRI primtype)
 			throws RepositoryException {
-		getHttpRepoClient().registerDatatypeMapping(datatype, primtype);
+		prepareHttpRepoClient().registerDatatypeMapping(datatype, primtype);
 	}
 
 	/**
@@ -1881,7 +2009,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @see #clearMappings()
 	 */
 	public void deleteDatatypeMapping(IRI datatype) throws RepositoryException {
-		getHttpRepoClient().deleteDatatypeMapping(datatype);
+		prepareHttpRepoClient().deleteDatatypeMapping(datatype);
 	}
 
 	// TODO: return RepositoryResult<Mapping>?
@@ -1903,7 +2031,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @see #getPredicateMappings()
 	 */
 	public String[] getDatatypeMappings() throws RepositoryException {
-		return getHttpRepoClient().getDatatypeMappings();
+		return prepareHttpRepoClient().getDatatypeMappings();
 	}
 
 	/**
@@ -1921,7 +2049,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @see #getPredicateMappings()
 	 */
 	public void clearMappings() throws RepositoryException {
-		getHttpRepoClient().clearMappings();
+		prepareHttpRepoClient().clearMappings();
 	}
 
 	/**
@@ -1943,7 +2071,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @see #getPredicateMappings()
 	 */
 	public void clearMappings(boolean includeAutoEncodedPrimitiveTypes) throws RepositoryException {
-		getHttpRepoClient().clearMappings(includeAutoEncodedPrimitiveTypes);
+		prepareHttpRepoClient().clearMappings(includeAutoEncodedPrimitiveTypes);
 	}
 
 	/**
@@ -1984,7 +2112,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @see #addRules(InputStream)
 	 */
 	public void addRules(String rules) throws RepositoryException {
-		getHttpRepoClient().addRules(rules);
+		prepareHttpRepoClient().addRules(rules);
 	}
 
 	// TODO: specify RuleLanguage
@@ -2009,7 +2137,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @see #addRules(String)
 	 */
 	public void addRules(InputStream rulestream) throws RepositoryException {
-		getHttpRepoClient().addRules(rulestream);
+		prepareHttpRepoClient().addRules(rulestream);
 	}
 
 	/**
@@ -2024,7 +2152,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @see #evalInServer(String)
 	 */
 	public String evalInServer(String lispForm) throws RepositoryException {
-		return getHttpRepoClient().evalInServer(lispForm);
+		return prepareHttpRepoClient().evalInServer(lispForm);
 	}
 
 	/**
@@ -2039,7 +2167,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @see #evalInServer(String)
 	 */
 	public String evalInServer(InputStream stream) throws RepositoryException {
-		return getHttpRepoClient().evalInServer(stream);
+		return prepareHttpRepoClient().evalInServer(stream);
 	}
 
 	/**
@@ -2053,7 +2181,7 @@ implements RepositoryConnection, AutoCloseable {
 	 */
 	public void load(IRI source, String baseURI, RDFFormat dataFormat,
 					 Resource... contexts) throws RepositoryException {
-		getHttpRepoClient().load(source, baseURI, dataFormat, contexts);
+		prepareHttpRepoClient().load(source, baseURI, dataFormat, contexts);
 	}
 	
 	/**
@@ -2073,7 +2201,7 @@ implements RepositoryConnection, AutoCloseable {
 	public void load(IRI source, String baseURI, RDFFormat dataFormat,
 					 JSONObject attributes, Resource... contexts)
 					throws RepositoryException {
-		getHttpRepoClient().load(source, baseURI, dataFormat, attributes, contexts);
+		prepareHttpRepoClient().load(source, baseURI, dataFormat, attributes, contexts);
 	}
 
 	/**
@@ -2088,7 +2216,7 @@ implements RepositoryConnection, AutoCloseable {
 	public void load(String absoluteServerPath, String baseURI,
 			RDFFormat dataFormat, Resource... contexts)
 			throws RepositoryException {
-		getHttpRepoClient().load(absoluteServerPath, baseURI, dataFormat,
+		prepareHttpRepoClient().load(absoluteServerPath, baseURI, dataFormat,
 					contexts);
 	}
 
@@ -2109,7 +2237,7 @@ implements RepositoryConnection, AutoCloseable {
 	public void load(String absoluteServerPath, String baseURI,
 			RDFFormat dataFormat, JSONObject attributes,
 			Resource... contexts) throws RepositoryException {
-		getHttpRepoClient().load(absoluteServerPath, baseURI, dataFormat,
+		prepareHttpRepoClient().load(absoluteServerPath, baseURI, dataFormat,
 					attributes, contexts);
 	}
 	
@@ -2127,7 +2255,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @see #setSessionLifetime(int)
 	 */
 	public void ping() throws RepositoryException {
-		getHttpRepoClient().ping();
+		prepareHttpRepoClient().ping();
 	}
 
 	// TODO: return RepositoryResult<URI>?
@@ -2137,7 +2265,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @throws RepositoryException  if there is an error during the request
 	 */
 	public String[] getGeoTypes() throws RepositoryException {
-		return getHttpRepoClient().getGeoTypes();
+		return prepareHttpRepoClient().getGeoTypes();
 	}
 
 	/**
@@ -2153,7 +2281,7 @@ implements RepositoryConnection, AutoCloseable {
 	 */
 	public IRI registerCartesianType(float stripWidth, float xmin, float xmax,
 									 float ymin, float ymax) throws RepositoryException {
-		String nTriplesURI = getHttpRepoClient().registerCartesianType(stripWidth,
+		String nTriplesURI = prepareHttpRepoClient().registerCartesianType(stripWidth,
 				xmin, xmax, ymin, ymax);
 		return NTriplesUtil.parseURI(nTriplesURI, getValueFactory());
 	}
@@ -2173,7 +2301,7 @@ implements RepositoryConnection, AutoCloseable {
 	public IRI registerSphericalType(float stripWidth, String unit,
 									 float latmin, float lonmin, float latmax, float lonmax)
 			throws RepositoryException {
-		String nTriplesURI = getHttpRepoClient().registerSphericalType(stripWidth,
+		String nTriplesURI = prepareHttpRepoClient().registerSphericalType(stripWidth,
 				unit, latmin, lonmin, latmax, lonmax);
 		return NTriplesUtil.parseURI(nTriplesURI, getValueFactory());
 	}
@@ -2195,16 +2323,16 @@ implements RepositoryConnection, AutoCloseable {
 		for (Literal point: points) {
 			nTriplesPoints.add(NTriplesUtil.toNTriplesString(point));
 		}
-		getHttpRepoClient().registerPolygon(NTriplesUtil.toNTriplesString(polygon), nTriplesPoints);
+		prepareHttpRepoClient().registerPolygon(NTriplesUtil.toNTriplesString(polygon), nTriplesPoints);
 	}
 	
 	public RepositoryResult<Statement> getStatementsInBox(IRI type,
 														  IRI predicate, float xmin, float xmax, float ymin,
 														  float ymax, int limit, boolean infer) throws RepositoryException {
 		StatementCollector collector = new StatementCollector();
-		AGResponseHandler handler = new AGRDFHandler(getHttpRepoClient().getPreferredRDFFormat(),
-				collector, getValueFactory(),getHttpRepoClient().getAllowExternalBlankNodeIds());
-		getHttpRepoClient().getGeoBox(NTriplesUtil.toNTriplesString(type),
+		AGResponseHandler handler = new AGRDFHandler(prepareHttpRepoClient().getPreferredRDFFormat(),
+				collector, getValueFactory(),prepareHttpRepoClient().getAllowExternalBlankNodeIds());
+		prepareHttpRepoClient().getGeoBox(NTriplesUtil.toNTriplesString(type),
 		                              NTriplesUtil.toNTriplesString(predicate),
 		                              xmin, xmax, ymin, ymax, limit, infer, handler);
 		return createRepositoryResult(collector.getStatements());
@@ -2214,9 +2342,9 @@ implements RepositoryConnection, AutoCloseable {
 															 IRI predicate, float x, float y, float radius,
 															 int limit, boolean infer) throws RepositoryException {
 		StatementCollector collector = new StatementCollector();
-		AGResponseHandler handler = new AGRDFHandler(getHttpRepoClient().getPreferredRDFFormat(),
-				collector, getValueFactory(),getHttpRepoClient().getAllowExternalBlankNodeIds());
-		getHttpRepoClient().getGeoCircle(NTriplesUtil.toNTriplesString(type),
+		AGResponseHandler handler = new AGRDFHandler(prepareHttpRepoClient().getPreferredRDFFormat(),
+				collector, getValueFactory(),prepareHttpRepoClient().getAllowExternalBlankNodeIds());
+		prepareHttpRepoClient().getGeoCircle(NTriplesUtil.toNTriplesString(type),
 		                                 NTriplesUtil.toNTriplesString(predicate),
 		                                 x, y, radius, limit, infer, handler);
 		return createRepositoryResult(collector.getStatements());
@@ -2226,9 +2354,9 @@ implements RepositoryConnection, AutoCloseable {
 													   IRI predicate, float lat, float lon, float radius,
 													   String unit, int limit, boolean infer) throws RepositoryException {
 		StatementCollector collector = new StatementCollector();
-		AGResponseHandler handler = new AGRDFHandler(getHttpRepoClient().getPreferredRDFFormat(),
-				collector, getValueFactory(),getHttpRepoClient().getAllowExternalBlankNodeIds());
-		getHttpRepoClient().getGeoHaversine(NTriplesUtil.toNTriplesString(type),
+		AGResponseHandler handler = new AGRDFHandler(prepareHttpRepoClient().getPreferredRDFFormat(),
+				collector, getValueFactory(),prepareHttpRepoClient().getAllowExternalBlankNodeIds());
+		prepareHttpRepoClient().getGeoHaversine(NTriplesUtil.toNTriplesString(type),
 		                                    NTriplesUtil.toNTriplesString(predicate),
 		                                    lat, lon, radius, unit, limit, infer, handler);
 		return createRepositoryResult(collector.getStatements());
@@ -2237,9 +2365,9 @@ implements RepositoryConnection, AutoCloseable {
 	public RepositoryResult<Statement> getStatementsInPolygon(IRI type,
 															  IRI predicate, IRI polygon, int limit, boolean infer) throws RepositoryException {
 		StatementCollector collector = new StatementCollector();
-		AGResponseHandler handler = new AGRDFHandler(getHttpRepoClient().getPreferredRDFFormat(),
-				collector, getValueFactory(),getHttpRepoClient().getAllowExternalBlankNodeIds());
-		getHttpRepoClient().getGeoPolygon(NTriplesUtil.toNTriplesString(type), NTriplesUtil.toNTriplesString(predicate), NTriplesUtil.toNTriplesString(polygon), limit, infer, handler);
+		AGResponseHandler handler = new AGRDFHandler(prepareHttpRepoClient().getPreferredRDFFormat(),
+				collector, getValueFactory(),prepareHttpRepoClient().getAllowExternalBlankNodeIds());
+		prepareHttpRepoClient().getGeoPolygon(NTriplesUtil.toNTriplesString(type), NTriplesUtil.toNTriplesString(predicate), NTriplesUtil.toNTriplesString(polygon), limit, infer, handler);
 		return createRepositoryResult(collector.getStatements());
 	}
 	
@@ -2283,7 +2411,7 @@ implements RepositoryConnection, AutoCloseable {
 				undirs.add(NTriplesUtil.toNTriplesString(undirected));
 			}
 		}
-		getHttpRepoClient().registerSNAGenerator(generator, objOfs, subjOfs, undirs, query);
+		prepareHttpRepoClient().registerSNAGenerator(generator, objOfs, subjOfs, undirs, query);
 	}
 	
 	public void registerSNANeighborMatrix(String matrix, String generator, List<IRI> group, int depth) throws RepositoryException {
@@ -2294,7 +2422,7 @@ implements RepositoryConnection, AutoCloseable {
 		for (IRI node: group) {
 			grp.add(NTriplesUtil.toNTriplesString(node));
 		}
-		getHttpRepoClient().registerSNANeighborMatrix(matrix, generator, grp, depth);
+		prepareHttpRepoClient().registerSNANeighborMatrix(matrix, generator, grp, depth);
 	}
 	
 	/**
@@ -2304,7 +2432,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @throws OpenRDFException  if there is an error during the request
 	 */
     public List<String> listIndices() throws OpenRDFException {
-    	return getHttpRepoClient().listIndices(false);
+    	return prepareHttpRepoClient().listIndices(false);
     }
     
     /**
@@ -2314,7 +2442,7 @@ implements RepositoryConnection, AutoCloseable {
      * @throws OpenRDFException  if there is an error during the request
      */
     public List<String> listValidIndices() throws OpenRDFException {
-    	return getHttpRepoClient().listIndices(true);
+    	return prepareHttpRepoClient().listIndices(true);
     }
 
     /**
@@ -2326,7 +2454,7 @@ implements RepositoryConnection, AutoCloseable {
    	 * @see #listValidIndices()
    	 */
     public void addIndex(String type) throws RepositoryException {
-    	getHttpRepoClient().addIndex(type);
+    	prepareHttpRepoClient().addIndex(type);
     }
 
     /**
@@ -2338,7 +2466,7 @@ implements RepositoryConnection, AutoCloseable {
      * @see #listValidIndices()
      */
     public void dropIndex(String type) throws RepositoryException {
-    	getHttpRepoClient().dropIndex(type);
+    	prepareHttpRepoClient().dropIndex(type);
     }
     
 	/** 
@@ -2360,7 +2488,7 @@ implements RepositoryConnection, AutoCloseable {
 	public void sendRDFTransaction(InputStream rdftransaction) throws RepositoryException,
 			RDFParseException, IOException {
 		try {
-			getHttpRepoClient().sendRDFTransaction(rdftransaction);
+			prepareHttpRepoClient().sendRDFTransaction(rdftransaction);
 		} catch (AGMalformedDataException e) {
 			throw new RDFParseException(e);
 		}
@@ -2379,7 +2507,7 @@ implements RepositoryConnection, AutoCloseable {
 	public void sendRDFTransaction(InputStream rdftransaction, JSONObject attributes)
 			throws RepositoryException, RDFParseException, IOException {
 		try {
-			getHttpRepoClient().sendRDFTransaction(rdftransaction, attributes);
+			prepareHttpRepoClient().sendRDFTransaction(rdftransaction, attributes);
 		} catch (AGMalformedDataException e) {
 			throw new RDFParseException(e);
 		}
@@ -2434,7 +2562,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @see AGValueFactory#generateURIs(String, int)
 	 */
 	public void registerEncodableNamespace(String namespace, String format) throws RepositoryException {
-		getHttpRepoClient().registerEncodableNamespace(namespace, format);
+		prepareHttpRepoClient().registerEncodableNamespace(namespace, format);
 	}
 	
 	/**
@@ -2456,7 +2584,7 @@ implements RepositoryConnection, AutoCloseable {
 			}
 			rows.put(row);
 		}
-		getHttpRepoClient().registerEncodableNamespaces(rows);
+		prepareHttpRepoClient().registerEncodableNamespaces(rows);
 	}
 	
 	/**
@@ -2468,7 +2596,7 @@ implements RepositoryConnection, AutoCloseable {
 	 */
 	public List<AGFormattedNamespace> listEncodableNamespaces()
 			throws OpenRDFException {
-		TupleQueryResult tqresult = getHttpRepoClient()
+		TupleQueryResult tqresult = prepareHttpRepoClient()
 				.getEncodableNamespaces();
 		List<AGFormattedNamespace> result = new ArrayList<AGFormattedNamespace>();
 		try {
@@ -2493,7 +2621,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @see #registerEncodableNamespace(String, String)
 	 */
 	public void unregisterEncodableNamespace(String namespace) throws RepositoryException {
-		getHttpRepoClient().unregisterEncodableNamespace(namespace);
+		prepareHttpRepoClient().unregisterEncodableNamespace(namespace);
 	}
 	
 	/**
@@ -2504,7 +2632,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * or Object[] or {@link List} of these (can be nested).</p>
 	 * 
 	 * <p>See also
-	 * {@link #getHttpRepoClient()}.{@link AGHttpRepoClient#callStoredProc(String, String, Object...)
+	 * {@link #prepareHttpRepoClient()}.{@link AGHttpRepoClient#callStoredProc(String, String, Object...)
 	 * callStoredProc}<code>(functionName, moduleName, args)</code>
 	 * </p>
 	 * 
@@ -2519,7 +2647,7 @@ implements RepositoryConnection, AutoCloseable {
 	 */
 	public Object callStoredProc(String functionName, String moduleName, Object...args)
 	throws RepositoryException {
-		return getHttpRepoClient().callStoredProc(functionName, moduleName, args);
+		return prepareHttpRepoClient().callStoredProc(functionName, moduleName, args);
 	}
 
 	/**
@@ -2540,7 +2668,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @see #ping()
 	 */
 	public void setSessionLifetime(int lifetimeInSeconds) {
-		getHttpRepoClient().setSessionLifetime(lifetimeInSeconds);
+		prepareHttpRepoClient().setSessionLifetime(lifetimeInSeconds);
 	}
 	
 	/**
@@ -2553,7 +2681,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @return the session lifetime, in seconds
 	 */
 	public int getSessionLifetime() {
-		return getHttpRepoClient().getSessionLifetime();
+		return prepareHttpRepoClient().getSessionLifetime();
 	}
 	
 	/**
@@ -2567,7 +2695,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @see #addSessionLoadScript(String)
 	 */
 	public void setSessionLoadInitFile(boolean loadInitFile) {
-		getHttpRepoClient().setSessionLoadInitFile(loadInitFile);
+		prepareHttpRepoClient().setSessionLoadInitFile(loadInitFile);
 	}
 	
 	/**
@@ -2584,7 +2712,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @see #setSessionLoadInitFile(boolean)
 	 */
 	public void addSessionLoadScript(String scriptName) {
-		getHttpRepoClient().addSessionLoadScript(scriptName);
+		prepareHttpRepoClient().addSessionLoadScript(scriptName);
 	}
 	
 	/**
@@ -2596,7 +2724,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @throws RepositoryException  if there is an error during the request
 	 */
 	public void enableTripleCache(long size) throws RepositoryException {
-		getHttpRepoClient().enableTripleCache(size);
+		prepareHttpRepoClient().enableTripleCache(size);
 	}
 	
 	/**
@@ -2606,7 +2734,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @throws RepositoryException  if there is an error during the request
 	 */
 	public long getTripleCacheSize() throws RepositoryException {
-		return getHttpRepoClient().getTripleCacheSize();
+		return prepareHttpRepoClient().getTripleCacheSize();
 	}
 	
 	/**
@@ -2615,7 +2743,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @throws RepositoryException  if there is an error during the request
 	 */
  	public void disableTripleCache() throws RepositoryException {
- 		getHttpRepoClient().disableTripleCache();
+ 		prepareHttpRepoClient().disableTripleCache();
  	}
  	
  	/**
@@ -2626,7 +2754,7 @@ implements RepositoryConnection, AutoCloseable {
  	 * @see AGHttpRepoClient#setUploadCommitPeriod(int)
  	 */
  	public void setUploadCommitPeriod(int period) throws RepositoryException {
- 		getHttpRepoClient().setUploadCommitPeriod(period);
+ 		prepareHttpRepoClient().setUploadCommitPeriod(period);
  		
  	}
  	
@@ -2638,7 +2766,7 @@ implements RepositoryConnection, AutoCloseable {
  	 * @see AGHttpRepoClient#getUploadCommitPeriod()
  	 */
  	public int getUploadCommitPeriod() throws RepositoryException {
- 		return getHttpRepoClient().getUploadCommitPeriod();
+ 		return prepareHttpRepoClient().getUploadCommitPeriod();
  		
  	}
 
@@ -2653,11 +2781,11 @@ implements RepositoryConnection, AutoCloseable {
 	 *   for more details. 
 	 */
 	public void optimizeIndices(Boolean wait, int level) throws RepositoryException {
-		getHttpRepoClient().optimizeIndices(wait, level);
+		prepareHttpRepoClient().optimizeIndices(wait, level);
 	}
 
 	public void optimizeIndices(Boolean wait) throws RepositoryException {
-		getHttpRepoClient().optimizeIndices(wait);
+		prepareHttpRepoClient().optimizeIndices(wait);
 	}
 
 	/**
@@ -2672,7 +2800,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @since v4.4
 	 */
 	public String getSpinFunction(String uri) throws OpenRDFException {
-		return getHttpRepoClient().getSpinFunction(uri);
+		return prepareHttpRepoClient().getSpinFunction(uri);
 	}
 
 	/**
@@ -2686,7 +2814,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @since v4.4
 	 */
 	public List<AGSpinFunction> listSpinFunctions() throws OpenRDFException {
-		try (TupleQueryResult list = getHttpRepoClient().listSpinFunctions()) {
+		try (TupleQueryResult list = prepareHttpRepoClient().listSpinFunctions()) {
 			List<AGSpinFunction> result = new ArrayList<>();
 			while (list.hasNext()) {
 				result.add(new AGSpinFunction(list.next()));
@@ -2705,7 +2833,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @since v4.4
 	 */
 	public void putSpinFunction(AGSpinFunction fn) throws OpenRDFException {
-		getHttpRepoClient().putSpinFunction(fn);
+		prepareHttpRepoClient().putSpinFunction(fn);
 	}
 
 	/**
@@ -2717,7 +2845,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @since v4.4
 	 */
 	public void deleteSpinFunction(String uri) throws OpenRDFException {
-		getHttpRepoClient().deleteSpinFunction(uri);
+		prepareHttpRepoClient().deleteSpinFunction(uri);
 	}
 
 	/**
@@ -2730,7 +2858,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @since v4.4
 	 */
 	public String getSpinMagicProperty(String uri) throws OpenRDFException {
-		return getHttpRepoClient().getSpinMagicProperty(uri);
+		return prepareHttpRepoClient().getSpinMagicProperty(uri);
 	}
 
 	/**
@@ -2744,7 +2872,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @since v4.4
 	 */
 	public List<AGSpinMagicProperty> listSpinMagicProperties() throws OpenRDFException {
-		try (TupleQueryResult list = getHttpRepoClient().listSpinMagicProperties()) {
+		try (TupleQueryResult list = prepareHttpRepoClient().listSpinMagicProperties()) {
 			List<AGSpinMagicProperty> result = new ArrayList<AGSpinMagicProperty>();
 			while (list.hasNext()) {
 				result.add(new AGSpinMagicProperty(list.next()));
@@ -2762,7 +2890,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @since v4.4
 	 */
 	public void deleteSpinMagicProperty(String uri) throws OpenRDFException {
-		getHttpRepoClient().deleteSpinMagicProperty(uri);
+		prepareHttpRepoClient().deleteSpinMagicProperty(uri);
 	}
 
 	/**
@@ -2775,7 +2903,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @since v4.4
 	 */
 	public void putSpinMagicProperty(AGSpinMagicProperty fn) throws OpenRDFException {
-		getHttpRepoClient().putSpinMagicProperty(fn);
+		prepareHttpRepoClient().putSpinMagicProperty(fn);
 	}
 
 	/**
@@ -2797,7 +2925,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @throws AGHttpException  if there is an error with this request
 	 */
 	public void deleteDuplicates(String comparisonMode) throws RepositoryException {
-		getHttpRepoClient().deleteDuplicates(comparisonMode);
+		prepareHttpRepoClient().deleteDuplicates(comparisonMode);
 	}
 
 	/**
@@ -2823,7 +2951,7 @@ implements RepositoryConnection, AutoCloseable {
 			throws RepositoryException {
 		try {
 			StatementCollector collector = new StatementCollector();
-			getHttpRepoClient().getDuplicateStatements(comparisonMode, collector);
+			prepareHttpRepoClient().getDuplicateStatements(comparisonMode, collector);
 
 			return createRepositoryResult(collector.getStatements());
 		} catch (RDFHandlerException e) {
@@ -2842,7 +2970,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @see AGMaterializer#newInstance()
 	 */
 	public long materialize(AGMaterializer materializer) throws RepositoryException {
-		return getHttpRepoClient().materialize(materializer);
+		return prepareHttpRepoClient().materialize(materializer);
 	}
 	
 	/**
@@ -2880,7 +3008,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @see #materialize(AGMaterializer)
 	 */
 	public long deleteMaterialized(final Resource inferredGraph) throws RepositoryException {
-		return getHttpRepoClient().deleteMaterialized(inferredGraph);
+		return prepareHttpRepoClient().deleteMaterialized(inferredGraph);
 	}
 
 	/**
@@ -2893,7 +3021,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @throws RepositoryException  if there is an error with this request
 	 */
 	public void setMasqueradeAsUser(String user) throws RepositoryException {
-		getHttpRepoClient().setMasqueradeAsUser(user);
+		prepareHttpRepoClient().setMasqueradeAsUser(user);
 	}
 
 	/**
@@ -2908,7 +3036,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @since 2.7.0
 	 */
 	public void begin() throws RepositoryException {
-		getHttpRepoClient().setAutoCommit(false);
+		prepareHttpRepoClient().setAutoCommit(false);
 	}
 
 	/**
@@ -2927,7 +3055,7 @@ implements RepositoryConnection, AutoCloseable {
 	 */
 	public boolean isActive() throws UnknownTransactionStateException,
 			RepositoryException {
-		return !getHttpRepoClient().isAutoCommit();
+		return !prepareHttpRepoClient().isAutoCommit();
 	}
 	
 	/**
@@ -3058,7 +3186,7 @@ implements RepositoryConnection, AutoCloseable {
 		 */
 		public AttributeDefinition add() throws AGHttpException
 		{
-			AGRepositoryConnection.this.getHttpRepoClient().addAttributeDefinition(name, allowedValues, ordered, minimum, maximum);
+			AGRepositoryConnection.this.prepareHttpRepoClient().addAttributeDefinition(name, allowedValues, ordered, minimum, maximum);
 			return this;
 		}
 	}
@@ -3073,7 +3201,7 @@ implements RepositoryConnection, AutoCloseable {
 	 */
 	public void deleteAttributeDefinition(String name) throws RepositoryException
 	{
-		getHttpRepoClient().deleteAttributeDefinition(name);
+		prepareHttpRepoClient().deleteAttributeDefinition(name);
 	}
 	
 	/**
@@ -3085,7 +3213,7 @@ implements RepositoryConnection, AutoCloseable {
 	 */
 	public JSONArray getAttributeDefinitions()
 			throws RepositoryException, JSONException {
-		return getHttpRepoClient().getAttributeDefinition();
+		return prepareHttpRepoClient().getAttributeDefinition();
 	}
 	
 	/**
@@ -3098,7 +3226,7 @@ implements RepositoryConnection, AutoCloseable {
 	 */
 	public JSONArray getAttributeDefinition(String name)
 			throws RepositoryException, JSONException {
-		return getHttpRepoClient().getAttributeDefinition(name);
+		return prepareHttpRepoClient().getAttributeDefinition(name);
 	}
 	
 	/**
@@ -3108,7 +3236,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @throws RepositoryException  if there is an error with this request
 	 */
 	public void setStaticAttributeFilter(String filter) throws RepositoryException {
-		getHttpRepoClient().setStaticAttributeFilter(filter);
+		prepareHttpRepoClient().setStaticAttributeFilter(filter);
 	}
 	
 	/**
@@ -3119,7 +3247,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @throws RepositoryException  if there is an error with this request
 	 */
 	public String getStaticAttributeFilter() throws RepositoryException {
-		return getHttpRepoClient().getStaticAttributeFilter();
+		return prepareHttpRepoClient().getStaticAttributeFilter();
 	}
 	
 	/**
@@ -3128,15 +3256,15 @@ implements RepositoryConnection, AutoCloseable {
 	 * @throws RepositoryException  if there is an error with this request
 	 */
 	public void deleteStaticAttributeFilter() throws RepositoryException {
-		getHttpRepoClient().deleteStaticAttributeFilter();
+		prepareHttpRepoClient().deleteStaticAttributeFilter();
 	}
 	
 	public String getUserAttributes() {
-		return getHttpRepoClient().getUserAttributes();
+		return prepareHttpRepoClient().getUserAttributes();
 	}
 	
 	public void setUserAttributes(String value) {
-		getHttpRepoClient().setUserAttributes(value);
+		prepareHttpRepoClient().setUserAttributes(value);
 	}
 	
 	public void setUserAttributes(JSONObject value) {
@@ -3149,7 +3277,7 @@ implements RepositoryConnection, AutoCloseable {
 	 * @param transactionSettings Distributed transaction settings.
 	 */
 	public void setTransactionSettings(final TransactionSettings transactionSettings) {
-		getHttpRepoClient().setTransactionSettings(transactionSettings);
+		prepareHttpRepoClient().setTransactionSettings(transactionSettings);
 	}
 
 	/**
@@ -3168,7 +3296,7 @@ implements RepositoryConnection, AutoCloseable {
 	 *         When closed the object will restore old transaction settings.
 	 */
 	public Ctx transactionSettingsCtx(final TransactionSettings transactionSettings) {
-		final TransactionSettings oldSettings = getHttpRepoClient().getTransactionSettings();
+		final TransactionSettings oldSettings = prepareHttpRepoClient().getTransactionSettings();
 		setTransactionSettings(transactionSettings);
 		return () -> setTransactionSettings(oldSettings);
 	}
