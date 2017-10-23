@@ -128,15 +128,18 @@ public abstract class RepositoryConnectionTest {
     public void tearDown()
         throws Exception
     {
-        testCon2.close();
-        testCon2 = null;
-
-        testCon.close();
-        testCon = null;
-
-        testRepository.shutDown();
-        testRepository = null;
-
+        if (testCon2 != null) {
+            testCon2.close();
+            testCon2 = null;
+        }
+        if (testCon != null) {
+            testCon.close();
+            testCon = null;
+        }
+        if (testRepository != null) {
+            testRepository.shutDown();
+            testRepository = null;
+        }
         vf = null;
     }
 
