@@ -1,5 +1,14 @@
 # AllegroGraph Java client release history
 
+## 2.0.2
+
+### Additional multi-master replication commit setting
+
+transactionLatencyTimeout has been added to the TransactionSettings
+object.  This setting determines how long a commit operation should
+wait for the transaction latency count to be satisfied before throwing
+an error.
+
 ## 2.0.1
 
 ### Multi-master replication commit settings

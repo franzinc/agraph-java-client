@@ -70,7 +70,8 @@ public class TestSuites {
         AGTripleAttributesTest.class,
         Unicode.class,
         DownloadTest.class,
-        AGUtilTest.class
+        AGUtilTest.class,
+        ReplHeaderTest.class,
     })
     public static class Prepush {}
 

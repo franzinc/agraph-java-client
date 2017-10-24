@@ -411,6 +411,17 @@ public class AGHttpRepoClient implements AutoCloseable {
 			value.append("transactionLatencyCount=");
 			value.append(transactionLatencyCount.toString());
 		}
+
+		final Integer transactionLatencyTimeout =
+		    transactionSettings.getTransactionLatencyTimeout();
+		if (transactionLatencyTimeout != null) {
+			if (value.length() > 0) {
+				value.append(' ');
+			}
+			value.append("transactionLatencyTimeout=");
+			value.append(transactionLatencyTimeout.toString());
+		}
+
 		if (value.length() > 0) {
 			headers.add(new Header(AGProtocol.X_REPL_SETTINGS, value.toString()));
 		}

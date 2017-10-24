@@ -17,6 +17,8 @@ public class TransactionSettings {
     private Integer distributedTransactionTimeout;
     // Number of comits or null.
     private Integer transactionLatencyCount;
+    // Timeout in seconds or null.
+    private Integer transactionLatencyTimeout;
 
     /**
      * Create a configuration object where all settings use the default
@@ -27,6 +29,7 @@ public class TransactionSettings {
         this.symbolicDurability = DurabilityLevel.DEFAULT;
         this.distributedTransactionTimeout = null;
         this.transactionLatencyCount = null;
+	this.transactionLatencyTimeout = null;
     }
 
     /**
@@ -39,6 +42,7 @@ public class TransactionSettings {
         this.symbolicDurability = other.symbolicDurability;
         this.distributedTransactionTimeout = other.distributedTransactionTimeout;
         this.transactionLatencyCount = other.transactionLatencyCount;
+	this.transactionLatencyTimeout = other.transactionLatencyTimeout;
     }
 
     /**
@@ -78,6 +82,17 @@ public class TransactionSettings {
      */
     public Integer getTransactionLatencyCount() {
         return transactionLatencyCount;
+    }
+
+    /**
+     * Retrieve the latency timeout ({@link #withTransactionLatencyTimeout(Integer)}.
+     *
+     * @return Number of seconds to wait for Transaction Latency Count
+     *         to be satisfied or {@code null}, meaning "use the
+     *         default value configured on the server".
+     */
+    public Integer getTransactionLatencyTimeout() {
+        return transactionLatencyTimeout;
     }
 
     /**
@@ -179,6 +194,24 @@ public class TransactionSettings {
             final Integer transactionLatencyCount) {
         final TransactionSettings result = new TransactionSettings(this);
         result.transactionLatencyCount = transactionLatencyCount;
+        return result;
+    }
+
+    /**
+     * Sets the distributed transaction latency timeout.
+     *
+     * Use this setting to specify how long a commit operation should
+     * wait for the Transaction Latency Count to be satisfied before
+     * throwing an error.
+     *
+     * @param transactionLatencyTimeout number of seconds or {@code null} (use server default).
+     *
+     * @return A fresh config instance with updated settings.
+     */
+    public TransactionSettings withTransactionLatencyTimeout(
+            final Integer transactionLatencyTimeout) {
+        final TransactionSettings result = new TransactionSettings(this);
+        result.transactionLatencyTimeout = transactionLatencyTimeout;
         return result;
     }
 }

@@ -109,15 +109,24 @@ public class ReplHeaderTest extends AGAbstractTest {
 
     @Test
     @Category(TestSuites.Prepush.class)
+    public void testSetLatencyTimeout() {
+        mock.setTransactionSettings(settings.withTransactionLatencyTimeout(42));
+        mock.size();
+        Assert.assertEquals("transactionLatencyTimeout=42", getReplHeader());
+    }
+
+    @Test
+    @Category(TestSuites.Prepush.class)
     public void testSetAll() {
         mock.setTransactionSettings(
                 settings.withDurability(1)
                         .withDistributedTransactionTimeout(2)
-                        .withTransactionLatencyCount(3));
+                        .withTransactionLatencyCount(3)
+                        .withTransactionLatencyTimeout(42));
         mock.size();
         // Technically these could be reordered...
         Assert.assertEquals(
-                "durability=1 distributedTransactionTimeout=2 transactionLatencyCount=3",
+                "durability=1 distributedTransactionTimeout=2 transactionLatencyCount=3 transactionLatencyTimeout=42",
                 getReplHeader());
     }
 
@@ -167,6 +176,16 @@ public class ReplHeaderTest extends AGAbstractTest {
         mock.setTransactionSettings(
                 settings.withTransactionLatencyCount(42)
                         .withTransactionLatencyCount(null));
+        mock.size();
+        Assert.assertNull(getReplHeader());
+    }
+
+    @Test
+    @Category(TestSuites.Prepush.class)
+    public void testResetLatencyTimeout() {
+        mock.setTransactionSettings(
+                settings.withTransactionLatencyTimeout(42)
+                        .withTransactionLatencyTimeout(null));
         mock.size();
         Assert.assertNull(getReplHeader());
     }
