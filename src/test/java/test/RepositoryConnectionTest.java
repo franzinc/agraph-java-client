@@ -1037,7 +1037,6 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
     }
 
     @Test
-    @Category(TestSuites.Broken.class)
     public void testGetNamespaces()
         throws Exception
     {
@@ -1053,30 +1052,14 @@ public static abstract class RepositoryConnectionTests extends RepositoryConnect
 
         testCon.add(new StringReader(rdfFragment.toString()), "", RDFFormat.RDFXML);
 
-        CloseableIteration<? extends Namespace, RepositoryException> nsIter = testCon.getNamespaces();
-        try {
-            Map<String, String> map = new HashMap<String, String>();
+        try (CloseableIteration<? extends Namespace, RepositoryException> nsIter = testCon.getNamespaces()) {
             int nsCount = 0;
             while (nsIter.hasNext()) {
                 nsCount++;
-                Namespace ns = nsIter.next();
-                map.put(ns.getPrefix(), ns.getName());
+                nsIter.next();
             }
-
-            assertEquals("There should be exactly three namespaces", 3, nsCount);
-            assertTrue("namespace for prefix 'example' should exist", map.containsKey("example"));
-            assertTrue("namespace for prefix 'rdfs' should exist", map.containsKey("rdfs"));
-            assertTrue("namespace for prefix 'rdf' should exist", map.containsKey("rdf"));
-
-            assertTrue("namespace name for 'example' not well-defined", map.get("example").equals(
-                    "http://example.org/"));
-            assertTrue("namespace name for 'rdfs' not well-defined", map.get("rdfs").equals(
-                    "http://www.w3.org/2000/01/rdf-schema#"));
-            assertTrue("namespace name for 'rdf' not well-defined", map.get("rdf").equals(
-                    "http://www.w3.org/1999/02/22-rdf-syntax-ns#"));
-        }
-        finally {
-            nsIter.close();
+	    
+            assertEquals("Namespaces from imported RDF should not be added to repository", 0, nsCount);
         }
     }
 
