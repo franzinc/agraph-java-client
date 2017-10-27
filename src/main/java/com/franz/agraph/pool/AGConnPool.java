@@ -9,20 +9,17 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 
 import javax.servlet.ServletContextListener;
 
-import org.apache.commons.pool.ObjectPool;
-import org.apache.commons.pool.PoolableObjectFactory;
-import org.apache.commons.pool.impl.GenericObjectPool;
+import org.apache.commons.pool2.ObjectPool;
+import org.apache.commons.pool2.PooledObjectFactory;
+import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
-import com.franz.util.Closer;
 
 /**
  * Pooling for {@link AGRepositoryConnection}s.
@@ -69,149 +66,63 @@ import com.franz.util.Closer;
  * </p>
  * 
  * <p>Note, when {@link AGConnPool#close()} is called
- * on a {@link AGConnPool},
- * connections will be closed whether they are
- * idle (have been returned) or not.
- * This is different from {@link GenericObjectPool#close()}.
+ * on a {@link AGConnPool}, connections that have not been returned to the pool
+ * will *not* be closed. Such connections will be closed immediately when
+ * returned to the pool.
+ *
  * </p>
  * 
  * @since v4.3.3
  */
-public class AGConnPool
-extends Closer
-implements ObjectPool, AutoCloseable {
+public class AGConnPool implements ObjectPool<AGRepositoryConnection>, AutoCloseable {
 
 	private static final Logger log = LoggerFactory.getLogger(AGConnPool.class);
 
-	private final ObjectPool delegate;
-	
-	private final AGConnFactory factory;
+	private final ObjectPool<AGRepositoryConnection> delegate;
+	private final Thread shutdownHook;
 
-	/**
-	 * Delegates all methods to the wrapped conn except for close.
-	 * 
-	 * <p>Note, these objects are never closed for real, but they don't hold any resources.</p>
-	 */
-	class AGRepositoryConnectionPooled extends AGRepositoryConnection {
-		
-		final AGRepositoryConnection conn;
-		
-		public AGRepositoryConnectionPooled(AGRepositoryConnection conn) {
-			super((AGRepository) conn.getRepository(), conn.getHttpRepoClient());
-			this.conn = conn;
-		}
-		
-		@Override
-		public void close() throws RepositoryException {
-			try {
-				returnObject(this);
-			} catch (Exception e) {
-				throw new RepositoryException(e);
-			}
-		}
-	}
-	
-	/**
-	 * 
-	 */
-	class ClosingFactory implements PoolableObjectFactory {
-
-		private final PoolableObjectFactory delegate;
-		
-		ClosingFactory(PoolableObjectFactory delegate) {
-			this.delegate = delegate;
-		}
-		
-		@Override
-		public void activateObject(Object object) throws Exception {
-			delegate.activateObject(unwrap(object));
-		}
-
-		@Override
-		public void destroyObject(Object object) throws Exception {
-			delegate.destroyObject(unwrap(object));
-		}
-
-		@Override
-		public Object makeObject() throws Exception {
-			return new AGRepositoryConnectionPooled((AGRepositoryConnection) delegate.makeObject());
-		}
-
-		@Override
-		public void passivateObject(Object object) throws Exception {
-			delegate.passivateObject(unwrap(object));
-		}
-
-		@Override
-		public boolean validateObject(Object object) {
-			return delegate.validateObject(unwrap(object));
-		}
-		
-	}
-	
-	private static class ShutdownHookCloser extends Thread implements AutoCloseable {
-		
-		private static final Logger log = LoggerFactory.getLogger(ShutdownHookCloser.class);
-		
-		private final Closer closer;
-		
-		public ShutdownHookCloser(Closer closer) {
-			this.closer = closer;
-		}
-
-		@Override
-		public void run() {
-			log.info("closing " + closer);
-			// remove this before closing, because removeShutdownHook will throw if inside of run
-			closer.remove(this);
-			// This will ignore any exceptions, even unchecked ones
-			closer.close(closer);
-			log.debug("closed " + closer);
-		}
-
-		/**
-		 * Removing is useful for pools that get closed manually
-		 * so the Runtime doesn't hold on to this and everything.
-		 */
-		@Override
-		public void close() {
-			Runtime.getRuntime().removeShutdownHook(this);
-		}
-	}
-	
 	/**
 	 * @see #create(Object...)
 	 */
-	private AGConnPool(AGConnFactory factory, AGPoolConfig poolConfig) {
-		this.delegate = new GenericObjectPool(new ClosingFactory(factory), poolConfig);
-		closeLater(delegate::close);
-		this.factory = factory;
+	private AGConnPool(PooledObjectFactory<AGRepositoryConnection> factory,
+					   AGPoolConfig poolConfig) {
+		delegate = new GenericObjectPool<>(factory, poolConfig);
 
 		if (poolConfig.initialSize > 0) {
-			List<AGRepositoryConnection> conns = new ArrayList<AGRepositoryConnection>(poolConfig.initialSize);
+			List<AGRepositoryConnection> conns = new ArrayList<>(poolConfig.initialSize);
 			try {
 				for (int i = 0; i < poolConfig.initialSize; i++) {
-					conns.add(borrowConnection());
+					conns.add(borrowObject());
 				}
 			} catch (RepositoryException e) {
 				throw new RuntimeException(e);
 			}
 			// return them to the pool
-			close(conns);
+			for (AGRepositoryConnection conn : conns) {
+				conn.close();
+			}
 		}
 		if (poolConfig.shutdownHook) {
-			Runtime.getRuntime().addShutdownHook( closeLater( new ShutdownHookCloser(this)));
+			shutdownHook = new Thread(this::close);
+			Runtime.getRuntime().addShutdownHook(shutdownHook);
+		} else {
+			shutdownHook = null;
 		}
 	}
 
+	private AGConnPool(AGPoolConfig poolConfig, AGConnConfig connConfig) {
+		this(new AGConnFactory(connConfig, poolConfig), poolConfig);
+	}
+
 	/**
-	 * A {@link GenericObjectPool} is used.
-	 * 
-	 * @param factory  an {@link AGConnFactory}
+	 * Creates a pool using a custom connection factory.
+	 *
+	 * @param factory  a connection factory.
 	 * @param poolConfig  an {@link AGPoolConfig}
 	 * @return AGConnPool the connection pool object
 	 */
-	public static AGConnPool create(AGConnFactory factory, AGPoolConfig poolConfig) {
+	public static AGConnPool create(PooledObjectFactory<AGRepositoryConnection> factory,
+									AGPoolConfig poolConfig) {
 		return new AGConnPool(factory, poolConfig);
 	}
 
@@ -223,12 +134,12 @@ implements ObjectPool, AutoCloseable {
 	 * @return AGConnPool  the connection pool object
 	 * @throws RepositoryException  if an error occurs during pool creation
 	 */
-	public static AGConnPool create(Map<AGConnProp, String> connProps, Map<AGPoolProp, String> poolProps) throws RepositoryException {
+	public static AGConnPool create(Map<AGConnProp, String> connProps,
+									Map<AGPoolProp, String> poolProps)
+			throws RepositoryException {
 		AGPoolConfig poolConfig = new AGPoolConfig(poolProps);
-		AGConnFactory fact = new AGConnFactory(new AGConnConfig(connProps), poolConfig);
-		final AGConnPool pool = AGConnPool.create(fact, poolConfig);
-		pool.closeLater(fact);
-		return pool;
+		AGConnConfig connConfig = new AGConnConfig(connProps);
+		return new AGConnPool(poolConfig, connConfig);
 	}
 		
 	/**
@@ -244,7 +155,7 @@ implements ObjectPool, AutoCloseable {
 		return create(connProps, poolProps);
 	}
 
-    protected static Map<? extends Enum, String> toMap(Object[] keyValuePairs, EnumSet<? extends Enum> enumSet) {
+    private static Map<? extends Enum, String> toMap(Object[] keyValuePairs, EnumSet<? extends Enum> enumSet) {
     	Map<Enum, String> map = new HashMap<Enum, String>();
     	for (int i = 0; i < keyValuePairs.length; i=i+2) {
     		Enum key = (Enum) keyValuePairs[i];
@@ -257,25 +168,36 @@ implements ObjectPool, AutoCloseable {
     }
     
 	@Override
-	public void addObject() throws Exception, IllegalStateException, UnsupportedOperationException {
+	public void addObject() throws Exception {
 		delegate.addObject();
 	}
-	
+
 	@Override
-	public Object borrowObject() throws Exception, NoSuchElementException, IllegalStateException {
-		return delegate.borrowObject();
-	}
-	
-	public AGRepositoryConnection borrowConnection() throws RepositoryException {
+	public AGRepositoryConnection borrowObject() throws RepositoryException {
+		final AGRepositoryConnection conn;
 		try {
-			return (AGRepositoryConnection) delegate.borrowObject();
+			conn = delegate.borrowObject();
 		} catch (Exception e) {
 			throw new RepositoryException(e);
 		}
+		// Make sure 'close' will return the connection to the pool
+		// instead of really closing it.
+		conn.setPool(this);
+		return conn;
 	}
-	
+
+	/**
+	 * Same as {@link #borrowObject()}.
+	 *
+	 * @deprecated Use {@link #borrowObject()} instead.
+	 * @return A connection.
+	 */
+	public AGRepositoryConnection borrowConnection() {
+		return borrowObject();
+	}
+
 	@Override
-	public void clear() throws Exception, UnsupportedOperationException {
+	public void clear() throws Exception {
 		delegate.clear();
 	}
 	
@@ -290,29 +212,18 @@ implements ObjectPool, AutoCloseable {
 	}
 	
 	@Override
-	public void invalidateObject(Object obj) throws Exception {
-		delegate.invalidateObject(obj);
+	public void invalidateObject(AGRepositoryConnection conn) throws Exception {
+		delegate.invalidateObject(conn);
 	}
 	
 	@Override
-	public void returnObject(Object obj) throws Exception {
-		delegate.returnObject(obj);
+	public void returnObject(AGRepositoryConnection conn) throws Exception {
+		// Make sure 'close' will really close and not try to
+		// return the connection to the pool again.
+		conn.setPool(null);
+		delegate.returnObject(conn);
 	}
-	
-	public static Object unwrap(Object obj) {
-		if (obj instanceof AGConnPool.AGRepositoryConnectionPooled) {
-			return ((AGConnPool.AGRepositoryConnectionPooled)obj).conn;
-		} else {
-			return obj;
-		}
-	}
-	
-	@Override
-	@Deprecated
-	public void setFactory(PoolableObjectFactory obj) throws IllegalStateException, UnsupportedOperationException {
-		delegate.setFactory(obj);
-	}
-	
+
 	public void ensureIdle(int n) throws Exception {
 		if (delegate instanceof GenericObjectPool) {
 			GenericObjectPool gop = (GenericObjectPool) delegate;
@@ -329,8 +240,13 @@ implements ObjectPool, AutoCloseable {
 	@Override
 	public void close() {
 		if (log.isDebugEnabled()) log.debug("close " + this);
-		close(delegate::close);
-		super.close();
+		delegate.close();
+		if (shutdownHook != null) {
+			// It would be safe to close a pool multiple times,
+			// but if we don't delete the hook it will keep a
+			// reference to the closed pool and waste memory.
+			Runtime.getRuntime().removeShutdownHook(shutdownHook);
+		}
 	}
 
 	protected void finalize() throws Throwable {
@@ -347,7 +263,6 @@ implements ObjectPool, AutoCloseable {
 		+ " active=" + getNumActive()
 		+ " idle=" + getNumIdle()
 		+ " delegate=" + delegate
-		+ " factory=" + factory
 		+ " this=" + super.toString()
 		+ "}";
 	}

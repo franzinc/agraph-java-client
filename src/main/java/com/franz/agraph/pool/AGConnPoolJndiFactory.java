@@ -15,8 +15,6 @@ import javax.naming.Reference;
 import javax.naming.spi.ObjectFactory;
 import javax.servlet.ServletContextListener;
 
-import org.apache.commons.pool.impl.GenericObjectPool;
-
 import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
@@ -40,9 +38,7 @@ import com.franz.agraph.repository.AGServer;
  * 
  * <p>Note, when {@link AutoCloseable#close()} is called
  * on an {@link AGConnPool},
- * connections will be closed whether they are
- * idle (have been returned) or not.
- * This is different from {@link GenericObjectPool#close()}.
+ * connections that have not been returned will not be closed.
  * Also note, when a {@link AGRepositoryConnection} from the pool is closed,
  * the {@link AGRepository} and {@link AGServer} will also be closed
  * since these are not shared with other {@link AGRepositoryConnection}s.

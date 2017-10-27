@@ -30,6 +30,7 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
+import org.apache.commons.httpclient.params.HttpClientParams;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 import org.eclipse.rdf4j.http.protocol.Protocol;
 import org.eclipse.rdf4j.http.protocol.UnauthorizedException;
@@ -50,6 +51,8 @@ import com.franz.agraph.repository.AGValueFactory;
  * Class responsible for handling HTTP connections.
  *
  * Uses an unlimited pool of connections to allow safe, concurrent access.
+ * Howeverm clients created by {@link #AGHTTPClient(String, HttpClientParams)}
+ * are not thread safe.
  *
  * Also contains methods for accessing AG services that operate above
  * the repository level - such as managing repositories.
@@ -65,30 +68,46 @@ public class AGHTTPClient implements AutoCloseable {
 	
 	private boolean isClosed = false;
 
-	private MultiThreadedHttpConnectionManager mManager = null;
+	private HttpConnectionManager mManager = null;
+
+	private AGHTTPClient(String serverURL, HttpClient client) {
+		this.serverURL = serverURL.replaceAll("/$","");
+		this.httpClient = client;
+		if (logger.isDebugEnabled()) {
+			logger.debug("connect: " + serverURL + " " + client);
+		}
+
+	}
 
 	public AGHTTPClient(String serverURL) {
-		this(serverURL, null);
+		this(serverURL, (MultiThreadedHttpConnectionManager)null);
 	}
 
 	public AGHTTPClient(String serverURL, HttpConnectionManager manager) {
-		this.serverURL = serverURL.replaceAll("/$","");
+		this(serverURL, new HttpClient(manager == null ? createManager() : manager));
 		if (manager == null) {
-			// Use MultiThreadedHttpConnectionManager to allow concurrent access
-			// on HttpClient
-		    mManager = new MultiThreadedHttpConnectionManager();
-		    manager = mManager;
-		    
-			// Allow "unlimited" concurrent connections to the same host (default is 2)
-			HttpConnectionManagerParams params = new HttpConnectionManagerParams();
-			params.setDefaultMaxConnectionsPerHost(Integer.MAX_VALUE);
-			params.setMaxTotalConnections(Integer.MAX_VALUE);
-			manager.setParams(params);
+			mManager = this.getHttpClient().getHttpConnectionManager();
 		}
-		httpClient = new HttpClient(manager);
-		if (logger.isDebugEnabled()) {
-			logger.debug("connect: " + serverURL + " " + httpClient + " " + manager);
-		}
+	}
+
+	// This is used for clients created by the connection pool.
+	// Such clients are never shared or accessed concurrently.
+	public AGHTTPClient(String serverURL, HttpClientParams params) {
+		this(serverURL, new HttpClient(params));
+	}
+
+	private static HttpConnectionManager createManager() {
+		// Use MultiThreadedHttpConnectionManager to allow concurrent access
+		// on HttpClient
+		 final MultiThreadedHttpConnectionManager manager =
+				 new MultiThreadedHttpConnectionManager();
+
+		// Allow "unlimited" concurrent connections to the same host (default is 2)
+		HttpConnectionManagerParams params = new HttpConnectionManagerParams();
+		params.setDefaultMaxConnectionsPerHost(Integer.MAX_VALUE);
+		params.setMaxTotalConnections(Integer.MAX_VALUE);
+		manager.setParams(params);
+		return manager;
 	}
 
 	@Override
@@ -376,8 +395,8 @@ public class AGHTTPClient implements AutoCloseable {
     @Override
     public void close() {
         logger.debug("close: " + serverURL + " " + mManager);
-        if (mManager != null) {
-			mManager.shutdown();
+        if (mManager instanceof MultiThreadedHttpConnectionManager) {
+			((MultiThreadedHttpConnectionManager)mManager).shutdown();
 			mManager = null;
 		}
         isClosed = true;

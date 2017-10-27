@@ -6,6 +6,7 @@ package com.franz.agraph.repository;
 
 import com.franz.agraph.http.handler.AGDownloadHandler;
 import com.franz.agraph.http.handler.AGRawStreamer;
+import com.franz.agraph.pool.AGConnPool;
 import com.franz.agraph.repository.repl.TransactionSettings;
 import com.franz.util.Ctx;
 import org.eclipse.rdf4j.common.io.GZipUtil;
@@ -190,6 +191,8 @@ implements RepositoryConnection, AutoCloseable {
 	private final AGHttpRepoClient repoclient;
 	private boolean streamResults;
 	private final AGValueFactory vf;
+	// If not null close will return the connection to this pool instead of closing.
+	private AGConnPool pool;
 
 	/**
 	 * 
@@ -1055,9 +1058,17 @@ implements RepositoryConnection, AutoCloseable {
 	 */
 	@Override
 	public void close() throws RepositoryException {
-		if (isOpen()) {
-			getHttpRepoClient().close();
-			super.close();
+		if (pool != null) {
+			try {
+				pool.returnObject(this);
+			} catch (final Exception e) {
+				throw new RepositoryException(e);
+			}
+		} else {
+			if (isOpen()) {
+				getHttpRepoClient().close();
+				super.close();
+			}
 		}
 	}
 
@@ -3160,5 +3171,16 @@ implements RepositoryConnection, AutoCloseable {
 		final TransactionSettings oldSettings = getHttpRepoClient().getTransactionSettings();
 		setTransactionSettings(transactionSettings);
 		return () -> setTransactionSettings(oldSettings);
+	}
+
+	/**
+	 * Sets the connection pool this object will be returned to on close.
+	 *
+	 * Set to {@code null} to make close really shutdown the connection.
+	 *
+	 * @param pool Connection pool.
+	 */
+	public void setPool(final AGConnPool pool) {
+		this.pool = pool;
 	}
 }

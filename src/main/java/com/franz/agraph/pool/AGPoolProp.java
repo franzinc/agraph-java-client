@@ -4,10 +4,10 @@
 
 package com.franz.agraph.pool;
 
-import org.apache.commons.pool.impl.GenericKeyedObjectPool.Config;
-import org.apache.commons.pool.impl.GenericObjectPool;
-
 import com.franz.agraph.repository.AGRepositoryConnection;
+import org.apache.commons.pool2.PooledObject;
+import org.apache.commons.pool2.impl.GenericObjectPool;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 
 /**
  * Property names for {@link AGPoolConfig}.
@@ -20,7 +20,7 @@ import com.franz.agraph.repository.AGRepositoryConnection;
  * Many of these properties are specified and used by {@link GenericObjectPool}.
  * 
  * @see GenericObjectPool
- * @see Config
+ * @see GenericObjectPoolConfig
  */
 public enum AGPoolProp {
 	
@@ -62,31 +62,31 @@ public enum AGPoolProp {
 	 * less than the SessionPorts.
 	 * See <a href="http://www.franz.com/agraph/support/documentation/current/server-installation.html#sessionport"
 	 * target="_top">Session Port Setup</a>.
-	 * @see GenericObjectPool#setMaxActive(int)
+	 * @see GenericObjectPool#setMaxTotal(int)
 	 */
 	maxActive,
 	
 	/**
 	 * milliseconds to wait to borrow before throwing {@link java.util.NoSuchElementException}
-	 * @see GenericObjectPool#setMaxWait(long)
+	 * @see GenericObjectPool#setMaxWaitMillis(long)
 	 */
 	maxWait,
 	
 	/**
 	 * Calls {@link AGRepositoryConnection#size(org.eclipse.rdf4j.model.Resource...)}.
 	 * 
-	 * Redundant because {@link AGConnFactory#activateObject(Object)}
+	 * Redundant because {@link AGConnFactory#activateObject(PooledObject)}
 	 * always calls {@link AGRepositoryConnection#rollback()}.
 	 * 
 	 * @see GenericObjectPool#setTestOnBorrow(boolean)
-	 * @see AGConnFactory#validateObject(Object)
+	 * @see AGConnFactory#validateObject(PooledObject)
 	 */
 	testOnBorrow,
 	
 	/**
 	 * Calls {@link AGRepositoryConnection#size(org.eclipse.rdf4j.model.Resource...)}.
 	 * @see GenericObjectPool#setTestOnReturn(boolean)
-	 * @see AGConnFactory#validateObject(Object)
+	 * @see AGConnFactory#validateObject(PooledObject)
 	 */
 	testOnReturn,
 	

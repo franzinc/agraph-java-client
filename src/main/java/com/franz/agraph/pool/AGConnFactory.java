@@ -4,10 +4,11 @@
 
 package com.franz.agraph.pool;
 
-import org.apache.commons.httpclient.HttpConnectionManager;
-import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
-import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
-import org.apache.commons.pool.PoolableObjectFactory;
+import org.apache.commons.httpclient.params.HttpClientParams;
+import org.apache.commons.pool2.BasePooledObjectFactory;
+import org.apache.commons.pool2.PooledObject;
+import org.apache.commons.pool2.PooledObjectFactory;
+import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.eclipse.rdf4j.OpenRDFException;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.slf4j.Logger;
@@ -19,10 +20,8 @@ import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
-import com.franz.util.Closer;
 
-import java.io.Closeable;
-import java.io.IOException;
+import java.net.ConnectException;
 
 /**
  * Adapts the {@link AGRepositoryConnection} API
@@ -32,7 +31,8 @@ import java.io.IOException;
  * 
  * @since v4.3.3
  */
-public class AGConnFactory implements PoolableObjectFactory, Closeable {
+public class AGConnFactory extends BasePooledObjectFactory<AGRepositoryConnection>
+		implements PooledObjectFactory<AGRepositoryConnection> {
 
 	private final static Logger log = LoggerFactory.getLogger(AGConnFactory.class);
 	
@@ -40,18 +40,6 @@ public class AGConnFactory implements PoolableObjectFactory, Closeable {
 
 	@SuppressWarnings("unused")
 	private final AGPoolConfig poolProps;
-
-	private final Closer closer = new Closer() {
-		@Override
-		protected void handleCloseException(Object o, Throwable e) {
-			if (e.getCause() instanceof java.net.ConnectException && e.getCause().getMessage().equals("Connection refused")) {
-				// squelch this (debug instead of warn) because it's common that the session has timed out
-				log.debug("ignoring error with close (probably session timeout): " + o, e);
-			} else {
-				log.warn("ignoring error with close: " + o, e);
-			}
-		}
-	};
 
 	public AGConnFactory(AGConnConfig props) {
 		this.props = props;
@@ -64,22 +52,12 @@ public class AGConnFactory implements PoolableObjectFactory, Closeable {
 	}
 
 	@Override
-	public Object makeObject() throws Exception {
-		return makeConnection();
-	}
-	
-	private AGRepositoryConnection makeConnection() throws Exception {
-		HttpConnectionManagerParams params = new HttpConnectionManagerParams();
-		//params.setDefaultMaxConnectionsPerHost(Integer.MAX_VALUE);
-		//params.setMaxTotalConnections(Integer.MAX_VALUE);
-		//params.setConnectionTimeout((int) TimeUnit.SECONDS.toMillis(10));
+	public AGRepositoryConnection create() throws Exception {
+		HttpClientParams params = new HttpClientParams();
 		if (props.httpSocketTimeout != null) {
 			params.setSoTimeout(props.httpSocketTimeout);
 		}
-
-		MultiThreadedHttpConnectionManager manager = new MultiThreadedHttpConnectionManager();
-		manager.setParams(params);
-		AGHTTPClient httpClient = new AGHTTPClient(props.serverUrl, manager);
+		AGHTTPClient httpClient = new AGHTTPClient(props.serverUrl, params);
 		AGServer server = new AGServer(props.username, props.password, httpClient);
 		AGCatalog cat;
 		if (props.catalog != null) {
@@ -95,16 +73,20 @@ public class AGConnFactory implements PoolableObjectFactory, Closeable {
 			repo = new AGRepository(cat, props.repository);
 		}
 		repo.initialize();
-
-		AGRepositoryConnection conn = closer.closeLater(
-				new AGRepositoryConnectionCloseup(closer, closer.closeLater(repo.getConnection()), manager));
+		AGHttpRepoClient repoClient = new AGHttpRepoClient(
+				repo, httpClient, repo.getRepositoryURL(), null);
+		AGRepositoryConnection conn = new AGRepositoryConnection(repo, repoClient);
 		if (props.sessionLifetime != null) {
 			conn.setSessionLifetime(props.sessionLifetime);
 		}
-		activateObject(conn);
 		return conn;
 	}
-	
+
+	@Override
+	public PooledObject<AGRepositoryConnection> wrap(AGRepositoryConnection conn) {
+		return new DefaultPooledObject<>(conn);
+	}
+
 	/**
 	 * Synchronized and re-checks hasRepository so multiple
 	 * do not try to create the repo at the same time.
@@ -117,7 +99,10 @@ public class AGConnFactory implements PoolableObjectFactory, Closeable {
 		}
 	}
 
-	protected void activateConnection(AGRepositoryConnection conn) throws RepositoryException {
+	@Override
+	public void activateObject(PooledObject<AGRepositoryConnection> pooled)
+			throws RepositoryException {
+		final AGRepositoryConnection conn = pooled.getObject();
 		// if autoCommit is false, then rollback to refresh this connection's view of the repository.
 		if (!conn.isAutoCommit()) {
 			conn.rollback();
@@ -154,40 +139,22 @@ public class AGConnFactory implements PoolableObjectFactory, Closeable {
 		}
 	}
 
-	/**
-	 * Calls {@link AGRepositoryConnection#rollback()} and
-	 * resets {@link AGRepositoryConnection#setAutoCommit(boolean)}
-	 * if it has changed.
-	 */
-	@Override
-	public void activateObject(Object obj) throws Exception {
-		activateConnection( (AGRepositoryConnection) obj);
-	}
-	
-	@Override
-	public void destroyObject(Object obj) throws Exception {
-		closer.close((AGRepositoryConnection)obj);
-	}
-	
-	@Override
-	public void passivateObject(Object obj) throws Exception {
-		// Do nothing when returning a connection to the pool.
-		// Users can set TestOnReturn to true to force a rollback on
-		// a connection when it is returned to the pool.
-		//
-		// Setting TestWhileIdle to true (and associated PoolProps) will
-		// trigger a rollback when the connection is not being used.
-		//
-		// rollback() will always be called when a connection is borrowed
-		// from the pool.
-	}
-	
+	// Do nothing when returning a connection to the pool.
+	// Users can set TestOnReturn to true to force a rollback on
+	// a connection when it is returned to the pool.
+	//
+	// Setting TestWhileIdle to true (and associated PoolProps) will
+	// trigger a rollback when the connection is not being used.
+	//
+	// rollback() will always be called when a connection is borrowed
+	// from the pool.
+
 	/**
 	 * Calls {@link AGRepositoryConnection#size(org.eclipse.rdf4j.model.Resource...)}.
 	 */
 	@Override
-	public boolean validateObject(Object obj) {
-		AGRepositoryConnection conn = (AGRepositoryConnection) obj;
+	public boolean validateObject(PooledObject<AGRepositoryConnection> pooled) {
+		final AGRepositoryConnection conn = pooled.getObject();
 		try {
 			// ping() only checks that the network is up, so we call size(),
 			// which ensures the repo exists.
@@ -198,46 +165,30 @@ public class AGConnFactory implements PoolableObjectFactory, Closeable {
 			client.setSendRollbackHeader(false);
 			return true;
 		} catch (Exception e) {
-			log.debug("validateObject " + obj, e);
+			log.debug("validateObject " + conn, e);
 			return false;
 		}
 	}
 
-	/** Release resources. */
 	@Override
-	public void close() throws IOException {
-		closer.close();
-	}
-
-	/**
-	 * Delegates all methods to the wrapped conn except for close.
-	 */
-	class AGRepositoryConnectionCloseup extends AGRepositoryConnection {
-		
-		private final AGRepositoryConnection conn;
-		private final Closer closer;
-		private final MultiThreadedHttpConnectionManager manager;
-		
-		public AGRepositoryConnectionCloseup(Closer closer, AGRepositoryConnection conn,
-											 MultiThreadedHttpConnectionManager manager) {
-			super((AGRepository) conn.getRepository(), conn.getHttpRepoClient());
-			this.closer = closer;
-			this.conn = conn;
-			this.manager = manager;
+	public void destroyObject(PooledObject<AGRepositoryConnection> pooled) {
+		final AGRepositoryConnection conn = pooled.getObject();
+		// Make 'close' really shutdown the connection.
+		conn.setPool(null);
+		try {
+			conn.close();
+		} catch (Exception e) {
+			final Throwable cause = e.getCause();
+			if (cause instanceof ConnectException &&
+					cause.getMessage().equals("Connection refused")) {
+				// squelch this because it's common that the session has timed out
+				log.debug("ignoring close error (probably session timeout): " + conn, e);
+			} else {
+				throw e;
+			}
 		}
-		
-		/**
-		 * Closes the {@link AGRepositoryConnection}, {@link AGRepository}, {@link AGServer}, and {@link HttpConnectionManager}.
-		 */
-		@Override
-		public void close() throws RepositoryException {
-			AGRepositoryConnectionCloseup.super.close();
-			closer.close(conn);
-			closer.close(conn.getRepository());
-			closer.close(conn.getRepository().getCatalog().getServer());
-			closer.close(manager::shutdown);
-		}
-
+		conn.getRepository().shutDown();
+		conn.getHttpRepoClient().getHTTPClient().close();
+		conn.getRepository().getCatalog().getServer().close();
 	}
-
 }

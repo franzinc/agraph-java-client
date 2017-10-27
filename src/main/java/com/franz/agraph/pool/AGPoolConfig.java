@@ -6,15 +6,15 @@ package com.franz.agraph.pool;
 
 import java.util.Map;
 
-import org.apache.commons.pool.impl.GenericObjectPool.Config;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 
 /**
- * Extension to {@link Config} to add more properties.
+ * Extension to {@link GenericObjectPoolConfig} to add more properties.
  * 
  * @see AGPoolProp
  * @since v4.3.3
  */
-public class AGPoolConfig extends Config {
+public class AGPoolConfig extends GenericObjectPoolConfig {
 
 	public static final int DEFAULT_INITIAL_SIZE = 0;
 	
@@ -44,37 +44,43 @@ public class AGPoolConfig extends Config {
 			shutdownHook = DEFAULT_SHUTDOWN_HOOK;
 		}
 		if (props.containsKey(AGPoolProp.maxIdle)) {
-			maxIdle = Integer.parseInt(props.get(AGPoolProp.maxIdle));
+			setMaxIdle(Integer.parseInt(props.get(AGPoolProp.maxIdle)));
 		}
 		if (props.containsKey(AGPoolProp.minIdle)) {
-			minIdle = Integer.parseInt(props.get(AGPoolProp.minIdle));
+			setMinIdle(Integer.parseInt(props.get(AGPoolProp.minIdle)));
 		}
+		// Note: renamed from active to total in cp2
 		if (props.containsKey(AGPoolProp.maxActive)) {
-			maxActive = Integer.parseInt(props.get(AGPoolProp.maxActive));
+			setMaxTotal(Integer.parseInt(props.get(AGPoolProp.maxActive)));
 		}
+		// Note: renamed from wait to waitMillis in cp2
 		if (props.containsKey(AGPoolProp.maxWait)) {
-			maxWait = Long.parseLong(props.get(AGPoolProp.maxWait));
+			setMaxWaitMillis(Long.parseLong(props.get(AGPoolProp.maxWait)));
 		}
 		if (props.containsKey(AGPoolProp.testOnBorrow)) {
-			testOnBorrow = Boolean.valueOf(props.get(AGPoolProp.testOnBorrow));
+			setTestOnBorrow(Boolean.valueOf(props.get(AGPoolProp.testOnBorrow)));
 		}
 		if (props.containsKey(AGPoolProp.testOnReturn)) {
-			testOnReturn = Boolean.valueOf(props.get(AGPoolProp.testOnReturn));
+			setTestOnReturn(Boolean.valueOf(props.get(AGPoolProp.testOnReturn)));
 		}
 		if (props.containsKey(AGPoolProp.timeBetweenEvictionRunsMillis)) {
-			timeBetweenEvictionRunsMillis = Long.parseLong(props.get(AGPoolProp.timeBetweenEvictionRunsMillis));
+			setTimeBetweenEvictionRunsMillis(
+					Long.parseLong(props.get(AGPoolProp.timeBetweenEvictionRunsMillis)));
 		}
 		if (props.containsKey(AGPoolProp.minEvictableIdleTimeMillis)) {
-			minEvictableIdleTimeMillis = Long.parseLong(props.get(AGPoolProp.minEvictableIdleTimeMillis));
+			setMinEvictableIdleTimeMillis(
+					Long.parseLong(props.get(AGPoolProp.minEvictableIdleTimeMillis)));
 		}
 		if (props.containsKey(AGPoolProp.testWhileIdle)) {
-			testWhileIdle = Boolean.valueOf(props.get(AGPoolProp.testWhileIdle));
+			setTestWhileIdle(Boolean.valueOf(props.get(AGPoolProp.testWhileIdle)));
 		}
 		if (props.containsKey(AGPoolProp.softMinEvictableIdleTimeMillis)) {
-			softMinEvictableIdleTimeMillis = Long.parseLong(props.get(AGPoolProp.softMinEvictableIdleTimeMillis));
+			setSoftMinEvictableIdleTimeMillis(
+					Long.parseLong(props.get(AGPoolProp.softMinEvictableIdleTimeMillis)));
 		}
 		if (props.containsKey(AGPoolProp.numTestsPerEvictionRun)) {
-			numTestsPerEvictionRun = Integer.parseInt(props.get(AGPoolProp.numTestsPerEvictionRun));
+			setNumTestsPerEvictionRun(
+					Integer.parseInt(props.get(AGPoolProp.numTestsPerEvictionRun)));
 		}
 	}
 			

@@ -9,6 +9,15 @@ object.  This setting determines how long a commit operation should
 wait for the transaction latency count to be satisfied before throwing
 an error.
 
+### Updated connection pooling implementation
+
+Connection pooling now uses Commons Pool 2.4.2 instead of 1.6. 
+The only change to the public interface of AG connection pools
+is that closing a pool no longer shuts down connections that 
+have been borrowed from a pool, but not returned. Such 
+connections will now be closed as soon as they are returned
+to the pool.
+
 ## 2.0.1
 
 ### Multi-master replication commit settings
