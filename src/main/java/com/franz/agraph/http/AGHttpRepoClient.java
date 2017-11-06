@@ -509,19 +509,16 @@ public class AGHttpRepoClient implements AutoCloseable {
 		final long delay = getSessionLifetime() * 1000 / 2;
 		// Randomize the initial delay
 		final long initialDelay = (long)(Math.random() * delay);
-		pinger = executor.scheduleWithFixedDelay(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					// Note - this will execute concurrently with other
-					// connection activity. This is ok, since
-					// AGHttpClient uses a connection pool to allow
-					// concurrent access.
-					ping();
-				} catch (final AGHttpException e) {
-					// Pinger errors are normal when shutting down...
-					logger.debug("Pinger exception", e);
-				}
+		pinger = executor.scheduleWithFixedDelay(() -> {
+			try {
+				// Note - this will execute concurrently with other
+				// connection activity. This is ok, since
+				// AGHttpClient uses a connection pool to allow
+				// concurrent access.
+				ping();
+			} catch (final AGHttpException e) {
+				// Pinger errors are normal when shutting down...
+				logger.debug("Pinger exception", e);
 			}
 		}, initialDelay, delay, TimeUnit.MILLISECONDS);
 	}

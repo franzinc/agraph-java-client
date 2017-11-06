@@ -4,7 +4,7 @@
 
 package com.franz.agraph.pool;
 
-import org.apache.commons.httpclient.params.HttpClientParams;
+import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.PooledObjectFactory;
@@ -38,44 +38,38 @@ public class AGConnFactory extends BasePooledObjectFactory<AGRepositoryConnectio
 	
 	private final AGConnConfig props;
 
-	@SuppressWarnings("unused")
-	private final AGPoolConfig poolProps;
-
 	public AGConnFactory(AGConnConfig props) {
 		this.props = props;
-		this.poolProps = null;
-	}
-
-	public AGConnFactory(AGConnConfig props, AGPoolConfig poolProps) {
-		this.props = props;
-		this.poolProps = poolProps;
 	}
 
 	@Override
 	public AGRepositoryConnection create() throws Exception {
-		HttpClientParams params = new HttpClientParams();
+		final HttpConnectionManagerParams params = new HttpConnectionManagerParams();
 		if (props.httpSocketTimeout != null) {
 			params.setSoTimeout(props.httpSocketTimeout);
 		}
 		AGHTTPClient httpClient = new AGHTTPClient(props.serverUrl, params);
-		AGServer server = new AGServer(props.username, props.password, httpClient);
-		AGCatalog cat;
+		final AGServer server = new AGServer(props.username, props.password, httpClient);
+		final AGCatalog catalog;
 		if (props.catalog != null) {
-			cat = server.getCatalog(props.catalog);
+			catalog = server.getCatalog(props.catalog);
 		} else {
-			cat = server.getRootCatalog();
+			catalog = server.getRootCatalog();
 		}
-		
+
 		final AGRepository repo;
-		if (!cat.hasRepository(props.repository)) {
-			repo = createRepo(cat);
+		if (!catalog.hasRepository(props.repository)) {
+			// This avoids multiple connections sending create requests
+			// at the same time.
+			synchronized (this) {
+				repo = catalog.createRepository(props.repository, false);
+			}
 		} else {
-			repo = new AGRepository(cat, props.repository);
+			// Create directly to skip a redundant check
+			repo = new AGRepository(catalog, props.repository);
+			repo.initialize();
 		}
-		repo.initialize();
-		AGHttpRepoClient repoClient = new AGHttpRepoClient(
-				repo, httpClient, repo.getRepositoryURL(), null);
-		AGRepositoryConnection conn = new AGRepositoryConnection(repo, repoClient);
+		AGRepositoryConnection conn = repo.getConnection();
 		if (props.sessionLifetime != null) {
 			conn.setSessionLifetime(props.sessionLifetime);
 		}
@@ -85,18 +79,6 @@ public class AGConnFactory extends BasePooledObjectFactory<AGRepositoryConnectio
 	@Override
 	public PooledObject<AGRepositoryConnection> wrap(AGRepositoryConnection conn) {
 		return new DefaultPooledObject<>(conn);
-	}
-
-	/**
-	 * Synchronized and re-checks hasRepository so multiple
-	 * do not try to create the repo at the same time.
-	 */
-	private synchronized AGRepository createRepo(AGCatalog cat) throws OpenRDFException {
-		if (!cat.hasRepository(props.repository)) {
-			return cat.createRepository(props.repository, true);
-		} else {
-			return new AGRepository(cat, props.repository);
-		}
 	}
 
 	@Override
@@ -187,8 +169,8 @@ public class AGConnFactory extends BasePooledObjectFactory<AGRepositoryConnectio
 				throw e;
 			}
 		}
+		// Each pooled connection has dedicated server and repository objects.
 		conn.getRepository().shutDown();
-		conn.getHttpRepoClient().getHTTPClient().close();
-		conn.getRepository().getCatalog().getServer().close();
+		conn.getServer().close();
 	}
 }

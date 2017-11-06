@@ -997,6 +997,21 @@ public class AGServer implements Closeable {
                 repoName, catalogName);
     }
 
+	/**
+	 * Creates or opens a repository in the specified catalog.
+	 *
+	 * @param reponame  name of the repository to create
+	 * @param cat  catalog in which to create the repository
+	 * @param strict  if true, throw an exception if the repository exists.
+	 *                Otherwise the existing repository will be opened.
+	 * @return a connection to the newly created and initialized repository
+	 * @throws RepositoryException  if there is an error with this request.
+	 */
+	public AGRepositoryConnection createRepositoryConnection(
+			String reponame, AGCatalog cat, boolean strict) throws RepositoryException {
+		return createRepository(reponame, cat, strict).getConnection();
+	}
+
     /**
      * Creates or opens a repository in the specified catalog.
      * 

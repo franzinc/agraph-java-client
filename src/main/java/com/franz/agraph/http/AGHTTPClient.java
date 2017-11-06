@@ -51,8 +51,6 @@ import com.franz.agraph.repository.AGValueFactory;
  * Class responsible for handling HTTP connections.
  *
  * Uses an unlimited pool of connections to allow safe, concurrent access.
- * Howeverm clients created by {@link #AGHTTPClient(String, HttpClientParams)}
- * are not thread safe.
  *
  * Also contains methods for accessing AG services that operate above
  * the repository level - such as managing repositories.
@@ -91,19 +89,25 @@ public class AGHTTPClient implements AutoCloseable {
 	}
 
 	// This is used for clients created by the connection pool.
-	// Such clients are never shared or accessed concurrently.
-	public AGHTTPClient(String serverURL, HttpClientParams params) {
-		this(serverURL, new HttpClient(params));
+	public AGHTTPClient(String serverURL, HttpConnectionManagerParams params) {
+		this(serverURL, createManager(params));
 	}
 
 	private static HttpConnectionManager createManager() {
+		return createManager(null);
+	}
+
+	private static HttpConnectionManager createManager(HttpConnectionManagerParams params) {
 		// Use MultiThreadedHttpConnectionManager to allow concurrent access
 		// on HttpClient
-		 final MultiThreadedHttpConnectionManager manager =
-				 new MultiThreadedHttpConnectionManager();
+		final MultiThreadedHttpConnectionManager manager =
+			 new MultiThreadedHttpConnectionManager();
+
+    	if (params == null) {
+			params = new HttpConnectionManagerParams();
+		}
 
 		// Allow "unlimited" concurrent connections to the same host (default is 2)
-		HttpConnectionManagerParams params = new HttpConnectionManagerParams();
 		params.setDefaultMaxConnectionsPerHost(Integer.MAX_VALUE);
 		params.setMaxTotalConnections(Integer.MAX_VALUE);
 		manager.setParams(params);

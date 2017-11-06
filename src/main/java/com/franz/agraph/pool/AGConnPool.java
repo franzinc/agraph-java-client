@@ -111,7 +111,7 @@ public class AGConnPool implements ObjectPool<AGRepositoryConnection>, AutoClose
 	}
 
 	private AGConnPool(AGPoolConfig poolConfig, AGConnConfig connConfig) {
-		this(new AGConnFactory(connConfig, poolConfig), poolConfig);
+		this(new AGConnFactory(connConfig), poolConfig);
 	}
 
 	/**
