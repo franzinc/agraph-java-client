@@ -1548,11 +1548,13 @@ public class AGHttpRepoClient implements AutoCloseable {
 
 	public String evalInServer(InputStream stream) throws AGHttpException {
 		String url = AGProtocol.getEvalLocation(getRoot());
-
+		List<Header> headers = new ArrayList<Header>();
+		headers.add(new Header("Content-Type", "text/plain; charset=utf-8"));
+		
 		AGStringHandler handler = new AGStringHandler();
 		RequestEntity entity = new InputStreamRequestEntity(stream, -1,
 					null);
-		post(url, null, null, entity, handler);
+		post(url, headers, null, entity, handler);
 		return handler.getResult();
 	}
 
