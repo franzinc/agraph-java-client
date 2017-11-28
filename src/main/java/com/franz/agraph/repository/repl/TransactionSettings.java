@@ -3,7 +3,7 @@ package com.franz.agraph.repository.repl;
 /**
  * A container for all settings related to commit behavior in
  * multi-master replication clusters.
- *
+ * <p>
  * Instances of this class are immutable. To change a setting
  * use the corresponding 'withXXXX()' method, which will return a fresh
  * object with updated settings.
@@ -29,7 +29,7 @@ public class TransactionSettings {
         this.symbolicDurability = DurabilityLevel.DEFAULT;
         this.distributedTransactionTimeout = null;
         this.transactionLatencyCount = null;
-	this.transactionLatencyTimeout = null;
+        this.transactionLatencyTimeout = null;
     }
 
     /**
@@ -42,20 +42,20 @@ public class TransactionSettings {
         this.symbolicDurability = other.symbolicDurability;
         this.distributedTransactionTimeout = other.distributedTransactionTimeout;
         this.transactionLatencyCount = other.transactionLatencyCount;
-	this.transactionLatencyTimeout = other.transactionLatencyTimeout;
+        this.transactionLatencyTimeout = other.transactionLatencyTimeout;
     }
 
     /**
      * Retrieves the durability level (see {@link #withDurability(Integer)}).
-     *
+     * <p>
      * This goes through a visitor interface since durability can be either
      * an integer or a symbolic {@link DurabilityLevel}.
      *
-     * @param <T> Type of values returned by the visitor.
+     * @param <T>     Type of values returned by the visitor.
      * @param visitor Object that will consume the durability value.
      * @return Whatever the visitor returns.
      */
-    public<T> T visitDurability(final DurabilityVisitor<T> visitor) {
+    public <T> T visitDurability(final DurabilityVisitor<T> visitor) {
         if (durability == null) {
             return visitor.visitDurabilityLevel(symbolicDurability);
         } else {
@@ -68,7 +68,7 @@ public class TransactionSettings {
      * (see {@link #withDistributedTransactionTimeout(Integer)}).
      *
      * @return Number of seconds to wait or {@code null}, meaning "use the default
-     *         value configured on the server".
+     * value configured on the server".
      */
     public Integer getDistributedTransactionTimeout() {
         return distributedTransactionTimeout;
@@ -78,7 +78,7 @@ public class TransactionSettings {
      * Retrieve the latency count ({@link #withTransactionLatencyCount(Integer)}.
      *
      * @return Max number of pending commits or {@code null}, meaning "use the default
-     *         value configured on the server".
+     * value configured on the server".
      */
     public Integer getTransactionLatencyCount() {
         return transactionLatencyCount;
@@ -88,8 +88,8 @@ public class TransactionSettings {
      * Retrieve the latency timeout ({@link #withTransactionLatencyTimeout(Integer)}.
      *
      * @return Number of seconds to wait for Transaction Latency Count
-     *         to be satisfied or {@code null}, meaning "use the
-     *         default value configured on the server".
+     * to be satisfied or {@code null}, meaning "use the
+     * default value configured on the server".
      */
     public Integer getTransactionLatencyTimeout() {
         return transactionLatencyTimeout;
@@ -97,16 +97,16 @@ public class TransactionSettings {
 
     /**
      * Sets the durability level to a given number of instances.
-     *
+     * <p>
      * The durability is a positive integer value that specifies how many instances must
      * have a commit ingested in order for that commit to be considered durable. The count
      * includes the instance that made the commit.
-     *
+     * <p>
      * A durability setting of 1 means that when an instance makes a commit that
      * commit is immediately considered durable before even being sent to any other
      * instance (the commit will still be sent to the other instances after
      * it's considered durable).
-     *
+     * <p>
      * A value that equals the total number of nodes in the cluster  means that every
      * instance must have ingested the commit before it's considered durable.
      * If one or more instances are stopped at the moment then the commit will not
@@ -114,7 +114,6 @@ public class TransactionSettings {
      *
      * @param durability Number of instances or {@code null}, meaning "use the default
      *                   value configured on the server".
-     *
      * @return A fresh config instance with updated settings.
      */
     public TransactionSettings withDurability(final Integer durability) {
@@ -129,7 +128,6 @@ public class TransactionSettings {
      *
      * @param durability Durability level name or {@code null}, meaning "use the default
      *                   value configured on the server".
-     *
      * @return A fresh config instance with updated settings.
      */
     public TransactionSettings withDurability(final DurabilityLevel durability) {
@@ -141,22 +139,21 @@ public class TransactionSettings {
 
     /**
      * Sets the distributed transaction timeout.
-     *
+     * <p>
      * Use this setting to specify how long a commit call will wait for the commit
      * to become durable. It's a non-negative integer (number of seconds).
-     *
+     * <p>
      * If the durability is greater than one then the committing process has
      * to wait for acknowledgements from the other servers that the transaction
      * was committed.  The committing process returns to the caller
      * when the durability has been reached or the distributed transaction timeout
      * seconds has passed, whichever comes first.
-     *
+     * <p>
      * When the commit returns the caller does not know if durability has been
      * reached.
      *
      * @param distributedTransactionTimeout Timeout in seconds or {@code null}.
      *                                      {@code null} means 'use server config').
-     *
      * @return A fresh config instance with updated settings.
      */
     public TransactionSettings withDistributedTransactionTimeout(
@@ -168,26 +165,25 @@ public class TransactionSettings {
 
     /**
      * Sets the distributed transaction latency count.
-     *
+     * <p>
      * Use this setting to limit the number of non-durable (pending) commits
      * that can be active on the cluster. If this limit is reached all new
      * commits will signal an error (and have to be retried).
-     *
+     * <p>
      * When a commit is done the committing process tries to wait until the
      * commit is durable but if that takes too long
      * (see {@link #withDistributedTransactionTimeout(Integer)}) then commit will return
      * with the system still working on making that transaction durable.
-     *
+     * <p>
      * If the latency count is 4 then even if the last four commits are not
      * yet durable it is possible to do one more commit. But if there are
      * five pending transactions then any attempt to commit will result in
      * an error.
-     *
+     * <p>
      * Another example: If you set the latency count to zero then
      * each commit must be durable before the next commit can be done.
      *
      * @param transactionLatencyCount number of commits or {@code null} (use server default).
-     *
      * @return A fresh config instance with updated settings.
      */
     public TransactionSettings withTransactionLatencyCount(
@@ -199,13 +195,12 @@ public class TransactionSettings {
 
     /**
      * Sets the distributed transaction latency timeout.
-     *
+     * <p>
      * Use this setting to specify how long a commit operation should
      * wait for the Transaction Latency Count to be satisfied before
      * throwing an error.
      *
      * @param transactionLatencyTimeout number of seconds or {@code null} (use server default).
-     *
      * @return A fresh config instance with updated settings.
      */
     public TransactionSettings withTransactionLatencyTimeout(

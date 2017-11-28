@@ -24,7 +24,7 @@ public class AGDownloadHandler extends AGResponseHandler {
     /**
      * Creates a download handler.
      *
-     * @param file Output path.
+     * @param file     Output path.
      * @param mimeType MIME type to be requested from the server.
      */
     public AGDownloadHandler(final File file, final String mimeType) {
@@ -35,7 +35,7 @@ public class AGDownloadHandler extends AGResponseHandler {
     /**
      * Creates a download handler.
      *
-     * @param file Output path.
+     * @param file     Output path.
      * @param mimeType MIME type to be requested from the server.
      */
     public AGDownloadHandler(final String file, final String mimeType) {
@@ -44,7 +44,7 @@ public class AGDownloadHandler extends AGResponseHandler {
 
     /**
      * Creates a download handler that does not specify the MIME type.
-     *
+     * <p>
      * The server is free to return any content type.
      *
      * @param file Output path.
@@ -55,7 +55,7 @@ public class AGDownloadHandler extends AGResponseHandler {
 
     /**
      * Creates a download handler that does not specify the MIME type.
-     *
+     * <p>
      * The server is free to return any content type.
      *
      * @param file Output path.
@@ -67,7 +67,7 @@ public class AGDownloadHandler extends AGResponseHandler {
     /**
      * Creates a download handler that requests results in specified RDF format.
      *
-     * @param file Output path.
+     * @param file   Output path.
      * @param format Format to return the data in.
      */
     public AGDownloadHandler(final File file, final RDFFormat format) {
@@ -77,7 +77,7 @@ public class AGDownloadHandler extends AGResponseHandler {
     /**
      * Creates a download handler that requests results in specified RDF format.
      *
-     * @param file Output path.
+     * @param file   Output path.
      * @param format Format to return the data in.
      */
     public AGDownloadHandler(final String file, final RDFFormat format) {
@@ -87,7 +87,7 @@ public class AGDownloadHandler extends AGResponseHandler {
     /**
      * Creates a download handler that requests results in specified tuple format.
      *
-     * @param file Output path.
+     * @param file   Output path.
      * @param format Format to return the data in.
      */
     public AGDownloadHandler(final File file, final TupleQueryResultFormat format) {
@@ -97,7 +97,7 @@ public class AGDownloadHandler extends AGResponseHandler {
     /**
      * Creates a download handler that requests results in specified tuple format.
      *
-     * @param file Output path.
+     * @param file   Output path.
      * @param format Format to return the data in.
      */
     public AGDownloadHandler(final String file, final TupleQueryResultFormat format) {
@@ -107,7 +107,7 @@ public class AGDownloadHandler extends AGResponseHandler {
     /**
      * Creates a download handler that requests results in specified boolean format.
      *
-     * @param file Output path.
+     * @param file   Output path.
      * @param format Format to return the data in.
      */
     public AGDownloadHandler(final File file, final BooleanQueryResultFormat format) {
@@ -117,7 +117,7 @@ public class AGDownloadHandler extends AGResponseHandler {
     /**
      * Creates a download handler that requests results in specified boolean format.
      *
-     * @param file Output path.
+     * @param file   Output path.
      * @param format Format to return the data in.
      */
     public AGDownloadHandler(final String file, final BooleanQueryResultFormat format) {

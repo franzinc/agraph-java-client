@@ -3,9 +3,9 @@
        xmlns:rdfs = "http://www.w3.org/2000/01/rdf-schema#"
 
 
-	 xmlns:dc = "http://purl.org/dc/elements/1.1/"
+     xmlns:dc = "http://purl.org/dc/elements/1.1/"
        xmlns:dcterms = "http://purl.org/dc/terms/"
-	 xmlns:char = "http://www.franz.com/lesmis#">
+     xmlns:char = "http://www.franz.com/lesmis#">
 
 
 <char:Character rdf:about="http://www.franz.com/lesmis#character0">

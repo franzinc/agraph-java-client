@@ -2,7 +2,7 @@ package com.franz.agraph.repository.repl;
 
 /**
  * Interface of objects used to process durability levels.
- *
+ * <p>
  * A durability level can be either an integer or a symbolic name,
  * so a visitor interface is used handle both cases in a type-safe way.
  *

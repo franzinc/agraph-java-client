@@ -6,9 +6,9 @@ import test.AGAbstractTest;
 
 public class AGSparqlRegexTest extends SparqlRegexTest {
 
-	@Override
-	protected Repository newRepository() throws Exception {
-		return AGAbstractTest.sharedRepository();
-	}
+    @Override
+    protected Repository newRepository() throws Exception {
+        return AGAbstractTest.sharedRepository();
+    }
 
 }

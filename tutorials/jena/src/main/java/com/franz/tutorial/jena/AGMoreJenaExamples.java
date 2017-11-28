@@ -25,7 +25,7 @@ import java.io.InputStream;
 
 public class AGMoreJenaExamples {
     public static void addModelToAGModel() throws Exception {
-    	AGGraphMaker maker = example1(false);
+        AGGraphMaker maker = example1(false);
         AGModel agmodel = new AGModel(maker.createGraph());
         OntModel model = ModelFactory.createOntologyModel(new OntModelSpec(OntModelSpec.OWL_DL_MEM));
         File file = new File(DATA_DIR, "lesmis.rdf");

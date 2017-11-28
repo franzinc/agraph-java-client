@@ -303,6 +303,44 @@
           </execution>
         </executions>
       </plugin>
+
+      <!-- Required checkstyle checks -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.17</version>
+        <executions>
+          <!-- Check for main sources -->
+          <execution>
+            <id>validate</id>
+            <phase>validate</phase>
+            <configuration>
+              <configLocation>checkstyle-required.xml</configLocation>
+              <encoding>UTF-8</encoding>
+              <consoleOutput>true</consoleOutput>
+              <failsOnError>true</failsOnError>
+            </configuration>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+          <!-- Checks for test sources -->
+          <execution>
+            <id>validate-tests</id>
+            <phase>validate</phase>
+            <configuration>
+              <sourceDirectories>${project.testCompileSourceRoots}</sourceDirectories>
+              <configLocation>checkstyle-tests.xml</configLocation>
+              <encoding>UTF-8</encoding>
+              <consoleOutput>true</consoleOutput>
+              <failsOnError>true</failsOnError>
+            </configuration>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 

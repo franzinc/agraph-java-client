@@ -1,15 +1,19 @@
 package test;
 
-import com.franz.agraph.repository.*;
+import com.franz.agraph.repository.AGBooleanQuery;
+import com.franz.agraph.repository.AGGraphQuery;
+import com.franz.agraph.repository.AGQuery;
+import com.franz.agraph.repository.AGRepositoryConnection;
+import com.franz.agraph.repository.AGTupleQuery;
 import org.apache.commons.io.FileUtils;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
 import org.eclipse.rdf4j.model.URI;
 import org.eclipse.rdf4j.query.QueryLanguage;
 import org.eclipse.rdf4j.query.resultio.BooleanQueryResultFormat;
 import org.eclipse.rdf4j.query.resultio.TupleQueryResultFormat;
 import org.eclipse.rdf4j.rio.RDFFormat;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,7 +59,7 @@ public class DownloadTest extends AGAbstractTest {
     }
 
     // downloadStatements tests
-    
+
     @Test
     public void testDownloadStatementsDefaultFormat() throws Exception {
         conn.downloadStatements(output, null, null, null, false);
@@ -75,7 +79,7 @@ public class DownloadTest extends AGAbstractTest {
                 null, null, null, false);
         checkOutput();
     }
-    
+
     @Test
     public void testDownloadStatementsStrDefaultFormat() throws Exception {
         conn.downloadStatements(output.getAbsolutePath(),
@@ -130,7 +134,7 @@ public class DownloadTest extends AGAbstractTest {
     }
 
     // downloadStatements(id, ...) tests
-    
+
     @Test
     public void testDownloadStatementsByIDRDFFormat() throws Exception {
         conn.downloadStatements(output, RDFFormat.RDFXML, id);
@@ -143,7 +147,7 @@ public class DownloadTest extends AGAbstractTest {
         checkOutput();
     }
 
-    
+
     @Test
     public void testDownloadStatementsByIDStrRDFFormat() throws Exception {
         conn.downloadStatements(output.getAbsolutePath(), RDFFormat.RDFXML, id);
@@ -178,7 +182,7 @@ public class DownloadTest extends AGAbstractTest {
     }
 
     // AGQuery.download tests
-    
+
     @Test
     public void testQueryDownload() throws Exception {
         genericQuery.download(output);
@@ -216,13 +220,13 @@ public class DownloadTest extends AGAbstractTest {
     @Test
     public void testQueryStreamMIMEType() throws Exception {
         final InputStream stream =
-               genericQuery.stream(TupleQueryResultFormat.JSON.getDefaultMIMEType());
+                genericQuery.stream(TupleQueryResultFormat.JSON.getDefaultMIMEType());
         FileUtils.copyInputStreamToFile(stream, output);
         checkOutput();
     }
 
     // AGTupleQuery.download tests
-    
+
     @Test
     public void testTupleQueryDownload() throws Exception {
         tupleQuery.download(output);

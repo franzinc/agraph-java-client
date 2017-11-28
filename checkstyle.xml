@@ -86,7 +86,10 @@ Based on "Sun's Java Style" from Checkstyle sources.
 
         <!-- Checks for Size Violations.                    -->
         <!-- See http://checkstyle.sf.net/config_sizes.html -->
-        <module name="LineLength"/>
+        <module name="LineLength">
+            <property name="max" value="100"/>
+            <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
+        </module>
         <module name="MethodLength"/>
         <module name="ParameterNumber"/>
 

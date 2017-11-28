@@ -1,16 +1,11 @@
 /******************************************************************************
-** See the file LICENSE for the full license governing this code.
+ ** See the file LICENSE for the full license governing this code.
  ******************************************************************************/
 
 package test;
 
 import com.franz.agraph.repository.AGGraphQuery;
 import org.eclipse.rdf4j.common.iteration.Iterations;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -18,6 +13,11 @@ import org.eclipse.rdf4j.query.QueryEvaluationException;
 import org.eclipse.rdf4j.query.QueryLanguage;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.rio.RDFFormat;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -34,12 +34,16 @@ public class UnicodeRDFFormatTest extends AGAbstractTest {
     private final RDFFormat format;
     private RDFFormat oldFormat;
 
+    public UnicodeRDFFormatTest(final RDFFormat format) {
+        this.format = format;
+    }
+
     // @Parameters(name="{index}: {0}") -- need newer JUnit for that?
     @Parameterized.Parameters
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][] {
-                { RDFFormat.NQUADS },
-                { RDFFormat.TRIX }
+                {RDFFormat.NQUADS},
+                {RDFFormat.TRIX}
         });
     }
 
@@ -52,10 +56,6 @@ public class UnicodeRDFFormatTest extends AGAbstractTest {
     @After
     public void tearDownFormat() {
         conn.prepareHttpRepoClient().setPreferredRDFFormat(oldFormat);
-    }
-
-    public UnicodeRDFFormatTest(final RDFFormat format) {
-        this.format = format;
     }
 
     @Test

@@ -64,7 +64,7 @@ public class TutorialExamples {
      * @return Value.
      */
     private static String getenv(final String name, final String defaultValue) {
-	final String value = System.getenv(name);
+    final String value = System.getenv(name);
         return value != null ? value : defaultValue;
     }
 
@@ -127,7 +127,7 @@ public class TutorialExamples {
         println("Current triple indices: " + indices);
         if (close) {
             // tidy up
-        	conn.close();
+            conn.close();
             myRepository.shutDown();
             server.close();
             return null;
@@ -247,15 +247,15 @@ public class TutorialExamples {
                         public void endQueryResult() {
                     }
 
-					@Override
-					public void handleBoolean(boolean arg0)
-							throws QueryResultHandlerException {
-					}
+        			@Override
+        			public void handleBoolean(boolean arg0)
+        					throws QueryResultHandlerException {
+        			}
 
-					@Override
-					public void handleLinks(List<String> arg0)
-							throws QueryResultHandlerException {
-					}
+        			@Override
+        			public void handleLinks(List<String> arg0)
+        					throws QueryResultHandlerException {
+        			}
                 });
         } finally {
             conn.close();
@@ -1341,10 +1341,10 @@ public class TutorialExamples {
         // Test case for bug19681
         queryString = 
         "SELECT ?s ?p ?o ?g \n" +
-	      "FROM <http://example.org/people/context1> \n" +
+          "FROM <http://example.org/people/context1> \n" +
           "FROM DEFAULT \n" +
-	      "FROM NAMED <http://example.org/people/context2> \n" +
-//	      "FROM NAMED <http://foo> \n" +
+          "FROM NAMED <http://example.org/people/context2> \n" +
+//          "FROM NAMED <http://foo> \n" +
           "WHERE {{GRAPH ?g {?s ?p ?o . }} UNION {?s ?p ?o .}} \n";
         tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         result = tupleQuery.evaluate();    
@@ -1378,8 +1378,8 @@ public class TutorialExamples {
         while (result.hasNext()) {
             BindingSet bindingSet = result.next();
             println(bindingSet.getBinding("s") + " " + 
-            		bindingSet.getBinding("p") + " " +
-            		bindingSet.getBinding("o"));
+                    bindingSet.getBinding("p") + " " +
+                    bindingSet.getBinding("o"));
         }    
         
         println("--------------------------------------------------------------------");
@@ -1393,9 +1393,9 @@ public class TutorialExamples {
         while (result.hasNext()) {
             BindingSet bindingSet = result.next();
             println(bindingSet.getBinding("s") + " " + 
-            		bindingSet.getBinding("p") + " " +
-            		bindingSet.getBinding("o") + " " +
-            		bindingSet.getBinding("c"));
+                    bindingSet.getBinding("p") + " " +
+                    bindingSet.getBinding("o") + " " +
+                    bindingSet.getBinding("c"));
         }    
         
     }
@@ -1405,64 +1405,64 @@ public class TutorialExamples {
     public static void example11 () throws Exception {
         RepositoryConnection conn = example1(false);
         ValueFactory f = conn.getValueFactory();
-	    String exns = "http://example.org/people/";
-	    IRI alice = f.createIRI(exns, "alice");
-	    IRI person = f.createIRI(exns, "Person");
-	    conn.add(alice, RDF.TYPE, person);
-	    conn.setNamespace("ex", exns);
-	    String queryString = "SELECT ?s ?p ?o WHERE { ?s ?p ?o . FILTER ((?p = rdf:type) && (?o = ex:Person) ) }";
-	    TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
-	    TupleQueryResult result = tupleQuery.evaluate();  
-	    while (result.hasNext()) {
-        	println(result.next());
+        String exns = "http://example.org/people/";
+        IRI alice = f.createIRI(exns, "alice");
+        IRI person = f.createIRI(exns, "Person");
+        conn.add(alice, RDF.TYPE, person);
+        conn.setNamespace("ex", exns);
+        String queryString = "SELECT ?s ?p ?o WHERE { ?s ?p ?o . FILTER ((?p = rdf:type) && (?o = ex:Person) ) }";
+        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        TupleQueryResult result = tupleQuery.evaluate();  
+        while (result.hasNext()) {
+            println(result.next());
         }
-	    result.close();
-	}                                                   
+        result.close();
+    }                                                   
 
-	/**
-	 * Text indexing and search
-	 */
-	public static void example12 () throws Exception {    
+    /**
+     * Text indexing and search
+     */
+    public static void example12 () throws Exception {    
         AGRepositoryConnection conn = example1(false);
-	    ValueFactory f = conn.getValueFactory();
-	    String exns = "http://example.org/people/";
-	    conn.setNamespace("ex", exns);
-	    // Create index1
-	    AGFreetextIndexConfig config = AGFreetextIndexConfig.newInstance();
-	    config.getPredicates().add(f.createIRI(exns,"fullname"));
-	    conn.createFreetextIndex("index1", config);
-	    println("listFreetextIndices(): " + conn.listFreetextIndices());
-	    println("index1 configuration: ");
-	    println(conn.getFreetextIndexConfig("index1"));
-	    
-	    // Create parts of person resources.	    
-	    IRI alice = f.createIRI(exns, "alice1");
-	    IRI carroll = f.createIRI(exns, "carroll");
-	    IRI persontype = f.createIRI(exns, "Person");
-	    IRI fullname = f.createIRI(exns, "fullname");
-	    Literal alicename = f.createLiteral("Alice B. Toklas");
-	    Literal lewisCarroll = f.createLiteral("Lewis Carroll");
-	    // Create parts of book resources.
-	    IRI book =  f.createIRI(exns, "book1");
-	    IRI booktype = f.createIRI(exns, "Book");
-	    IRI booktitle = f.createIRI(exns, "title");
-	    IRI author = f.createIRI(exns, "author");
-	    Literal wonderland = f.createLiteral("Alice in Wonderland");
-	    // Add Alice B. Toklas triples
-	    conn.clear();    
-	    conn.add(alice, RDF.TYPE, persontype);
-	    conn.add(alice, fullname, alicename);
-	    // Add Alice in Wonderland triples
-	    conn.add(book, RDF.TYPE, booktype);    
-	    conn.add(book, booktitle, wonderland); 
-	    conn.add(book, author, carroll);
-	    // Add Lewis Carroll triples
-	    conn.add(carroll, RDF.TYPE, persontype);
-	    conn.add(carroll, fullname, lewisCarroll);
-	    // Check triples
-	    println("\nListing all triples.");
-	    RepositoryResult<Statement> statements = conn.getStatements(null, null, null, false);
-	    printRows(statements);
+        ValueFactory f = conn.getValueFactory();
+        String exns = "http://example.org/people/";
+        conn.setNamespace("ex", exns);
+        // Create index1
+        AGFreetextIndexConfig config = AGFreetextIndexConfig.newInstance();
+        config.getPredicates().add(f.createIRI(exns,"fullname"));
+        conn.createFreetextIndex("index1", config);
+        println("listFreetextIndices(): " + conn.listFreetextIndices());
+        println("index1 configuration: ");
+        println(conn.getFreetextIndexConfig("index1"));
+        
+        // Create parts of person resources.        
+        IRI alice = f.createIRI(exns, "alice1");
+        IRI carroll = f.createIRI(exns, "carroll");
+        IRI persontype = f.createIRI(exns, "Person");
+        IRI fullname = f.createIRI(exns, "fullname");
+        Literal alicename = f.createLiteral("Alice B. Toklas");
+        Literal lewisCarroll = f.createLiteral("Lewis Carroll");
+        // Create parts of book resources.
+        IRI book =  f.createIRI(exns, "book1");
+        IRI booktype = f.createIRI(exns, "Book");
+        IRI booktitle = f.createIRI(exns, "title");
+        IRI author = f.createIRI(exns, "author");
+        Literal wonderland = f.createLiteral("Alice in Wonderland");
+        // Add Alice B. Toklas triples
+        conn.clear();    
+        conn.add(alice, RDF.TYPE, persontype);
+        conn.add(alice, fullname, alicename);
+        // Add Alice in Wonderland triples
+        conn.add(book, RDF.TYPE, booktype);    
+        conn.add(book, booktitle, wonderland); 
+        conn.add(book, author, carroll);
+        // Add Lewis Carroll triples
+        conn.add(carroll, RDF.TYPE, persontype);
+        conn.add(carroll, fullname, lewisCarroll);
+        // Check triples
+        println("\nListing all triples.");
+        RepositoryResult<Statement> statements = conn.getStatements(null, null, null, false);
+        printRows(statements);
 
         println("\nFreetext Pattern search for Alice.");
         AGFreetextQuery query = new AGFreetextQuery(conn);
@@ -1485,30 +1485,30 @@ public class TutorialExamples {
         printRows(statements);
         
         String queryString = 
-        	"SELECT ?s ?p ?o " +
-        	"WHERE { ?s ?p ?o . " +
-        	"        ?s fti:match 'Alice' . }";
+            "SELECT ?s ?p ?o " +
+            "WHERE { ?s ?p ?o . " +
+            "        ?s fti:match 'Alice' . }";
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         TupleQueryResult result = (TupleQueryResult)tupleQuery.evaluate();
         printRows("\nWhole-word match for 'Alice'.",result);
         
         queryString = 
-        	"SELECT ?s ?p ?o " +
-        	"WHERE { ?s ?p ?o . ?s fti:match 'Ali*' . }";
+            "SELECT ?s ?p ?o " +
+            "WHERE { ?s ?p ?o . ?s fti:match 'Ali*' . }";
         tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         result = (TupleQueryResult)tupleQuery.evaluate();
         printRows("\nWildcard match for 'Ali*'.",result);
             
         queryString = 
-        	"SELECT ?s ?p ?o " +
-        	"WHERE { ?s ?p ?o . ?s fti:match '?l?c?' . }";
+            "SELECT ?s ?p ?o " +
+            "WHERE { ?s ?p ?o . ?s fti:match '?l?c?' . }";
         tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         result = (TupleQueryResult)tupleQuery.evaluate();
         printRows("\nWildcard match for '?l?ce?.",result);
             
         queryString = 
-        	"SELECT ?s ?p ?o " +
-        	"WHERE { ?s ?p ?o . FILTER regex(?o, \"lic\") }";
+            "SELECT ?s ?p ?o " +
+            "WHERE { ?s ?p ?o . FILTER regex(?o, \"lic\") }";
         tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         result = (TupleQueryResult)tupleQuery.evaluate();
         printRows("\nSubstring match for 'lic'.",result);
@@ -1532,10 +1532,10 @@ public class TutorialExamples {
         println("\nFreetext indices after deleting index1:");
         conn.deleteFreetextIndex("index1");
         println(conn.listFreetextIndices());
-	}
-	
-	
-	/**
+    }
+    
+    
+    /**
      * Ask, Construct, Describe, and Update queries
      */ 
     public static void example13 () throws Exception {
@@ -1567,8 +1567,8 @@ public class TutorialExamples {
         // CONSTRUCT query
         println("\nConstructing has-grandchild triples.");
         queryString = "construct {?a kdy:has-grandchild ?c}" + 
-	                  "    where { ?a kdy:has-child ?b . " +
-	                  "            ?b kdy:has-child ?c . }";
+                      "    where { ?a kdy:has-child ?b . " +
+                      "            ?b kdy:has-child ?c . }";
         AGGraphQuery constructQuery = conn.prepareGraphQuery(QueryLanguage.SPARQL, queryString);
         GraphQueryResult gresult = constructQuery.evaluate(); 
         while (gresult.hasNext()) {
@@ -1600,28 +1600,28 @@ public class TutorialExamples {
         
         // SPARQL UPDATE queries
         String updateString = "PREFIX dc: <http://purl.org/dc/elements/1.1/> \n"
-        	+ "INSERT DATA { GRAPH <http://example/bookStore> { <http://example/book1>  dc:title  \"Fundamentals of Compiler Desing\" } }";
+            + "INSERT DATA { GRAPH <http://example/bookStore> { <http://example/book1>  dc:title  \"Fundamentals of Compiler Desing\" } }";
         println("\nPerforming SPARQL Update:\n" + updateString);
         conn.prepareUpdate(QueryLanguage.SPARQL, updateString).execute(); 
         queryString = "PREFIX dc: <http://purl.org/dc/elements/1.1/> \n"
-        	+ "ASK { GRAPH <http://example/bookStore> { <http://example/book1>  dc:title  \"Fundamentals of Compiler Desing\" } }";
+            + "ASK { GRAPH <http://example/bookStore> { <http://example/book1>  dc:title  \"Fundamentals of Compiler Desing\" } }";
         println("\nPerforming query:\n" + queryString);
         println("Result: " + conn.prepareBooleanQuery(QueryLanguage.SPARQL, queryString).evaluate()); 
         
         updateString = "PREFIX dc: <http://purl.org/dc/elements/1.1/> \n"
-        	+ "DELETE DATA { GRAPH <http://example/bookStore> { <http://example/book1>  dc:title  \"Fundamentals of Compiler Desing\" } } ; \n"
-        	+ "\n"
-        	+ "PREFIX dc: <http://purl.org/dc/elements/1.1/> \n"
-        	+ "INSERT DATA { GRAPH <http://example/bookStore> { <http://example/book1>  dc:title  \"Fundamentals of Compiler Design\" } }";
+            + "DELETE DATA { GRAPH <http://example/bookStore> { <http://example/book1>  dc:title  \"Fundamentals of Compiler Desing\" } } ; \n"
+            + "\n"
+            + "PREFIX dc: <http://purl.org/dc/elements/1.1/> \n"
+            + "INSERT DATA { GRAPH <http://example/bookStore> { <http://example/book1>  dc:title  \"Fundamentals of Compiler Design\" } }";
 
         println("\nPerforming a sequence of SPARQL Updates in one request (to correct the title):\n" + updateString);
         conn.prepareUpdate(QueryLanguage.SPARQL, updateString).execute();
         queryString = "PREFIX dc: <http://purl.org/dc/elements/1.1/> \n"
-        	+ "ASK { GRAPH <http://example/bookStore> { <http://example/book1>  dc:title  \"Fundamentals of Compiler Desing\" } }";
+            + "ASK { GRAPH <http://example/bookStore> { <http://example/book1>  dc:title  \"Fundamentals of Compiler Desing\" } }";
         println("\nPerforming query:\n" + queryString);
         println("Result: " + conn.prepareBooleanQuery(QueryLanguage.SPARQL, queryString).evaluate()); 
         queryString = "PREFIX dc: <http://purl.org/dc/elements/1.1/> \n"
-        	+ "ASK { GRAPH <http://example/bookStore> { <http://example/book1>  dc:title  \"Fundamentals of Compiler Design\" } }";
+            + "ASK { GRAPH <http://example/bookStore> { <http://example/book1>  dc:title  \"Fundamentals of Compiler Design\" } }";
         println("\nPerforming query:\n" + queryString);
         println("Result: " + conn.prepareBooleanQuery(QueryLanguage.SPARQL, queryString).evaluate()); 
     }
@@ -1678,9 +1678,9 @@ public class TutorialExamples {
 
         println("\nRange query for integers and floats.");
         String queryString = 
-        	"SELECT ?s ?p ?o  " +
-        	"WHERE { ?s ?p ?o . " +
-        	"FILTER ((?o >= 30) && (?o <= 50)) }";
+            "SELECT ?s ?p ?o  " +
+            "WHERE { ?s ?p ?o . " +
+            "FILTER ((?o >= 30) && (?o <= 50)) }";
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         TupleQueryResult result = tupleQuery.evaluate();
         try {
@@ -1697,10 +1697,10 @@ public class TutorialExamples {
         conn.close();
         println("\nRange query for integers, floats, and integers in strings.");
         String queryString2 = 
-        	"PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> " +
-        	"SELECT ?s ?p ?o  " +
-        	"WHERE { ?s ?p ?o . " +
-        	"FILTER ((xsd:integer(?o) >= 30) && (xsd:integer(?o) <= 50)) }";
+            "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> " +
+            "SELECT ?s ?p ?o  " +
+            "WHERE { ?s ?p ?o . " +
+            "FILTER ((xsd:integer(?o) >= 30) && (xsd:integer(?o) <= 50)) }";
         TupleQuery tupleQuery2 = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString2);
         TupleQueryResult result2 = tupleQuery2.evaluate();
         try {
@@ -1813,7 +1813,7 @@ public class TutorialExamples {
             conn.addRules(stream);
         }
         String queryString = 
-        	"(select (?ufirst ?ulast ?cfirst ?clast)" +
+            "(select (?ufirst ?ulast ?cfirst ?clast)" +
                      "(uncle ?uncle ?child)" +
                      "(name ?uncle ?ufirst ?ulast)" +
                      "(name ?child ?cfirst ?clast))";
@@ -1950,12 +1950,12 @@ public class TutorialExamples {
         println("\nCARTESIAN COORDINATE SYSTEM");
         IRI cartSystem = conn.registerCartesianType(10, 0, 100, 0, 100);
         IRI location = vf.createIRI(exns, "location");
-		Literal alice_loc = vf.createLiteral("+30.0+30.0", cartSystem);
-		Literal bob_loc = vf.createLiteral("+40.0+40.0", cartSystem);
-		Literal carol_loc = vf.createLiteral("+50.0+50.0", cartSystem);
-		conn.add(alice, location, alice_loc);
-		conn.add(bob, location, bob_loc);
-		conn.add(carol, location, carol_loc);
+        Literal alice_loc = vf.createLiteral("+30.0+30.0", cartSystem);
+        Literal bob_loc = vf.createLiteral("+40.0+40.0", cartSystem);
+        Literal carol_loc = vf.createLiteral("+50.0+50.0", cartSystem);
+        conn.add(alice, location, alice_loc);
+        conn.add(bob, location, bob_loc);
+        conn.add(carol, location, carol_loc);
         println("\nFind people located within box1.");
         RepositoryResult<Statement> result1 = conn.getStatementsInBox(cartSystem, location, 20, 40, 20, 40, 0, false);
         printRows(result1);
@@ -1997,14 +1997,14 @@ public class TutorialExamples {
         conn.add(salvador, location, vf.createLiteral("+13.783333-088.45",sphericalSystemDegree));
         println("\nLocate entities within box2.");
         RepositoryResult<Statement> result4 = conn.getStatementsInBox(sphericalSystemDegree, location, -130.0f, -70.0f, 25.0f, 50.0f, 0, false);
-		printRows(result4);
-		result4.close();
+        printRows(result4);
+        result4.close();
         //printRows(conn.getStatementsInBox(sphericalSystemDegree, location, -130.0f, -70.0f, 25.0f, 50.0f, 0, false) );
-		println("\nLocate entities within haversine circle.");
-		RepositoryResult<Statement> result5 = conn.getGeoHaversine(sphericalSystemDegree, location, 19.3994f, -99.08f, 2000.0f, "km", 0, false);
-		printRows(result5);
-		result5.close();
-		//printRows(conn.getGeoHaversine(sphericalSystemDegree, location, 19.3994f, -99.08f, 2000.0f, "km", 0, false) );
+        println("\nLocate entities within haversine circle.");
+        RepositoryResult<Statement> result5 = conn.getGeoHaversine(sphericalSystemDegree, location, 19.3994f, -99.08f, 2000.0f, "km", 0, false);
+        printRows(result5);
+        result5.close();
+        //printRows(conn.getGeoHaversine(sphericalSystemDegree, location, 19.3994f, -99.08f, 2000.0f, "km", 0, false) );
         IRI polygon2 = vf.createIRI("http://example.org/polygon2");
         List<Literal> polygon2_points = new ArrayList<Literal>(3);
         polygon2_points.add(vf.createLiteral("+51.0+002.0", sphericalSystemDegree));
@@ -2025,13 +2025,13 @@ public class TutorialExamples {
      * Social Network Analysis
     */
     public static void example21() throws Exception {
-    	AGRepositoryConnection conn = example1(false);
-    	AGValueFactory vf = conn.getValueFactory();
-    	conn.add(new File(DATA_DIRECTORY, "lesmis.rdf"), null, RDFFormat.RDFXML);
-    	println("Loaded " + conn.size() + " lesmis.rdf triples.");
-    	
+        AGRepositoryConnection conn = example1(false);
+        AGValueFactory vf = conn.getValueFactory();
+        conn.add(new File(DATA_DIRECTORY, "lesmis.rdf"), null, RDFFormat.RDFXML);
+        println("Loaded " + conn.size() + " lesmis.rdf triples.");
+        
         // Create URIs for relationship predicates.
-    	String lmns = "http://www.franz.com/lesmis#";
+        String lmns = "http://www.franz.com/lesmis#";
         conn.setNamespace("lm", lmns);
         IRI knows = vf.createIRI(lmns, "knows");
         IRI barelyKnows = vf.createIRI(lmns, "barely_knows");
@@ -2237,10 +2237,10 @@ public class TutorialExamples {
         tupleQuery = conn.prepareTupleQuery(AGQueryLanguage.PROLOG, queryString);
         result = tupleQuery.evaluate();        
         while (result.hasNext()) {
-        	BindingSet bindingSet = result.next();
-        	Value p = bindingSet.getValue("pathid");
-        	Value n = bindingSet.getValue("node");
-        	println("Path " + p + ": " + n);
+            BindingSet bindingSet = result.next();
+            Value p = bindingSet.getValue("pathid");
+            Value n = bindingSet.getValue("node");
+            println("Path " + p + ": " + n);
         }
         result.close();
         
@@ -2481,7 +2481,7 @@ public class TutorialExamples {
         
     }
 
-	
+    
     /**
      * Transactions
      */
@@ -2504,9 +2504,9 @@ public class TutorialExamples {
         println("Loaded " + conn2.size() + " java-kennedy.ntriples via conn2.");
         
         println("\nSince conn1 is in autoCommit mode, lesmis.rdf triples are committed " +
-        		"and retrievable via conn2.  Since conn2 is not in autoCommit mode, and " +
-        		"no commit() has yet been issued on conn2, kennedy.rdf triples are not " +
-        		" retrievable via conn1.");
+                "and retrievable via conn2.  Since conn2 is not in autoCommit mode, and " +
+                "no commit() has yet been issued on conn2, kennedy.rdf triples are not " +
+                " retrievable via conn1.");
         // Check transaction isolation semantics:
         Literal valjean = vf.createLiteral("Valjean");
         Literal kennedy = vf.createLiteral("Kennedy");
@@ -2593,7 +2593,7 @@ public class TutorialExamples {
         println("\nAfter loading there are " + conn.size() + " kennedy triples.");
         
         conn.setNamespace("kdy", "http://www.franz.com/simple#");
-    	String exns = "http://www.franz.com/simple#";
+        String exns = "http://www.franz.com/simple#";
         conn.setNamespace("exns", exns);
         IRI TedKennedy = vf.createIRI(exns, "person17");
         IRI hasChild = vf.createIRI(exns, "has-child");
@@ -2602,20 +2602,20 @@ public class TutorialExamples {
 
         println("\nSPARQL matches for two children of Ted Kennedy, inept pattern.");
         String queryString = 
-        	"SELECT ?o1 ?o2 " +
+            "SELECT ?o1 ?o2 " +
             "WHERE {kdy:person17 kdy:has-child ?o1 . " +
             "       kdy:person17 kdy:has-child ?o2 . }";
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         TupleQueryResult result = tupleQuery.evaluate();
         try {
-        	while (result.hasNext()) {
+            while (result.hasNext()) {
             BindingSet bindingSet = result.next();
             Value o1 = bindingSet.getValue("o1");
             Value o2 = bindingSet.getValue("o2");
             println(o1 + " and " + o2);
             }    
         } finally {
-        	result.close();
+            result.close();
         }
 
         println("\nSPARQL matches for two children of Ted Kennedy, better pattern.");
@@ -2682,62 +2682,62 @@ public class TutorialExamples {
 
         println("\nSPARQL matches for children of Ted Kennedy.");
         String queryString4 = 
-        	"SELECT ?o WHERE {kdy:person17 kdy:has-child ?o} ORDER BY ?o";
+            "SELECT ?o WHERE {kdy:person17 kdy:has-child ?o} ORDER BY ?o";
         TupleQuery tupleQuery4 = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString4);
         TupleQueryResult result4 = tupleQuery4.evaluate();
         try {
-        	while (result4.hasNext()) {
+            while (result4.hasNext()) {
             BindingSet bindingSet = result4.next();
             Value o = bindingSet.getValue("o");
             println(o);
             }    
         } finally {
-        	result4.close();
+            result4.close();
         }
 
         println("\nSPARQL DISTINCT matches for children of Ted Kennedy.");
         String queryString5 = 
-        	"SELECT DISTINCT ?o WHERE {kdy:person17 kdy:has-child ?o} ORDER BY ?o";
+            "SELECT DISTINCT ?o WHERE {kdy:person17 kdy:has-child ?o} ORDER BY ?o";
         TupleQuery tupleQuery5 = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString5);
         TupleQueryResult result5 = tupleQuery5.evaluate();
         try {
-        	while (result5.hasNext()) {
+            while (result5.hasNext()) {
             BindingSet bindingSet = result5.next();
             Value o = bindingSet.getValue("o");
             println(o);
             }    
         } finally {
-        	result5.close();
+            result5.close();
         }
         
         println("\nSPARQL REDUCED matches for children of Ted Kennedy.");
         String queryString6 = 
-        	"SELECT REDUCED ?o WHERE {kdy:person17 kdy:has-child ?o} ORDER BY ?o";
+            "SELECT REDUCED ?o WHERE {kdy:person17 kdy:has-child ?o} ORDER BY ?o";
         TupleQuery tupleQuery6 = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString6);
         TupleQueryResult result6 = tupleQuery6.evaluate();
         try {
-        	while (result6.hasNext()) {
+            while (result6.hasNext()) {
             BindingSet bindingSet = result6.next();
             Value o = bindingSet.getValue("o");
             println(o);
             }    
         } finally {
-        	result6.close();
+            result6.close();
         }
         
         println("\nSPARQL matches for children of Ted Kennedy, limit 2.");
         String queryString7 = 
-        	"SELECT ?o WHERE {kdy:person17 kdy:has-child ?o} LIMIT 2";
+            "SELECT ?o WHERE {kdy:person17 kdy:has-child ?o} LIMIT 2";
         TupleQuery tupleQuery7 = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString7);
         TupleQueryResult result7 = tupleQuery7.evaluate();
         try {
-        	while (result7.hasNext()) {
+            while (result7.hasNext()) {
             BindingSet bindingSet = result7.next();
             Value o = bindingSet.getValue("o");
             println(o);
             }    
         } finally {
-        	result7.close();
+            result7.close();
         }
 
         // Explicit duplicate deletion
@@ -2772,63 +2772,63 @@ public class TutorialExamples {
      * 
      */    
     public static void example24() throws Exception { 
-    	println("\nStarting example24().");
-    	
-    	// Set up our connection pool.
-    	AGConnPool pool = AGConnPool.create(
-    			AGConnProp.serverUrl, SERVER_URL,
-    			AGConnProp.username, USERNAME,
-    			AGConnProp.password, PASSWORD,
-    			AGConnProp.catalog, CATALOG_ID,
-    			AGConnProp.repository, REPOSITORY_ID,
-    			AGConnProp.session, AGConnProp.Session.DEDICATED,
-    			AGPoolProp.shutdownHook, true,
-    			AGPoolProp.maxActive, 10,
-    			AGPoolProp.initialSize, 2);
+        println("\nStarting example24().");
+        
+        // Set up our connection pool.
+        AGConnPool pool = AGConnPool.create(
+            	AGConnProp.serverUrl, SERVER_URL,
+            	AGConnProp.username, USERNAME,
+            	AGConnProp.password, PASSWORD,
+            	AGConnProp.catalog, CATALOG_ID,
+            	AGConnProp.repository, REPOSITORY_ID,
+            	AGConnProp.session, AGConnProp.Session.DEDICATED,
+            	AGPoolProp.shutdownHook, true,
+            	AGPoolProp.maxActive, 10,
+            	AGPoolProp.initialSize, 2);
 
-    	// Get a reference to an AGRepository instance
-    	AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
-    	AGRepository repo =
-    			server.createRepository(REPOSITORY_ID, CATALOG_ID, SERVER_URL, USERNAME, PASSWORD);
+        // Get a reference to an AGRepository instance
+        AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
+        AGRepository repo =
+            	server.createRepository(REPOSITORY_ID, CATALOG_ID, SERVER_URL, USERNAME, PASSWORD);
 
-    	// Assign our pool to the repository
-    	repo.setConnPool(pool);
-    	
-    	// The way to acquire a connection from an AGRepository
-    	// instance is the same when using a connection pool or not using
-    	// one. When called, getConnection() sees the pool saved to the
-    	// Repository via setConnPool() and borrows a connection from it. If
-    	// no pool is assigned, an independent connection is created
-    	// and returned.
-    	AGRepositoryConnection conn = repo.getConnection();
-    	
-    	// Now that we have a connection, we can create and add some triples.
-    	AGValueFactory vf = conn.getRepository().getValueFactory();          
-    	
-    	println("pool getNumActive is: "+pool.getNumActive());
-    	println("pool getNumIdle is: "+pool.getNumIdle());        
+        // Assign our pool to the repository
+        repo.setConnPool(pool);
+        
+        // The way to acquire a connection from an AGRepository
+        // instance is the same when using a connection pool or not using
+        // one. When called, getConnection() sees the pool saved to the
+        // Repository via setConnPool() and borrows a connection from it. If
+        // no pool is assigned, an independent connection is created
+        // and returned.
+        AGRepositoryConnection conn = repo.getConnection();
+        
+        // Now that we have a connection, we can create and add some triples.
+        AGValueFactory vf = conn.getRepository().getValueFactory();          
+        
+        println("pool getNumActive is: "+pool.getNumActive());
+        println("pool getNumIdle is: "+pool.getNumIdle());        
 
-    	try {        	
-    		IRI alice = vf.createIRI("http://example.org/people/alice");
-    		IRI bob = vf.createIRI("http://example.org/people/bob");
-    		IRI name = vf.createIRI("http://example.org/ontology/name");
-    		IRI person = vf.createIRI("http://example.org/ontology/Person");
-    		Literal bobsName = vf.createLiteral("Bob");
-    		Literal alicesName = vf.createLiteral("Alice");
-    		println("Triple count before inserts: " + 
-    				(conn.size()));
-    		conn.add(alice, name, alicesName);            
-    		conn.add(alice, RDF.TYPE, person);            
-    		conn.add(bob, name, bobsName);            
-    		conn.add(bob, RDF.TYPE, person);            
-    		conn.commit();
-    	} finally {
-    		// To return a connection to the pool use conn.close(). Connections that
-    		// do not belong to a pool will simply be closed.
-    		conn.close(); 
-    		println("pool getNumActive is: "+pool.getNumActive());
-    		println("pool getNumIdle is: "+pool.getNumIdle());        
-    	}
+        try {            
+            IRI alice = vf.createIRI("http://example.org/people/alice");
+            IRI bob = vf.createIRI("http://example.org/people/bob");
+            IRI name = vf.createIRI("http://example.org/ontology/name");
+            IRI person = vf.createIRI("http://example.org/ontology/Person");
+            Literal bobsName = vf.createLiteral("Bob");
+            Literal alicesName = vf.createLiteral("Alice");
+            println("Triple count before inserts: " + 
+            		(conn.size()));
+            conn.add(alice, name, alicesName);            
+            conn.add(alice, RDF.TYPE, person);            
+            conn.add(bob, name, bobsName);            
+            conn.add(bob, RDF.TYPE, person);            
+            conn.commit();
+        } finally {
+            // To return a connection to the pool use conn.close(). Connections that
+            // do not belong to a pool will simply be closed.
+            conn.close(); 
+            println("pool getNumActive is: "+pool.getNumActive());
+            println("pool getNumIdle is: "+pool.getNumIdle());        
+        }
 
     }
     
@@ -2837,7 +2837,7 @@ public class TutorialExamples {
      * Usage: [1-24]+
      */
     public static void main(String[] args) throws Exception {
-    	long now = System.currentTimeMillis();
+        long now = System.currentTimeMillis();
         List<Integer> choices = new ArrayList<Integer>();
         if (args.length == 0 || args[0].equals("all")) {
             for (int i = 1; i <= 24; i++) {
@@ -2855,9 +2855,9 @@ public class TutorialExamples {
                 case 1: example1(true); break;
                 case 2: example2(true); break;
                 case 3:
-                	example3();
-                	example3a();
-                	break;
+                    example3();
+                    example3a();
+                    break;
                 case 4: example4(); break;
                 case 5: example5(); break;
                 case 6: example6(); break;
@@ -2900,7 +2900,7 @@ public class TutorialExamples {
     }
 
     static void printRows(String headerMsg, int limit, RepositoryResult<Statement> rows) throws Exception {
-    	println(headerMsg);
+        println(headerMsg);
         int count = 0;
         while (count < limit && rows.hasNext()) {
             println(rows.next());
@@ -2911,14 +2911,14 @@ public class TutorialExamples {
     }
 
     static void printRows(String headerMsg, TupleQueryResult rows) throws Exception {
-    	println(headerMsg);
-    	try {
-    		while (rows.hasNext()) {
-    			println(rows.next());
-    		}
-    	} finally {
-    		rows.close();
-    	}
+        println(headerMsg);
+        try {
+            while (rows.hasNext()) {
+            	println(rows.next());
+            }
+        } finally {
+            rows.close();
+        }
     }
 
     static void close(RepositoryConnection conn) {

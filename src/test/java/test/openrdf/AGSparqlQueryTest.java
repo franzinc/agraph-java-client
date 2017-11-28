@@ -1,6 +1,6 @@
 /******************************************************************************
-** See the file LICENSE for the full license governing this code.
-******************************************************************************/
+ ** See the file LICENSE for the full license governing this code.
+ ******************************************************************************/
 
 package test.openrdf;
 
@@ -15,46 +15,41 @@ import test.AGAbstractTest;
 
 public class AGSparqlQueryTest extends SPARQLQueryTest {
 
-	public static Test suite()
-		throws Exception
-	{
-		return test.openrdf.SPARQL11ManifestTest.suite(new Factory() {
+    private AGSparqlQueryTest(String testURI, String name, String queryFileURL, String resultFileURL,
+                              Dataset dataSet, boolean laxCardinality) {
+        this(testURI, name, queryFileURL, resultFileURL, dataSet, laxCardinality, false);
+    }
 
-			public AGSparqlQueryTest createSPARQLQueryTest(String testURI, String name,
-					String queryFileURL, String resultFileURL, Dataset dataSet, boolean laxCardinality)
-			{
-				return createSPARQLQueryTest(testURI, name, queryFileURL, resultFileURL, dataSet, laxCardinality, false);
-			}
-			
-			public AGSparqlQueryTest createSPARQLQueryTest(String testURI, String name,
-					String queryFileURL, String resultFileURL, Dataset dataSet, boolean laxCardinality, boolean checkOrder)
-			{
-				return new AGSparqlQueryTest(testURI, name, queryFileURL, resultFileURL, dataSet,
-						laxCardinality, checkOrder);
-			}
-		}, true, true, true);
-	}
+    private AGSparqlQueryTest(String testURI, String name, String queryFileURL, String resultFileURL,
+                              Dataset dataSet, boolean laxCardinality, boolean checkOrder) {
+        super(testURI, name, queryFileURL, resultFileURL, dataSet, laxCardinality, checkOrder);
+    }
 
-	private AGSparqlQueryTest(String testURI, String name, String queryFileURL, String resultFileURL,
-			Dataset dataSet, boolean laxCardinality)
-	{
-		this(testURI, name, queryFileURL, resultFileURL, dataSet, laxCardinality, false);
-	}
+    public static Test suite()
+            throws Exception {
+        return test.openrdf.SPARQL11ManifestTest.suite(new Factory() {
 
-	private AGSparqlQueryTest(String testURI, String name, String queryFileURL, String resultFileURL,
-			Dataset dataSet, boolean laxCardinality, boolean checkOrder)
-	{
-		super(testURI, name, queryFileURL, resultFileURL, dataSet, laxCardinality, checkOrder);
-	}
-	
-	protected Repository newRepository() {
-		String repoName = this.getClass().getSimpleName();
-		try {
-			return new AGServer(AGAbstractTest.findServerUrl(),AGAbstractTest.username(), AGAbstractTest.password()).getCatalog(AGAbstractTest.CATALOG_ID).createRepository(repoName);
-		} catch (AGHttpException e) {
-			throw new RuntimeException(e);
-		} catch (RepositoryException e) {
-			throw new RuntimeException(e);
-		}
-	}
+            public AGSparqlQueryTest createSPARQLQueryTest(String testURI, String name,
+                                                           String queryFileURL, String resultFileURL, Dataset dataSet, boolean laxCardinality) {
+                return createSPARQLQueryTest(testURI, name, queryFileURL, resultFileURL, dataSet, laxCardinality, false);
+            }
+
+            public AGSparqlQueryTest createSPARQLQueryTest(String testURI, String name,
+                                                           String queryFileURL, String resultFileURL, Dataset dataSet, boolean laxCardinality, boolean checkOrder) {
+                return new AGSparqlQueryTest(testURI, name, queryFileURL, resultFileURL, dataSet,
+                        laxCardinality, checkOrder);
+            }
+        }, true, true, true);
+    }
+
+    protected Repository newRepository() {
+        String repoName = this.getClass().getSimpleName();
+        try {
+            return new AGServer(AGAbstractTest.findServerUrl(), AGAbstractTest.username(), AGAbstractTest.password()).getCatalog(AGAbstractTest.CATALOG_ID).createRepository(repoName);
+        } catch (AGHttpException e) {
+            throw new RuntimeException(e);
+        } catch (RepositoryException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

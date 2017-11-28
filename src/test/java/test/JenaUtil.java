@@ -46,7 +46,9 @@ public class JenaUtil extends TestSetup {
         }
     }
 
-    /** Releases resources. */
+    /**
+     * Releases resources.
+     */
     public void disconnect() {
         if (conn != null) {
             maker.close();

@@ -145,7 +145,7 @@ public class ReplHeaderTest extends AGAbstractTest {
     public void testResetDurabilityNullInteger() {
         mock.setTransactionSettings(
                 settings.withDurability(DurabilityLevel.QUORUM)
-                        .withDurability((Integer)null));
+                        .withDurability((Integer) null));
         mock.size();
         Assert.assertNull(getReplHeader());
     }
@@ -155,7 +155,7 @@ public class ReplHeaderTest extends AGAbstractTest {
     public void testResetDurabilityNullLevel() {
         mock.setTransactionSettings(
                 settings.withDurability(DurabilityLevel.QUORUM)
-                        .withDurability((DurabilityLevel)null));
+                        .withDurability((DurabilityLevel) null));
         mock.size();
         Assert.assertNull(getReplHeader());
     }

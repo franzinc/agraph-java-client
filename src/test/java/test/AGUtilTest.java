@@ -1,6 +1,5 @@
 package test;
 
-import com.franz.util.*;
 import org.junit.Assert;
 import org.junit.Test;
 

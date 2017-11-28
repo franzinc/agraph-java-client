@@ -31,7 +31,7 @@ public class AGRawStreamer extends AGResponseHandler {
 
     /**
      * Creates a streaming handler that does not specify the MIME type.
-     *
+     * <p>
      * The server is free to return any content type.
      */
     public AGRawStreamer() {
@@ -61,7 +61,7 @@ public class AGRawStreamer extends AGResponseHandler {
      *
      * @param format Format to return the data in.
      */
-    public AGRawStreamer( final BooleanQueryResultFormat format) {
+    public AGRawStreamer(final BooleanQueryResultFormat format) {
         this(format.getDefaultMIMEType());
     }
 
@@ -77,23 +77,23 @@ public class AGRawStreamer extends AGResponseHandler {
         // Return the stream, but make sure that:
         //   1. It releases the connection once closed
         //   2. It is closed once exhausted
-	try {
-	    return new AutoCloseInputStream(getInputStream(method)) {
-		private boolean closed = false;
+        try {
+            return new AutoCloseInputStream(getInputStream(method)) {
+                private boolean closed = false;
 
-		@Override
-		public void close() throws IOException {
-		    if (!closed) {
-			super.close();
-			closed = true;
-			method.releaseConnection();
-		    }
-		}
-	    };
-	} catch (final IOException e) {
-	    // Convert to AGHttpException to make the interface neater.
-	    throw new AGHttpException(e);
-	}
+                @Override
+                public void close() throws IOException {
+                    if (!closed) {
+                        super.close();
+                        closed = true;
+                        method.releaseConnection();
+                    }
+                }
+            };
+        } catch (final IOException e) {
+            // Convert to AGHttpException to make the interface neater.
+            throw new AGHttpException(e);
+        }
     }
 
     @Override

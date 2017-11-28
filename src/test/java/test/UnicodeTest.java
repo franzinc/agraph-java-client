@@ -1,5 +1,5 @@
 /******************************************************************************
-** See the file LICENSE for the full license governing this code.
+ ** See the file LICENSE for the full license governing this code.
  ******************************************************************************/
 
 package test;
@@ -9,35 +9,31 @@ import com.franz.agraph.http.handler.AGJSONHandler;
 import com.franz.agraph.http.handler.AGStringHandler;
 import com.franz.agraph.repository.AGGraphQuery;
 import com.franz.agraph.repository.AGTupleQuery;
+import org.apache.commons.httpclient.Header;
+import org.apache.commons.httpclient.HttpMethod;
+import org.apache.commons.httpclient.HttpMethodBase;
+import org.apache.commons.io.input.ReaderInputStream;
 import org.eclipse.rdf4j.common.iteration.Iterations;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.resultio.TupleQueryResultFormat;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.json.JSONException;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.List;
 
-import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HttpMethod;
-import org.apache.commons.httpclient.HttpMethodBase;
-import org.apache.commons.io.input.ReaderInputStream;
-
-import org.json.JSONException;
-
-import org.eclipse.rdf4j.model.Literal;
-import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.query.BindingSet;
-import org.eclipse.rdf4j.query.QueryEvaluationException;
-import org.eclipse.rdf4j.query.QueryLanguage;
-import org.eclipse.rdf4j.repository.RepositoryException;
-import org.eclipse.rdf4j.rio.RDFFormat;
-import org.eclipse.rdf4j.query.resultio.TupleQueryResultFormat;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 /**
  * Test how various operations react to non-ascii characters.
@@ -45,7 +41,7 @@ import static org.junit.Assert.*;
 public class UnicodeTest extends AGAbstractTest {
     private RDFFormat oldRDFFormat;
     private TupleQueryResultFormat oldTQRFormat;
-    
+
     @Before
     public void setUpFormat() {
         oldRDFFormat = conn.prepareHttpRepoClient().getPreferredRDFFormat();
@@ -97,7 +93,7 @@ public class UnicodeTest extends AGAbstractTest {
     public void testAddUnicodeLiteralTrix() throws Exception {
         testAddUnicodeLiteral(RDFFormat.TRIX);
     }
-    
+
     public void testAddUnicodeSubject(RDFFormat format) throws RepositoryException {
         conn.prepareHttpRepoClient().setPreferredRDFFormat(format);
         IRI s = vf.createIRI("http://franz.com/जुप");
@@ -119,7 +115,7 @@ public class UnicodeTest extends AGAbstractTest {
     public void testAddUnicodeSubjectTrix() throws Exception {
         testAddUnicodeSubject(RDFFormat.TRIX);
     }
-    
+
     public void testUnicodeCreate(RDFFormat format) throws RepositoryException, QueryEvaluationException {
         conn.prepareHttpRepoClient().setPreferredRDFFormat(format);
         AGGraphQuery query = conn.prepareGraphQuery(QueryLanguage.SPARQL,
@@ -138,7 +134,7 @@ public class UnicodeTest extends AGAbstractTest {
     public void testUnicodeCreateTrix() throws Exception {
         testUnicodeCreate(RDFFormat.TRIX);
     }
-    
+
     public void testUnicodeSelect(TupleQueryResultFormat format) throws RepositoryException, QueryEvaluationException {
         conn.prepareHttpRepoClient().setPreferredTQRFormat(format);
         IRI s = vf.createIRI("http://franz.com/s");
@@ -165,14 +161,14 @@ public class UnicodeTest extends AGAbstractTest {
     @Test
     public void testUnicodeSelectSPARQL() throws Exception {
         testUnicodeSelect(TupleQueryResultFormat.SPARQL);
-    }    
-    
+    }
+
     /**
      * Creates a mock HttpResponse, suitable for testing AGResponseHandlers.
-     *
+     * <p>
      * Warning: not all response methods are properly mocked.
      *
-     * @param text Response body/
+     * @param text     Response body/
      * @param mimeType Content-Type of the response.
      * @param encoding Charset used to encode the body/
      * @return A response object.
@@ -182,6 +178,7 @@ public class UnicodeTest extends AGAbstractTest {
             {
                 setResponseStream(new ReaderInputStream(new StringReader(text), encoding));
             }
+
             @Override
             public String getName() {
                 return "GET";

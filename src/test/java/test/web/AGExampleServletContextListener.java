@@ -1,6 +1,6 @@
 /******************************************************************************
-** See the file LICENSE for the full license governing this code.
-******************************************************************************/
+ ** See the file LICENSE for the full license governing this code.
+ ******************************************************************************/
 
 package test.web;
 
@@ -14,8 +14,8 @@ import javax.servlet.ServletContextListener;
 
 public class AGExampleServletContextListener implements ServletContextListener {
 
-	@Override
-	public void contextDestroyed(ServletContextEvent event) {
+    @Override
+    public void contextDestroyed(ServletContextEvent event) {
         try (final Closer c = new Closer()) {
             Context initCtx = new InitialContext();
             c.closeLater(initCtx::close);
@@ -24,12 +24,12 @@ public class AGExampleServletContextListener implements ServletContextListener {
             AGConnPool pool = (AGConnPool) envCtx.lookup("connection-pool/agraph");
             pool.close();
         } catch (Exception e) {
-        	e.printStackTrace();
+            e.printStackTrace();
         }
-	}
+    }
 
-	@Override
-	public void contextInitialized(ServletContextEvent event) {
-	}
-	
+    @Override
+    public void contextInitialized(ServletContextEvent event) {
+    }
+
 }

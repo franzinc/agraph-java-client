@@ -1,6 +1,6 @@
 /******************************************************************************
-** See the file LICENSE for the full license governing this code.
-******************************************************************************/
+ ** See the file LICENSE for the full license governing this code.
+ ******************************************************************************/
 
 package test.openrdf;
 /* 
@@ -21,11 +21,11 @@ package test.openrdf;
  */
 //package org.openrdf.query.parser.sparql.manifest;
 
-import org.eclipse.rdf4j.common.io.FileUtil;
-import org.eclipse.rdf4j.common.io.ZipUtil;
 import junit.framework.TestResult;
 import junit.framework.TestSuite;
 import org.eclipse.rdf4j.OpenRDFUtil;
+import org.eclipse.rdf4j.common.io.FileUtil;
+import org.eclipse.rdf4j.common.io.ZipUtil;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.query.BindingSet;
@@ -56,261 +56,240 @@ import java.util.jar.JarFile;
 /**
  * Functionality for creating a JUnit test suite out of a W3C Working
  * Group-style manifest for SPARQL query and update tests.
- * 
+ *
  * @author Jeen Broekstra
  */
 public class SPARQL11ManifestTest {
 
-	static final Logger logger = LoggerFactory.getLogger(SPARQL11ManifestTest.class);
+    static final Logger logger = LoggerFactory.getLogger(SPARQL11ManifestTest.class);
 
-	private static File tmpDir;
+    private static File tmpDir;
 
-	/**
-	 * Creates a new {@link TestSuite} for executiong of {@link SPARQLQueryTest}
-	 * s.
-	 * 
-	 * @param factory
-	 *        a factory class that creates each individual test case.
-	 * @param officialWorkingGroupTests
-	 *        indicates whether to use the official W3C working group tests, or
-	 *        Sesame's own set of tests.
-	 * @param approvedTestsOnly
-	 *        if <code>true</code>, use working group-approved tests only. Has no
-	 *        influence when officialWorkingGroup tests is set to
-	 *        <code>false</code>.
-	 * @param useRemoteTests
-	 *        if set to <code>true</code>, use manifests and tests located at
-	 *        <code>http://www.w3.org/2009/sparql/docs/tests/data-sparql11/</code>
-	 *        , instead of local copies.
-	 * @param excludedSubdirs
-	 *        an (optionally empty) list of subdirectories to exclude from
-	 *        testing. If specified, test cases in one of the supplied subdirs
-	 *        will not be executed. If left empty, all tests will be executed.
-	 * @return a TestSuite.
-	 * @throws Exception
-	 */
-	public static TestSuite suite(SPARQLQueryTest.Factory factory, boolean officialWorkingGroupTests,
-			boolean approvedTestsOnly, boolean useRemoteTests, String... excludedSubdirs)
-		throws Exception
-	{
-		final String manifestFile = getManifestFile(officialWorkingGroupTests, useRemoteTests);
+    /**
+     * Creates a new {@link TestSuite} for executiong of {@link SPARQLQueryTest}
+     * s.
+     *
+     * @param factory                   a factory class that creates each individual test case.
+     * @param officialWorkingGroupTests indicates whether to use the official W3C working group tests, or
+     *                                  Sesame's own set of tests.
+     * @param approvedTestsOnly         if <code>true</code>, use working group-approved tests only. Has no
+     *                                  influence when officialWorkingGroup tests is set to
+     *                                  <code>false</code>.
+     * @param useRemoteTests            if set to <code>true</code>, use manifests and tests located at
+     *                                  <code>http://www.w3.org/2009/sparql/docs/tests/data-sparql11/</code>
+     *                                  , instead of local copies.
+     * @param excludedSubdirs           an (optionally empty) list of subdirectories to exclude from
+     *                                  testing. If specified, test cases in one of the supplied subdirs
+     *                                  will not be executed. If left empty, all tests will be executed.
+     * @return a TestSuite.
+     * @throws Exception
+     */
+    public static TestSuite suite(SPARQLQueryTest.Factory factory, boolean officialWorkingGroupTests,
+                                  boolean approvedTestsOnly, boolean useRemoteTests, String... excludedSubdirs)
+            throws Exception {
+        final String manifestFile = getManifestFile(officialWorkingGroupTests, useRemoteTests);
 
-		TestSuite suite = new TestSuite(factory.getClass().getName()) {
+        TestSuite suite = new TestSuite(factory.getClass().getName()) {
 
-			@Override
-			public void run(TestResult result) {
-				try {
-					super.run(result);
-				}
-				finally {
-					if (tmpDir != null) {
-						try {
-							FileUtil.deleteDir(tmpDir);
-						}
-						catch (IOException e) {
-							System.err.println("Unable to clean up temporary directory '" + tmpDir + "': "
-									+ e.getMessage());
-						}
-					}
-				}
-			}
-		};
+            @Override
+            public void run(TestResult result) {
+                try {
+                    super.run(result);
+                } finally {
+                    if (tmpDir != null) {
+                        try {
+                            FileUtil.deleteDir(tmpDir);
+                        } catch (IOException e) {
+                            System.err.println("Unable to clean up temporary directory '" + tmpDir + "': "
+                                    + e.getMessage());
+                        }
+                    }
+                }
+            }
+        };
 
-		Repository manifestRep = new SailRepository(new MemoryStore());
-		manifestRep.initialize();
-		RepositoryConnection con = manifestRep.getConnection();
+        Repository manifestRep = new SailRepository(new MemoryStore());
+        manifestRep.initialize();
+        RepositoryConnection con = manifestRep.getConnection();
 
-		addTurtle(con, new URL(manifestFile), manifestFile);
+        addTurtle(con, new URL(manifestFile), manifestFile);
 
-		String query = " PREFIX qt: <http://www.w3.org/2001/sw/DataAccess/tests/test-query#> "
-				+ "PREFIX mf: <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> "
-				+ "SELECT DISTINCT ?manifestFile "
-				+ "WHERE { [] mf:include [ rdf:rest*/rdf:first ?manifestFile ] . }   ";
+        String query = " PREFIX qt: <http://www.w3.org/2001/sw/DataAccess/tests/test-query#> "
+                + "PREFIX mf: <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> "
+                + "SELECT DISTINCT ?manifestFile "
+                + "WHERE { [] mf:include [ rdf:rest*/rdf:first ?manifestFile ] . }   ";
 
-		TupleQueryResult manifestResults = con.prepareTupleQuery(QueryLanguage.SPARQL, query, manifestFile).evaluate();
+        TupleQueryResult manifestResults = con.prepareTupleQuery(QueryLanguage.SPARQL, query, manifestFile).evaluate();
 
-		while (manifestResults.hasNext()) {
-			BindingSet bindingSet = manifestResults.next();
-			String subManifestFile = bindingSet.getValue("manifestFile").toString();
+        while (manifestResults.hasNext()) {
+            BindingSet bindingSet = manifestResults.next();
+            String subManifestFile = bindingSet.getValue("manifestFile").toString();
 
-			if (includeSubManifest(subManifestFile, excludedSubdirs)) {
-				suite.addTest(SPARQLQueryTest.suite(subManifestFile, factory, approvedTestsOnly));
-			}
-		}
+            if (includeSubManifest(subManifestFile, excludedSubdirs)) {
+                suite.addTest(SPARQLQueryTest.suite(subManifestFile, factory, approvedTestsOnly));
+            }
+        }
 
-		manifestResults.close();
-		con.close();
-		manifestRep.shutDown();
+        manifestResults.close();
+        con.close();
+        manifestRep.shutDown();
 
-		logger.info("Created aggregated test suite with " + suite.countTestCases() + " test cases.");
-		return suite;
-	}
+        logger.info("Created aggregated test suite with " + suite.countTestCases() + " test cases.");
+        return suite;
+    }
 
-	public static TestSuite suite(SPARQLUpdateConformanceTest.Factory factory,
-			boolean officialWorkingGroupTests, boolean approvedTestsOnly, boolean useRemote,
-			String... excludedSubdirs)
-		throws Exception
-	{
-		final String manifestFile = getManifestFile(officialWorkingGroupTests, useRemote);
+    public static TestSuite suite(SPARQLUpdateConformanceTest.Factory factory,
+                                  boolean officialWorkingGroupTests, boolean approvedTestsOnly, boolean useRemote,
+                                  String... excludedSubdirs)
+            throws Exception {
+        final String manifestFile = getManifestFile(officialWorkingGroupTests, useRemote);
 
-		TestSuite suite = new TestSuite(factory.getClass().getName()) {
+        TestSuite suite = new TestSuite(factory.getClass().getName()) {
 
-			@Override
-			public void run(TestResult result) {
-				try {
-					super.run(result);
-				}
-				finally {
-					if (tmpDir != null) {
-						try {
-							FileUtil.deleteDir(tmpDir);
-						}
-						catch (IOException e) {
-							System.err.println("Unable to clean up temporary directory '" + tmpDir + "': "
-									+ e.getMessage());
-						}
-					}
-				}
-			}
-		};
+            @Override
+            public void run(TestResult result) {
+                try {
+                    super.run(result);
+                } finally {
+                    if (tmpDir != null) {
+                        try {
+                            FileUtil.deleteDir(tmpDir);
+                        } catch (IOException e) {
+                            System.err.println("Unable to clean up temporary directory '" + tmpDir + "': "
+                                    + e.getMessage());
+                        }
+                    }
+                }
+            }
+        };
 
-		Repository manifestRep = new SailRepository(new MemoryStore());
-		manifestRep.initialize();
-		RepositoryConnection con = manifestRep.getConnection();
+        Repository manifestRep = new SailRepository(new MemoryStore());
+        manifestRep.initialize();
+        RepositoryConnection con = manifestRep.getConnection();
 
-		addTurtle(con, new URL(manifestFile), manifestFile);
+        addTurtle(con, new URL(manifestFile), manifestFile);
 
-		String query = " PREFIX qt: <http://www.w3.org/2001/sw/DataAccess/tests/test-query#> "
-				+ "PREFIX mf: <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> "
-				+ "SELECT DISTINCT ?manifestFile "
-				+ "WHERE { [] mf:include [ rdf:rest*/rdf:first ?manifestFile ] . }   ";
-		
-		TupleQueryResult manifestResults = con.prepareTupleQuery(QueryLanguage.SPARQL, query, manifestFile).evaluate();
+        String query = " PREFIX qt: <http://www.w3.org/2001/sw/DataAccess/tests/test-query#> "
+                + "PREFIX mf: <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> "
+                + "SELECT DISTINCT ?manifestFile "
+                + "WHERE { [] mf:include [ rdf:rest*/rdf:first ?manifestFile ] . }   ";
 
-		while (manifestResults.hasNext()) {
-			BindingSet bindingSet = manifestResults.next();
-			String subManifestFile = bindingSet.getValue("manifestFile").toString();
+        TupleQueryResult manifestResults = con.prepareTupleQuery(QueryLanguage.SPARQL, query, manifestFile).evaluate();
 
-			if (includeSubManifest(subManifestFile, excludedSubdirs)) {
-				suite.addTest(SPARQLUpdateConformanceTest.suite(subManifestFile, factory, approvedTestsOnly));
-			}
-		}
+        while (manifestResults.hasNext()) {
+            BindingSet bindingSet = manifestResults.next();
+            String subManifestFile = bindingSet.getValue("manifestFile").toString();
 
-		manifestResults.close();
-		con.close();
-		manifestRep.shutDown();
+            if (includeSubManifest(subManifestFile, excludedSubdirs)) {
+                suite.addTest(SPARQLUpdateConformanceTest.suite(subManifestFile, factory, approvedTestsOnly));
+            }
+        }
 
-		logger.info("Created aggregated test suite with " + suite.countTestCases() + " test cases.");
-		return suite;
-	}
+        manifestResults.close();
+        con.close();
+        manifestRep.shutDown();
 
-	private static String getManifestFile(boolean officialWorkingGroupTests, boolean useRemote) {
-		String manifestFile = null;
-		if (useRemote) {
-			manifestFile = "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/manifest-all.ttl";
-		}
-		else {
-			URL url = null;
-			if (officialWorkingGroupTests) {
-				url = SPARQL11ManifestTest.class.getResource("/testcases-sparql-1.1-w3c/manifest-all.ttl");
-			}
-			else {
-				url = SPARQL11ManifestTest.class.getResource("/testcases-sparql-1.1/manifest-evaluation.ttl");
-			}
+        logger.info("Created aggregated test suite with " + suite.countTestCases() + " test cases.");
+        return suite;
+    }
 
-			if ("jar".equals(url.getProtocol())) {
-				// Extract manifest files to a temporary directory
-				try {
-					tmpDir = FileUtil.createTempDir("sparql11-test-evaluation");
+    private static String getManifestFile(boolean officialWorkingGroupTests, boolean useRemote) {
+        String manifestFile = null;
+        if (useRemote) {
+            manifestFile = "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/manifest-all.ttl";
+        } else {
+            URL url = null;
+            if (officialWorkingGroupTests) {
+                url = SPARQL11ManifestTest.class.getResource("/testcases-sparql-1.1-w3c/manifest-all.ttl");
+            } else {
+                url = SPARQL11ManifestTest.class.getResource("/testcases-sparql-1.1/manifest-evaluation.ttl");
+            }
 
-					JarURLConnection con = (JarURLConnection)url.openConnection();
-					JarFile jar = con.getJarFile();
+            if ("jar".equals(url.getProtocol())) {
+                // Extract manifest files to a temporary directory
+                try {
+                    tmpDir = FileUtil.createTempDir("sparql11-test-evaluation");
 
-					ZipUtil.extract(jar, tmpDir);
+                    JarURLConnection con = (JarURLConnection) url.openConnection();
+                    JarFile jar = con.getJarFile();
 
-					File localFile = new File(tmpDir, con.getEntryName());
-					manifestFile = localFile.toURI().toURL().toString();
-				}
-				catch (IOException e) {
-					throw new AssertionError(e);
-				}
-			}
-			else {
-				manifestFile = url.toString();
-			}
-		}
-		return manifestFile;
-	}
+                    ZipUtil.extract(jar, tmpDir);
 
-	/**
-	 * Verifies if the selected subManifest occurs in the supplied list of
-	 * excluded subdirs.
-	 * 
-	 * @param subManifestFile
-	 *        the url of a sub-manifest
-	 * @param excludedSubdirs
-	 *        an array of directory names. May be null.
-	 * @return <code>false</code> if the supplied list of excluded subdirs is not
-	 *         empty and contains a match for the supplied sub-manifest,
-	 *         <code>true</code> otherwise.
-	 */
-	private static boolean includeSubManifest(String subManifestFile, String[] excludedSubdirs) {
-		boolean result = true;
+                    File localFile = new File(tmpDir, con.getEntryName());
+                    manifestFile = localFile.toURI().toURL().toString();
+                } catch (IOException e) {
+                    throw new AssertionError(e);
+                }
+            } else {
+                manifestFile = url.toString();
+            }
+        }
+        return manifestFile;
+    }
 
-		if (excludedSubdirs != null && excludedSubdirs.length > 0) {
-			int index = subManifestFile.lastIndexOf("/");
-			String path = subManifestFile.substring(0, index);
-			String sd = path.substring(path.lastIndexOf("/") + 1);
+    /**
+     * Verifies if the selected subManifest occurs in the supplied list of
+     * excluded subdirs.
+     *
+     * @param subManifestFile the url of a sub-manifest
+     * @param excludedSubdirs an array of directory names. May be null.
+     * @return <code>false</code> if the supplied list of excluded subdirs is not
+     * empty and contains a match for the supplied sub-manifest,
+     * <code>true</code> otherwise.
+     */
+    private static boolean includeSubManifest(String subManifestFile, String[] excludedSubdirs) {
+        boolean result = true;
 
-			for (String subdir : excludedSubdirs) {
-				if (sd.equals(subdir)) {
-					result = false;
-					break;
-				}
-			}
-		}
-		return result;
-	}
+        if (excludedSubdirs != null && excludedSubdirs.length > 0) {
+            int index = subManifestFile.lastIndexOf("/");
+            String path = subManifestFile.substring(0, index);
+            String sd = path.substring(path.lastIndexOf("/") + 1);
 
-	static void addTurtle(RepositoryConnection con, URL url, String baseURI, Resource... contexts)
-		throws IOException, RepositoryException, RDFParseException
-	{
-		if (baseURI == null) {
-			baseURI = url.toExternalForm();
-		}
+            for (String subdir : excludedSubdirs) {
+                if (sd.equals(subdir)) {
+                    result = false;
+                    break;
+                }
+            }
+        }
+        return result;
+    }
 
-		InputStream in = url.openStream();
+    static void addTurtle(RepositoryConnection con, URL url, String baseURI, Resource... contexts)
+            throws IOException, RepositoryException, RDFParseException {
+        if (baseURI == null) {
+            baseURI = url.toExternalForm();
+        }
 
-		try {
-			OpenRDFUtil.verifyContextNotNull(contexts);
-			final ValueFactory vf = con.getRepository().getValueFactory();
-			RDFParser rdfParser = new TurtleParser();
-			rdfParser.setValueFactory(vf);
+        InputStream in = url.openStream();
 
-			rdfParser.setVerifyData(false);
-			rdfParser.setStopAtFirstError(true);
-			rdfParser.setDatatypeHandling(RDFParser.DatatypeHandling.IGNORE);
+        try {
+            OpenRDFUtil.verifyContextNotNull(contexts);
+            final ValueFactory vf = con.getRepository().getValueFactory();
+            RDFParser rdfParser = new TurtleParser();
+            rdfParser.setValueFactory(vf);
 
-			RDFInserter rdfInserter = new RDFInserter(con);
-			rdfInserter.enforceContext(contexts);
-			rdfParser.setRDFHandler(rdfInserter);
+            rdfParser.setVerifyData(false);
+            rdfParser.setStopAtFirstError(true);
+            rdfParser.setDatatypeHandling(RDFParser.DatatypeHandling.IGNORE);
 
-			con.begin();
-			try {
-				rdfParser.parse(in, baseURI);
-				con.commit();
-			}
-			catch (RDFHandlerException e) {
-				con.rollback();
-				// RDFInserter only throws wrapped RepositoryExceptions
-				throw (RepositoryException)e.getCause();
-			}
-			catch (RuntimeException e) {
-				con.rollback();
-			}
-		}
-		finally {
-			in.close();
-		}
-	}
+            RDFInserter rdfInserter = new RDFInserter(con);
+            rdfInserter.enforceContext(contexts);
+            rdfParser.setRDFHandler(rdfInserter);
+
+            con.begin();
+            try {
+                rdfParser.parse(in, baseURI);
+                con.commit();
+            } catch (RDFHandlerException e) {
+                con.rollback();
+                // RDFInserter only throws wrapped RepositoryExceptions
+                throw (RepositoryException) e.getCause();
+            } catch (RuntimeException e) {
+                con.rollback();
+            }
+        } finally {
+            in.close();
+        }
+    }
 }

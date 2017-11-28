@@ -1,47 +1,47 @@
-<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<assembly xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
           xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
-  <id>bin</id>
-  <formats>
-    <format>dir</format>
-  </formats>
-  <dependencySets>
-    <dependencySet>
-      <unpack>false</unpack>
-      <scope>runtime</scope>
-      <outputDirectory>lib</outputDirectory>
-    </dependencySet>
-  </dependencySets>
+    <id>bin</id>
+    <formats>
+        <format>dir</format>
+    </formats>
+    <dependencySets>
+        <dependencySet>
+            <unpack>false</unpack>
+            <scope>runtime</scope>
+            <outputDirectory>lib</outputDirectory>
+        </dependencySet>
+    </dependencySets>
 
-  <fileSets>
-    <!-- Tutorial documents, sources and data. -->
-    <fileSet>
-      <directory>tutorials</directory>
-      <outputDirectory>tutorials</outputDirectory>
-      <excludes>
-        <exclude>**/target/**</exclude>
-      </excludes>
-    </fileSet>
+    <fileSets>
+        <!-- Tutorial documents, sources and data. -->
+        <fileSet>
+            <directory>tutorials</directory>
+            <outputDirectory>tutorials</outputDirectory>
+            <excludes>
+                <exclude>**/target/**</exclude>
+            </excludes>
+        </fileSet>
 
-    <!-- API documentation. -->
-    <fileSet>
-      <directory>doc</directory>
-      <outputDirectory>javadoc</outputDirectory>
-    </fileSet>     
+        <!-- API documentation. -->
+        <fileSet>
+            <directory>doc</directory>
+            <outputDirectory>javadoc</outputDirectory>
+        </fileSet>
 
-    <!-- We need a copy of the pom file.
-         It is included in the JAR, but there is a bug
-         in Maven and that file is not usable.
-         See https://issues.apache.org/jira/browse/MINSTALL-110.
-    
-         Note: do NOT try to include this in the 'files' section.
-	 Paths in that section are incorrectly resolved when
-         the pom.xml file is a symlink.
-    -->
-    <fileSet>
-      <includes>
-	<include>pom.xml</include>
-      </includes>
-    </fileSet>
-  </fileSets>
+        <!-- We need a copy of the pom file.
+             It is included in the JAR, but there is a bug
+             in Maven and that file is not usable.
+             See https://issues.apache.org/jira/browse/MINSTALL-110.
+
+             Note: do NOT try to include this in the 'files' section.
+         Paths in that section are incorrectly resolved when
+             the pom.xml file is a symlink.
+        -->
+        <fileSet>
+            <includes>
+                <include>pom.xml</include>
+            </includes>
+        </fileSet>
+    </fileSets>
 </assembly>

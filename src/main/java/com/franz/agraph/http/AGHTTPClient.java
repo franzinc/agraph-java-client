@@ -1,22 +1,15 @@
 /******************************************************************************
-** See the file LICENSE for the full license governing this code.
-******************************************************************************/
+ ** See the file LICENSE for the full license governing this code.
+ ******************************************************************************/
 
 package com.franz.agraph.http;
 
-import static com.franz.agraph.http.AGProtocol.AMOUNT_PARAM_NAME;
-import static com.franz.agraph.http.AGProtocol.OVERRIDE_PARAM_NAME;
-import static org.eclipse.rdf4j.http.protocol.Protocol.ACCEPT_PARAM_NAME;
-import static org.eclipse.rdf4j.http.protocol.Protocol.PROTOCOL;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.List;
-
+import com.franz.agraph.http.exception.AGHttpException;
+import com.franz.agraph.http.handler.AGErrorHandler;
+import com.franz.agraph.http.handler.AGResponseHandler;
+import com.franz.agraph.http.handler.AGStringHandler;
+import com.franz.agraph.http.handler.AGTQRHandler;
+import com.franz.agraph.repository.AGValueFactory;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpConnectionManager;
@@ -30,7 +23,6 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
-import org.apache.commons.httpclient.params.HttpClientParams;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 import org.eclipse.rdf4j.http.protocol.Protocol;
 import org.eclipse.rdf4j.http.protocol.UnauthorizedException;
@@ -40,384 +32,395 @@ import org.eclipse.rdf4j.query.resultio.TupleQueryResultFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.franz.agraph.http.exception.AGHttpException;
-import com.franz.agraph.http.handler.AGErrorHandler;
-import com.franz.agraph.http.handler.AGResponseHandler;
-import com.franz.agraph.http.handler.AGStringHandler;
-import com.franz.agraph.http.handler.AGTQRHandler;
-import com.franz.agraph.repository.AGValueFactory;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.franz.agraph.http.AGProtocol.AMOUNT_PARAM_NAME;
+import static com.franz.agraph.http.AGProtocol.OVERRIDE_PARAM_NAME;
+import static org.eclipse.rdf4j.http.protocol.Protocol.ACCEPT_PARAM_NAME;
 
 /**
  * Class responsible for handling HTTP connections.
- *
- * Uses an unlimited pool of connections to allow safe, concurrent access.
- *
+ * <p>
+ * Uses an unlimited pool of connections to allow safe, concurrent access.</p>
+ * <p>
  * Also contains methods for accessing AG services that operate above
- * the repository level - such as managing repositories.
+ * the repository level - such as managing repositories.</p>
  */
 public class AGHTTPClient implements AutoCloseable {
-	private static final Logger logger = LoggerFactory.getLogger(AGHTTPClient.class);
-	
-	private final String serverURL;
-	private final HttpClient httpClient;
+    private static final Logger logger = LoggerFactory.getLogger(AGHTTPClient.class);
 
-	private AuthScope authScope;
-	private String masqueradeAsUser;
-	
-	private boolean isClosed = false;
+    private final String serverURL;
+    private final HttpClient httpClient;
 
-	private HttpConnectionManager mManager = null;
+    private AuthScope authScope;
+    private String masqueradeAsUser;
 
-	private AGHTTPClient(String serverURL, HttpClient client) {
-		this.serverURL = serverURL.replaceAll("/$","");
-		this.httpClient = client;
-		if (logger.isDebugEnabled()) {
-			logger.debug("connect: " + serverURL + " " + client);
-		}
+    private boolean isClosed = false;
 
-	}
+    private HttpConnectionManager mManager = null;
 
-	public AGHTTPClient(String serverURL) {
-		this(serverURL, (MultiThreadedHttpConnectionManager)null);
-	}
+    private AGHTTPClient(String serverURL, HttpClient client) {
+        this.serverURL = serverURL.replaceAll("/$", "");
+        this.httpClient = client;
+        if (logger.isDebugEnabled()) {
+            logger.debug("connect: " + serverURL + " " + client);
+        }
 
-	public AGHTTPClient(String serverURL, HttpConnectionManager manager) {
-		this(serverURL, new HttpClient(manager == null ? createManager() : manager));
-		if (manager == null) {
-			mManager = this.getHttpClient().getHttpConnectionManager();
-		}
-	}
+    }
 
-	// This is used for clients created by the connection pool.
-	public AGHTTPClient(String serverURL, HttpConnectionManagerParams params) {
-		this(serverURL, createManager(params));
-	}
+    public AGHTTPClient(String serverURL) {
+        this(serverURL, (MultiThreadedHttpConnectionManager) null);
+    }
 
-	private static HttpConnectionManager createManager() {
-		return createManager(null);
-	}
+    public AGHTTPClient(String serverURL, HttpConnectionManager manager) {
+        this(serverURL, new HttpClient(manager == null ? createManager() : manager));
+        if (manager == null) {
+            mManager = this.getHttpClient().getHttpConnectionManager();
+        }
+    }
 
-	private static HttpConnectionManager createManager(HttpConnectionManagerParams params) {
-		// Use MultiThreadedHttpConnectionManager to allow concurrent access
-		// on HttpClient
-		final MultiThreadedHttpConnectionManager manager =
-			 new MultiThreadedHttpConnectionManager();
+    // This is used for clients created by the connection pool.
+    public AGHTTPClient(String serverURL, HttpConnectionManagerParams params) {
+        this(serverURL, createManager(params));
+    }
 
-    	if (params == null) {
-			params = new HttpConnectionManagerParams();
-		}
+    private static HttpConnectionManager createManager() {
+        return createManager(null);
+    }
 
-		// Allow "unlimited" concurrent connections to the same host (default is 2)
-		params.setDefaultMaxConnectionsPerHost(Integer.MAX_VALUE);
-		params.setMaxTotalConnections(Integer.MAX_VALUE);
-		manager.setParams(params);
-		return manager;
-	}
+    private static HttpConnectionManager createManager(HttpConnectionManagerParams params) {
+        // Use MultiThreadedHttpConnectionManager to allow concurrent access
+        // on HttpClient
+        final MultiThreadedHttpConnectionManager manager =
+                new MultiThreadedHttpConnectionManager();
 
-	@Override
-	public String toString() {
-		return "{" + super.toString()
-		+ " " + serverURL
-		+ " " + httpClient
-		+ "}";
-	}
+        if (params == null) {
+            params = new HttpConnectionManagerParams();
+        }
 
-	public String getServerURL() {
-		return serverURL;
-	}
+        // Allow "unlimited" concurrent connections to the same host (default is 2)
+        params.setDefaultMaxConnectionsPerHost(Integer.MAX_VALUE);
+        params.setMaxTotalConnections(Integer.MAX_VALUE);
+        manager.setParams(params);
+        return manager;
+    }
 
-	public HttpClient getHttpClient() {
-		return httpClient;
-	}
+    @Override
+    public String toString() {
+        return "{" + super.toString()
+                + " " + serverURL
+                + " " + httpClient
+                + "}";
+    }
 
-	public void post(String url, Header[] headers, NameValuePair[] params,
-			RequestEntity requestEntity, AGResponseHandler handler) throws AGHttpException {
-		PostMethod post = new PostMethod(url);
-		setDoAuthentication(post);
-		for (Header header : headers) {
-			post.addRequestHeader(header);
-		}
-		
-		if (System.getProperty("com.franz.agraph.http.useGzip","true").equals("true")) {
-		    post.addRequestHeader("Accept-encoding", "gzip");
-		}
-		// bug21953. Only write params to body if content-type is appropriate.
-		Header contentType = post.getRequestHeader("Content-Type");
-		if (requestEntity == null && ( contentType == null ||
-					       contentType.getValue().contains(Protocol.FORM_MIME_TYPE))) {
-			post.setRequestBody(params);
-		} else {
-			post.setQueryString(params);
-			post.setRequestEntity(requestEntity);
-		}
-		executeMethod(url, post, handler);
-	}
+    public String getServerURL() {
+        return serverURL;
+    }
 
-	/**
-	* Checks whether the specified status code is in the 2xx-range, indicating a
-	* successfull request.
-	*
-	* @return <tt>true</tt> if the status code is in the 2xx range
-	*/
-	private boolean is2xx(int statusCode) {
-		return statusCode >= 200 && statusCode < 300;
-	}
-	
-	public void get(String url, Header[] headers, NameValuePair[] params,
-			AGResponseHandler handler) throws AGHttpException {
-		GetMethod get = new GetMethod(url);
-		setDoAuthentication(get);
-		if (headers != null) {
-			for (Header header : headers) {
-				get.addRequestHeader(header);
-			}
-		}
-		if (System.getProperty("com.franz.agraph.http.useGzip","true").equals("true")) {
-		    get.addRequestHeader("Accept-encoding", "gzip");
-		}
-		if (params != null) {
-			get.setQueryString(params);
-		}
-		executeMethod(url, get, handler);
-	}
+    public HttpClient getHttpClient() {
+        return httpClient;
+    }
 
-	public void delete(String url, Header[] headers, NameValuePair[] params, AGResponseHandler handler)
-			throws AGHttpException {
-		DeleteMethod delete = new DeleteMethod(url);
-		setDoAuthentication(delete);
-		if (headers != null) {
-			for (Header header : headers) {
-				delete.addRequestHeader(header);
-			}
-		}
-		if (params != null) {
-			delete.setQueryString(params);
-		}
-		executeMethod(url, delete, handler);
-	}
+    public void post(String url, Header[] headers, NameValuePair[] params,
+                     RequestEntity requestEntity, AGResponseHandler handler) throws AGHttpException {
+        PostMethod post = new PostMethod(url);
+        setDoAuthentication(post);
+        for (Header header : headers) {
+            post.addRequestHeader(header);
+        }
 
-	public void put(String url, Header[] headers, NameValuePair[] params, RequestEntity requestEntity,AGResponseHandler handler) throws AGHttpException {
-		PutMethod put = new PutMethod(url);
-		setDoAuthentication(put);
-		if (headers != null) {
-			for (Header header : headers) {
-				put.addRequestHeader(header);
-			}
-		}
-		if (params != null) {
-			put.setQueryString(params);
-		}
-		if (requestEntity != null) {
-			put.setRequestEntity(requestEntity);
-		}
-		executeMethod(url, put, handler);
-	}
+        if (System.getProperty("com.franz.agraph.http.useGzip", "true").equals("true")) {
+            post.addRequestHeader("Accept-encoding", "gzip");
+        }
+        // bug21953. Only write params to body if content-type is appropriate.
+        Header contentType = post.getRequestHeader("Content-Type");
+        if (requestEntity == null && (contentType == null
+                || contentType.getValue().contains(Protocol.FORM_MIME_TYPE))) {
+            post.setRequestBody(params);
+        } else {
+            post.setQueryString(params);
+            post.setRequestEntity(requestEntity);
+        }
+        executeMethod(url, post, handler);
+    }
 
-	private void executeMethod(final String url,
-							   final HttpMethod method,
-							   final AGResponseHandler handler) throws AGHttpException {
-		try {
-			int httpCode = getHttpClient().executeMethod(method);
-			if (httpCode == HttpURLConnection.HTTP_OK) {
-				if (handler!=null) handler.handleResponse(method);
-			} else if (httpCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
-				throw new AGHttpException(new UnauthorizedException());
-			} else if (!is2xx(httpCode)) {
-				AGErrorHandler errHandler = new AGErrorHandler();
-				errHandler.handleResponse(method);
-				throw errHandler.getResult();
-			}
-		} catch (IOException e) {
-			throw new AGHttpException(e);
-		} finally {
-			if (handler == null || handler.releaseConnection()) {
-				releaseConnection(method);
-			}
-		}
-	}
+    /**
+     * Checks whether the specified status code is in the 2xx-range, indicating a
+     * successfull request.
+     *
+     * @return <tt>true</tt> if the status code is in the 2xx range
+     */
+    private boolean is2xx(int statusCode) {
+        return statusCode >= 200 && statusCode < 300;
+    }
 
-	/*-------------------------*
-	 * General utility methods *
-	 *-------------------------*/
+    public void get(String url, Header[] headers, NameValuePair[] params,
+                    AGResponseHandler handler) throws AGHttpException {
+        GetMethod get = new GetMethod(url);
+        setDoAuthentication(get);
+        if (headers != null) {
+            for (Header header : headers) {
+                get.addRequestHeader(header);
+            }
+        }
+        if (System.getProperty("com.franz.agraph.http.useGzip", "true").equals("true")) {
+            get.addRequestHeader("Accept-encoding", "gzip");
+        }
+        if (params != null) {
+            get.setQueryString(params);
+        }
+        executeMethod(url, get, handler);
+    }
 
-	/**
-	 * Set the username and password for authentication with the remote server.
-	 * 
-	 * @param username  the username
-	 * @param password  the password
-	 */
-	public void setUsernameAndPassword(String username, String password) {
-		
-		if (username != null && password != null) {
-			logger.debug("Setting username '{}' and password for server at {}.", username, serverURL);
-			try {
-				URL server = new URL(serverURL);
-				authScope = new AuthScope(server.getHost(), AuthScope.ANY_PORT);
-				httpClient.getState().setCredentials(authScope,
-						new UsernamePasswordCredentials(username, password));
-				httpClient.getParams().setAuthenticationPreemptive(true);
-			} catch (MalformedURLException e) {
-				logger.warn("Unable to set username and password for malformed URL " + serverURL, e);
-			}
-		} else {
-			authScope = null;
-			httpClient.getState().clearCredentials();
-			httpClient.getParams().setAuthenticationPreemptive(false);
-		}
-	}
-	
-	/**
-	 * Sets the AG user for X-Masquerade-As-User requests.
-	 * 
-	 * For AG superusers only.  This allows AG superusers to run requests as
-	 * another user in a dedicated session.
-	 *  
-	 * @param user  the user for X-Masquerade-As-User requests  
-	 */
-	public void setMasqueradeAsUser(String user) {
-		masqueradeAsUser = user;
-	}
-	
-	protected final void setDoAuthentication(HttpMethod method) {
-		if (authScope != null
-				&& httpClient.getState().getCredentials(authScope) != null) {
-			method.setDoAuthentication(true);
-		} else {
-			//method.setDoAuthentication(false);
-		}
-		if (masqueradeAsUser != null) {
-			method.addRequestHeader(new Header("x-masquerade-as-user", masqueradeAsUser));
-		}
-		// TODO probably doesn't belong here, need another method that
-		// HttpMethod objects pass through.
-		method.addRequestHeader(new Header("Connection", "keep-alive"));
-	}
+    public void delete(String url, Header[] headers, NameValuePair[] params, AGResponseHandler handler)
+            throws AGHttpException {
+        DeleteMethod delete = new DeleteMethod(url);
+        setDoAuthentication(delete);
+        if (headers != null) {
+            for (Header header : headers) {
+                delete.addRequestHeader(header);
+            }
+        }
+        if (params != null) {
+            delete.setQueryString(params);
+        }
+        executeMethod(url, delete, handler);
+    }
 
-	protected final void releaseConnection(HttpMethod method) {
-		try {
-			// Read the entire response body to enable the reuse of the
-			// connection
-			InputStream responseStream = method.getResponseBodyAsStream();
-			if (responseStream != null) {
-				while (responseStream.read() >= 0) {
-					// do nothing
-				}
-			}
+    public void put(String url, Header[] headers, NameValuePair[] params, RequestEntity requestEntity, AGResponseHandler handler) throws AGHttpException {
+        PutMethod put = new PutMethod(url);
+        setDoAuthentication(put);
+        if (headers != null) {
+            for (Header header : headers) {
+                put.addRequestHeader(header);
+            }
+        }
+        if (params != null) {
+            put.setQueryString(params);
+        }
+        if (requestEntity != null) {
+            put.setRequestEntity(requestEntity);
+        }
+        executeMethod(url, put, handler);
+    }
 
-			method.releaseConnection();
-		} catch (IOException e) {
-			logger.warn("I/O error upon releasing connection", e);
-		}
-	}
+    private void executeMethod(final String url,
+                               final HttpMethod method,
+                               final AGResponseHandler handler) throws AGHttpException {
+        try {
+            int httpCode = getHttpClient().executeMethod(method);
+            if (httpCode == HttpURLConnection.HTTP_OK) {
+                if (handler != null) {
+                    handler.handleResponse(method);
+                }
+            } else if (httpCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
+                throw new AGHttpException(new UnauthorizedException());
+            } else if (!is2xx(httpCode)) {
+                AGErrorHandler errHandler = new AGErrorHandler();
+                errHandler.handleResponse(method);
+                throw errHandler.getResult();
+            }
+        } catch (IOException e) {
+            throw new AGHttpException(e);
+        } finally {
+            if (handler == null || handler.releaseConnection()) {
+                releaseConnection(method);
+            }
+        }
+    }
 
-	/*-----------*
-	 * Services  *
-	 *-----------*/
+    /*-------------------------*
+     * General utility methods *
+     *-------------------------*/
 
-	public void putCatalog(String catalogURL) throws AGHttpException {
-		if (logger.isDebugEnabled()) logger.debug("putCatalog: " + catalogURL);
-		Header[] headers = new Header[0];
-		NameValuePair[] params = new NameValuePair[0];
-		put(catalogURL,headers,params,null,null);
-	}
-	
-	public void deleteCatalog(String catalogURL) throws AGHttpException {
-		Header[] headers = new Header[0];
-		NameValuePair[] params = new NameValuePair[0];
-		delete(catalogURL, headers, params, null);
-	}
-	
-	public void putRepository(String repositoryURL) throws AGHttpException {
-		if (logger.isDebugEnabled()) logger.debug("putRepository: " + repositoryURL);
-		Header[] headers = new Header[0];
-		NameValuePair[] params = { new NameValuePair(OVERRIDE_PARAM_NAME, "false") };
-		put(repositoryURL,headers,params,null,null);
-	}
+    /**
+     * Set the username and password for authentication with the remote server.
+     *
+     * @param username the username
+     * @param password the password
+     */
+    public void setUsernameAndPassword(String username, String password) {
 
-	public void deleteRepository(String repositoryURL) throws AGHttpException {
-		Header[] headers = new Header[0];
-		NameValuePair[] params = new NameValuePair[0];
-		delete(repositoryURL, headers, params, null);
-	}
+        if (username != null && password != null) {
+            logger.debug("Setting username '{}' and password for server at {}.", username, serverURL);
+            try {
+                URL server = new URL(serverURL);
+                authScope = new AuthScope(server.getHost(), AuthScope.ANY_PORT);
+                httpClient.getState().setCredentials(authScope,
+                        new UsernamePasswordCredentials(username, password));
+                httpClient.getParams().setAuthenticationPreemptive(true);
+            } catch (MalformedURLException e) {
+                logger.warn("Unable to set username and password for malformed URL " + serverURL, e);
+            }
+        } else {
+            authScope = null;
+            httpClient.getState().clearCredentials();
+            httpClient.getParams().setAuthenticationPreemptive(false);
+        }
+    }
 
-	public TupleQueryResult getTupleQueryResult(String url) throws AGHttpException {
-		Header[] headers = { new Header(ACCEPT_PARAM_NAME, TupleQueryResultFormat.SPARQL.getDefaultMIMEType()) };
-		NameValuePair[] params = new NameValuePair[0];
-		TupleQueryResultBuilder builder = new TupleQueryResultBuilder();
-		// TODO: avoid using AGValueFactory(null)
-		AGTQRHandler handler = new AGTQRHandler(TupleQueryResultFormat.SPARQL,builder,new AGValueFactory(null),false);
-		get(url, headers, params, handler);
-		return builder.getQueryResult();
-	}
-	
-	public String[] getBlankNodes(String repositoryURL, int amount)
-			throws AGHttpException {
-		String url = AGProtocol.getBlankNodesURL(repositoryURL);
-		Header[] headers = new Header[0];
-		NameValuePair[] data = { new NameValuePair(AMOUNT_PARAM_NAME, Integer
-				.toString(amount)) };
+    /**
+     * Sets the AG user for X-Masquerade-As-User requests.
+     * <p>
+     * For AG superusers only.  This allows AG superusers to run requests as
+     * another user in a dedicated session.</p>
+     *
+     * @param user the user for X-Masquerade-As-User requests
+     */
+    public void setMasqueradeAsUser(String user) {
+        masqueradeAsUser = user;
+    }
 
-		AGStringHandler handler = new AGStringHandler();
-		post(url, headers, data, null, handler);
-		return handler.getResult().split("\n");
-	}
+    protected final void setDoAuthentication(HttpMethod method) {
+        if (authScope != null
+                && httpClient.getState().getCredentials(authScope) != null) {
+            method.setDoAuthentication(true);
+        } else {
+            //method.setDoAuthentication(false);
+        }
+        if (masqueradeAsUser != null) {
+            method.addRequestHeader(new Header("x-masquerade-as-user", masqueradeAsUser));
+        }
+        // TODO probably doesn't belong here, need another method that
+        // HttpMethod objects pass through.
+        method.addRequestHeader(new Header("Connection", "keep-alive"));
+    }
 
-	public String getString(String url) throws AGHttpException {
-		Header[] headers = new Header[0];
-		NameValuePair[] data = {};
-		AGStringHandler handler = new AGStringHandler();
-		get(url, headers, data, handler);
-		return handler.getResult();
-	}
-	
-	public String[] getStringArray(String url) throws AGHttpException {
-		String result = getString(url);
-		if (result.equals("")) {
-			return new String[0];
-		} else {
-			return result.split("\n");
-		}
-	}
-	
-	public List<String> getListOfStrings(String url) throws AGHttpException {
-		return Arrays.asList(getStringArray(url));
-	}
-	
-	public String openSession(String spec, boolean autocommit) throws AGHttpException {
-		String url = AGProtocol.getSessionURL(serverURL);
-		Header[] headers = new Header[0];
-		NameValuePair[] data = { new NameValuePair("store", spec),
-								 new NameValuePair(AGProtocol.AUTOCOMMIT_PARAM_NAME,
-												   Boolean.toString(autocommit)),
-								 new NameValuePair(AGProtocol.LIFETIME_PARAM_NAME,
-												   Long.toString(3600)) }; // TODO have some kind of policy for this
-		AGStringHandler handler = new AGStringHandler();
-		post(url, headers, data, null, handler);
-		return handler.getResult();
-	}
+    protected final void releaseConnection(HttpMethod method) {
+        try {
+            // Read the entire response body to enable the reuse of the
+            // connection
+            InputStream responseStream = method.getResponseBodyAsStream();
+            if (responseStream != null) {
+                while (responseStream.read() >= 0) {
+                    // do nothing
+                }
+            }
+
+            method.releaseConnection();
+        } catch (IOException e) {
+            logger.warn("I/O error upon releasing connection", e);
+        }
+    }
+
+    /*-----------*
+     * Services  *
+     *-----------*/
+
+    public void putCatalog(String catalogURL) throws AGHttpException {
+        if (logger.isDebugEnabled()) {
+            logger.debug("putCatalog: " + catalogURL);
+        }
+        Header[] headers = new Header[0];
+        NameValuePair[] params = new NameValuePair[0];
+        put(catalogURL, headers, params, null, null);
+    }
+
+    public void deleteCatalog(String catalogURL) throws AGHttpException {
+        Header[] headers = new Header[0];
+        NameValuePair[] params = new NameValuePair[0];
+        delete(catalogURL, headers, params, null);
+    }
+
+    public void putRepository(String repositoryURL) throws AGHttpException {
+        if (logger.isDebugEnabled()) {
+            logger.debug("putRepository: " + repositoryURL);
+        }
+        Header[] headers = new Header[0];
+        NameValuePair[] params = {new NameValuePair(OVERRIDE_PARAM_NAME, "false")};
+        put(repositoryURL, headers, params, null, null);
+    }
+
+    public void deleteRepository(String repositoryURL) throws AGHttpException {
+        Header[] headers = new Header[0];
+        NameValuePair[] params = new NameValuePair[0];
+        delete(repositoryURL, headers, params, null);
+    }
+
+    public TupleQueryResult getTupleQueryResult(String url) throws AGHttpException {
+        Header[] headers = {new Header(ACCEPT_PARAM_NAME, TupleQueryResultFormat.SPARQL.getDefaultMIMEType())};
+        NameValuePair[] params = new NameValuePair[0];
+        TupleQueryResultBuilder builder = new TupleQueryResultBuilder();
+        // TODO: avoid using AGValueFactory(null)
+        AGTQRHandler handler = new AGTQRHandler(TupleQueryResultFormat.SPARQL, builder, new AGValueFactory(null), false);
+        get(url, headers, params, handler);
+        return builder.getQueryResult();
+    }
+
+    public String[] getBlankNodes(String repositoryURL, int amount)
+            throws AGHttpException {
+        String url = AGProtocol.getBlankNodesURL(repositoryURL);
+        Header[] headers = new Header[0];
+        NameValuePair[] data = {new NameValuePair(AMOUNT_PARAM_NAME, Integer
+                .toString(amount))};
+
+        AGStringHandler handler = new AGStringHandler();
+        post(url, headers, data, null, handler);
+        return handler.getResult().split("\n");
+    }
+
+    public String getString(String url) throws AGHttpException {
+        Header[] headers = new Header[0];
+        NameValuePair[] data = {};
+        AGStringHandler handler = new AGStringHandler();
+        get(url, headers, data, handler);
+        return handler.getResult();
+    }
+
+    public String[] getStringArray(String url) throws AGHttpException {
+        String result = getString(url);
+        if (result.equals("")) {
+            return new String[0];
+        } else {
+            return result.split("\n");
+        }
+    }
+
+    public List<String> getListOfStrings(String url) throws AGHttpException {
+        return Arrays.asList(getStringArray(url));
+    }
+
+    public String openSession(String spec, boolean autocommit) throws AGHttpException {
+        String url = AGProtocol.getSessionURL(serverURL);
+        Header[] headers = new Header[0];
+        NameValuePair[] data = {new NameValuePair("store", spec),
+                new NameValuePair(AGProtocol.AUTOCOMMIT_PARAM_NAME,
+                        Boolean.toString(autocommit)),
+                new NameValuePair(AGProtocol.LIFETIME_PARAM_NAME,
+                        Long.toString(3600))}; // TODO have some kind of policy for this
+        AGStringHandler handler = new AGStringHandler();
+        post(url, headers, data, null, handler);
+        return handler.getResult();
+    }
 
     @Override
     public void close() {
         logger.debug("close: " + serverURL + " " + mManager);
         if (mManager instanceof MultiThreadedHttpConnectionManager) {
-			((MultiThreadedHttpConnectionManager)mManager).shutdown();
-			mManager = null;
-		}
+            ((MultiThreadedHttpConnectionManager) mManager).shutdown();
+            mManager = null;
+        }
         isClosed = true;
     }
-    
+
     boolean isClosed() {
-    	return isClosed;
+        return isClosed;
     }
 
-	public String[] generateURIs(String repositoryURL, String namespace,
-			int amount) throws AGHttpException {
-		String url = repositoryURL + "/encodedIds";
-		Header[] headers = new Header[0];
-		NameValuePair[] data = { new NameValuePair("prefix", namespace),
-				new NameValuePair(AMOUNT_PARAM_NAME, Integer.toString(amount)) };
-		AGStringHandler handler = new AGStringHandler();
-		post(url, headers, data, null, handler);
-		return handler.getResult().split("\n");
-	}
+    public String[] generateURIs(String repositoryURL, String namespace,
+                                 int amount) throws AGHttpException {
+        String url = repositoryURL + "/encodedIds";
+        Header[] headers = new Header[0];
+        NameValuePair[] data = {new NameValuePair("prefix", namespace),
+                new NameValuePair(AMOUNT_PARAM_NAME, Integer.toString(amount))};
+        AGStringHandler handler = new AGStringHandler();
+        post(url, headers, data, null, handler);
+        return handler.getResult().split("\n");
+    }
 }

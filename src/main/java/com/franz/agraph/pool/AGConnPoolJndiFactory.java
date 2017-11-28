@@ -1,12 +1,12 @@
 /******************************************************************************
-** See the file LICENSE for the full license governing this code.
-******************************************************************************/
+ ** See the file LICENSE for the full license governing this code.
+ ******************************************************************************/
 
 package com.franz.agraph.pool;
 
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Map;
+import com.franz.agraph.repository.AGRepository;
+import com.franz.agraph.repository.AGRepositoryConnection;
+import com.franz.agraph.repository.AGServer;
 
 import javax.naming.Context;
 import javax.naming.Name;
@@ -14,41 +14,36 @@ import javax.naming.RefAddr;
 import javax.naming.Reference;
 import javax.naming.spi.ObjectFactory;
 import javax.servlet.ServletContextListener;
-
-import com.franz.agraph.repository.AGRepository;
-import com.franz.agraph.repository.AGRepositoryConnection;
-import com.franz.agraph.repository.AGServer;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Map;
 
 /**
  * JNDI factory for {@link AGConnPool}.
- * 
+ *
  * <p>The Commons-Pool library is required to use this package:
  * <a href="http://commons.apache.org/pool/">Apache Commons Pool, commons-pool-1.5.6.jar</a>.
  * Note, this jar along with the agraph-java-client jar and all of its dependencies
- * must be in the webserver's library for it to be able to load.
- * </p>
- * 
+ * must be in the webserver's library for it to be able to load.</p>
+ *
  * <p>The properties supported for the connections are specified
- * by {@link AGConnProp}.
- * </p>
- * 
+ * by {@link AGConnProp}.</p>
+ *
  * <p>The properties supported for the pooling are specified
- * by {@link AGPoolProp}.
- * </p>
- * 
+ * by {@link AGPoolProp}.</p>
+ *
  * <p>Note, when {@link AutoCloseable#close()} is called
  * on an {@link AGConnPool},
  * connections that have not been returned will not be closed.
  * Also note, when a {@link AGRepositoryConnection} from the pool is closed,
  * the {@link AGRepository} and {@link AGServer} will also be closed
- * since these are not shared with other {@link AGRepositoryConnection}s.
- * </p>
- * 
+ * since these are not shared with other {@link AGRepositoryConnection}s.</p>
+ *
  * <p>
  * Example Tomcat JNDI configuration, based on
  * <a href="http://tomcat.apache.org/tomcat-7.0-doc/jndi-resources-howto.html#Adding_Custom_Resource_Factories"
  * >Tomcat HOW-TO create custom resource factories</a>:
- * In /WEB-INF/web.xml:
+ * In /WEB-INF/web.xml:</p>
  * <pre>{@code
  * <resource-env-ref>
  *     <description>AllegroGraph connection pool</description>
@@ -56,7 +51,7 @@ import com.franz.agraph.repository.AGServer;
  *     <resource-env-ref-type>com.franz.agraph.pool.AGConnPool</resource-env-ref-type>
  * </resource-env-ref>
  * }</pre>
- * Your code:
+ * <p>Your code:</p>
  * <pre>{@code
  * Context initCtx = new InitialContext();
  * Context envCtx = (Context) initCtx.lookup("java:comp/env");
@@ -71,7 +66,7 @@ import com.franz.agraph.repository.AGServer;
  *     pool.returnObject(conn);
  * }
  * }</pre>
- * Tomcat's resource factory:
+ * <p>Tomcat's resource factory:</p>
  * <pre>{@code
  * <Context ...>
  *     ...
@@ -93,7 +88,7 @@ import com.franz.agraph.repository.AGServer;
  *     ...
  * </Context>
  * }</pre>
- * 
+ *
  * <p>Closing the connection pool is important because server sessions will
  * stay active until {@link AGConnProp#sessionLifetime}.
  * The option to use a Runtime shutdownHook is built-in with {@link AGPoolProp#shutdownHook}.
@@ -101,53 +96,52 @@ import com.franz.agraph.repository.AGServer;
  * agraph jar is deployed within your webapp and not with the webserver.
  * With tomcat, a <a href="http://tomcat.apache.org/tomcat-6.0-doc/config/context.html#Lifecycle_Listeners"
  * >Lifecycle Listener</a> can be configured, but the implementation to do this
- * is not included in this library.
- * </p>
- * 
+ * is not included in this library.</p>
+ *
  * @since v4.3.3
  */
 public class AGConnPoolJndiFactory implements ObjectFactory {
-	
-	/**
-	 * From the obj {@link Reference}, gets the {@link RefAddr}
-	 * names and values, converts to Maps and
-	 * returns {@link AGConnPool#create(Object...)}.
-	 */
-	@Override
-	public Object getObjectInstance(Object obj,
-			Name name,
-			Context nameCtx,
-			Hashtable<?,?> environment)
-	throws Exception {
-		if (!(obj instanceof Reference)) {
-			return null;
-		}
-		Reference ref = (Reference) obj;
-		if (! AGConnPool.class.getName().equals(ref.getClassName())) {
-			return null;
-		}
-		Map<AGConnProp, String> connProps = (Map<AGConnProp, String>) refToMap(ref, AGConnProp.values());
-		Map<AGPoolProp, String> poolProps = (Map<AGPoolProp, String>) refToMap(ref, AGPoolProp.values());
-		return AGConnPool.create(connProps, poolProps);
-	}
 
-	/**
-	 * @param values enum values
-	 * @return map suitable for {@link AGConnPool#create(Map, Map)}
-	 */
-	private static Map<? extends Enum, String> refToMap(Reference ref, Enum[] values) {
-		Map<Enum, String> props = new HashMap<Enum, String>();
-		for (Enum prop : values) {
-			RefAddr ra = ref.get(prop.name());
-			if (ra == null) {
-				ra = ref.get(prop.name().toLowerCase());
-			}
-			if (ra != null) {
-				String propertyValue = ra.getContent().toString();
-				props.put(prop, propertyValue);
-			}
-		}
-		return props;
-	}
-	
+    /**
+     * @param values enum values
+     * @return map suitable for {@link AGConnPool#create(Map, Map)}
+     */
+    private static Map<? extends Enum, String> refToMap(Reference ref, Enum[] values) {
+        Map<Enum, String> props = new HashMap<Enum, String>();
+        for (Enum prop : values) {
+            RefAddr ra = ref.get(prop.name());
+            if (ra == null) {
+                ra = ref.get(prop.name().toLowerCase());
+            }
+            if (ra != null) {
+                String propertyValue = ra.getContent().toString();
+                props.put(prop, propertyValue);
+            }
+        }
+        return props;
+    }
+
+    /**
+     * From the obj {@link Reference}, gets the {@link RefAddr}
+     * names and values, converts to Maps and
+     * returns {@link AGConnPool#create(Object...)}.
+     */
+    @Override
+    public Object getObjectInstance(Object obj,
+                                    Name name,
+                                    Context nameCtx,
+                                    Hashtable<?, ?> environment)
+            throws Exception {
+        if (!(obj instanceof Reference)) {
+            return null;
+        }
+        Reference ref = (Reference) obj;
+        if (!AGConnPool.class.getName().equals(ref.getClassName())) {
+            return null;
+        }
+        Map<AGConnProp, String> connProps = (Map<AGConnProp, String>) refToMap(ref, AGConnProp.values());
+        Map<AGPoolProp, String> poolProps = (Map<AGPoolProp, String>) refToMap(ref, AGPoolProp.values());
+        return AGConnPool.create(connProps, poolProps);
+    }
+
 }

@@ -90,8 +90,8 @@ public class Main {
         final XMLOutputter outputter = new XMLOutputter(Format.getRawFormat());
         outputter.getFormat().setLineSeparator(LineSeparator.UNIX);
         try (final FileOutputStream out = new FileOutputStream(path)) {
-		outputter.output(doc, out);
-	    } catch (IOException e) {
+        outputter.output(doc, out);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -110,10 +110,10 @@ public class Main {
 
         try (final InputStream input = new FileInputStream(file);
              final Reader reader = new InputStreamReader(input, charset)) {
-		while ((read = reader.read(buffer)) != -1) {
-		    builder.append(buffer, 0, read);
-		}
-	    } catch (final IOException e) {
+        while ((read = reader.read(buffer)) != -1) {
+            builder.append(buffer, 0, read);
+        }
+        } catch (final IOException e) {
             throw new RuntimeException(e);
         }
 
@@ -142,8 +142,8 @@ public class Main {
     private static void rewrite(final File file, final String newText, final Charset charset) {
         try (final OutputStream output = new FileOutputStream(file);
              final Writer writer = new OutputStreamWriter(output, charset)) {
-		writer.write(newText);
-	    } catch (final IOException e) {
+        writer.write(newText);
+        } catch (final IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -260,7 +260,7 @@ public class Main {
 
         for (final File tutorialPom : findTutorials(agraphDir)) {
             transform(tutorialPom,
-		      "/project/dependencies/dependency/version[../artifactId/text()=\"agraph-java-client\"]",
+              "/project/dependencies/dependency/version[../artifactId/text()=\"agraph-java-client\"]",
                     replaceWith(releaseVersion));
         }
     }

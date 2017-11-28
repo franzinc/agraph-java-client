@@ -8,10 +8,10 @@
  * with extensions for
  * <a href="http://www.franz.com/agraph/support/documentation/current/agraph-introduction.html"
  * target="_top">AllegroGraph</a> features.
- * 
+ *
  * <p>Initiate a connection to an AllegroGraph server starting with
  * {@link com.franz.agraph.repository.AGServer#AGServer(String, String, String)}.</p>
- * 
+ *
  * <p>See also:</p>
  * <ul>
  *   <li><a href="http://www.franz.com/agraph/support/documentation/current/java-tutorial/java-tutorial.html"
