@@ -1,5 +1,5 @@
 #
-# AllegroGraph configuration for a callimachus repository
+# AllegroGraph configuration for a generic repository
 #
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
@@ -7,13 +7,13 @@
 @prefix agrepo: <http://franz.com/agraph/repository/config#>.
 
 [] a rep:Repository ;
-   rep:repositoryID "callimachus" ;
-   rdfs:label "Callimachus Repository" ;
+   rep:repositoryID "generic" ;
+   rdfs:label "Generic Repository" ;
    rep:repositoryImpl [
       rep:repositoryType "allegrograph:AGRepository" ;
       agrepo:serverUrl <http://localhost:10035>;
       agrepo:username "test";
       agrepo:password "xyzzy";
       agrepo:catalogId "java-catalog";
-      agrepo:repositoryId "callimachus";
+      agrepo:repositoryId "generic";
    ].

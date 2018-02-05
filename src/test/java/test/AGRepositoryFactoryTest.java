@@ -52,7 +52,6 @@ public class AGRepositoryFactoryTest extends AGAbstractTest {
         config.setPassword(AGAbstractTest.password());
         Repository repo = factory.getRepository(config);
         Assert.assertEquals(0, repo.getConnection().size());
-        Assert.assertTrue(cat.hasRepository("callimachus"));
         Model graph2 = new LinkedHashModel();
         config.export(graph2);
         Assert.assertEquals(6, graph2.size());
@@ -78,7 +77,6 @@ public class AGRepositoryFactoryTest extends AGAbstractTest {
         repo.initialize();
         closeLater(repo::shutDown);
         Assert.assertEquals(0, repo.getConnection().size());
-        Assert.assertTrue(cat.hasRepository("callimachus"));
     }
 
     private Model parseTurtleGraph(final String configFile) throws IOException,

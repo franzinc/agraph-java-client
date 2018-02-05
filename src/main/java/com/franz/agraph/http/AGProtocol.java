@@ -443,11 +443,6 @@ public class AGProtocol extends Protocol {
     public static final String BEGIN = "begin";
 
     /**
-     * Relative location of the callimachus service.
-     */
-    public static final String CALLIMACHUS = "callimachus";
-
-    /**
      * Relative location of the attribute definition service
      */
     public static final String DEFINE_ATTRIBUTE_LOCATION = "attributes/definitions";
