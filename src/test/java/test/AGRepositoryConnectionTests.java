@@ -12,6 +12,9 @@ import com.franz.agraph.repository.AGRDFFormat;
 import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
+import com.franz.agraph.repository.AGServerVersion;
+import com.franz.agraph.repository.AGXid;
+
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.URI;
@@ -45,6 +48,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
+import java.util.Arrays;
+import java.util.Random;
+
+import javax.transaction.xa.XAException;
+import javax.transaction.xa.XAResource;
+import javax.transaction.xa.Xid;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -1056,4 +1065,128 @@ public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
     @SuiteClasses( {AGRepositoryConnectionTests.class})
     public static class Broken {
     }
+
+    private class TestXid implements Xid {
+
+        private int formatId = 123;
+        private byte[] branchQualifier;
+        private byte[] globalTransactionId;
+
+        public TestXid() {
+            this.branchQualifier     = this.makeRandomByteArray(MAXBQUALSIZE);
+            this.globalTransactionId = this.makeRandomByteArray(MAXGTRIDSIZE);
+        }
+
+        private byte[] makeRandomByteArray(int size) {
+            // create random object
+            Random rand = new Random();
+
+            // create byte array
+            byte[] nbyte = new byte[size];
+
+            // put the next byte in the array
+            rand.nextBytes(nbyte);
+
+            return nbyte;
+        }
+
+        @Override
+        public byte[] getBranchQualifier() {
+            return branchQualifier;
+        }
+
+        @Override
+        public int getFormatId() {
+            return formatId;
+        }
+
+        @Override
+        public byte[] getGlobalTransactionId() {
+            return globalTransactionId;
+        }
+
+        @Override
+        public boolean equals (Object other) {
+            if (other instanceof AGXid) {
+                AGXid xid = (AGXid)other;
+                
+                return xid.getFormatId() == getFormatId()
+                        && Arrays.equals(xid.getGlobalTransactionId(), getGlobalTransactionId())
+                        && Arrays.equals(xid.getBranchQualifier(), getBranchQualifier());
+                
+            } else {
+                return false;
+            }
+        }
+        
+    }
+
+    private void testXAResourceCommon(AGRepositoryConnection conn, boolean twoPhase, boolean abort) 
+            throws XAException {
+    
+        // This will only work with AG 6.5.0 and up.
+        if (conn.getServer().getComparableVersion().compareTo(new AGServerVersion("6.5.0")) >= 0) {
+            XAResource xares = conn.getXAResource();
+
+            conn.setAutoCommit(false);  
+
+            TestXid xid = new TestXid();
+
+            long beforeSize = conn.size();
+
+            xares.start(xid, XAResource.TMNOFLAGS); 
+            conn.add(alice, name, nameAlice);
+            assertEquals(1+beforeSize, conn.size());
+            xares.end(xid, XAResource.TMSUCCESS);
+
+            if (twoPhase) {
+                // Prepare
+                xares.prepare(xid);
+
+                Xid[] preparedXids = xares.recover(XAResource.TMSTARTRSCAN);
+                assertEquals(1, preparedXids.length);
+                if (preparedXids.length == 1) {
+                    assertTrue(xid.equals(preparedXids[0]));
+                }
+            }
+                
+            if (abort) {
+                if (twoPhase) {
+                    xares.rollback(xid);
+                } else {
+                    conn.rollback();
+                }
+                assertEquals(beforeSize, conn.size());
+            } else {
+                if (twoPhase) {
+                    xares.commit(xid, false);
+                } else {
+                    xares.commit(xid, true);
+                }
+                assertEquals(1+beforeSize, conn.size());
+                assertEquals(0, xares.recover(XAResource.TMSTARTRSCAN).length);
+            }
+        }
+    }
+    
+    @Test
+    public void testXAResourceRollback() throws Exception {
+        AGRepositoryConnection conn = (AGRepositoryConnection)testCon;
+        
+        testXAResourceCommon(conn, true, true);
+    }           
+
+    @Test
+    public void testXAResourceSinglePhaseCommit() throws Exception {
+        AGRepositoryConnection conn = (AGRepositoryConnection)testCon;
+        
+        testXAResourceCommon(conn, false, false);
+    }           
+
+    @Test
+    public void testXAResourceTwoPhaseCommit() throws Exception {
+        AGRepositoryConnection conn = (AGRepositoryConnection)testCon;
+
+        testXAResourceCommon(conn, true, false);
+    }           
 }

@@ -6,6 +6,7 @@ package com.franz.agraph.http;
 
 import com.franz.agraph.http.exception.AGCustomStoredProcException;
 import com.franz.agraph.http.exception.AGHttpException;
+import com.franz.agraph.http.handler.AGJSONArrayHandler;
 import com.franz.agraph.http.handler.AGJSONHandler;
 import com.franz.agraph.http.handler.AGLongHandler;
 import com.franz.agraph.http.handler.AGRDFHandler;
@@ -21,9 +22,11 @@ import com.franz.agraph.repository.AGSpinFunction;
 import com.franz.agraph.repository.AGSpinMagicProperty;
 import com.franz.agraph.repository.AGUpdate;
 import com.franz.agraph.repository.AGValueFactory;
+import com.franz.agraph.repository.AGXid;
 import com.franz.agraph.repository.repl.DurabilityLevel;
 import com.franz.agraph.repository.repl.DurabilityVisitor;
 import com.franz.agraph.repository.repl.TransactionSettings;
+import org.apache.commons.codec.DecoderException;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
@@ -76,6 +79,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import javax.transaction.xa.Xid;
 
 /**
  * The HTTP layer for interacting with AllegroGraph.
@@ -857,6 +861,40 @@ public class AGHttpRepoClient implements AutoCloseable {
         uploadCommitPeriod = period;
     }
 
+    public enum CommitPhase {
+        PREPARE("prepare"), COMMIT("commit");
+
+        private String string;
+
+        CommitPhase(String string) {
+            this.string = string;
+        }
+
+        public String toString() {
+            return string;
+        }
+
+    }
+
+    /**
+     * Prepares or finalizes a previous prepared commit depending on the value of
+     * phase.
+     *
+     * @param phase CommitPhase.PREPARE or CommitPhase.COMMIT
+     * @param xid The transaction xid
+     * @throws AGHttpException if an error occurs.
+     */
+    public void commit(CommitPhase phase, Xid xid) throws AGHttpException {
+        String url = getRoot() + "/" + AGProtocol.COMMIT;
+
+        List<NameValuePair> params = new ArrayList<NameValuePair>(2);
+
+        params.add(new NameValuePair(AGProtocol.COMMIT_PHASE, phase.toString()));
+        params.add(new NameValuePair(AGProtocol.XID, new AGXid(xid).toString()));
+
+        post(url, null, params, (RequestEntity) null, null);
+    }
+
     public void commit() throws AGHttpException {
         String url = getRoot() + "/" + AGProtocol.COMMIT;
 
@@ -867,6 +905,47 @@ public class AGHttpRepoClient implements AutoCloseable {
         String url = getRoot() + "/" + AGProtocol.ROLLBACK;
 
         post(url, null, null, (RequestEntity) null, null);
+    }
+
+    /**
+     * Aborts a previously prepared commit
+     * @param xid The transaction id of the prepared commit to abort.
+     * @throws AGHttpException if an error occurs.
+     */
+
+    public void rollback(Xid xid) throws AGHttpException {
+        String url = getRoot() + "/" + AGProtocol.ROLLBACK;
+
+        List<NameValuePair> params = new ArrayList<NameValuePair>(2);
+
+        params.add(new NameValuePair(AGProtocol.XID, new AGXid(xid).toString()));
+
+        post(url, null, params, (RequestEntity) null, null);
+    }
+
+    /**
+     * @return an array of Xids of transactions that are in the prepared state
+     * on the server.
+     * @throws DecoderException if the response from the server is invalid.
+     */
+    public Xid[] getPreparedTransactions() throws DecoderException {
+        String url = getRoot() + "/" + AGProtocol.GET_PREPARED_TRANSACTIONS;
+
+        List<Header> headers = new ArrayList<Header>(1);
+
+        headers.add(new Header(Protocol.ACCEPT_PARAM_NAME, "application/json"));
+
+        AGJSONArrayHandler handler = new AGJSONArrayHandler();
+
+        get(url, headers, null, handler);
+
+        List<Xid> res = new ArrayList<Xid>();
+
+        for (Object entry : handler.getResult().toList()) {
+            res.add(AGXid.AGXidFromString((String) entry));
+        }
+
+        return res.toArray(new Xid[0]);
     }
 
     /**

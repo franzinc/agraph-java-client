@@ -1,5 +1,20 @@
 # AllegroGraph Java client release history
 
+## 2.1.0
+
+### rfe10713: Two phase commit (2PC) support
+
+The AllegroGraph Java client can now operate as a JTA (Java
+Transaction API) resource manager. This was specifically tested
+against [Atomikos Transaction Essentials Transaction
+Manager](https://www.atomikos.com/Main/TransactionsEssentials).
+v4.0.6.  
+
+2PC operation requires AllegroGraph server version 6.5.0 or better.
+
+See the AllegroGraph Two Phase Commit (2PC) documentation for details.
+
+
 ## 2.0.3
 
 ### bug25277: AGVirtualRepository.federate() constructs incomplete triple store spec

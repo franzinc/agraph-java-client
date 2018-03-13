@@ -5,6 +5,7 @@
 package com.franz.agraph.repository;
 
 import com.franz.agraph.http.AGHttpRepoClient;
+import com.franz.agraph.http.AGHttpRepoClient.CommitPhase;
 import com.franz.agraph.http.exception.AGCustomStoredProcException;
 import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.http.exception.AGMalformedDataException;
@@ -15,6 +16,7 @@ import com.franz.agraph.http.handler.AGResponseHandler;
 import com.franz.agraph.pool.AGConnPool;
 import com.franz.agraph.repository.repl.TransactionSettings;
 import com.franz.util.Ctx;
+import org.apache.commons.codec.DecoderException;
 import org.eclipse.rdf4j.OpenRDFException;
 import org.eclipse.rdf4j.OpenRDFUtil;
 import org.eclipse.rdf4j.common.io.GZipUtil;
@@ -71,6 +73,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import javax.transaction.xa.XAResource;
+import javax.transaction.xa.Xid;
+
 
 /**
  * Implements the <a href="http://www.openrdf.org/">Sesame</a>
@@ -1038,6 +1043,25 @@ public class AGRepositoryConnection
     }
 
     /**
+     *
+     * @return an XAResource suitable for passing to a transaction manager to allow
+     *         this connection to participate in an XA/2PC distributed transaction.
+     */
+    public XAResource getXAResource() {
+        return new AGXAResource(this);
+    }
+
+    /**
+     * Asks the server to prepare a commit for later finalization/rollback.
+     *
+     * @param xid The transaction id to assign to the prepared commit
+     */
+    public void prepareCommit(Xid xid) {
+        prepareHttpRepoClient().commit(CommitPhase.PREPARE, xid);
+
+    }
+
+    /**
      * Commit the current transaction.
      * See <a href="#sessions">session overview</a> and
      * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#post-commit"
@@ -1045,6 +1069,16 @@ public class AGRepositoryConnection
      */
     public void commit() throws RepositoryException {
         prepareHttpRepoClient().commit();
+    }
+
+
+    /**
+     * Finalize a previously prepared two phase commit (2PC).
+     *
+     * @param xid The XID of the prepared transaction to be finalized
+     */
+    public void commit(Xid xid) {
+        prepareHttpRepoClient().commit(CommitPhase.COMMIT, xid);
     }
 
     /**
@@ -1072,6 +1106,23 @@ public class AGRepositoryConnection
         // This could first clear addStatementBuffer in order to avoid sending it over needlessly.
         // To keep the buffering logic simple and without further side effects, we don't for now.
         prepareHttpRepoClient().rollback();
+    }
+
+    /**
+     * Aborts a previously prepared commit.
+     *
+     * @param xid The transaction id of the prepared commit to abort.
+     */
+    public void rollback(Xid xid) {
+        prepareHttpRepoClient().rollback(xid);
+    }
+
+    /**
+     * @return an array of Xids of commits that have been prepared on the server.
+     * @throws DecoderException if the response from the server is invalid.
+     */
+    public Xid[] getPreparedTransactions() throws DecoderException {
+        return prepareHttpRepoClient().getPreparedTransactions();
     }
 
     /**

@@ -141,9 +141,24 @@ public class AGProtocol extends Protocol {
     public static final String COMMIT = "commit";
 
     /**
+     * Parameter name for the 'phase' parameter for the commit service.
+     */
+    public static final String COMMIT_PHASE = "phase";
+
+    /**
+     * Parameter name for the 'xid' parameter for the commit/rollback services
+     */
+    public static final String XID = "xid";
+
+    /**
      * Relative location of the rollback service.
      */
     public static final String ROLLBACK = "rollback";
+
+    /**
+     * Relative location of the getPreparedTransactions
+     */
+    public static final String GET_PREPARED_TRANSACTIONS = "getPreparedTransactions";
 
     /**
      * Relative location of the eval service.
