@@ -132,8 +132,10 @@ PACKAGE_NAME = agraph-java-client-$(VERSION)
 DIST_DIR=DIST
 TARNAME = $(DIST_DIR)/$(PACKAGE_NAME).tar.gz
 
-deploy: FORCE
+stage: FORCE
 	./deploy.sh
+
+deploy: stage release-staged
 
 release-staged: FORCE
 	mvn nexus-staging:release $(MVN_STAGED_OPTS)

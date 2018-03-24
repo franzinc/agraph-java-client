@@ -120,17 +120,22 @@ The release process consists of the following steps:
 # Maven central releases
 
 In addition to being published on the website, the client should also
-be deployed to the central repository. This is done by calling 
-`make deploy`. It is possible to deploy both snapshot and release
-version. Calling `make deploy` will:
+be deployed to the central repository. This is done by calling `make
+deploy`. Only final releases (not snapshots) can be published in this
+way. Calling `make deploy` will:
 
 1. Compile the code and upload it (stage) to OSSRH. You'll be 
    prompted for the GPG key passphrase.
 2. Run the tests against the freshly uploaded JAR. This phase requires 
    a working AllegroGraph server. If that is not desired, set the
    AG_SKIP_TESTS variable to something.
+3. Approve the release for sync to the central repository.
 
-Once `make deploy` finishes successfully, the staged release must be
+It is possible to skip the final step by running 'make stage'. This
+will also work for snapshot releases, which are never synced to the
+central repository, but are publicly visible on OSSRH.
+
+Once `make stage` finishes successfully, the staged release must be
 approved on OSSRH. This can be done by running `make release-staged`
 in the same tree in which the deployment happened. `make drop-staged`
 can be used to remove the staged build without releasing it.
