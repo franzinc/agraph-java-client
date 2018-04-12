@@ -6,6 +6,7 @@ package com.franz.agraph.http;
 
 import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.http.handler.AGErrorHandler;
+import com.franz.agraph.http.handler.AGMethodRetryHandler;
 import com.franz.agraph.http.handler.AGResponseHandler;
 import com.franz.agraph.http.handler.AGStringHandler;
 import com.franz.agraph.http.handler.AGTQRHandler;
@@ -24,6 +25,7 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
+import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.eclipse.rdf4j.http.protocol.Protocol;
 import org.eclipse.rdf4j.http.protocol.UnauthorizedException;
 import org.eclipse.rdf4j.query.TupleQueryResult;
@@ -55,6 +57,19 @@ import static org.eclipse.rdf4j.http.protocol.Protocol.ACCEPT_PARAM_NAME;
 public class AGHTTPClient implements AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(AGHTTPClient.class);
 
+    /**
+     * Number of times an HTTP GET request is automatically retried,
+     * not counting the initial (failed) attempt, in case of errors
+     * caused by a connection timeout.
+     *
+     * Disabling this by setting it to 0 will expose "Connection
+     * reset" and "HTTP 408 Client timeout" errors. A value of 1
+     * should enough to hide these supposedly harmless errors if the
+     * network is otherwise stable.
+     */
+    public static final String PROP_HTTP_NUM_RETRIES = "com.franz.agraph.http.numRetries";
+    private static final int DEFAULT_HTTP_NUM_RETRIES = 1;
+
     private final String serverURL;
     private final HttpClient httpClient;
 
@@ -64,14 +79,18 @@ public class AGHTTPClient implements AutoCloseable {
     private boolean isClosed = false;
 
     private HttpConnectionManager mManager = null;
+    private final AGMethodRetryHandler retryHandler = new AGMethodRetryHandler();
+
+    private final int httpNumRetries;
 
     private AGHTTPClient(String serverURL, HttpClient client) {
         this.serverURL = serverURL.replaceAll("/$", "");
         this.httpClient = client;
+        this.httpNumRetries = Integer.parseInt(
+            System.getProperty(PROP_HTTP_NUM_RETRIES, "" + DEFAULT_HTTP_NUM_RETRIES));
         if (logger.isDebugEnabled()) {
             logger.debug("connect: " + serverURL + " " + client);
         }
-
     }
 
     public AGHTTPClient(String serverURL) {
@@ -152,7 +171,7 @@ public class AGHTTPClient implements AutoCloseable {
 
     /**
      * Checks whether the specified status code is in the 2xx-range, indicating a
-     * successfull request.
+     * successful request.
      *
      * @return <tt>true</tt> if the status code is in the 2xx range
      */
@@ -162,20 +181,28 @@ public class AGHTTPClient implements AutoCloseable {
 
     public void get(String url, Header[] headers, NameValuePair[] params,
                     AGResponseHandler handler) throws AGHttpException {
-        GetMethod get = new GetMethod(url);
-        setDoAuthentication(get);
-        if (headers != null) {
-            for (Header header : headers) {
-                get.addRequestHeader(header);
+        int numTries = httpNumRetries + 1; // Always make at least one attempt
+        for (int i = 0; i < numTries; i++) {
+            GetMethod get = new GetMethod(url);
+            setDoAuthentication(get);
+            if (headers != null) {
+                for (Header header : headers) {
+                    get.addRequestHeader(header);
+                }
+            }
+            if (System.getProperty("com.franz.agraph.http.useGzip", "true").equals("true")) {
+                get.addRequestHeader("Accept-encoding", "gzip");
+            }
+            if (params != null) {
+                get.setQueryString(params);
+            }
+            boolean mightRetry = (i < numTries - 1);
+            if (executeMethod(url, get, handler, mightRetry) == ExecuteResult.SUCCESS) {
+                return;
             }
         }
-        if (System.getProperty("com.franz.agraph.http.useGzip", "true").equals("true")) {
-            get.addRequestHeader("Accept-encoding", "gzip");
-        }
-        if (params != null) {
-            get.setQueryString(params);
-        }
-        executeMethod(url, get, handler);
+        // We should never get here:
+        throw new AGHttpException("GET request failed (unreachable)");
     }
 
     public void delete(String url, Header[] headers, NameValuePair[] params, AGResponseHandler handler)
@@ -210,18 +237,57 @@ public class AGHTTPClient implements AutoCloseable {
         executeMethod(url, put, handler);
     }
 
-    private void executeMethod(final String url,
-                               final HttpMethod method,
-                               final AGResponseHandler handler) throws AGHttpException {
+    private void executeMethod(String url,
+                               HttpMethod method,
+                               AGResponseHandler handler) {
+      executeMethod(url, method, handler, false);
+    }
+
+    private enum ExecuteResult { SUCCESS, RETRY };
+
+    /**
+     * Run the HTTP request given by the method.
+     *
+     * @param method of the HTTP request
+     * @param handler in case of 200 response status, it will be called on the method
+     *        (note that it will NOT be called for other 2xx success status responses,
+     *        which might be debatable)
+     * @param returnRetryOn408 if true and server replied 408, then RETRY is returned
+     *
+     * @return either SUCCESS (for 2xx response), RETRY (for 408 response + returnRetryOn408),
+     *         or throws an AGHttpException
+     */
+    private ExecuteResult executeMethod(String url,
+                                        HttpMethod method,
+                                        AGResponseHandler handler,
+                                        boolean returnRetryOn408) throws AGHttpException {
+        // A note about retrying requests:
+        // a difficuty with HttpMethod is that once the request is attempted, you can't
+        // reuse it for a second attempt. This method is unable to do the retry itself,
+        // therefore returns ExecuteResult.RETRY.
+
+        // This retry handler takes care of retrying the HTTP request in case of
+        // connection problems. It does not deal with retrying in case of HTTP error codes.
+        method.getParams().setParameter(HttpMethodParams.RETRY_HANDLER, retryHandler);
+
         try {
             int httpCode = getHttpClient().executeMethod(method);
             if (httpCode == HttpURLConnection.HTTP_OK) {
                 if (handler != null) {
                     handler.handleResponse(method);
                 }
+                return ExecuteResult.SUCCESS;
             } else if (httpCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
                 throw new AGHttpException(new UnauthorizedException());
-            } else if (!is2xx(httpCode)) {
+            } else if (returnRetryOn408 && (httpCode == HttpURLConnection.HTTP_CLIENT_TIMEOUT)) {
+                // HTTP 408 supposedly happens if AG is busy receiving our request,
+                // but before the whole request is received a read timeout occurs.
+                // The problem cause is the idle time before sending the request,
+                // not the request itself.
+                return ExecuteResult.RETRY;
+            } else if (is2xx(httpCode)) {
+                return ExecuteResult.SUCCESS;
+            } else {
                 AGErrorHandler errHandler = new AGErrorHandler();
                 errHandler.handleResponse(method);
                 throw errHandler.getResult();

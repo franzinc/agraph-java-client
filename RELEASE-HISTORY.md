@@ -1,5 +1,18 @@
 # AllegroGraph Java client release history
 
+## 2.0.3
+
+### rfe15577: Automatic retry of idempotent HTTP requests
+
+In case a GET request (e.g. a repository query) fails due to a
+connection problem, it will now be automatically retried once. In
+particular this covers "connection reset" socket errors and HTTP 408
+"Request Timeout" server responses. For now this is limited to GET
+requests only.
+
+New property:
+ - com.franz.agraph.http.numRetries (default: 1)
+
 ## 2.0.2
 
 ### Additional multi-master replication commit setting

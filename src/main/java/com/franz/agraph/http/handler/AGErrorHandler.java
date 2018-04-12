@@ -62,7 +62,12 @@ public class AGErrorHandler extends AGResponseHandler {
     public void handleResponse(HttpMethod method) throws IOException, AGHttpException {
         InputStream response = getInputStream(method);
         String errorString = streamToString(response);
-        result = newException(errorString);
+        if (!errorString.isEmpty()) {
+            result = newException(errorString);
+        } else {
+            // Could be e.g. "HTTP 408 Request Timeout"
+            result = new AGHttpException("" + method.getStatusCode() + " " + method.getStatusText());
+        }
     }
 
     public AGHttpException getResult() {
