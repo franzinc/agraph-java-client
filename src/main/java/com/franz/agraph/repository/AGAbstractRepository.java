@@ -26,4 +26,6 @@ public interface AGAbstractRepository extends Repository, Closeable {
 
     AGCatalog getCatalog();
 
+    AGServer getServer();
+
 }
