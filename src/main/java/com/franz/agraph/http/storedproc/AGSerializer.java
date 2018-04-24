@@ -66,22 +66,22 @@ public class AGSerializer {
             Object[] vec = (Object[]) obj;
             barr.addbyte(SerialConstants.SO_VECTOR);
             serializeInteger(vec.length);
-            for (int i = 0; i < vec.length; i++) {
-                serializex(vec[i]);
+            for (Object aVec : vec) {
+                serializex(aVec);
             }
         } else if (obj instanceof byte[]) {
             byte[] vec = (byte[]) obj;
             barr.addbyte(SerialConstants.SO_BYTEVECTOR);
             serializeInteger(vec.length);
-            for (int i = 0; i < vec.length; i++) {
-                barr.addbyte(vec[i]);
+            for (byte aVec : vec) {
+                barr.addbyte(aVec);
             }
         } else if (obj instanceof List) {
             List vec = (List) obj;
             barr.addbyte(SerialConstants.SO_LIST);
             serializeInteger(vec.size());
-            for (int i = 0; i < vec.size(); i++) {
-                serializex(vec.get(i));
+            for (Object aVec : vec) {
+                serializex(aVec);
             }
             // TODO: extra null needed by lisp side, bug in lisp?
             barr.addbyte(SerialConstants.SO_NULL);

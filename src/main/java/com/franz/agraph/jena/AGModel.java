@@ -66,11 +66,7 @@ public class AGModel extends ModelCom implements Model, Closeable {
         }
         try {
             getGraph().getConnection().add(reader, base, format, getGraph().getGraphContext());
-        } catch (RDFParseException e) {
-            throw new RuntimeException(e);
-        } catch (RepositoryException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
+        } catch (RDFParseException | RepositoryException | IOException e) {
             throw new RuntimeException(e);
         }
         return this;
@@ -119,9 +115,7 @@ public class AGModel extends ModelCom implements Model, Closeable {
         }
         try {
             getGraph().getConnection().exportStatements(null, null, null, false, writer, getGraph().getGraphContexts());
-        } catch (RDFHandlerException e) {
-            throw new RuntimeException(e);
-        } catch (RepositoryException e) {
+        } catch (RDFHandlerException | RepositoryException e) {
             throw new RuntimeException(e);
         }
         return this;

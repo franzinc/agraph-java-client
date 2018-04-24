@@ -7,7 +7,7 @@ package com.franz.agraph.repository.config;
 import com.franz.agraph.repository.AGRepository;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
-import org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
 /**
  * Defines constants for the AGRepository schema which is used by
@@ -46,7 +46,7 @@ public class AGRepositorySchema {
     public final static IRI REPOSITORYID;
 
     static {
-        ValueFactory factory = ValueFactoryImpl.getInstance();
+        ValueFactory factory = SimpleValueFactory.getInstance();
         SERVERURL = factory.createIRI(NAMESPACE, "serverUrl");
         USERNAME = factory.createIRI(NAMESPACE, "username");
         PASSWORD = factory.createIRI(NAMESPACE, "password");

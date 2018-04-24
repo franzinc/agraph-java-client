@@ -38,7 +38,7 @@ public class AGRepositoryFactory implements RepositoryFactory {
 
     public Repository getRepository(RepositoryImplConfig config)
             throws RepositoryConfigException {
-        AGRepository result = null;
+        AGRepository result;
         if (config instanceof AGRepositoryConfig) {
             AGRepositoryConfig agconfig = (AGRepositoryConfig) config;
             AGServer server = new AGServer(agconfig.getServerUrl(), agconfig.getUsername(), agconfig.getPassword());

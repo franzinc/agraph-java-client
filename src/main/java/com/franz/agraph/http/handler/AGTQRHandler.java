@@ -50,8 +50,8 @@ public class AGTQRHandler extends AGResponseHandler {
         InputStream response = getInputStream(method);
         try {
             TupleQueryResultParser parser = QueryResultIO.createTupleParser(format, vf);
-            parser.setTupleQueryResultHandler(recoverBNodesTQRHandler(tqrhandler));
-            parser.parse(response);
+            parser.setQueryResultHandler(recoverBNodesTQRHandler(tqrhandler));
+            parser.parseQueryResult(response);
         } catch (QueryResultParseException | TupleQueryResultHandlerException e) {
             throw new AGHttpException(e);
         }

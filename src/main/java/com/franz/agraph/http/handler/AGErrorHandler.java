@@ -40,18 +40,19 @@ public class AGErrorHandler extends AGResponseHandler {
         if (colonIdx >= 0) {
             String type = errorString.substring(0, colonIdx).trim();
             String message = errorString.substring(colonIdx + 1);
-            if (MALFORMED_DATA.equals(type)) {
-                return new AGMalformedDataException(message);
-            } else if (MALFORMED_QUERY.equals(type)) {
-                return new AGMalformedQueryException(message);
-            } else if (PRECONDITION_FAILED.equals(type)) {
-                return new AGPreconditionFailedException(message);
-            } else if (UNSUPPORTED_FILE_FORMAT.equals(type)) {
-                return new AGUnsupportedFileFormatException(message);
-            } else if (UNSUPPORTED_QUERY_LANGUAGE.equals(type)) {
-                return new AGUnsupportedQueryLanguageException(message);
-            } else if (QUERY_TIMEOUT.equals(type)) {
-                return new AGQueryTimeoutException(message);
+            switch (type) {
+                case MALFORMED_DATA:
+                    return new AGMalformedDataException(message);
+                case MALFORMED_QUERY:
+                    return new AGMalformedQueryException(message);
+                case PRECONDITION_FAILED:
+                    return new AGPreconditionFailedException(message);
+                case UNSUPPORTED_FILE_FORMAT:
+                    return new AGUnsupportedFileFormatException(message);
+                case UNSUPPORTED_QUERY_LANGUAGE:
+                    return new AGUnsupportedQueryLanguageException(message);
+                case QUERY_TIMEOUT:
+                    return new AGQueryTimeoutException(message);
             }
         }
         // unrecognized error type, use the whole errorString

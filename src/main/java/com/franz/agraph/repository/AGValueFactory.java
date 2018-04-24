@@ -13,7 +13,7 @@ import org.eclipse.rdf4j.model.BNode;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Value;
-import org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.rio.ntriples.NTriplesUtil;
 
@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 /**
  * Implements the Sesame ValueFactory interface for AllegroGraph.
  */
-public class AGValueFactory extends ValueFactoryImpl {
+public class AGValueFactory extends SimpleValueFactory {
     private static final Pattern AG_BNODE_ID_PATTERN = Pattern.compile("\\Ab[0-9A-Fa-f]{8}x\\d+\\z");
     // Expected type of tagged literals
     private static final String RDF_LANG_STRING = RDF.langString.toString();

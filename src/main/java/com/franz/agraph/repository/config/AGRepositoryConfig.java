@@ -9,11 +9,11 @@ import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.ValueFactory;
-import org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.util.GraphUtil;
 import org.eclipse.rdf4j.model.util.GraphUtilException;
+import org.eclipse.rdf4j.repository.config.AbstractRepositoryImplConfig;
 import org.eclipse.rdf4j.repository.config.RepositoryConfigException;
-import org.eclipse.rdf4j.repository.config.RepositoryImplConfigBase;
 
 import static com.franz.agraph.repository.config.AGRepositorySchema.CATALOGID;
 import static com.franz.agraph.repository.config.AGRepositorySchema.PASSWORD;
@@ -24,7 +24,7 @@ import static com.franz.agraph.repository.config.AGRepositorySchema.USERNAME;
 /**
  * Configuration for an AllegroGraph Repository.
  */
-public class AGRepositoryConfig extends RepositoryImplConfigBase {
+public class AGRepositoryConfig extends AbstractRepositoryImplConfig {
 
     private String serverUrl;
     private String username;
@@ -156,6 +156,6 @@ public class AGRepositoryConfig extends RepositoryImplConfigBase {
     }
 
     private ValueFactory getValueFactory() {
-        return ValueFactoryImpl.getInstance();
+        return SimpleValueFactory.getInstance();
     }
 }

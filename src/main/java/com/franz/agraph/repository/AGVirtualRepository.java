@@ -9,7 +9,7 @@ import com.franz.agraph.http.AGHttpRepoClient;
 import com.franz.agraph.http.exception.AGHttpException;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.repository.RepositoryException;
-import org.eclipse.rdf4j.repository.base.RepositoryBase;
+import org.eclipse.rdf4j.repository.base.AbstractRepository;
 
 import java.io.File;
 import java.util.concurrent.ScheduledExecutorService;
@@ -26,7 +26,7 @@ import java.util.concurrent.ScheduledExecutorService;
  * @see AGServer#virtualRepository(String)
  * @see AGServer#federate(AGAbstractRepository...)
  */
-public class AGVirtualRepository extends RepositoryBase implements AGAbstractRepository {
+public class AGVirtualRepository extends AbstractRepository implements AGAbstractRepository {
     final AGRepository wrapped;
     private final AGServer server;
     private final String spec;
@@ -50,18 +50,12 @@ public class AGVirtualRepository extends RepositoryBase implements AGAbstractRep
 
     // string-mangling utilities for creating sessions
     public static String federatedSpec(String[] repoSpecs) {
-        String spec = "";
         for (int i = 0; i < repoSpecs.length; i++) {
-            if (spec.length() > 0) {
-                spec += " + ";
-            }
-            if (repoSpecs[i].startsWith("<")) {
-                spec += repoSpecs[i];
-            } else {
-                spec += "<" + repoSpecs[i] + ">";
+            if (!repoSpecs[i].startsWith("<")) {
+                repoSpecs[i] = "<" + repoSpecs[i] + ">";
             }
         }
-        return spec;
+        return String.join("+", repoSpecs);
     }
 
     public static String reasoningSpec(String repoSpec, String reasoner) {

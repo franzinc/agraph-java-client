@@ -31,13 +31,12 @@ public class AGNodeFactory {
         Node s = asNode(st.getSubject());
         Node p = asNode(st.getPredicate());
         Node o = asNode(st.getObject());
-        ;
         Node g = asNode(st.getContext());
         return new Quad(s, p, o, g);
     }
 
     public static Node asNode(Value v) {
-        Node node = null;
+        Node node;
         if (v == null) {
             node = Node.ANY; // TODO or Node.NULL or null?
         } else if (v instanceof IRI) {

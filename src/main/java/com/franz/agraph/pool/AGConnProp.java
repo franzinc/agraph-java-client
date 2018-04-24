@@ -71,7 +71,7 @@ public enum AGConnProp {
     /**
      * Property values for {@link AGConnProp#session}.
      */
-    public static enum Session {
+    public enum Session {
 
         /**
          * No dedicated session, and autoCommit is true

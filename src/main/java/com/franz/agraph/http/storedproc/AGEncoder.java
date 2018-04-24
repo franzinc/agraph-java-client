@@ -22,7 +22,7 @@ public class AGEncoder {
             };
 
     public static String encode(byte[] arr) {
-        ArrayList<Character> resx = new ArrayList<Character>();
+        ArrayList<Character> resx = new ArrayList<>();
 
         int state = 0;
 

@@ -15,6 +15,7 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.shared.AlreadyReifiedException;
 import org.apache.jena.shared.CannotReifyException;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.NullIterator;
 import org.apache.jena.vocabulary.RDF;
 import org.eclipse.rdf4j.query.GraphQueryResult;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
@@ -87,13 +88,12 @@ public class AGReifier {
                 }
             }
         } else {
-            return Triple.None;
+            return NullIterator.instance();
         }
     }
 
-
     public ExtendedIterator<Triple> findEither(Triple m, boolean showHidden) {
-        return showHidden ? Triple.None : find(m);
+        return showHidden ? NullIterator.instance() : find(m);
     }
 
 

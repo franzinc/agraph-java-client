@@ -55,9 +55,7 @@ public class AGRDFHandler extends AGResponseHandler {
             parser.setPreserveBNodeIDs(true);
             parser.setRDFHandler(rdfhandler);
             parser.parse(reader, method.getURI().getURI());
-        } catch (RDFParseException e) {
-            throw new AGHttpException(e);
-        } catch (RDFHandlerException e) {
+        } catch (RDFParseException | RDFHandlerException e) {
             throw new AGHttpException(e);
         }
     }

@@ -107,7 +107,7 @@ public class AGConnPoolJndiFactory implements ObjectFactory {
      * @return map suitable for {@link AGConnPool#create(Map, Map)}
      */
     private static Map<? extends Enum, String> refToMap(Reference ref, Enum[] values) {
-        Map<Enum, String> props = new HashMap<Enum, String>();
+        Map<Enum, String> props = new HashMap<>();
         for (Enum prop : values) {
             RefAddr ra = ref.get(prop.name());
             if (ra == null) {

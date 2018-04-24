@@ -156,7 +156,7 @@ public class AGRepository extends AbstractRepository implements AGAbstractReposi
     public AGRepositoryConnection getConnection(ScheduledExecutorService executor)
             throws RepositoryException {
         if (pool != null) {
-            return pool.borrowConnection();
+            return pool.borrowObject();
         } else {
             AGHttpRepoClient repoclient = new AGHttpRepoClient(
                     this, getCatalog().getHTTPClient(), repositoryURL, null, executor);

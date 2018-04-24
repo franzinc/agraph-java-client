@@ -152,7 +152,7 @@ public class AGConnPool implements ObjectPool<AGRepositoryConnection>, AutoClose
     }
 
     private static Map<? extends Enum, String> toMap(Object[] keyValuePairs, EnumSet<? extends Enum> enumSet) {
-        Map<Enum, String> map = new HashMap<Enum, String>();
+        Map<Enum, String> map = new HashMap<>();
         for (int i = 0; i < keyValuePairs.length; i = i + 2) {
             Enum key = (Enum) keyValuePairs[i];
             if (enumSet.contains(key)) {

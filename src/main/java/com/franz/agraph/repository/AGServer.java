@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadFactory;
 
 /**
  * The starting point for interacting with an
@@ -189,13 +188,10 @@ public class AGServer implements Closeable {
             sharedExecutor = new ScheduledThreadPoolExecutor(THREAD_POOL_SIZE);
             // This will make sure that the executor will not prevent
             // the application from shutting down.
-            sharedExecutor.setThreadFactory(new ThreadFactory() {
-                @Override
-                public Thread newThread(final Runnable runnable) {
-                    final Thread thread = Executors.defaultThreadFactory().newThread(runnable);
-                    thread.setDaemon(true);
-                    return thread;
-                }
+            sharedExecutor.setThreadFactory(runnable -> {
+                final Thread thread = Executors.defaultThreadFactory().newThread(runnable);
+                thread.setDaemon(true);
+                return thread;
             });
             // Note this requires Java 7
             sharedExecutor.setRemoveOnCancelPolicy(true);
@@ -319,7 +315,7 @@ public class AGServer implements Closeable {
     public List<String> listCatalogs() throws AGHttpException {
         String url = AGProtocol.getNamedCatalogsURL(serverURL);
         TupleQueryResult tqresult = getHTTPClient().getTupleQueryResult(url);
-        List<String> result = new ArrayList<String>(5);
+        List<String> result = new ArrayList<>(5);
         try {
             while (tqresult.hasNext()) {
                 BindingSet bindingSet = tqresult.next();
@@ -582,7 +578,7 @@ public class AGServer implements Closeable {
                                       String p, String o, String g) throws AGHttpException {
         String url = serverURL + "/users/" + user + "/security-filters/" + type;
         Header[] headers = {};
-        List<NameValuePair> params = new ArrayList<NameValuePair>(4);
+        List<NameValuePair> params = new ArrayList<>(4);
         if (s != null) {
             params.add(new NameValuePair("s", s));
         }
@@ -613,7 +609,7 @@ public class AGServer implements Closeable {
                                          String s, String p, String o, String g) throws AGHttpException {
         String url = serverURL + "/users/" + user + "/security-filters/" + type;
         Header[] headers = {};
-        List<NameValuePair> params = new ArrayList<NameValuePair>(4);
+        List<NameValuePair> params = new ArrayList<>(4);
         if (s != null) {
             params.add(new NameValuePair("s", s));
         }
@@ -824,7 +820,7 @@ public class AGServer implements Closeable {
                                       String p, String o, String g) throws AGHttpException {
         String url = serverURL + "/roles/" + role + "/security-filters/" + type;
         Header[] headers = {};
-        List<NameValuePair> params = new ArrayList<NameValuePair>(4);
+        List<NameValuePair> params = new ArrayList<>(4);
         if (s != null) {
             params.add(new NameValuePair("s", s));
         }
@@ -872,7 +868,7 @@ public class AGServer implements Closeable {
                                          String s, String p, String o, String g) throws AGHttpException {
         String url = serverURL + "/roles/" + role + "/security-filters/" + type;
         Header[] headers = {};
-        List<NameValuePair> params = new ArrayList<NameValuePair>(4);
+        List<NameValuePair> params = new ArrayList<>(4);
         if (s != null) {
             params.add(new NameValuePair("s", s));
         }

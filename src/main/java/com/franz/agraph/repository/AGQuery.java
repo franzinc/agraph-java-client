@@ -152,7 +152,7 @@ public abstract class AGQuery extends AbstractQuery {
      * @return the query string
      */
     public String getQueryString() {
-        long timeout = getMaxQueryTime();
+        long timeout = getMaxExecutionTime();
         String timeoutPrefix = timeout > 0 ? "PREFIX franzOption_queryTimeout: <franz:" + timeout + ">     # timeout in seconds\n " : "";
         return timeoutPrefix + queryString;
     }

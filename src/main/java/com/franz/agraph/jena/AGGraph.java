@@ -37,6 +37,7 @@ import org.eclipse.rdf4j.rio.helpers.StatementCollector;
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * Implements the Jena Graph interface for AllegroGraph.
@@ -163,7 +164,7 @@ public class AGGraph extends GraphBase implements Graph, Closeable {
         // This is preferable since using 'null' to specify
         // the default graph is not supported by older versions
         // of AllegroGraph.
-        if (Arrays.stream(contexts).anyMatch(x -> x != null)) {
+        if (Arrays.stream(contexts).anyMatch(Objects::nonNull)) {
             for (Resource c : contexts) {
                 if (c == null) {
                     // null means "the default graph".

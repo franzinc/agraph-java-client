@@ -17,8 +17,8 @@ import com.franz.agraph.pool.AGConnPool;
 import com.franz.agraph.repository.repl.TransactionSettings;
 import com.franz.util.Ctx;
 import org.apache.commons.codec.DecoderException;
-import org.eclipse.rdf4j.OpenRDFException;
 import org.eclipse.rdf4j.OpenRDFUtil;
+import org.eclipse.rdf4j.RDF4JException;
 import org.eclipse.rdf4j.common.io.GZipUtil;
 import org.eclipse.rdf4j.common.io.ZipUtil;
 import org.eclipse.rdf4j.common.iteration.CloseableIteratorIteration;
@@ -28,9 +28,8 @@ import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Namespace;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.URI;
 import org.eclipse.rdf4j.model.Value;
-import org.eclipse.rdf4j.model.impl.NamespaceImpl;
+import org.eclipse.rdf4j.model.impl.SimpleNamespace;
 import org.eclipse.rdf4j.model.impl.StatementImpl;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.eclipse.rdf4j.query.BindingSet;
@@ -41,7 +40,7 @@ import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.eclipse.rdf4j.repository.UnknownTransactionStateException;
-import org.eclipse.rdf4j.repository.base.RepositoryConnectionBase;
+import org.eclipse.rdf4j.repository.base.AbstractRepositoryConnection;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFHandler;
 import org.eclipse.rdf4j.rio.RDFHandlerException;
@@ -179,7 +178,7 @@ import javax.transaction.xa.Xid;
  * @since v4.0
  */
 public class AGRepositoryConnection
-        extends RepositoryConnectionBase
+        extends AbstractRepositoryConnection
         implements RepositoryConnection, AutoCloseable {
 
     public static final String PROP_STREAM_RESULTS = "com.franz.agraph.repository.AGRepositoryConnection.streamResults";
@@ -208,11 +207,11 @@ public class AGRepositoryConnection
      * @see AGVirtualRepository#getConnection()
      */
     public AGRepositoryConnection(AGRepository repository, AGHttpRepoClient client) {
-        this((AGAbstractRepository) repository, client, repository);
+        this(repository, client, repository);
     }
 
     public AGRepositoryConnection(AGVirtualRepository repository, AGHttpRepoClient client) {
-        this((AGAbstractRepository) repository, client, repository.wrapped);
+        this(repository, client, repository.wrapped);
     }
 
     private AGRepositoryConnection(AGAbstractRepository repository, AGHttpRepoClient client, AGRepository realRepo) {
@@ -225,7 +224,7 @@ public class AGRepositoryConnection
 
         addStatementBufferEnabled = Boolean.parseBoolean(System.getProperty(PROP_USE_ADD_STATEMENT_BUFFER));
         addStatementBufferMaxSize = Integer.parseInt(System.getProperty(PROP_ADD_STATEMENT_BUFFER_MAX_SIZE, "" + DEFAULT_ADD_STATEMENT_BUFFER_SIZE));
-        addStatementBuffer = new ArrayList<JSONArray>();
+        addStatementBuffer = new ArrayList<>();
     }
 
     @Override
@@ -824,12 +823,7 @@ public class AGRepositoryConnection
                     }
                 }
             }
-        } catch (IOException e) {
-            if (autoCommit) {
-                rollback();
-            }
-            throw e;
-        } catch (RepositoryException e) {
+        } catch (IOException | RepositoryException e) {
             if (autoCommit) {
                 rollback();
             }
@@ -1189,10 +1183,9 @@ public class AGRepositoryConnection
     public RepositoryResult<Resource> getContextIDs()
             throws RepositoryException {
         try {
-            List<Resource> contextList = new ArrayList<Resource>();
+            List<Resource> contextList = new ArrayList<>();
 
-            TupleQueryResult contextIDs = prepareHttpRepoClient().getContextIDs();
-            try {
+            try (TupleQueryResult contextIDs = prepareHttpRepoClient().getContextIDs()) {
                 while (contextIDs.hasNext()) {
                     BindingSet bindingSet = contextIDs.next();
                     Value context = bindingSet.getValue("contextID");
@@ -1201,8 +1194,6 @@ public class AGRepositoryConnection
                         contextList.add((Resource) context);
                     }
                 }
-            } finally {
-                contextIDs.close();
             }
 
             return createRepositoryResult(contextList);
@@ -1220,7 +1211,7 @@ public class AGRepositoryConnection
      */
     public <E> RepositoryResult<E> createRepositoryResult(
             Iterable<? extends E> elements) {
-        return new RepositoryResult<E>(
+        return new RepositoryResult<>(
                 new CloseableIteratorIteration<E, RepositoryException>(elements
                         .iterator()));
     }
@@ -1232,10 +1223,9 @@ public class AGRepositoryConnection
     public RepositoryResult<Namespace> getNamespaces()
             throws RepositoryException {
         try {
-            List<Namespace> namespaceList = new ArrayList<Namespace>();
+            List<Namespace> namespaceList = new ArrayList<>();
 
-            TupleQueryResult namespaces = prepareHttpRepoClient().getNamespaces();
-            try {
+            try (TupleQueryResult namespaces = prepareHttpRepoClient().getNamespaces()) {
                 while (namespaces.hasNext()) {
                     BindingSet bindingSet = namespaces.next();
                     Value prefix = bindingSet.getValue("prefix");
@@ -1245,12 +1235,10 @@ public class AGRepositoryConnection
                             && namespace instanceof Literal) {
                         String prefixStr = ((Literal) prefix).getLabel();
                         String namespaceStr = ((Literal) namespace).getLabel();
-                        namespaceList.add(new NamespaceImpl(prefixStr,
+                        namespaceList.add(new SimpleNamespace(prefixStr,
                                 namespaceStr));
                     }
                 }
-            } finally {
-                namespaces.close();
             }
 
             return createRepositoryResult(namespaceList);
@@ -1287,7 +1275,7 @@ public class AGRepositoryConnection
      * @throws AGHttpException .
      */
     public void downloadStatements(final File file,
-                                   final Resource subj, final URI pred, final Value obj,
+                                   final Resource subj, final IRI pred, final Value obj,
                                    final boolean includeInferred,
                                    final Resource... contexts)
             throws AGHttpException {
@@ -1310,7 +1298,7 @@ public class AGRepositoryConnection
      * @throws AGHttpException .
      */
     public void downloadStatements(final String file,
-                                   final Resource subj, final URI pred, final Value obj,
+                                   final Resource subj, final IRI pred, final Value obj,
                                    final boolean includeInferred,
                                    final Resource... contexts)
             throws AGHttpException {
@@ -1332,7 +1320,7 @@ public class AGRepositoryConnection
      * @throws AGHttpException .
      */
     public void downloadStatements(final File file, final RDFFormat format,
-                                   final Resource subj, final URI pred, final Value obj,
+                                   final Resource subj, final IRI pred, final Value obj,
                                    final boolean includeInferred,
                                    final Resource... contexts)
             throws AGHttpException {
@@ -1354,7 +1342,7 @@ public class AGRepositoryConnection
      * @throws AGHttpException .
      */
     public void downloadStatements(final String file, final RDFFormat format,
-                                   final Resource subj, final URI pred, final Value obj,
+                                   final Resource subj, final IRI pred, final Value obj,
                                    final boolean includeInferred,
                                    final Resource... contexts)
             throws AGHttpException {
@@ -1376,7 +1364,7 @@ public class AGRepositoryConnection
      * @throws AGHttpException .
      */
     public void downloadStatements(final File file, final String mimeType,
-                                   final Resource subj, final URI pred, final Value obj,
+                                   final Resource subj, final IRI pred, final Value obj,
                                    final boolean includeInferred,
                                    final Resource... contexts)
             throws AGHttpException {
@@ -1398,7 +1386,7 @@ public class AGRepositoryConnection
      * @throws AGHttpException .
      */
     public void downloadStatements(final String file, final String mimeType,
-                                   final Resource subj, final URI pred, final Value obj,
+                                   final Resource subj, final IRI pred, final Value obj,
                                    final boolean includeInferred,
                                    final Resource... contexts)
             throws AGHttpException {
@@ -1424,7 +1412,7 @@ public class AGRepositoryConnection
      * The caller MUST close this stream to release connection resources.
      * @throws AGHttpException .
      */
-    public InputStream streamStatements(final Resource subj, final URI pred, final Value obj,
+    public InputStream streamStatements(final Resource subj, final IRI pred, final Value obj,
                                         final boolean includeInferred,
                                         final Resource... contexts)
             throws AGHttpException {
@@ -1452,7 +1440,7 @@ public class AGRepositoryConnection
      * @throws AGHttpException .
      */
     public InputStream streamStatements(final String mimeType,
-                                        final Resource subj, final URI pred, final Value obj,
+                                        final Resource subj, final IRI pred, final Value obj,
                                         final boolean includeInferred,
                                         final Resource... contexts)
             throws AGHttpException {
@@ -1480,7 +1468,7 @@ public class AGRepositoryConnection
      * @throws AGHttpException .
      */
     public InputStream streamStatements(final RDFFormat format,
-                                        final Resource subj, final URI pred, final Value obj,
+                                        final Resource subj, final IRI pred, final Value obj,
                                         final boolean includeInferred,
                                         final Resource... contexts)
             throws AGHttpException {
@@ -1787,7 +1775,7 @@ public class AGRepositoryConnection
      */
     public void createFreetextIndex(String indexName, AGFreetextIndexConfig config)
             throws RepositoryException {
-        List<String> predicates = new ArrayList<String>();
+        List<String> predicates = new ArrayList<>();
         for (IRI uri : config.getPredicates()) {
             predicates.add(NTriplesUtil.toNTriplesString(uri));
         }
@@ -2274,7 +2262,7 @@ public class AGRepositoryConnection
      */
     public void registerPolygon(IRI polygon, List<Literal> points)
             throws RepositoryException {
-        List<String> nTriplesPoints = new ArrayList<String>(points.size());
+        List<String> nTriplesPoints = new ArrayList<>(points.size());
         for (Literal point : points) {
             nTriplesPoints.add(NTriplesUtil.toNTriplesString(point));
         }
@@ -2347,19 +2335,19 @@ public class AGRepositoryConnection
      * @throws RepositoryException if there is an error during the request
      */
     public void registerSNAGenerator(String generator, List<IRI> objectOfs, List<IRI> subjectOfs, List<IRI> undirecteds, String query) throws RepositoryException {
-        List<String> objOfs = new ArrayList<String>();
+        List<String> objOfs = new ArrayList<>();
         if (objectOfs != null) {
             for (IRI objectOf : objectOfs) {
                 objOfs.add(NTriplesUtil.toNTriplesString(objectOf));
             }
         }
-        List<String> subjOfs = new ArrayList<String>();
+        List<String> subjOfs = new ArrayList<>();
         if (subjectOfs != null) {
             for (IRI subjectOf : subjectOfs) {
                 subjOfs.add(NTriplesUtil.toNTriplesString(subjectOf));
             }
         }
-        List<String> undirs = new ArrayList<String>();
+        List<String> undirs = new ArrayList<>();
         if (undirecteds != null) {
             for (IRI undirected : undirecteds) {
                 undirs.add(NTriplesUtil.toNTriplesString(undirected));
@@ -2372,7 +2360,7 @@ public class AGRepositoryConnection
         if (group == null || group.size() == 0) {
             throw new IllegalArgumentException("group must be non-empty.");
         }
-        List<String> grp = new ArrayList<String>(3);
+        List<String> grp = new ArrayList<>(3);
         for (IRI node : group) {
             grp.add(NTriplesUtil.toNTriplesString(node));
         }
@@ -2383,9 +2371,9 @@ public class AGRepositoryConnection
      * Returns a list of actively managed indices for this repository.
      *
      * @return a list of actively managed indices for this repository
-     * @throws OpenRDFException if there is an error during the request
+     * @throws RDF4JException if there is an error during the request
      */
-    public List<String> listIndices() throws OpenRDFException {
+    public List<String> listIndices() throws RDF4JException {
         return prepareHttpRepoClient().listIndices(false);
     }
 
@@ -2393,9 +2381,9 @@ public class AGRepositoryConnection
      * Returns a list of all possible index types for this repository.
      *
      * @return a list of valid index types
-     * @throws OpenRDFException if there is an error during the request
+     * @throws RDF4JException if there is an error during the request
      */
-    public List<String> listValidIndices() throws OpenRDFException {
+    public List<String> listValidIndices() throws RDF4JException {
         return prepareHttpRepoClient().listIndices(true);
     }
 
@@ -2538,15 +2526,14 @@ public class AGRepositoryConnection
      * Returns a list of the registered encodable namespaces.
      *
      * @return List  a list of the registered encodable namespaces
-     * @throws OpenRDFException if there is a problem parsing the request
+     * @throws RDF4JException if there is a problem parsing the request
      * @see #registerEncodableNamespace(String, String)
      */
     public List<AGFormattedNamespace> listEncodableNamespaces()
-            throws OpenRDFException {
-        TupleQueryResult tqresult = prepareHttpRepoClient()
-                .getEncodableNamespaces();
-        List<AGFormattedNamespace> result = new ArrayList<AGFormattedNamespace>();
-        try {
+            throws RDF4JException {
+        List<AGFormattedNamespace> result = new ArrayList<>();
+        try (TupleQueryResult tqresult = prepareHttpRepoClient()
+                .getEncodableNamespaces()) {
             while (tqresult.hasNext()) {
                 BindingSet bindingSet = tqresult.next();
                 Value prefix = bindingSet.getValue("prefix");
@@ -2554,8 +2541,6 @@ public class AGRepositoryConnection
                 result.add(new AGFormattedNamespace(prefix.stringValue(),
                         format.stringValue()));
             }
-        } finally {
-            tqresult.close();
         }
         return result;
     }
@@ -2746,27 +2731,27 @@ public class AGRepositoryConnection
     /**
      * @param uri SPIN function identifier
      * @return String  the SPIN function query text
-     * @throws OpenRDFException if there is an error with this request
+     * @throws RDF4JException if there is an error with this request
      * @see #putSpinFunction(AGSpinFunction)
      * @see #deleteSpinFunction(String)
      * @see #listSpinFunctions()
      * @see #getSpinMagicProperty(String)
      * @since v4.4
      */
-    public String getSpinFunction(String uri) throws OpenRDFException {
+    public String getSpinFunction(String uri) throws RDF4JException {
         return prepareHttpRepoClient().getSpinFunction(uri);
     }
 
     /**
      * @return List  currently defined SPIN functions
-     * @throws OpenRDFException if there is an error with this request
+     * @throws RDF4JException if there is an error with this request
      * @see #getSpinFunction(String)
      * @see #putSpinFunction(AGSpinFunction)
      * @see #deleteSpinFunction(String)
      * @see #listSpinMagicProperties()
      * @since v4.4
      */
-    public List<AGSpinFunction> listSpinFunctions() throws OpenRDFException {
+    public List<AGSpinFunction> listSpinFunctions() throws RDF4JException {
         try (TupleQueryResult list = prepareHttpRepoClient().listSpinFunctions()) {
             List<AGSpinFunction> result = new ArrayList<>();
             while (list.hasNext()) {
@@ -2778,51 +2763,51 @@ public class AGRepositoryConnection
 
     /**
      * @param fn the SPIN function to add
-     * @throws OpenRDFException if there is an error with this request
+     * @throws RDF4JException if there is an error with this request
      * @see #getSpinFunction(String)
      * @see #deleteSpinFunction(String)
      * @see #putSpinMagicProperty(AGSpinMagicProperty)
      * @since v4.4
      */
-    public void putSpinFunction(AGSpinFunction fn) throws OpenRDFException {
+    public void putSpinFunction(AGSpinFunction fn) throws RDF4JException {
         prepareHttpRepoClient().putSpinFunction(fn);
     }
 
     /**
      * @param uri SPIN function identifier
-     * @throws OpenRDFException if there is an error with this request
+     * @throws RDF4JException if there is an error with this request
      * @see #putSpinFunction(AGSpinFunction)
      * @see #getSpinFunction(String)
      * @since v4.4
      */
-    public void deleteSpinFunction(String uri) throws OpenRDFException {
+    public void deleteSpinFunction(String uri) throws RDF4JException {
         prepareHttpRepoClient().deleteSpinFunction(uri);
     }
 
     /**
      * @param uri SPIN magic property identifier
      * @return String  describing the SPIN magic property
-     * @throws OpenRDFException if there is an error with this request
+     * @throws RDF4JException if there is an error with this request
      * @see #putSpinMagicProperty(AGSpinMagicProperty)
      * @see #deleteSpinMagicProperty(String)
      * @since v4.4
      */
-    public String getSpinMagicProperty(String uri) throws OpenRDFException {
+    public String getSpinMagicProperty(String uri) throws RDF4JException {
         return prepareHttpRepoClient().getSpinMagicProperty(uri);
     }
 
     /**
      * @return List  all defined SPIN magic properties
-     * @throws OpenRDFException if there is an error with this request
+     * @throws RDF4JException if there is an error with this request
      * @see #getSpinMagicProperty(String)
      * @see #putSpinMagicProperty(AGSpinMagicProperty)
      * @see #deleteSpinMagicProperty(String)
      * @see #listSpinFunctions()
      * @since v4.4
      */
-    public List<AGSpinMagicProperty> listSpinMagicProperties() throws OpenRDFException {
+    public List<AGSpinMagicProperty> listSpinMagicProperties() throws RDF4JException {
         try (TupleQueryResult list = prepareHttpRepoClient().listSpinMagicProperties()) {
-            List<AGSpinMagicProperty> result = new ArrayList<AGSpinMagicProperty>();
+            List<AGSpinMagicProperty> result = new ArrayList<>();
             while (list.hasNext()) {
                 result.add(new AGSpinMagicProperty(list.next()));
             }
@@ -2832,24 +2817,24 @@ public class AGRepositoryConnection
 
     /**
      * @param uri SPIN magic property identifier
-     * @throws OpenRDFException if there is an error with this request
+     * @throws RDF4JException if there is an error with this request
      * @see #putSpinMagicProperty(AGSpinMagicProperty)
      * @see #getSpinMagicProperty(String)
      * @since v4.4
      */
-    public void deleteSpinMagicProperty(String uri) throws OpenRDFException {
+    public void deleteSpinMagicProperty(String uri) throws RDF4JException {
         prepareHttpRepoClient().deleteSpinMagicProperty(uri);
     }
 
     /**
      * @param fn the SPIN magic property to add
-     * @throws OpenRDFException if there is an error with this request
+     * @throws RDF4JException if there is an error with this request
      * @see #getSpinMagicProperty(String)
      * @see #deleteSpinMagicProperty(String)
      * @see #putSpinFunction(AGSpinFunction)
      * @since v4.4
      */
-    public void putSpinMagicProperty(AGSpinMagicProperty fn) throws OpenRDFException {
+    public void putSpinMagicProperty(AGSpinMagicProperty fn) throws RDF4JException {
         prepareHttpRepoClient().putSpinMagicProperty(fn);
     }
 
@@ -3179,7 +3164,7 @@ public class AGRepositoryConnection
          */
         public AttributeDefinition allowedValue(String value) {
             if (allowedValues == null) {
-                allowedValues = new ArrayList<String>(5);
+                allowedValues = new ArrayList<>(5);
                 allowedValues.add(value);
             } else {
                 allowedValues.add(value);

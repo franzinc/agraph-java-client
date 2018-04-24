@@ -165,7 +165,7 @@ public class AGGraphMaker implements GraphMaker, Closeable {
      * @return the union of the specified graphs
      */
     public AGGraphUnion createUnion(AGGraph... graphs) {
-        Set<Resource> contexts = new HashSet<Resource>();
+        Set<Resource> contexts = new HashSet<>();
         for (AGGraph g : graphs) {
             contexts.addAll(Arrays.asList(g.getGraphContexts()));
         }

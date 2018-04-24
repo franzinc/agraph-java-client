@@ -87,7 +87,7 @@ public class AGQueryExecution implements QueryExecution, Closeable {
         try {
             bq.setDataset(model.getGraph().getDataset());
             if (timeout > 0) {
-                bq.setMaxQueryTime((int) (timeout / 1000));
+                bq.setMaxExecutionTime((int) (timeout / 1000));
             }
             result = bq.evaluate();
         } catch (QueryEvaluationException e) {
@@ -122,7 +122,7 @@ public class AGQueryExecution implements QueryExecution, Closeable {
         try {
             gq.setDataset(model.getGraph().getDataset());
             if (timeout > 0) {
-                gq.setMaxQueryTime((int) (timeout / 1000));
+                gq.setMaxExecutionTime((int) (timeout / 1000));
             }
             result = gq.evaluate();
         } catch (QueryEvaluationException e) {
@@ -177,7 +177,7 @@ public class AGQueryExecution implements QueryExecution, Closeable {
         try {
             tq.setDataset(model.getGraph().getDataset());
             if (timeout > 0) {
-                tq.setMaxQueryTime((int) (timeout / 1000));
+                tq.setMaxExecutionTime((int) (timeout / 1000));
             }
             result = tq.evaluate();
         } catch (QueryEvaluationException e) {
@@ -209,7 +209,7 @@ public class AGQueryExecution implements QueryExecution, Closeable {
         try {
             u.setDataset(model.getGraph().getDataset());
             if (timeout > 0) {
-                u.setMaxQueryTime((int) (timeout / 1000));
+                u.setMaxExecutionTime((int) (timeout / 1000));
             }
             u.execute();
         } catch (UpdateExecutionException e) {

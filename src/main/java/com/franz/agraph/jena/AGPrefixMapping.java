@@ -45,7 +45,7 @@ public class AGPrefixMapping implements PrefixMapping {
 
     @Override
     public Map<String, String> getNsPrefixMap() {
-        Map<String, String> map = new HashMap<String, String>();
+        Map<String, String> map = new HashMap<>();
         try {
             RepositoryResult<Namespace> result = getGraph().getConnection().getNamespaces();
             while (result.hasNext()) {

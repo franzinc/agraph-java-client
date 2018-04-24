@@ -7,7 +7,7 @@ package com.franz.agraph.repository;
 import com.franz.agraph.http.AGHTTPClient;
 import com.franz.agraph.http.AGProtocol;
 import com.franz.agraph.http.exception.AGHttpException;
-import org.eclipse.rdf4j.OpenRDFException;
+import org.eclipse.rdf4j.RDF4JException;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.TupleQueryResult;
@@ -175,20 +175,17 @@ public class AGCatalog {
      * Returns a List of repository ids contained in this catalog.
      *
      * @return a List of repository ids contained in this catalog
-     * @throws OpenRDFException if there is an error during the request
+     * @throws org.eclipse.rdf4j.RDF4JException if there is an error during the request
      */
-    public List<String> listRepositories() throws OpenRDFException {
+    public List<String> listRepositories() throws RDF4JException {
         String url = getRepositoriesURL();
-        TupleQueryResult tqresult = getHTTPClient().getTupleQueryResult(url);
-        List<String> result = new ArrayList<String>(5);
-        try {
+        List<String> result = new ArrayList<>(5);
+        try (TupleQueryResult tqresult = getHTTPClient().getTupleQueryResult(url)) {
             while (tqresult.hasNext()) {
                 BindingSet bindingSet = tqresult.next();
                 Value id = bindingSet.getValue("id");
                 result.add(id.stringValue());
             }
-        } finally {
-            tqresult.close();
         }
         return result;
     }
@@ -198,14 +195,14 @@ public class AGCatalog {
      *
      * @param repoId name of the repository to lookup
      * @return true if the repository id is contained in this catalog
-     * @throws OpenRDFException if repository does not exist
+     * @throws RDF4JException if repository does not exist
      *                          TODO: revisit the decision to throw instead of returning null
      *                          if does not exit. Why throw?
      *                          <p>
      *                          TODO: have this throw a RepositoryException instead, either
      *                          by modifying contains() or catching and rethrowing here.
      */
-    public boolean hasRepository(String repoId) throws OpenRDFException {
+    public boolean hasRepository(String repoId) throws RDF4JException {
         List<String> repos = listRepositories();
         return repos.contains(repoId);
     }
@@ -253,7 +250,7 @@ public class AGCatalog {
             if (strict || !hasRepository(repositoryID)) {
                 getHTTPClient().putRepository(repoURL);
             }
-        } catch (OpenRDFException e) {
+        } catch (RDF4JException e) {
             // TODO: modify hasRepository, shouldn't need to do this
             throw new RepositoryException(e);
         }
@@ -277,7 +274,7 @@ public class AGCatalog {
             if (!hasRepository(repositoryID)) {
                 throw new RepositoryException("Repository not found with ID: " + repositoryID);
             }
-        } catch (OpenRDFException e) {
+        } catch (RDF4JException e) {
             // TODO: consider having methods in this class all throw OpenRDFExceptions
             throw new RepositoryException(e);
         }

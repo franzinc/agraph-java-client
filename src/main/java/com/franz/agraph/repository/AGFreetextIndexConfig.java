@@ -55,17 +55,17 @@ public class AGFreetextIndexConfig {
     private String tokenizer;
 
     private AGFreetextIndexConfig() {
-        predicates = new ArrayList<IRI>();
+        predicates = new ArrayList<>();
         indexLiterals = true;
-        indexLiteralTypes = new ArrayList<String>();
+        indexLiteralTypes = new ArrayList<>();
         indexResources = "false";
-        indexFields = new ArrayList<String>();
+        indexFields = new ArrayList<>();
         indexFields.add("object");
         minimumWordSize = 3;
-        stopWords = new ArrayList<String>();
-        wordFilters = new ArrayList<String>();
-        innerChars = new ArrayList<String>();
-        borderChars = new ArrayList<String>();
+        stopWords = new ArrayList<>();
+        wordFilters = new ArrayList<>();
+        innerChars = new ArrayList<>();
+        borderChars = new ArrayList<>();
         tokenizer = "default";
     }
 
@@ -112,7 +112,7 @@ public class AGFreetextIndexConfig {
     }
 
     private List<IRI> initPredicates(JSONObject config) {
-        List<IRI> predList = new ArrayList<IRI>();
+        List<IRI> predList = new ArrayList<>();
         JSONArray preds = config.optJSONArray(PREDICATES);
         if (preds != null) {
             for (int i = 0; i < preds.length(); i++) {
@@ -270,7 +270,7 @@ public class AGFreetextIndexConfig {
     }
 
     private List<String> getJSONArrayAsListString(JSONObject config, String key) {
-        List<String> list = new ArrayList<String>();
+        List<String> list = new ArrayList<>();
         JSONArray array = config.optJSONArray(key);
         if (array != null) {
             for (int i = 0; i < array.length(); i++) {
@@ -281,19 +281,17 @@ public class AGFreetextIndexConfig {
     }
 
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("<AGFreetextIndexConfig predicates: ").append(predicates);
-        sb.append(", indexLiterals: ").append(indexLiterals);
-        sb.append(", indexLiteralTypes: ").append(indexLiteralTypes);
-        sb.append(", indexResources: ").append(indexResources);
-        sb.append(", indexFields: ").append(indexFields);
-        sb.append(", minimumWordSize: ").append(minimumWordSize);
-        sb.append(", stopWords: ").append(stopWords.size());
-        sb.append(", wordFilters: ").append(wordFilters);
-        sb.append(", innerChars: ").append(innerChars);
-        sb.append(", borderChars: ").append(borderChars);
-        sb.append(", tokenizer: ").append(tokenizer);
-        sb.append(">");
-        return sb.toString();
+        return "<AGFreetextIndexConfig predicates: " + predicates
+                + ", indexLiterals: " + indexLiterals
+                + ", indexLiteralTypes: " + indexLiteralTypes
+                + ", indexResources: " + indexResources
+                + ", indexFields: " + indexFields
+                + ", minimumWordSize: " + minimumWordSize
+                + ", stopWords: " + stopWords.size()
+                + ", wordFilters: " + wordFilters
+                + ", innerChars: " + innerChars
+                + ", borderChars: " + borderChars
+                + ", tokenizer: " + tokenizer
+                + ">";
     }
 }

@@ -93,19 +93,22 @@ public class AGTQRStreamer extends AGResponseHandler {
                     while (xml.hasNext()) {
                         switch (xml.next()) {
                             case XMLStreamConstants.START_ELEMENT:
-                                if ("head".equals(xml.getLocalName())) {
-                                    bindingNames = new ArrayList<String>();
-                                } else if ("variable".equals(xml.getLocalName())) {
-                                    for (int i = 0; i < xml.getAttributeCount(); i++) {
-                                        if ("name".equals(xml.getAttributeLocalName(i))) {
-                                            bindingNames.add(xml.getAttributeValue(i));
+                                switch (xml.getLocalName()) {
+                                    case "head":
+                                        bindingNames = new ArrayList<>();
+                                        break;
+                                    case "variable":
+                                        for (int i = 0; i < xml.getAttributeCount(); i++) {
+                                            if ("name".equals(xml.getAttributeLocalName(i))) {
+                                                bindingNames.add(xml.getAttributeValue(i));
+                                            }
                                         }
-                                    }
-                                } else if ("sparql".equals(xml.getLocalName())) {
-                                    // continue
-                                } else {
-                                    throw new RuntimeException("Unexpected tag: " + xml.getLocalName());
-                                    //return null;
+                                        break;
+                                    case "sparql":
+                                        continue;
+                                    default:
+                                        throw new RuntimeException("Unexpected tag: " + xml.getLocalName());
+                                        //return null;
                                 }
                                 break;
                             case XMLStreamConstants.END_ELEMENT:
@@ -157,7 +160,7 @@ public class AGTQRStreamer extends AGResponseHandler {
                                     }
                                 }
                                 String text = xml.getElementText();
-                                Value value = null;
+                                Value value;
                                 if (datatype != null) {
                                     try {
                                         value = vf.createLiteral(text, vf.createIRI(datatype));
