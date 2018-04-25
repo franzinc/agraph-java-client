@@ -15,20 +15,19 @@ import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
 import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.repository.RepositoryException;
-import org.eclipse.rdf4j.repository.base.RepositoryBase;
-
+import org.eclipse.rdf4j.repository.base.AbstractRepository;
 import java.io.File;
 import java.util.concurrent.ScheduledExecutorService;
 
 /**
- * Implements the Sesame Repository interface for AllegroGraph, representing
+ * Implements the RDF4J Repository interface for AllegroGraph, representing
  * <a href="http://www.franz.com/agraph/support/documentation/current/agraph-introduction.html#triple-store">triple-stores
  * on the server</a>.
  * In AllegroGraph, an {@link AGCatalog} contains multiple repositories.
- * With the Sesame API, most data operations on a repository are done through
+ * With the RDF4J API, most data operations on a repository are done through
  * the {@link AGRepositoryConnection} returned by {@link #getConnection()}.
  */
-public class AGRepository extends RepositoryBase implements AGAbstractRepository {
+public class AGRepository extends AbstractRepository implements AGAbstractRepository {
     private final AGCatalog catalog;
     private final String repositoryID;
     private final String catalogPrefixedRepositoryID;
