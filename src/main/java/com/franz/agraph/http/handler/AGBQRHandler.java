@@ -14,6 +14,7 @@ import org.eclipse.rdf4j.query.resultio.QueryResultParseException;
 import java.io.IOException;
 import java.io.InputStream;
 
+// BQR == BooleanQueryResult
 public class AGBQRHandler extends AGResponseHandler {
 
     private boolean result;
