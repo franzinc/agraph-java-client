@@ -1034,6 +1034,17 @@ public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
         assertEquals(0, getTotalStatementCount(conn));
     }
 
+    @Test
+    public void testGetStoreID() {
+        try (AGRepositoryConnection c = (AGRepositoryConnection) testRepository.getConnection()) {
+            // Primarily verify that no exceptions are thrown
+            long id1 = c.getStoreID();
+            long id2 = c.getStoreID();
+            // Secondarily verify that the cached id (id2) is the same as id1.
+            assertEquals(id1, id2);
+        }
+    }
+
     @RunWith(Categories.class)
     @ExcludeCategory(NonPrepushTest.class)
     @SuiteClasses( {AGRepositoryConnectionTests.class})

@@ -1982,6 +1982,21 @@ public class AGHttpRepoClient implements AutoCloseable {
     }
 
     /**
+     * Returns the storeID as a long
+     *
+     * @return The store ID
+     * @throws AGHttpException if there is a problem with the request
+     */
+    public long getStoreID() throws AGHttpException {
+        String url = getRoot() + "/storeID";
+
+        // The response is an 8 character (4 hex bytes) string.
+        AGStringHandler handler = new AGStringHandler();
+        get(url, null, null, handler);
+        return Long.parseLong(handler.getResult(), 16);
+    }
+
+    /**
      * Returns the size of the spogi cache.
      *
      * @return long  the size of the spogi cache, in triples

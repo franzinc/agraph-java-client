@@ -2604,6 +2604,21 @@ public class AGRepositoryConnection
         prepareHttpRepoClient().addSessionLoadScript(scriptName);
     }
 
+    long cachedStoreID = -1;
+
+    /**
+     * Returns the store ID
+     *
+     * @return The store ID
+     * @throws RepositoryException if there is an error during the request
+     */
+    public long getStoreID() throws RepositoryException {
+        if (cachedStoreID == -1) {
+            cachedStoreID = prepareHttpRepoClient().getStoreID();
+        }
+        return cachedStoreID;
+    }
+
     /**
      * Enables the spogi cache in this repository.
      * <p>
