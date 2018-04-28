@@ -2,6 +2,19 @@
 
 ## 2.0.3
 
+### bug25277: AGVirtualRepository.federate() constructs incomplete triple store spec
+    
+AGVirtualRepository.federate() uses getSpec() on each supplied
+AGRepository to construct the triple store spec to use for the
+federation.  getSpec() returns something like `<reponame>` or
+`<catname:reponame>`.  This is missing information that is necessary to
+federate against a repo that is not local to the AG server
+performing the federation.
+
+Missing info: scheme, host, port, user, password.
+
+This has been fixed.
+
 ### rfe15577: Automatic retry of idempotent HTTP requests
 
 In case a GET request (e.g. a repository query) fails due to a

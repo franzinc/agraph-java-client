@@ -11,6 +11,7 @@ import com.franz.agraph.http.handler.AGResponseHandler;
 import com.franz.agraph.http.handler.AGStringHandler;
 import com.franz.agraph.http.handler.AGTQRHandler;
 import com.franz.agraph.repository.AGValueFactory;
+
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpConnectionManager;
@@ -329,6 +330,25 @@ public class AGHTTPClient implements AutoCloseable {
             httpClient.getState().clearCredentials();
             httpClient.getParams().setAuthenticationPreemptive(false);
         }
+    }
+
+    /**
+     * Retrieve the username and password previously set by setUsernameAndPassword.
+     *
+     * @return An array of two Strings.  The first element is the username (or null)
+     *         and the second element is the password (or null).
+     */
+    public String[] getUsernameAndPassword() {
+        String[] res = new String[2];
+
+        // WARNING: The call to getCredentials will throw an IllegalArgumentException of credentials have not previously
+        // been set with a call to setUsernameAndPassword
+        UsernamePasswordCredentials cred = (UsernamePasswordCredentials) httpClient.getState().getCredentials(authScope);
+
+        res[0] = cred.getUserName();
+        res[1] = cred.getPassword();
+
+        return res;
     }
 
     /**

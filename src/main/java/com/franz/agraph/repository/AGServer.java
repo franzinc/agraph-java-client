@@ -60,6 +60,8 @@ public class AGServer implements Closeable {
     private static ScheduledThreadPoolExecutor sharedExecutor;
 
     private final String serverURL;
+    private final String user;
+    private final String password;
     private final AGHTTPClient httpClient;
     private final AGCatalog rootCatalog;
     private ScheduledExecutorService executor = getSharedExecutor();
@@ -76,6 +78,8 @@ public class AGServer implements Closeable {
      */
     public AGServer(String serverURL, String username, String password) {
         this.serverURL = serverURL.replaceAll("/$", "");
+        this.user = username;
+        this.password = password;
         httpClient = new AGHTTPClient(this.serverURL);
         httpClient.setUsernameAndPassword(username, password);
         rootCatalog = new AGCatalog(this, AGCatalog.ROOT_CATALOG);
@@ -93,6 +97,8 @@ public class AGServer implements Closeable {
      */
     public AGServer(String username, String password, AGHTTPClient httpClient) {
         this.serverURL = httpClient.getServerURL();
+        this.user = username;
+        this.password = password;
         this.httpClient = httpClient;
         this.httpClient.setUsernameAndPassword(username, password);
         rootCatalog = new AGCatalog(this, AGCatalog.ROOT_CATALOG);
@@ -127,6 +133,12 @@ public class AGServer implements Closeable {
      */
     public AGServer(AGHTTPClient httpClient) {
         this.serverURL = httpClient.getServerURL();
+
+        String[] userInfo = httpClient.getUsernameAndPassword();
+
+        this.user     = userInfo[0];
+        this.password = userInfo[1];
+
         this.httpClient = httpClient;
         rootCatalog = new AGCatalog(this, AGCatalog.ROOT_CATALOG);
     }
@@ -164,6 +176,10 @@ public class AGServer implements Closeable {
     public AGServer(String serverURL) {
         this.serverURL = serverURL.replaceAll("/$", "");
         this.httpClient = new AGHTTPClient(serverURL);
+
+        this.user     = null;
+        this.password = null;
+
         rootCatalog = new AGCatalog(this, AGCatalog.ROOT_CATALOG);
     }
 
@@ -228,6 +244,14 @@ public class AGServer implements Closeable {
      */
     public String getServerURL() {
         return serverURL;
+    }
+
+    public String getUser() {
+        return user;
+    }
+
+    public String getPassword() {
+        return password;
     }
 
     /**
@@ -392,6 +416,7 @@ public class AGServer implements Closeable {
      */
     public AGVirtualRepository federate(AGAbstractRepository... repositories) {
         String[] specstrings = new String[repositories.length];
+
         for (int i = 0; i < repositories.length; i++) {
             specstrings[i] = repositories[i].getSpec();
         }

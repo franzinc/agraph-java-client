@@ -17,6 +17,8 @@ import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.base.AbstractRepository;
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.concurrent.ScheduledExecutorService;
 
 /**
@@ -79,10 +81,51 @@ public class AGRepository extends AbstractRepository implements AGAbstractReposi
     /**
      * The AllegroGraph URL of this repository.
      *
+     * @param  includeAuth boolean indicating whether or not to
+     *                     include auth (user:password) in the
+     *                     returned URL.
+     * @return the URL of this repository
+     */
+    public String getRepositoryURL(boolean includeAuth) {
+        if (includeAuth) {
+            // take the existing repositoryURL and add the username
+            // and password extracted from the associated server.
+            try {
+                URI uri = new URI(repositoryURL);
+
+                AGServer server = catalog.getServer();
+                String user = server.getUser();
+                String password = server.getPassword();
+
+                String auth = null;
+
+                if (user != null) {
+                    if (password != null) {
+                        // Both username and password are available.
+                        auth = user + ":" + password;
+                    } else {
+                        // Just username
+                        auth = user;
+                    }
+                }
+
+                return new URI(uri.getScheme(), auth, uri.getHost(), uri.getPort(), uri.getPath(), null, null).toString();
+            } catch (URISyntaxException e) {
+                return repositoryURL;
+            }
+
+        } else {
+            return repositoryURL;
+        }
+    }
+
+    /**
+     * The AllegroGraph URL of this repository.
+     *
      * @return the URL of this repository
      */
     public String getRepositoryURL() {
-        return repositoryURL;
+        return getRepositoryURL(false);
     }
 
     public AGValueFactory getValueFactory() {
@@ -161,12 +204,7 @@ public class AGRepository extends AbstractRepository implements AGAbstractReposi
     }
 
     public String getSpec() {
-        String cname = getCatalog().getCatalogName(), name = getRepositoryID();
-        if (AGCatalog.isRootID(cname)) {
-            return "<" + name + ">";
-        } else {
-            return "<" + cname + ":" + name + ">";
-        }
+        return "<" + getRepositoryURL(true) + ">";
     }
 
     /**

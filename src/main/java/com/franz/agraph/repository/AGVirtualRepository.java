@@ -55,7 +55,11 @@ public class AGVirtualRepository extends RepositoryBase implements AGAbstractRep
             if (spec.length() > 0) {
                 spec += " + ";
             }
-            spec += repoSpecs[i];
+            if (repoSpecs[i].startsWith("<")) {
+                spec += repoSpecs[i];
+            } else {
+                spec += "<" + repoSpecs[i] + ">";
+            }
         }
         return spec;
     }
