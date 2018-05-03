@@ -174,3 +174,19 @@ This can be achieved by doing `make deploy`. This will not cause the
 version number to be modified in any way, the code will just be compiled
 and uploaded. Since snapshots are not synchronized to Maven Central no 
 approval phase is required.
+
+Users can place the following in their pom.xml file to be able to
+reference a snapshot deployment:
+
+```
+<repositories>
+    <repository>
+        <id>oss-sonatype</id>
+        <name>oss-sonatype</name>
+        <url>https://oss.sonatype.org/content/repositories/public/</url>
+        <snapshots>
+            <enabled>true</enabled>
+        </snapshots>
+    </repository>
+</repositories>
+```
