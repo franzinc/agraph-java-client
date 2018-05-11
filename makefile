@@ -55,7 +55,7 @@ lubm-sparql: FORCE
 	$(EXEC_JAVA) -Dexec.mainClass=test.lubm.AGLubmSparql -Dexample=$(example)
 
 tutorial: local-deploy
-	cd tutorials/sesame && \
+	cd tutorials/rdf4j && \
 	mvn compile -Dmaven.repo.local=$(REPO) && \
 	mvn exec:java -Dmaven.repo.local=$(REPO) -Dexec.args=$(example)
 

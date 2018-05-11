@@ -6,12 +6,12 @@
     <artifactId>agraph-tutorial-parent</artifactId>
     <version>2.0.4-SNAPSHOT</version>
   </parent>
-  <artifactId>attributes-tutorial</artifactId>
+  <artifactId>rdf4j-tutorial</artifactId>
   <packaging>jar</packaging>
-  <name>attributes-tutorial</name>
-  <description>Triple attribute examples</description>
+  <name>rdf4j-tutorial</name>
+  <description>AllegroGraph RDF4J tutorial</description>
 
   <properties>
-    <main.class>com.franz.tutorial.attributes.AttributesExample</main.class>
+    <main.class>com.franz.tutorial.rdf4j.TutorialExamples</main.class>
   </properties>
 </project>

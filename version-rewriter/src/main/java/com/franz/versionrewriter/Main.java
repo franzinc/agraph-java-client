@@ -241,6 +241,27 @@ public class Main {
     }
 
     /**
+     * Update the version in all POM files.
+     *
+     * @param baseDir Path to the top-level directory of this project.
+     * @param version New version string.
+     */     
+    private static void changePoms(final File baseDir, final String version) {
+        final File agraphDir = new File(baseDir, "..");
+        final File pom = new File(agraphDir, "pom.xml");
+        final File tutorialDir = new File(agraphDir, "tutorials");
+        final File tutorialParent = new File(tutorialDir, "pom.xml");
+
+        transform(pom, "/project/version", replaceWith(version));
+
+        transform(tutorialParent, "/project/version", replaceWith(version));
+        
+        for (final File tutorialPom : findTutorials(agraphDir)) {
+            transform(tutorialPom, "/project/parent/version", replaceWith(version));
+        }            
+    }
+    
+    /**
      * Removes SNAPSHOT from versions in all POM files and updates the version number
      * in README.
      *
@@ -252,17 +273,9 @@ public class Main {
         System.out.println(snapshotVersion + " -> " + releaseVersion);
 
         final File agraphDir = new File(baseDir, "..");
-        final File pom = new File(agraphDir, "pom.xml");
         final File readme = new File(agraphDir, "README.adoc");
-
-        transform(pom, "/project/version", replaceWith(releaseVersion));
+        changePoms(baseDir, releaseVersion);
         replaceInFile(readme, ":version:\\s*[0-9.]*", ":version: " + releaseVersion);
-
-        for (final File tutorialPom : findTutorials(agraphDir)) {
-            transform(tutorialPom,
-              "/project/dependencies/dependency/version[../artifactId/text()=\"agraph-java-client\"]",
-                    replaceWith(releaseVersion));
-        }
     }
 
     /**
@@ -277,20 +290,10 @@ public class Main {
     private static void prepareSnapshot(final File baseDir,
                                         final String oldVersion,
                                         final String newVersion) {
-        final String snapshotVersion = newVersion + "-SNAPSHOT";
+        final String snapshotVersion = 
+            newVersion.endsWith("-SNAPSHOT") ? newVersion : newVersion + "-SNAPSHOT";
         System.out.println(oldVersion + " -> " + snapshotVersion);
-
-        final File agraphDir = new File(baseDir, "..");
-        final File pom = new File(agraphDir, "pom.xml");
-        // NOTE: No changes in README, it should keep the last released version.
-
-        transform(pom, "/project/version", replaceWith(snapshotVersion));
-
-        for (final File tutorialPom : findTutorials(agraphDir)) {
-            transform(tutorialPom,
-                    "/project/dependencies/dependency/version[../artifactId/text()=\"agraph-java-client\"]",
-                    replaceWith(snapshotVersion));
-        }
+        changePoms(baseDir, snapshotVersion);
     }
 
     /**

@@ -1,85 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.franz</groupId>
+  <parent>
+    <groupId>com.franz</groupId>
+    <artifactId>agraph-tutorial-parent</artifactId>
+    <version>2.0.4-SNAPSHOT</version>
+  </parent>
   <artifactId>agq</artifactId>
   <packaging>jar</packaging>
-  <version>1.0-SNAPSHOT</version>
   <name>agq</name>
   <description>Java query test</description>
 
   <properties>
     <main.class>com.franz.agq.Main</main.class>
-    <!-- This should match Sesame version used by AG. -->
-    <rdf4j.version>2.2.2</rdf4j.version>
     <junit.jupiter.version>5.0.0-M4</junit.jupiter.version>
     <junit.platform.version>1.0.0-M4</junit.platform.version>
-
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
   
   <build>
     <plugins>
-      <!-- Compiler settings. -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.5.1</version>
-        <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
-        </configuration>
-      </plugin>
-
-      <!-- Main class (for 'mvn exec') -->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.5.0</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>java</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <mainClass>${main.class}</mainClass>
-          <!-- HttpClient leaves daemon threads that cannot be interrupted. -->
-          <cleanupDaemonThreads>false</cleanupDaemonThreads>
-        </configuration>
-      </plugin>
-
-      <!-- Fat JAR configuration -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <version>3.0.0</version>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-            <configuration>
-              <finalName>agq</finalName>
-              <transformers>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                  <mainClass>${main.class}</mainClass>
-                </transformer>
-                <!-- MERGE declared RDF writers etc. instead of overwriting. -->
-                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                  <resource>META-INF/services/org.openrdf.rio.RDFWriterFactory</resource>
-                </transformer>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                  <resource>META-INF/services/org.eclipse.rdf4j.rio.RDFWriterFactory</resource>
-                </transformer>
-              </transformers>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
       <!-- Tests -->
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
@@ -110,12 +49,6 @@
   </build>   
   
   <dependencies>
-    <!-- AG client library -->
-    <dependency>
-      <groupId>com.franz</groupId>
-      <artifactId>agraph-java-client</artifactId>
-      <version>2.0.4-SNAPSHOT</version>
-    </dependency>
     <!-- Command line parser -->
     <dependency>
       <groupId>com.beust</groupId>

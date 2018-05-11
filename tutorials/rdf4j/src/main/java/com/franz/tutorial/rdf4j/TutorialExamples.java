@@ -2,7 +2,7 @@
 ** See the file LICENSE for the full license governing this code.
 ******************************************************************************/
 
-package com.franz.tutorial.sesame;
+package com.franz.tutorial.rdf4j;
 
 import java.io.File;
 import java.io.FileInputStream;
