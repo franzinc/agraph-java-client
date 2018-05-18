@@ -65,6 +65,7 @@ public class AGServer implements Closeable {
     private final AGHTTPClient httpClient;
     private final AGCatalog rootCatalog;
     private ScheduledExecutorService executor = getSharedExecutor();
+    private AGServerVersion cachedServerVersion;
 
     /**
      * Creates an instance for interacting with an AllegroGraph server.
@@ -269,6 +270,17 @@ public class AGServer implements Closeable {
      */
     public String getVersion() throws AGHttpException {
         return getHTTPClient().getString(serverURL + "/version");
+    }
+
+    /**
+     * @return the server version as comparable AGServerVersion object.
+     * @throws AGHttpException if there is no cachedServerVersion and there was an error with getVersion() request.
+     */
+    public AGServerVersion getComparableVersion() throws AGHttpException {
+        if (cachedServerVersion == null) {
+            cachedServerVersion = new AGServerVersion(getVersion());
+        }
+        return cachedServerVersion;
     }
 
     /**
