@@ -1,16 +1,5 @@
 # AllegroGraph Java client release history
 
-## 2.1.0
-
-### Implemented support of TupleQueryResultFormat.TSV
-
-Changed preferred TupleQueryResultFormat for tuple queries to
-be TSV when possible (as long as the server version is 6.4.2
-or higher). Also implemented results streaming for TSV and JSON
-and made the results streaming turned on by default.
-
-All of the above is expected to boost the performance of tuple queries.
-
 ## 2.0.3
 
 ### bug25277: AGVirtualRepository.federate() constructs incomplete triple store spec

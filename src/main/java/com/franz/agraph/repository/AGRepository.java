@@ -57,16 +57,6 @@ public class AGRepository extends AbstractRepository implements AGAbstractReposi
     }
 
     /**
-     * Gets the server information object to which this repository belongs.
-     *
-     * @return  the AGServer object
-     */
-    @Override
-    public AGServer getServer() {
-        return getCatalog().getServer();
-    }
-
-    /**
      * Gets the catalog to which this repository belongs.
      *
      * @return the catalog
@@ -178,9 +168,7 @@ public class AGRepository extends AbstractRepository implements AGAbstractReposi
      * Create a connection to the repository.
      */
     public AGRepositoryConnection getConnection() throws RepositoryException {
-        AGRepositoryConnection conn = getConnection(catalog.getServer().getExecutor());
-        conn.setStreamResults(true);
-        return conn;
+        return getConnection(catalog.getServer().getExecutor());
     }
 
     /**

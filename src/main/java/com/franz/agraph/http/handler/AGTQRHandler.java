@@ -50,8 +50,8 @@ public class AGTQRHandler extends AGResponseHandler {
         InputStream response = getInputStream(method);
         try {
             TupleQueryResultParser parser = QueryResultIO.createTupleParser(format, vf);
-            parser.setQueryResultHandler(recoverBNodesTQRHandler(tqrhandler));
-            parser.parseQueryResult(response);
+            parser.setTupleQueryResultHandler(recoverBNodesTQRHandler(tqrhandler));
+            parser.parse(response);
         } catch (QueryResultParseException | TupleQueryResultHandlerException e) {
             throw new AGHttpException(e);
         }
@@ -79,9 +79,7 @@ public class AGTQRHandler extends AGResponseHandler {
                 MapBindingSet sol = new MapBindingSet(names.size());
                 for (String n : names) {
                     Value v = AGHttpRepoClient.getApplicationValue(arg0.getValue(n), vf);
-                    if (v != null) {
-                        sol.addBinding(n, v);
-                    }
+                    sol.addBinding(n, v);
                 }
                 handler.handleSolution(sol);
             }

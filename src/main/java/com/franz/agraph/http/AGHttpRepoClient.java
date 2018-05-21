@@ -17,7 +17,6 @@ import com.franz.agraph.http.storedproc.AGSerializer;
 import com.franz.agraph.repository.AGAbstractRepository;
 import com.franz.agraph.repository.AGMaterializer;
 import com.franz.agraph.repository.AGQuery;
-import com.franz.agraph.repository.AGServerVersion;
 import com.franz.agraph.repository.AGSpinFunction;
 import com.franz.agraph.repository.AGSpinMagicProperty;
 import com.franz.agraph.repository.AGUpdate;
@@ -113,7 +112,6 @@ public class AGHttpRepoClient implements AutoCloseable {
             };
     private static int defaultSessionLifetimeInSeconds = 3600;
     private static NameValuePair[] emptyParams = new NameValuePair[0];
-    private static AGServerVersion supportedTSVTQRVersion = new AGServerVersion("6.4.2");
     final Logger logger = LoggerFactory.getLogger(this.getClass());
     // Used to create the pinger task
     private final ScheduledExecutorService executor;
@@ -128,7 +126,8 @@ public class AGHttpRepoClient implements AutoCloseable {
     private String sessionRoot, repoRoot;
     private boolean loadInitFile = false;
     private List<String> scripts = null;
-    private TupleQueryResultFormat preferredTQRFormat;
+    // TODO: choose proper defaults
+    private TupleQueryResultFormat preferredTQRFormat = TupleQueryResultFormat.SPARQL;
     private BooleanQueryResultFormat preferredBQRFormat = BooleanQueryResultFormat.TEXT;
     private RDFFormat preferredRDFFormat = getDefaultRDFFormat();
     // client is inherited from the AGServer instance from which this instance was created.
@@ -345,13 +344,6 @@ public class AGHttpRepoClient implements AutoCloseable {
      * @return TupleQueryResultFormat  the current preferred format
      */
     public TupleQueryResultFormat getPreferredTQRFormat() {
-        if (preferredTQRFormat == null) {
-            if (repo.getServer().getComparableVersion().compareTo(supportedTSVTQRVersion) >= 0) {
-                preferredTQRFormat = TupleQueryResultFormat.TSV;
-            } else {
-                preferredTQRFormat = TupleQueryResultFormat.SPARQL;
-            }
-        }
         return preferredTQRFormat;
     }
 
