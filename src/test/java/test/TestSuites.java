@@ -75,6 +75,7 @@ public class TestSuites {
             DownloadTest.class,
             AGUtilTest.class,
             ReplHeaderTest.class,
+            AGServerVersionTests.class,
     })
     public static class Prepush {
     }

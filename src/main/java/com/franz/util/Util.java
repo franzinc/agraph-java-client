@@ -83,4 +83,48 @@ public final class Util {
                 repoAndCatalog.split(CAT_SEPARATOR, 2);
         return components[components.length - 1];
     }
+
+    // The methods below are (less-efficient) implementations
+    // of java.util.Arrays methods added in Java 9
+    // New overloads should be added as needed.
+
+    /**
+     * Computes the first index where two arrays differ.
+     *
+     * If the arrays are identical -1 is returned.
+     *
+     * If one array is a prefix of the other then the length
+     * of the shorter array is returned.
+     *
+     * @param a First array.
+     * @param b Second array.
+     * @return First differing index or -1.
+     * @throws NullPointerException If either array is null.
+     */
+    public static int mismatch(int[] a, int[] b) {
+        final int n = Math.min(a.length, b.length);
+        for (int i = 0; i < n; i++) {
+            if (a[i] != b[i]) {
+                return i;
+            }
+        }
+        return a.length != b.length ? n : -1;
+    }
+
+    /**
+     * Compares two array lexicographically.
+     *
+     * @param a First array.
+     * @param b Second array.
+     * @return Comparison result as specified by
+     *         {@link Comparable#compareTo(Object)}.
+     * @throws NullPointerException If either array is null.
+     */
+    public static int compare(int[] a, int[] b) {
+        final int m = mismatch(a, b);
+        if (m >= 0 && m < a.length && m < b.length) {
+            return Integer.compare(a[m], b[m]);
+        }
+        return Integer.compare(a.length, b.length);
+    }
 }
