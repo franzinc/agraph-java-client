@@ -241,24 +241,31 @@ public class Main {
     }
 
     /**
-     * Update the version in all POM files.
+     * Update the version in the README file and all POM files.
      *
      * @param baseDir Path to the top-level directory of this project.
      * @param version New version string.
      */     
-    private static void changePoms(final File baseDir, final String version) {
+    private static void updateFiles(final File baseDir, final String version) {
         final File agraphDir = new File(baseDir, "..");
         final File pom = new File(agraphDir, "pom.xml");
         final File tutorialDir = new File(agraphDir, "tutorials");
         final File tutorialParent = new File(tutorialDir, "pom.xml");
 
+        // Update the top-level POM
         transform(pom, "/project/version", replaceWith(version));
 
+        // Update the top-level tutorial POM
         transform(tutorialParent, "/project/version", replaceWith(version));
-        
+
+        // Update all tutorial POMs
         for (final File tutorialPom : findTutorials(agraphDir)) {
             transform(tutorialPom, "/project/parent/version", replaceWith(version));
-        }            
+        }
+
+        // Update the README
+        final File readme = new File(agraphDir, "README.adoc");
+        replaceInFile(readme, ":version:\\s*[0-9.]*", ":version: " + version);
     }
     
     /**
@@ -271,11 +278,7 @@ public class Main {
     private static void prepareRelease(final File baseDir, final String snapshotVersion) {
         final String releaseVersion = stripSnapshot(snapshotVersion);
         System.out.println(snapshotVersion + " -> " + releaseVersion);
-
-        final File agraphDir = new File(baseDir, "..");
-        final File readme = new File(agraphDir, "README.adoc");
-        changePoms(baseDir, releaseVersion);
-        replaceInFile(readme, ":version:\\s*[0-9.]*", ":version: " + releaseVersion);
+        updateFiles(baseDir, releaseVersion);
     }
 
     /**
@@ -293,7 +296,7 @@ public class Main {
         final String snapshotVersion = 
             newVersion.endsWith("-SNAPSHOT") ? newVersion : newVersion + "-SNAPSHOT";
         System.out.println(oldVersion + " -> " + snapshotVersion);
-        changePoms(baseDir, snapshotVersion);
+        updateFiles(baseDir, snapshotVersion);
     }
 
     /**
