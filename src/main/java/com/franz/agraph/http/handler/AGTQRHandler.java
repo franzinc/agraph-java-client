@@ -79,7 +79,9 @@ public class AGTQRHandler extends AGResponseHandler {
                 MapBindingSet sol = new MapBindingSet(names.size());
                 for (String n : names) {
                     Value v = AGHttpRepoClient.getApplicationValue(arg0.getValue(n), vf);
-                    sol.addBinding(n, v);
+                    if (v != null) {
+                        sol.addBinding(n, v);
+                    }
                 }
                 handler.handleSolution(sol);
             }

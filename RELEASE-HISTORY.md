@@ -2,6 +2,15 @@
 
 ## 2.1.0
 
+### Implemented support of TupleQueryResultFormat.TSV
+
+Changed preferred TupleQueryResultFormat for tuple queries to
+be TSV when possible (as long as the server version is 6.4.2
+or higher). Also implemented results streaming for TSV and made
+the results streaming by default.
+
+All of the above is expected to boost the performance of tuple queries.
+
 ### rfe10713: Two phase commit (2PC) support
 
 The AllegroGraph Java client can now operate as a JTA (Java
