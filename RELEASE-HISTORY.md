@@ -1,15 +1,26 @@
 # AllegroGraph Java client release history
 
-## 2.1.1
+## 2.2.0
 
+### rfe15689: Warmup operation
+
+It is now possible to execute the 'warmup' operation through
+the Java client. This will cause the server to read some 
+internal structures of a repository into memory, thus speeding 
+up processing of future requests in that repository.
+
+Warmup can be executed in two ways:
+
+   - by calling the `warmup()` method of a connection object.
+   - by creating a connection pool with the `WARMUP` parameter
+     set to true.
+     
 ### bug25360: HTTP connection leaks
 
 HTTP connections used to not be cleaned up properly if
 the server returned an error in response to a query.
 Connections used by Jena select queries were also leaked.
 This resulted in suboptimal resource usage.
-
-This has been corrected.
 
 ## 2.1.0
 

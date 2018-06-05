@@ -34,7 +34,10 @@ import java.util.Map;
  *         AGConnProp.session, AGConnProp.Session.DEDICATED,
  *         AGPoolProp.shutdownHook, true,
  *         AGPoolProp.maxActive, 10,
- *         AGPoolProp.initialSize, 2);
+ *         AGPoolProp.initialSize, 2,
+ *         AGPoolProp.warmup, true,
+ *         AGPoolPool.warmupIncludeStrings, true,
+ *         AGConnPool.warmupIncludeTriples, false);
  *     AGRepositoryConnection conn = pool.borrowConnection();
  *     try {
  *         ...
@@ -67,6 +70,22 @@ import java.util.Map;
  * on a {@link AGConnPool}, connections that have not been returned to the pool
  * will *not* be closed. Such connections will be closed immediately when
  * returned to the pool.</p>
+ *
+ * In addition to standard commons-pool parameters this class supports
+ * some other features:
+ * <ul>
+ *     <li>
+ *         <code>initialSize</code> can be used to pre-create a set number
+ *         of connections. By default the pool only opens connections if needed.
+ *     </li>
+ *     <li>
+ *         <code>warmup</code> can be set to <code>true</code> to force the server
+ *         to read internal structures of the repository into memory, thus speeding
+ *         up future requests. If requested, this will happen at pool creation time.
+ *         <code>warmupIncludeStrings</code> and <code>warmupIncludeStrings</code>
+ *         can be set to false to exclude specific structures from the warmup operation.
+ *     </li>
+ * </ul>
  *
  * @since v4.3.3
  */
@@ -103,6 +122,11 @@ public class AGConnPool implements ObjectPool<AGRepositoryConnection>, AutoClose
             Runtime.getRuntime().addShutdownHook(shutdownHook);
         } else {
             shutdownHook = null;
+        }
+        if (poolConfig.getWarmupConfig() != null) {
+            try (AGRepositoryConnection conn = borrowObject()) {
+                conn.warmup(poolConfig.getWarmupConfig());
+            }
         }
     }
 

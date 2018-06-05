@@ -24,6 +24,7 @@ import com.franz.agraph.repository.AGSpinMagicProperty;
 import com.franz.agraph.repository.AGUpdate;
 import com.franz.agraph.repository.AGValueFactory;
 import com.franz.agraph.repository.AGXid;
+import com.franz.agraph.repository.WarmupConfig;
 import com.franz.agraph.repository.repl.DurabilityLevel;
 import com.franz.agraph.repository.repl.DurabilityVisitor;
 import com.franz.agraph.repository.repl.TransactionSettings;
@@ -156,6 +157,9 @@ public class AGHttpRepoClient implements AutoCloseable {
     private TransactionSettings transactionSettings;
     // When true, any request made by this instance will include an `x-rollback' header.
     private boolean sendRollbackHeader = false;
+
+    // Cached to avoid querying the server each time.
+    private Boolean hasWarmupBug = null;
 
     public AGHttpRepoClient(AGAbstractRepository repo, AGHTTPClient client,
                             String repoRoot, String sessionRoot,
@@ -2685,5 +2689,58 @@ public class AGHttpRepoClient implements AutoCloseable {
      */
     public void setTransactionSettings(final TransactionSettings transactionSettings) {
         this.transactionSettings = transactionSettings;
+    }
+
+    /**
+     * Checks the server version to see if a commit is attempted after a warmup.
+     *
+     * @return True if the bug is present, false otherwise.
+     */
+    private boolean hasWarmupBug() {
+        if (hasWarmupBug == null) {
+            final AGServerVersion version = repo.getServer().getComparableVersion();
+            hasWarmupBug = version.compareTo(new AGServerVersion("6.3.0")) < 0;
+        }
+        return hasWarmupBug;
+    }
+
+    /**
+     * Asks the server to read store's internal data structures into memory.
+     *
+     * Use {@link #warmup(WarmupConfig)} to specify which structures should be read.
+     */
+    public void warmup() {
+        warmup(null);
+    }
+
+    /**
+     * Asks the server to read store's internal data structures into memory.
+     *
+     * @param config Config object that can be used to specify which structures
+     *               should be read into memory. If this parameter is {@code null}
+     *               then the choice will be left to the server.
+     */
+    public void warmup(final WarmupConfig config) {
+        final String url = getRoot() + "/" + AGProtocol.WARMUP;
+        List<NameValuePair> params = new ArrayList<>(2);
+        if (config != null) {
+            params.add(new NameValuePair(
+                    AGProtocol.INCLUDE_STRINGS,
+                    Boolean.toString(config.getIncludeStrings())));
+            params.add(new NameValuePair(
+                    AGProtocol.INCLUDE_TRIPLES,
+                    Boolean.toString(config.getIncludeTriples())));
+        }
+        try {
+            put(url, null, params, null, null);
+        } catch (AGHttpException e) {
+            // Older versions of AG tried to do a commit after warmup.
+            // In a read-only store the commit would fail, but since
+            // the warmup has been executed by then we can safely ignore
+            // such errors.
+            if (!hasWarmupBug() || !e.getMessage().contains("commit operation is not allowed")) {
+                throw e;
+            }
+        }
     }
 }

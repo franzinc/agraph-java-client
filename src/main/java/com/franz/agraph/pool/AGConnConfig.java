@@ -61,7 +61,9 @@ public class AGConnConfig {
         password = getStringRequired(props, AGConnProp.password);
         catalog = props.get(AGConnProp.catalog);
         repository = getStringRequired(props, AGConnProp.repository);
-        session = Session.valueOfCaseInsensitive(props.get(AGConnProp.session), Session.SHARED);
+        session = Session.valueOf(
+                props.getOrDefault(AGConnProp.session,
+                                   Session.SHARED.name()).toUpperCase());
         sessionLifetime = getInt(props, AGConnProp.sessionLifetime);
         httpSocketTimeout = getInt(props, AGConnProp.httpSocketTimeout);
     }

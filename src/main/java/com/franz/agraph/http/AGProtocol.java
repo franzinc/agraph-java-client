@@ -442,6 +442,18 @@ public class AGProtocol extends Protocol {
             SPIN_ARGUMENTS = "arguments";
 
     /**
+     * Relative location of the warmup service.
+     */
+    public static final String WARMUP = "warmup";
+
+    // Warmup service parameter names.
+    public static final String INCLUDE_STRINGS = "includeStrings";
+    public static final String INCLUDE_TRIPLES = "includeTriples";
+
+    /** Location of the log service. */
+    public static final String LOGFILE = "logfile";
+
+    /**
      * A boolean that defaults to false, indicating whether an error
      * should be raised when a SPARQL query selects variables that
      * are not mentioned in the query body.
@@ -498,6 +510,17 @@ public class AGProtocol extends Protocol {
      * Header used to transfer settings related to multi-master replication.
      */
     public static final String X_REPL_SETTINGS = "x-repl-settings";
+
+    /**
+     * Get the location of the server logs resource on the specified server.
+     *
+     * @param serverURL
+     *        the base location of a server implementing this REST protocol.
+     * @return the location of the server logs resource on the specified server
+     */
+    public static String getLogLocation(String serverURL) {
+        return serverURL + "/" + LOGFILE;
+    }
 
     /**
      * Location of the root catalog service

@@ -11,6 +11,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite.SuiteClasses;
 import test.pool.AGConnPoolClosingTest;
 import test.pool.AGConnPoolSessionTest;
+import test.pool.AGConnPoolWarmupTest;
 import test.stress.TransactionStressTest;
 
 public class TestSuites {
@@ -59,6 +60,7 @@ public class TestSuites {
             QueryLimitOffsetTests.class,
             UntypedLiteralMatchingTest.class,
             AGConnPoolSessionTest.class,
+            AGConnPoolWarmupTest.class,
             BlankNodeTests.class,
             MappingsTests.class,
             DynamicCatalogTests.class,
@@ -77,6 +79,7 @@ public class TestSuites {
             ReplHeaderTest.class,
             AGServerVersionTests.class,
             AGHTTPClientTests.class,
+            WarmupTests.class,
     })
     public static class Prepush {
     }

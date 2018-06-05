@@ -117,6 +117,15 @@ public enum AGPoolProp {
      */
     numTestsPerEvictionRun,
 
+    /** Boolean property, if true warmup is executed during pool creation. */
+    warmup,
+
+    /** Boolean property, set to false to exclude the string table from a warmup */
+    warmupIncludeStrings,
+
+    /** Boolean property, set to false to exclude triple indices from a warmup */
+    warmupIncludeTriples
+
     // TODO whenExhaustedAction
 
 }

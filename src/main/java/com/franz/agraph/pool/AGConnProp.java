@@ -90,19 +90,7 @@ public enum AGConnProp {
         /**
          * Calls {@link AGRepositoryConnection#setAutoCommit(boolean)} with false.
          */
-        TX;
-
-        static Session valueOfCaseInsensitive(String name, Session defaultVal) {
-            try {
-                return Session.valueOf(name);
-            } catch (final IllegalArgumentException e) {
-                try {
-                    return Session.valueOf(name.toUpperCase());
-                } catch (final IllegalArgumentException e2) {
-                    return defaultVal;
-                }
-            }
-        }
+        TX
     }
 
 }

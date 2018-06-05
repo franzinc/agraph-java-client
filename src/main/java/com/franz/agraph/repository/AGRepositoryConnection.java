@@ -3225,4 +3225,23 @@ public class AGRepositoryConnection
             return this;
         }
     }
+    /**
+     * Asks the server to read store's internal data structures into memory.
+     *
+     * Use {@link #warmup(WarmupConfig)} to specify which structures should be read.
+     */
+    public void warmup() {
+        getHttpRepoClientInternal().warmup();
+    }
+
+    /**
+     * Asks the server to read store's internal data structures into memory.
+     *
+     * @param config Config object that can be used to specify which structures
+     *               should be read into memory. If this parameter is {@code null}
+     *               then the choice will be left to the server.
+     */
+    public void warmup(final WarmupConfig config) {
+        getHttpRepoClientInternal().warmup(config);
+    }
 }

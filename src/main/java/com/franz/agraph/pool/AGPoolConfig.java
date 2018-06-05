@@ -4,6 +4,7 @@
 
 package com.franz.agraph.pool;
 
+import com.franz.agraph.repository.WarmupConfig;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 
 import java.util.Map;
@@ -28,6 +29,8 @@ public class AGPoolConfig extends GenericObjectPoolConfig {
      * @see #DEFAULT_SHUTDOWN_HOOK
      */
     public final boolean shutdownHook;
+
+    private WarmupConfig warmupConfig;
 
     public AGPoolConfig(Map<AGPoolProp, String> props) {
         if (props.containsKey(AGPoolProp.initialSize)) {
@@ -79,6 +82,28 @@ public class AGPoolConfig extends GenericObjectPoolConfig {
             setNumTestsPerEvictionRun(
                     Integer.parseInt(props.get(AGPoolProp.numTestsPerEvictionRun)));
         }
+
+        if (Boolean.parseBoolean(props.getOrDefault(AGPoolProp.warmup, "false"))) {
+            final boolean includeStrings =
+                    Boolean.parseBoolean(
+                            props.getOrDefault(AGPoolProp.warmupIncludeStrings, "true"));
+            final boolean includeTriples =
+                    Boolean.parseBoolean(
+                            props.getOrDefault(AGPoolProp.warmupIncludeTriples, "true"));
+            warmupConfig = WarmupConfig
+                    .create()
+                    .includeStrings(includeStrings).includeTriples(includeTriples);
+        } else {
+            warmupConfig = null;
+        }
+
     }
 
+    public WarmupConfig getWarmupConfig() {
+        return warmupConfig;
+    }
+
+    public void setWarmupConfig(final WarmupConfig warmupConfig) {
+        this.warmupConfig = warmupConfig;
+    }
 }

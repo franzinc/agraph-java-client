@@ -6,6 +6,7 @@ package test;
 
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
+import com.franz.agraph.repository.AGServerVersion;
 import com.franz.agraph.repository.AGTupleQuery;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.rdf4j.common.io.IOUtil;
@@ -19,6 +20,7 @@ import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFParseException;
+import org.junit.Assert;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -513,6 +515,159 @@ public class Util {
                 }
             }
         }
+    }
 
+    public enum LogSearchResult {
+        FOUND, NOT_FOUND, TOO_OLD;
+    }
+
+    /**
+     * Returns the length of the log file.
+     *
+     * Used to check if a log message was produced as a result
+     * of recent operations.
+     *
+     * @param server Server to connect to.
+     * @return Number of characters in the log file.
+     */
+    public static int getLogSize(AGServer server) {
+        return server.getLogFile().length();
+    }
+
+    /**
+     * Gets the log file and looks for a given string.
+     *
+     * @param server Server to connect to.
+     * @param text Text to look for.
+     * @param after Number of log file characters to skip.
+     *
+     * @return A result object, can be used to tell if the string was
+     *         found and if it is present in the specified part of the file.
+     */
+    public static LogSearchResult searchLog(AGServer server, String text, int after) {
+        String logs = server.getLogFile();
+        int index = logs.lastIndexOf(text);
+        if (index == -1) {
+            return LogSearchResult.NOT_FOUND;
+        } else if (index < after) {
+            return LogSearchResult.TOO_OLD;
+        } else {
+            return LogSearchResult.FOUND;
+        }
+    }
+
+    /**
+     * Checks the server version to determine if the warmup operation
+     * leaves a trace in the log file.
+     */
+    private static boolean isWarmupLogged(AGServer server) {
+        AGServerVersion minVersion = new AGServerVersion("v6.3.0");
+        return server.getComparableVersion().compareTo(minVersion) >= 0;
+    }
+
+    /**
+     * Searches the log file for traces of a string table warmup.
+     *
+     * @param server Server to connect to.
+     * @param after Number of log file characters to skip.
+     * @param repo Repository to check.
+     * @return Search result.
+     */
+    public static LogSearchResult searchLogForStringsWarmup(AGServer server, int after, String repo) {
+        String strings = String.format("%s\", Warmup of strings", repo);
+        return searchLog(server, strings, after);
+    }
+
+    /**
+     * Searches the log file for traces of a triple indices warmup.
+     *
+     * @param server Server to connect to.
+     * @param after Number of log file characters to skip.
+     * @param repo Repository to check.
+     * @return Search result.
+     */
+    public static LogSearchResult searchLogForTriplesWarmup(AGServer server, int after, String repo) {
+        String strings = String.format("%s\", Warmup of triples", repo);
+        return searchLog(server, strings, after);
+    }
+
+    /**
+     * Looks at the log file and checks if the string table has been warmed up recently.
+     *
+     * Raises an assertion failure if there is no trace of a recent string table warmup.
+     * Always succeeds if the server is too old to produce log messages during warmup.
+     *
+     * @param server Server to connect to.
+     * @param after Number of log file characters to skip.
+     * @param repo Repository to check.
+     */
+    public static void assertStringsWarmedUpRecently(AGServer server, int after, String repo) {
+        if (isWarmupLogged(server)) {
+            switch (searchLogForStringsWarmup(server, after, repo)) {
+                case NOT_FOUND:
+                    Assert.fail("Warmup message not found in logs");
+                case TOO_OLD:
+                    Assert.fail("Last occurrence of the warmup message is too old.");
+                default:
+                    break;
+            }
+        }
+    }
+
+    /**
+     * Looks at the log file and checks if triple indices have been warmed up recently.
+     *
+     * Raises an assertion failure if there is no trace of a recent index warmup.
+     * Always succeeds if the server is too old to produce log messages during warmup.
+     *
+     * @param server Server to connect to.
+     * @param after Number of log file characters to skip.
+     * @param repo Repository to check.
+     */
+    public static void assertTriplesWarmedUpRecently(AGServer server, int after, String repo) {
+        if (isWarmupLogged(server)) {
+            switch (searchLogForTriplesWarmup(server, after, repo)) {
+                case NOT_FOUND:
+                    Assert.fail("Warmup message not found in logs");
+                case TOO_OLD:
+                    Assert.fail("Last occurrence of the warmup message is too old.");
+                default:
+                    break;
+            }
+        }
+    }
+
+    /**
+     * Looks at the log file and fails if the string table has been warmed up recently.
+     * Always succeeds if the server is too old to produce log messages during warmup.
+     *
+     * @param server Server to connect to.
+     * @param after Number of log file characters to skip.
+     * @param repo Repository to check.
+     */
+    public static void assertStringsNotWarmedUpRecently(AGServer server, int after, String repo) {
+        if (isWarmupLogged(server)) {
+            Assert.assertNotEquals(
+                    "The string table has been warmed up recently",
+                    LogSearchResult.FOUND,
+                    searchLogForStringsWarmup(server, after, repo));
+        }
+    }
+
+    /**
+     * Looks at the log file and fails if triple indices have been warmed up recently.
+     * Always succeeds if the server is too old to produce log messages during warmup.
+     *
+     * @param server Server to connect to.
+     * @param after Number of log file characters to skip.
+     * @param repo Repository to check.
+     */
+    public static void assertTriplesNotWarmedUpRecently(AGServer server, int after, String repo) {
+        if (isWarmupLogged(server)) {
+            Assert.assertNotEquals(
+                    "Triple indices have been warmed up recently",
+                    LogSearchResult.FOUND,
+                    searchLogForTriplesWarmup(server, after, repo));
+        }
     }
 }

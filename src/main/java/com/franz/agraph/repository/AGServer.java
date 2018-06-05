@@ -8,8 +8,10 @@ import com.franz.agraph.http.AGHTTPClient;
 import com.franz.agraph.http.AGProtocol;
 import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.http.handler.AGJSONArrayHandler;
+import com.franz.agraph.http.handler.AGRawStreamer;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.NameValuePair;
+import org.apache.commons.io.IOUtils;
 import org.eclipse.rdf4j.http.protocol.Protocol;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.BindingSet;
@@ -19,6 +21,10 @@ import org.eclipse.rdf4j.repository.RepositoryException;
 import org.json.JSONArray;
 
 import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -1129,5 +1135,37 @@ public class AGServer implements Closeable {
     public AGRepositoryConnection createRepositoryConnection(String reponame, String catname,
                                                              boolean strict) throws RepositoryException {
         return createRepository(reponame, catname, strict).getConnection();
+    }
+
+    /**
+     * Retrieves the whole log file as a single string.
+     *
+     * @return the log file.
+     * @throws AGHttpException if there is an error with this request
+     */
+    public String getLogFile() throws AGHttpException {
+        try (Reader reader = readLogFile()) {
+            return IOUtils.toString(reader);
+        } catch (IOException e) {
+            throw new AGHttpException(e);
+        }
+    }
+
+    /**
+     * Retrieves the log file as a text stream.
+     *
+     * Note that it is important to close the returned stream, so the
+     * connection can be closed or reused.
+     *
+     * @return Log file stream. Must be closed by the caller.
+     */
+    public Reader readLogFile() {
+        final String url = AGProtocol.getLogLocation(serverURL);
+        final NameValuePair[] params = new NameValuePair[]{
+          new NameValuePair("all", "true")
+        };
+        final AGRawStreamer handler = new AGRawStreamer();
+        getHTTPClient().get(url, null, params, handler);
+        return new InputStreamReader(handler.getStream(), StandardCharsets.UTF_8);
     }
 }
