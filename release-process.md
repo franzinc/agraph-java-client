@@ -1,6 +1,17 @@
 AllegroGraph Java client release process
 ========================================
 
+# Executive summary
+To publish a new release:
+  * Ensure that an AG server has been started via `make start-server`.  The server
+    will be used to run tests during the `make deploy` step below.
+  * ```
+make prepare-release
+make deploy
+make publish-dist
+make post-release
+```
+
 # Introduction
 
 Java client releases are deployed to the central Maven repository. This 
