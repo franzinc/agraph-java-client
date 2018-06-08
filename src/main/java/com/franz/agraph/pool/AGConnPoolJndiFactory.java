@@ -106,9 +106,9 @@ public class AGConnPoolJndiFactory implements ObjectFactory {
      * @param values enum values
      * @return map suitable for {@link AGConnPool#create(Map, Map)}
      */
-    private static Map<? extends Enum, String> refToMap(Reference ref, Enum[] values) {
-        Map<Enum, String> props = new HashMap<>();
-        for (Enum prop : values) {
+    private static <T extends Enum> Map<T, String> refToMap(Reference ref, T[] values) {
+        Map<T, String> props = new HashMap<>();
+        for (T prop : values) {
             RefAddr ra = ref.get(prop.name());
             if (ra == null) {
                 ra = ref.get(prop.name().toLowerCase());
@@ -130,8 +130,7 @@ public class AGConnPoolJndiFactory implements ObjectFactory {
     public Object getObjectInstance(Object obj,
                                     Name name,
                                     Context nameCtx,
-                                    Hashtable<?, ?> environment)
-            throws Exception {
+                                    Hashtable<?, ?> environment) {
         if (!(obj instanceof Reference)) {
             return null;
         }
@@ -139,8 +138,8 @@ public class AGConnPoolJndiFactory implements ObjectFactory {
         if (!AGConnPool.class.getName().equals(ref.getClassName())) {
             return null;
         }
-        Map<AGConnProp, String> connProps = (Map<AGConnProp, String>) refToMap(ref, AGConnProp.values());
-        Map<AGPoolProp, String> poolProps = (Map<AGPoolProp, String>) refToMap(ref, AGPoolProp.values());
+        Map<AGConnProp, String> connProps = refToMap(ref, AGConnProp.values());
+        Map<AGPoolProp, String> poolProps = refToMap(ref, AGPoolProp.values());
         return AGConnPool.create(connProps, poolProps);
     }
 
