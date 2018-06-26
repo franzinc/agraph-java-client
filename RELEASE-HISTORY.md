@@ -1,5 +1,15 @@
 # AllegroGraph Java client release history
 
+## 2.1.1
+
+### bug25360: HTTP connection leak
+
+HTTP connections used to not be cleaned up properly if
+the server returned an error in response to a query.
+This resulted in suboptimal resource usage.
+
+This has been corrected.
+
 ## 2.1.0
 
 ### Implemented support of TupleQueryResultFormat.TSV

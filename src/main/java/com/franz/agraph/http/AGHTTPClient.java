@@ -36,7 +36,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -270,11 +269,14 @@ public class AGHTTPClient implements AutoCloseable {
         // This retry handler takes care of retrying the HTTP request in case of
         // connection problems. It does not deal with retrying in case of HTTP error codes.
         method.getParams().setParameter(HttpMethodParams.RETRY_HANDLER, retryHandler);
-
+        // Will be set to false if the handler takes ownership of the method object.
+        // Otherwise we must close the method by the end of this procedure.
+        boolean release = true;
         try {
             int httpCode = getHttpClient().executeMethod(method);
             if (httpCode == HttpURLConnection.HTTP_OK) {
                 if (handler != null) {
+                    release = handler.releaseConnection();
                     handler.handleResponse(method);
                 }
                 return ExecuteResult.SUCCESS;
@@ -290,14 +292,17 @@ public class AGHTTPClient implements AutoCloseable {
                 return ExecuteResult.SUCCESS;
             } else {
                 AGErrorHandler errHandler = new AGErrorHandler();
+                release = errHandler.releaseConnection();
                 errHandler.handleResponse(method);
                 throw errHandler.getResult();
             }
         } catch (IOException e) {
             throw new AGHttpException(e);
         } finally {
-            if (handler == null || handler.releaseConnection()) {
-                releaseConnection(method);
+            if (release) {
+                // Note: this will read the response body if necessary
+                // to allow connection reuse.
+                method.releaseConnection();
             }
         }
     }
@@ -376,23 +381,6 @@ public class AGHTTPClient implements AutoCloseable {
         // TODO probably doesn't belong here, need another method that
         // HttpMethod objects pass through.
         method.addRequestHeader(new Header("Connection", "keep-alive"));
-    }
-
-    protected final void releaseConnection(HttpMethod method) {
-        try {
-            // Read the entire response body to enable the reuse of the
-            // connection
-            InputStream responseStream = method.getResponseBodyAsStream();
-            if (responseStream != null) {
-                while (responseStream.read() >= 0) {
-                    // do nothing
-                }
-            }
-
-            method.releaseConnection();
-        } catch (IOException e) {
-            logger.warn("I/O error upon releasing connection", e);
-        }
     }
 
     /*-----------*
