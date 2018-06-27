@@ -200,6 +200,7 @@ public class JenaTests extends AGAbstractTest {
             Assert.assertTrue("with reasoning", stmts.hasNext());
 
             AGQueryExecution exe = closeLater(AGQueryExecutionFactory.create(query, inf));
+            closeLater(exe);
             ResultSet results = exe.execSelect();
             Assert.assertTrue("with reasoning", results.hasNext());
         }
@@ -208,6 +209,7 @@ public class JenaTests extends AGAbstractTest {
             Assert.assertFalse("without reasoning", stmts.hasNext());
 
             AGQueryExecution exe = closeLater(AGQueryExecutionFactory.create(query, model));
+            closeLater(exe);
             ResultSet results = exe.execSelect();
             Assert.assertFalse("without reasoning", results.hasNext());
         }

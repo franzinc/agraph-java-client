@@ -38,6 +38,7 @@ public class LiteralAndResourceResultsTest extends AGAbstractTest {
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL,
                 queryString);
         TupleQueryResult result = tupleQuery.evaluate();
+        closeLater(result);
 
         while (result.hasNext()) {
             BindingSet bindingSet = result.next();

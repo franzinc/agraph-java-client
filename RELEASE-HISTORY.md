@@ -2,10 +2,11 @@
 
 ## 2.1.1
 
-### bug25360: HTTP connection leak
+### bug25360: HTTP connection leaks
 
 HTTP connections used to not be cleaned up properly if
 the server returned an error in response to a query.
+Connections used by Jena select queries were also leaked.
 This resulted in suboptimal resource usage.
 
 This has been corrected.

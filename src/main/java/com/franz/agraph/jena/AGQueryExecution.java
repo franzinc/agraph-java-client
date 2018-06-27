@@ -25,6 +25,7 @@ import org.apache.jena.sparql.util.Context;
 import org.eclipse.rdf4j.query.GraphQueryResult;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
 import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.QueryResult;
 import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.query.UpdateExecutionException;
 
@@ -45,6 +46,11 @@ public class AGQueryExecution implements QueryExecution, Closeable {
     protected long timeout = TIMEOUT_UNSET;
     private QuerySolution binding;
     private boolean closed = false;
+    // When we close this execution object, we must also close
+    // the result object, but only for select queries. Ask and describe
+    // results are read completely into models and remain valid after
+    // close, as described in javadoc for QueryExecution#close()
+    private QueryResult<?> resultToClose;
 
     public AGQueryExecution(AGQuery query, AGModel model) {
         this.query = query;
@@ -59,7 +65,13 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 
     @Override
     public void close() {
-        closed = true;
+        if (!closed) {
+            closed = true;
+            if (resultToClose != null) {
+                 resultToClose.close();
+                 resultToClose = null;
+            }
+        }
     }
 
     @Override
@@ -183,6 +195,7 @@ public class AGQueryExecution implements QueryExecution, Closeable {
         } catch (QueryEvaluationException e) {
             throw new QueryException(e);
         }
+        resultToClose = result;
         return new AGResultSet(result, model);
     }
 
