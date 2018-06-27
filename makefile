@@ -30,7 +30,7 @@ default: build
 clean: dist-clean
 	mvn clean
 
-prepush: clean tutorial jena-tutorial attributes-tutorial agq-tests jena-compliance-tests javadoc
+prepush: clean all-tutorials agq-tests jena-compliance-tests javadoc
 	mvn test -Dtests.include=test.TestSuites\$$Prepush
 	# Force Java to use ASCII (i.e. not UTF-8) as the default encoding.
 	env LC_ALL=C mvn test -Dtests.include=test.TestSuites\$$Unicode
@@ -54,6 +54,8 @@ lubm-sparql: FORCE
 	mvn test-compile
 	$(EXEC_JAVA) -Dexec.mainClass=test.lubm.AGLubmSparql -Dexample=$(example)
 
+all-tutorials: tutorial jena-tutorial attributes-tutorial 2pc-tutorial
+
 tutorial: local-deploy
 	cd tutorials/rdf4j && \
 	mvn compile -Dmaven.repo.local=$(REPO) && \
@@ -66,6 +68,11 @@ jena-tutorial: local-deploy
 
 attributes-tutorial: local-deploy
 	cd tutorials/attributes && \
+	mvn compile -Dmaven.repo.local=$(REPO) && \
+	mvn exec:java -Dmaven.repo.local=$(REPO)
+
+2pc-tutorial: local-deploy
+	cd tutorials/2pc && \
 	mvn compile -Dmaven.repo.local=$(REPO) && \
 	mvn exec:java -Dmaven.repo.local=$(REPO)
 

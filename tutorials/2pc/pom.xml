@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.franz</groupId>
+    <artifactId>agraph-tutorial-parent</artifactId>
+    <version>2.1.1-SNAPSHOT</version>
+  </parent>
+  <artifactId>2pc-tutorial</artifactId>
+  <packaging>jar</packaging>
+  <name>2pc-tutorial</name>
+  <description>AllegroGraph two-phase commit (2PC) tutorial</description>
+  
+  <properties>
+    <main.class>com.franz.tutorial.tpc.TwoPhaseCommitExample</main.class>
+  </properties>
+  <dependencies>
+    <dependency>
+      <groupId>javax.transaction</groupId>
+      <artifactId>jta</artifactId>
+      <version>1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.derby</groupId>
+      <artifactId>derby</artifactId>
+      <version>10.14.2.0</version>
+    </dependency>
+  </dependencies>
+</project>

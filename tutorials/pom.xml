@@ -13,6 +13,7 @@
     <module>attributes</module>
     <module>jena</module>
     <module>rdf4j</module>
+    <module>2pc</module>
   </modules>
   
   <properties>
