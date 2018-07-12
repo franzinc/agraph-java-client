@@ -265,7 +265,9 @@ public class Main {
 
         // Update the README
         final File readme = new File(agraphDir, "README.adoc");
-        replaceInFile(readme, ":version:\\s*[0-9.]*", ":version: " + version);
+        replaceInFile(readme,
+                      ":version:\\s*[0-9.]*(-SNAPSHOT)?", 
+                      ":version: " + version);
     }
     
     /**
