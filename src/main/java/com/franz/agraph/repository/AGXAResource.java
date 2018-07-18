@@ -1,5 +1,6 @@
 package com.franz.agraph.repository;
 
+import com.franz.agraph.http.exception.AGHttpException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,6 +14,21 @@ public class AGXAResource implements XAResource {
     AGRepositoryConnection conn;
 
     Logger logger = LoggerFactory.getLogger(AGXAResource.class);
+
+    /**
+     * Examines AGHttpException and tries to find a corresponding XAException and throws it further.
+     * If matching XAException cannot be found the original exception is re-thrown.
+     * @param e Original AGHttpException
+     * @throws XAException
+     * @throws AGHttpException
+     */
+    private void tryThrowAsXAException(AGHttpException e) throws XAException, AGHttpException {
+        if (e.getMessage().contains("Could not find a prepared commit with xid")) {
+            throw new XAException(XAException.XAER_NOTA);
+        } else {
+            throw e;
+        }
+    }
 
     // Constructor
     public AGXAResource(AGRepositoryConnection conn) {
@@ -105,7 +121,11 @@ public class AGXAResource implements XAResource {
             logger.debug("---> Supplied xid " + xid.toString());
         }
 
-        conn.rollback(xid);
+        try {
+            conn.rollback(xid);
+        } catch (AGHttpException e) {
+            tryThrowAsXAException(e);
+        }
     }
 
     /**
@@ -128,7 +148,11 @@ public class AGXAResource implements XAResource {
 
         // First phase of 2PC
 
-        conn.prepareCommit(xid);
+        try {
+            conn.prepareCommit(xid);
+        } catch (AGHttpException e) {
+            tryThrowAsXAException(e);
+        }
 
         return XA_OK;
     }
@@ -138,11 +162,15 @@ public class AGXAResource implements XAResource {
         if (logger.isDebugEnabled())
             logger.debug("AGXAResource.commit(xid=" + xid + ", onePhase=" + onePhase + ") called on " + this);
 
-        if (onePhase) {
-            conn.commit();
-        } else {
-            /* Second phase of 2PC */
-            conn.commit(xid);
+        try {
+            if (onePhase) {
+                conn.commit();
+            } else {
+                /* Second phase of 2PC */
+                conn.commit(xid);
+            }
+        } catch (AGHttpException e) {
+            tryThrowAsXAException(e);
         }
     }
 

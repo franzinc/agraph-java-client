@@ -191,6 +191,26 @@ public class AGAbstractTest {
         }
     }
 
+    /**
+     * Creates and returns a repository to use for testing purposes.
+     * Note that it is the caller's responsibility to close the repository after usage.
+     *
+     * @param catalog - the catalog which will contain the repository
+     * @param repoName - the repository name
+     * @return the newly created repository
+     */
+    public static AGRepository freshRepository(String catalog, String repoName) {
+        try {
+            AGCatalog cat = server.getCatalog(catalog);
+            cat.deleteRepository(repoName);
+            AGRepository repo = cat.createRepository(repoName);
+            repo.initialize();
+            return repo;
+        } catch (Exception e) {
+            throw new RuntimeException("server url: " + server.getServerURL(), e);
+        }
+    }
+
     public static void deleteRepository(String catalog, String repo) throws RepositoryException {
         try (AGServer server = new AGServer(findServerUrl(), username(), password())) {
             AGCatalog cat = server.getCatalog(catalog);
