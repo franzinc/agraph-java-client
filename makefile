@@ -35,7 +35,7 @@ prepush: clean all-tutorials agq-tests jena-compliance-tests javadoc
 	# Force Java to use ASCII (i.e. not UTF-8) as the default encoding.
 	env LC_ALL=C mvn test -Dtests.include=test.TestSuites\$$Unicode
 
-test-bigger: test-stress test-stress-events
+test-bigger: test-stress test-stress-events test-xa
 
 test-broken: FORCE
 	mvn test -Dtests.include=test.TestSuites\$$Broken
@@ -45,6 +45,9 @@ test-stress: FORCE
 
 test-stress-events: FORCE
 	$(EXEC_JAVA) -Dexec.mainClass=test.stress.Events -Dexec.args="--catalog java-catalog --load 2 --query 2 --time 1 --size 100000"
+
+test-xa: FORCE
+	mvn test -Dtest=XAAtomikosTests
 
 lubm-prolog: FORCE
 	mvn test-compile

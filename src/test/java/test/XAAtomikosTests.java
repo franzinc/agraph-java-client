@@ -4,6 +4,7 @@ import com.atomikos.datasource.xa.XID;
 import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
+import com.franz.agraph.repository.AGServerVersion;
 import com.franz.agraph.repository.AGValueFactory;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
@@ -11,7 +12,10 @@ import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assume;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.transaction.xa.XAException;
@@ -37,7 +41,7 @@ public class XAAtomikosTests extends AGAbstractTest {
 
     private static final String REPO_ID   = "test-2pc";
 
-    private AGServer server;
+    private static AGServer server;
     private AGRepository agrepo;
 
     private AGRepositoryConnection testConnection;
@@ -47,10 +51,20 @@ public class XAAtomikosTests extends AGAbstractTest {
     private AGRepositoryConnection independentConnection;
     private XAResource independentXAResource;
 
+    @BeforeClass
+    public static void setUpClass() {
+        server = newAGServer();
+        Assume.assumeTrue("XA was added in AG 6.5.0",
+                server.getComparableVersion().compareTo(new AGServerVersion("6.5")) >= 0);
+    }
+
+    @AfterClass
+    public static void tearDownClass() {
+        server.close();
+    }
+
     @Before
     public void setUp() throws Exception {
-        server = newAGServer();
-        closer.closeLater(server);
         agrepo = freshRepository(CATALOG_ID, REPO_ID);
         closer.closeLater(agrepo);
 
