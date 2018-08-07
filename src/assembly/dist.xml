@@ -19,7 +19,10 @@
             <directory>tutorials</directory>
             <outputDirectory>tutorials</outputDirectory>
             <excludes>
-                <exclude>**/target/**</exclude>
+              <exclude>**/target/**</exclude>
+              <exclude>2pc/derby.log</exclude>
+              <exclude>2pc/tmlog1.log</exclude>
+              <exclude>2pc/test-2pc/**</exclude>
             </excludes>
         </fileSet>
 
