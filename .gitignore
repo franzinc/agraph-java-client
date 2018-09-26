@@ -32,7 +32,7 @@ phase-[0-6].vm
 # Stuff created when running the 2pc tutorial.
 /tutorials/2pc/derby.log
 /tutorials/2pc/test-2pc
-/tutorials/2pc/tmlog1.log
+/tutorials/2pc/tmlog*.log
 # IntelliJ asciidoc previewer seems to generate this
 /README.html
 
