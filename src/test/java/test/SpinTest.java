@@ -93,7 +93,6 @@ public class SpinTest extends AGAbstractTest {
                 + "} order by ?age limit 2";
 
         AGTupleQuery query = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
-        query.setEngine("set-based");
         assertSetsEqual(stmts(new Stmt[] {new Stmt(null, null, vf.createLiteral("39", XMLSchema.INTEGER)),
                         new Stmt(null, null, vf.createLiteral("43", XMLSchema.INTEGER))}),
                 statementSet(query.evaluate(), null, null, "age"));
@@ -180,7 +179,6 @@ public class SpinTest extends AGAbstractTest {
                 + "}";
 
         AGTupleQuery query = conn.prepareTupleQuery(QueryLanguage.SPARQL, prefixes + queryString);
-        query.setEngine("set-based");
         assertSetsEqual(stmts(new Stmt[] {new Stmt(null, null, vf.createLiteral("Joseph")),
                         new Stmt(null, null, vf.createLiteral("Rose"))}),
                 statementSet(query.evaluate(),
