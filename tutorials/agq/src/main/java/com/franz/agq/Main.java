@@ -12,7 +12,8 @@ import com.franz.agraph.repository.*;
 import com.franz.util.Util;
 import org.eclipse.rdf4j.common.lang.FileFormat;
 import org.eclipse.rdf4j.common.lang.service.FileFormatServiceRegistry;
-import org.apache.log4j.*;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.eclipse.rdf4j.query.*;
 import org.eclipse.rdf4j.query.resultio.*;
 import org.eclipse.rdf4j.query.resultio.sparqljson.SPARQLBooleanJSONWriterFactory;
@@ -771,13 +772,20 @@ public class Main {
     }
 
     /**
+     * Provide configuration info for Log4J2
+     */
+    private static void configureLogging(Level level) {
+	Configurator.setRootLevel(level);
+    }
+
+    /**
      * Entry point after option parsing.
      *
      * @param options Parsed options.
      * @throws Exception If something goes wrong.
      */
     private static void main(final Options options) throws Exception {
-        Logger.getRootLogger().setLevel(Level.toLevel(options.getLogLevel()));
+        configureLogging(Level.toLevel(options.getLogLevel()));
         final AGServer server = new AGServer(
                 options.getURL(), options.getUser(), options.getPassword());
 
@@ -818,22 +826,12 @@ public class Main {
         }
     }
 
-    private static void stopBotheringMe() {
-        // We need to provide a log4j config.
-        // The main goal is to avoid polluting stdout.
-        final Layout layout = new PatternLayout();
-        final ConsoleAppender appender = new ConsoleAppender(layout, ConsoleAppender.SYSTEM_ERR);
-        appender.setThreshold(Level.ERROR);
-        org.apache.log4j.BasicConfigurator.configure(appender);
-    }
-
     /**
      * Main entry point.
      * @param args Command-line arguments.
      * @throws Exception If it feels like it.
      */
     public static void main(final String... args) throws Exception {
-        stopBotheringMe();
         initFormats();
         final Options options = new Options();
         final JCommander optParser = JCommander.newBuilder().addObject(options).build();

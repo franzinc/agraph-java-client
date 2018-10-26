@@ -7,7 +7,6 @@ import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
-import org.apache.log4j.*;
 import org.junit.jupiter.api.*;
 
 import java.io.ByteArrayOutputStream;
@@ -95,11 +94,6 @@ public class IntegrationTests {
 
     @BeforeAll
     public static void beforeAll() {
-        // Stop polluting stdout!!!
-        final Layout layout = new PatternLayout();
-        final ConsoleAppender appender = new ConsoleAppender(layout, ConsoleAppender.SYSTEM_ERR);
-        appender.setThreshold(Level.OFF);
-        org.apache.log4j.BasicConfigurator.configure(appender);
         AGRAPH_HOST = getEnvValue("AGRAPH_HOST", "agraph.host", "127.0.0.1");
         AGRAPH_PORT = getEnvValue("AGRAPH_PORT", "agraph.port", "10035");
         AGRAPH_SCHEME = getEnvValue("AGRAPH_SCHEME", "agraph.scheme", "http");

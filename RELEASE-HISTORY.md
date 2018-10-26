@@ -1,6 +1,12 @@
 # AllegroGraph Java client release history
 
-## 2.2.2
+## 3.0.0
+
+### rfe15904: Upgrade to rdf4j 2.4.0
+
+The RDF4J dependency has been upgraded from 2.2.2 to 2.4.0.  RDF4J
+versions prior to 2.4.0 have a moderate severity security
+vulnerability (CVE-2018-1000644).
 
 ### rfe15921: nD geospatial automation
 
@@ -10,6 +16,11 @@ New methods:
  - AGRepositoryConnection.getNDGeospatialDatatypeAutomation
  - AGRepositoryConnection.enableNDGeospatialDatatypeAutomation
  - AGRepositoryConnection.disableNDGeospatialDatatypeAutomation
+
+### Removed logging framework
+
+Users must now choose their preferred logging framework as described
+here: http://docs.rdf4j.org/programming/#_logging_slf4j_initialization
 
 ## 2.2.0
 

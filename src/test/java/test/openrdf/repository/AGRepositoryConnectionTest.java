@@ -158,9 +158,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
      * test there are 512 single adds (far slower, consider rfe10261 to
      * improve the performance of the unmodified parent test).
      */
-    @Override
     public void testOrderByQueriesAreInterruptable() throws Exception {
-        //super.testOrderByQueriesAreInterruptable();
         testCon.setAutoCommit(false);
         Collection<Statement> stmts = new ArrayList<Statement>();
         for (int index = 0; index < 512; index++) {
