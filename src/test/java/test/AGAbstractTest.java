@@ -268,6 +268,8 @@ public class AGAbstractTest {
 
     @AfterClass
     public static void tearDownOnce() throws Exception {
+        // try to clean up...
+        server.deleteRepository(REPO_ID, CATALOG_ID);
         server.close();
     }
 
@@ -495,6 +497,18 @@ public class AGAbstractTest {
     protected <T extends AutoCloseable> T closeLater(final T closeable) {
         closer.closeLater(closeable);
         return closeable;
+    }
+
+    /**
+     * Causes a repository to be deleted after the test.
+     *
+     * @param repo Repository name.
+     * @param catalog Catalog name.
+     */
+    protected void deleteLater(String repo, String catalog) {
+        closeLater(() -> {
+            server.deleteRepository(repo, catalog);
+        });
     }
 
     // Special version, because Jena developers are ... different:

@@ -31,6 +31,7 @@ import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFParseException;
 import org.json.JSONObject;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Categories;
@@ -91,6 +92,15 @@ public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
         }
 
         super.tearDown();
+    }
+
+    @AfterClass
+    public static void tearDownAll() {
+        AGServer server = new AGServer(AGAbstractTest.findServerUrl(), 
+                                       AGAbstractTest.username(), 
+                                       AGAbstractTest.password());
+        AGCatalog catalog = server.getCatalog(AGAbstractTest.CATALOG_ID);
+        catalog.deleteRepository(TEST_REPO_1);
     }
 
     protected Repository createRepository() throws Exception {

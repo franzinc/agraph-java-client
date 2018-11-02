@@ -38,19 +38,29 @@ public class AGRepositoryFactoryTest extends AGAbstractTest {
     final String configFile = "/test/repoconfig.ttl";
     final String ns = "http://franz.com/agraph/repository/config#";
 
+    private AGRepositoryConfig getConfig(Model graph) {
+        Resource implNode = GraphUtil.getUniqueSubject(graph, vf.createIRI("http://www.openrdf.org/config/repository#repositoryType"), vf.createLiteral(AGRepositoryFactory.REPOSITORY_TYPE));
+        AGRepositoryFactory factory = new AGRepositoryFactory();
+        AGRepositoryConfig config = factory.getConfig();
+        config.parse(graph, implNode);
+        return config;
+    }
+
     @Test
     @Category(TestSuites.Prepush.class)
     public void getRepositoryUsingConfig() throws Exception {
         Model graph = parseTurtleGraph(configFile);
         updateGraphForTestServer(graph);
-        Resource implNode = GraphUtil.getUniqueSubject(graph, vf.createIRI("http://www.openrdf.org/config/repository#repositoryType"), vf.createLiteral(AGRepositoryFactory.REPOSITORY_TYPE));
-        AGRepositoryFactory factory = new AGRepositoryFactory();
-        AGRepositoryConfig config = factory.getConfig();
-        config.parse(graph, implNode);
+        AGRepositoryConfig config = getConfig(graph);
+        deleteLater(config.getRepositoryId(), 
+                    config.getCatalogId());
         config.setServerUrl(AGAbstractTest.findServerUrl());
         config.setUsername(AGAbstractTest.username());
         config.setPassword(AGAbstractTest.password());
+        AGRepositoryFactory factory = new AGRepositoryFactory();
         Repository repo = factory.getRepository(config);
+        repo.initialize();
+        closeLater(repo::shutDown);
         Assert.assertEquals(0, repo.getConnection().size());
         Model graph2 = new LinkedHashModel();
         config.export(graph2);
@@ -68,6 +78,12 @@ public class AGRepositoryFactoryTest extends AGAbstractTest {
         closeLater(manager::shutDown);
         Model graph = parseTurtleGraph(configFile);
         updateGraphForTestServer(graph);
+
+        // Cleanup
+        AGRepositoryConfig agConfig = getConfig(graph);
+        deleteLater(agConfig.getRepositoryId(),
+                    agConfig.getCatalogId());
+
         Resource node = GraphUtil.getUniqueSubject(graph, RDF.TYPE, RepositoryConfigSchema.REPOSITORY);
         String id = GraphUtil.getUniqueObjectLiteral(graph, node, RepositoryConfigSchema.REPOSITORYID).stringValue();
         RepositoryConfig config = RepositoryConfig.create(graph, node);

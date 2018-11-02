@@ -91,5 +91,6 @@ public class AGMoreJenaExamples {
         exampleBulkUpdate();
         exampleRestrictionReasoning();
         closeAll();
+        deleteRepo();
     }
 }

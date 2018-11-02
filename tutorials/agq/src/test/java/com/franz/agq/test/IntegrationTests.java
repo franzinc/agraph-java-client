@@ -29,6 +29,12 @@ public class IntegrationTests {
     private static String AGRAPH_USER;
     private static String AGRAPH_PASSWORD;
     private static String AGRAPH_REPO;
+    private static String AGRAPH_CATALOG;
+
+    // Derived from AGRAPH_REPO and AGRAPH_CATALOG
+    private static String REPO_SPEC;
+
+    private static AGServer server;
 
     private AGRepositoryConnection conn;
     private DatasetBuilder stmts;
@@ -98,17 +104,22 @@ public class IntegrationTests {
         AGRAPH_PORT = getEnvValue("AGRAPH_PORT", "agraph.port", "10035");
         AGRAPH_SCHEME = getEnvValue("AGRAPH_SCHEME", "agraph.scheme", "http");
         AGRAPH_REPO = getEnvValue("AGRAPH_REPO", "agraph.repo", "scratchpad");
+        AGRAPH_CATALOG = getEnvValue("AGRAPH_CATALOG", "agraph.catalog", "tests");
         AGRAPH_USER = getEnvValue("AGRAPH_USER", "agraph.user", "test");
         AGRAPH_PASSWORD =
                 getEnvValue("AGRAPH_PASSWORD", "agraph.password", "xyzzy");
+       if (AGRAPH_CATALOG == null || "/".startsWith(AGRAPH_CATALOG)) {
+            REPO_SPEC = AGRAPH_CATALOG;
+        } else {
+            REPO_SPEC = AGRAPH_CATALOG + ":" + AGRAPH_REPO;
+        }
+        server = new AGServer(AGRAPH_SCHEME + "://" + AGRAPH_HOST + ":" + AGRAPH_PORT,
+                              AGRAPH_USER, AGRAPH_PASSWORD);
     }
 
     @BeforeEach
     public void setUp() throws Exception {
-        conn = AGServer.createRepositoryConnection(
-                AGRAPH_REPO, "/",
-                AGRAPH_SCHEME + "://" + AGRAPH_HOST + ":" + AGRAPH_PORT,
-                AGRAPH_USER, AGRAPH_PASSWORD);
+        conn = server.createRepositoryConnection(AGRAPH_REPO, AGRAPH_CATALOG, false);
         conn.clear();
         // Commit after each add, so we do not have to worry about
         // closing the builder in each test.
@@ -119,6 +130,11 @@ public class IntegrationTests {
     public void tearDown() throws Exception  {
         stmts.close();
         conn.close();
+    }
+
+    @AfterAll
+    public static void tearDownClass() {
+        server.deleteRepository(AGRAPH_REPO, AGRAPH_CATALOG);
     }
 
     /**
@@ -154,7 +170,7 @@ public class IntegrationTests {
     private String run(final String... args) {
         final String[] defaultArgs = new String[] {
                 "--host", AGRAPH_HOST, "--port", AGRAPH_PORT, "--scheme", AGRAPH_SCHEME,
-                "--user", AGRAPH_USER, "--password", AGRAPH_PASSWORD, AGRAPH_REPO
+                "--user", AGRAPH_USER, "--password", AGRAPH_PASSWORD, REPO_SPEC
         };
         final String[] finalArgs = Arrays.copyOf(args, args.length + defaultArgs.length);
         System.arraycopy(

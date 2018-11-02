@@ -234,6 +234,7 @@ public class TutorialTests extends AGAbstractTest {
     public void example8() throws Exception {
         cat.deleteRepository("example8");
         repo = cat.createRepository("example8");
+        closeLater(() -> cat.deleteRepository("example8"));
         closeLater(repo);
         repo.initialize();
         conn = getConnection(repo);
@@ -609,12 +610,14 @@ public class TutorialTests extends AGAbstractTest {
         example6();
         // create two ordinary stores, and one federated store:
         AGRepository redRepo = cat.createRepository("redthingsjv-ex16");
+        closeLater(() -> cat.deleteRepository("redthingsjv-ex16"));
         closeLater(redRepo);
         redRepo.initialize();
         AGRepositoryConnection redConn = getConnection(redRepo);
         redConn.clear();
         ValueFactory rf = redConn.getValueFactory();
         AGRepository greenRepo = cat.createRepository("greenthingsjv-ex16");
+        closeLater(() -> cat.deleteRepository("greenthingsjv-ex16"));
         closeLater(greenRepo);
         greenRepo.initialize();
         AGRepositoryConnection greenConn = getConnection(greenRepo);

@@ -1138,6 +1138,22 @@ public class AGServer implements Closeable {
     }
 
     /**
+     * Deletes a repository.
+     *
+     * @param reponame Repository name.
+     * @param catname Catalog name, null or an empty string maps to the root catalog.
+     */
+    public void deleteRepository(String reponame, String catname) {
+        final AGCatalog catalog;
+        if (catname == null || catname.trim().isEmpty()) {
+            catalog = rootCatalog;
+        } else {
+            catalog = getCatalog(catname);
+        }
+        catalog.deleteRepository(reponame);
+    }
+
+    /**
      * Retrieves the whole log file as a single string.
      *
      * @return the log file.

@@ -1122,6 +1122,7 @@ public class JenaTutorialExamples {
         	}
         } finally {
         	closeAll();
+        	deleteRepo();
             println("Elapsed time: " + (System.currentTimeMillis() - now)
                     / 1000.00 + " seconds.");
         }
@@ -1147,6 +1148,16 @@ public class JenaTutorialExamples {
         }
         println("Number of results: " + count);
         rows.close();
+    }
+
+    public static void deleteRepo() {
+        try {
+            AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
+            server.deleteRepository(REPOSITORY_ID, CATALOG_ID);
+        } catch (Exception e) {
+            System.err.println("Error deleting repository: " + e);
+            e.printStackTrace();
+        }
     }
 
     static void close(AGRepositoryConnection conn) {

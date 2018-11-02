@@ -213,26 +213,36 @@ public class TwoPhaseCommitExample {
         }
     }
     
-    
+    private static void run(EmbeddedXADataSource derbyds, AGRepository agrepo) throws Exception {
+        // Register the databases with the Atomikos transaction manager so that it can handle
+        // transaction recovery on restart if needed.
+        com.atomikos.icatch.config.Configuration.addResource(new AGTransactionalResource(agrepo));
+        com.atomikos.icatch.config.Configuration.addResource(new JdbcTransactionalResource("localhost", derbyds));
+
+        // Create a UserTransactionManager to manage multi-participant transactions.
+        UserTransactionManager tm = new UserTransactionManager();
+        tm.init();
+
+        try {
+            doSampleTransaction(tm, agrepo, derbyds);
+        } finally {
+            tm.close();
+        }
+    }
+
     public static void main(String[] args) throws Exception {
         try (AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD)) {
-
             EmbeddedXADataSource derbyds = setupDerbyDB();
-            AGRepository agrepo = setupAGRepository(server, AG_REPO_NAME);
-            
-            // Register the databases with the Atomikos transaction manager so that it can handle
-            // transaction recovery on restart if needed.
-            com.atomikos.icatch.config.Configuration.addResource(new AGTransactionalResource(agrepo));
-            com.atomikos.icatch.config.Configuration.addResource(new JdbcTransactionalResource("localhost", derbyds));
-            
-            // Create a UserTransactionManager to manage multi-participant transactions.
-            UserTransactionManager tm = new UserTransactionManager();
-            tm.init();
-
-            try (Closeable _c1 = tm::close;
-                    AutoCloseable _c2 = () -> shutdownDerby(derbyds)) {
-                doSampleTransaction(tm, agrepo, derbyds);
+            try {
+                try (AGRepository agrepo = setupAGRepository(server, AG_REPO_NAME)) {
+                    run(derbyds, agrepo);
+                } finally  {
+                    server.deleteRepository(AG_REPO_NAME, CATALOG_ID);
+                }
+            } finally {
+                shutdownDerby(derbyds);
             }
+
         }
         println("Tutorial completed");
     }

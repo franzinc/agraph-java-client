@@ -100,6 +100,7 @@ public class TutorialExamples {
         closeAll();
         catalog.deleteRepository(REPOSITORY_ID);
         AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);
+        deleteOnExit(REPOSITORY_ID, CATALOG_ID);
         println("Got a repository.");
         myRepository.initialize();
         println("Initialized repository.");
@@ -1154,6 +1155,7 @@ public class TutorialExamples {
     public static AGRepositoryConnection example6() throws Exception {
         AGRepositoryConnection conn = AGServer.createRepositoryConnection(
                 REPOSITORY_ID, CATALOG_ID, SERVER_URL, USERNAME, PASSWORD);
+        deleteOnExit(REPOSITORY_ID, CATALOG_ID);
         closeBeforeExit(conn);
         conn.clear();
         
@@ -1726,11 +1728,13 @@ public class TutorialExamples {
         // create two ordinary stores, and one federated store:
         AGRepositoryConnection redConn = server.createRepositoryConnection(
                 "redthingsjv", CATALOG_ID, false);
+        deleteOnExit("redthingsjv", CATALOG_ID);
         closeBeforeExit(redConn);
         redConn.clear();
         ValueFactory rf = redConn.getValueFactory();
         AGRepositoryConnection greenConn = server.createRepositoryConnection(
                 "greenthingsjv", CATALOG_ID, false);
+        deleteOnExit("greenthingsjv", CATALOG_ID);
         closeBeforeExit(greenConn);
         greenConn.clear();
         ValueFactory gf = greenConn.getValueFactory();
@@ -2488,6 +2492,7 @@ public class TutorialExamples {
     public static void example22() throws Exception {
         AGRepository myRepository = AGServer.createRepository(REPOSITORY_ID,
                 CATALOG_ID, SERVER_URL, USERNAME, PASSWORD);
+        deleteOnExit(REPOSITORY_ID, CATALOG_ID);
         AGValueFactory vf = myRepository.getValueFactory();
         // Create conn1 (autoCommit) and conn2 (no autoCommit).
         AGRepositoryConnection conn1 = myRepository.getConnection();
@@ -2556,6 +2561,7 @@ public class TutorialExamples {
     public static void example23() throws Exception {
         AGRepository myRepository = AGServer.createRepository(
             REPOSITORY_ID, CATALOG_ID, SERVER_URL, USERNAME, PASSWORD);
+        deleteOnExit(REPOSITORY_ID, CATALOG_ID);
         AGRepositoryConnection conn = myRepository.getConnection();
 
         AGValueFactory vf = conn.getValueFactory();
@@ -2790,6 +2796,7 @@ public class TutorialExamples {
         AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
         AGRepository repo =
             	server.createRepository(REPOSITORY_ID, CATALOG_ID, SERVER_URL, USERNAME, PASSWORD);
+        deleteOnExit(REPOSITORY_ID, CATALOG_ID);
 
         // Assign our pool to the repository
         repo.setConnPool(pool);
@@ -2884,6 +2891,7 @@ public class TutorialExamples {
             }
         } finally {
             closeAll();
+
             println("Elapsed time: " + (System.currentTimeMillis() - now)/1000.00 + " seconds.");
         }
     }
@@ -2921,31 +2929,36 @@ public class TutorialExamples {
         }
     }
 
-    static void close(RepositoryConnection conn) {
+    private static void close(AutoCloseable closeable) {
         try {
-            conn.close();
+            closeable.close();
         } catch (Exception e) {
-            System.err.println("Error closing repository connection: " + e);
+            System.err.println("Error closing or deleting repository: " + e);
             e.printStackTrace();
         }
     }
-    
-    private static List<RepositoryConnection> toClose = new ArrayList<RepositoryConnection>();
+
+    private static void deleteOnExit(String reponame, String catname) {
+        toClose.add(() -> {
+           AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
+           server.deleteRepository(reponame, catname);
+        });
+    }
+
+    private static List<AutoCloseable> toClose = new ArrayList<>();
     
     /**
      * This is just a quick mechanism to make sure all connections get closed.
      */
-    private static void closeBeforeExit(RepositoryConnection conn) {
+    private static void closeBeforeExit(AutoCloseable conn) {
         toClose.add(conn);
     }
     
     private static void closeAll() {
         while (!toClose.isEmpty()) {
-            RepositoryConnection conn = toClose.get(0);
+            AutoCloseable conn = toClose.get(0);
             close(conn);
-            while (toClose.remove(conn)) {
-                // ...
-            }
+            toClose.removeIf(conn::equals);
         }
     }
 }

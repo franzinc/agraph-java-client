@@ -367,9 +367,16 @@ public class AttributesExample {
     public static void error(String reason) throws Exception{
         throw new Exception(reason);
     }
-        
+
     public static void main(String[] args) throws Exception {
-        setupRepository();
+        try (AGRepositoryConnection _conn = setupRepository()) {
+            run();
+        } finally {
+            server.deleteRepository(REPOSITORY_ID, CATALOG_ID);
+        }
+    }
+
+    private static void run() throws Exception {
         defineAttributes();
         populateRepository();
 
