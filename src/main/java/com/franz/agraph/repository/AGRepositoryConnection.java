@@ -3065,6 +3065,34 @@ public class AGRepositoryConnection
         prepareHttpRepoClient().deleteStaticAttributeFilter();
     }
 
+    /**
+     * Fetch the status of nD Geospatical Datatype Automation on this repository.
+     *
+     * @return boolean, true if enabled, false if disabled
+     * @throws RepositoryException if there is an error with this request
+     */
+    public boolean getNDGeospatialDatatypeAutomation() throws RepositoryException {
+        return prepareHttpRepoClient().getNDGeospatialDatatypeAutomation();
+    }
+
+    /**
+     * Enable nD Geospatical Datatype Automation on this repository.
+     *
+     * @throws RepositoryException if there is an error with this request
+     */
+    public void enableNDGeospatialDatatypeAutomation() throws RepositoryException {
+        prepareHttpRepoClient().enableNDGeospatialDatatypeAutomation();
+    }
+
+    /**
+     * Disable nD Geospatical Datatype Automation on this repository.
+     *
+     * @throws RepositoryException if there is an error with this request
+     */
+    public void disableNDGeospatialDatatypeAutomation() throws RepositoryException {
+        prepareHttpRepoClient().disableNDGeospatialDatatypeAutomation();
+    }
+
     public String getUserAttributes() {
         return prepareHttpRepoClient().getUserAttributes();
     }

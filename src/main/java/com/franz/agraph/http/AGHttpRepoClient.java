@@ -12,6 +12,7 @@ import com.franz.agraph.http.handler.AGLongHandler;
 import com.franz.agraph.http.handler.AGRDFHandler;
 import com.franz.agraph.http.handler.AGResponseHandler;
 import com.franz.agraph.http.handler.AGStringHandler;
+import com.franz.agraph.http.handler.AGBooleanHandler;
 import com.franz.agraph.http.handler.AGTQRHandler;
 import com.franz.agraph.http.storedproc.AGDeserializer;
 import com.franz.agraph.http.storedproc.AGSerializer;
@@ -2646,6 +2647,28 @@ public class AGHttpRepoClient implements AutoCloseable {
 
     public void deleteStaticAttributeFilter() throws AGHttpException {
         String url = AGProtocol.getStaticFilterLocation(getRoot());
+
+        delete(url, null, null, null);
+    }
+
+    public boolean getNDGeospatialDatatypeAutomation() throws AGHttpException {
+        String url = AGProtocol.getNDGeospatialDatatypeAutomation(getRoot());
+
+        AGBooleanHandler handler = new AGBooleanHandler();
+
+        get(url, null, null, handler);
+
+        return handler.getResult();
+    }
+
+    public void enableNDGeospatialDatatypeAutomation() throws AGHttpException {
+        String url = AGProtocol.getNDGeospatialDatatypeAutomation(getRoot());
+
+        put(url, null, null, null, null);
+    }
+
+    public void disableNDGeospatialDatatypeAutomation() throws AGHttpException {
+        String url = AGProtocol.getNDGeospatialDatatypeAutomation(getRoot());
 
         delete(url, null, null, null);
     }

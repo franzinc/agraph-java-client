@@ -493,6 +493,8 @@ public class AGProtocol extends Protocol {
      */
     public static final String STATIC_FILTER_LOCATION = "attributes/staticFilter";
 
+    public static final String ND_GEOSPATIAL_DATATYPE_AUTOMATION = "nd/geospatialDatatypeAutomation";
+
     public static final String FILTER_PARAM_NAME = "filter";
 
     /**
@@ -713,6 +715,10 @@ public class AGProtocol extends Protocol {
 
     public static String getStaticFilterLocation(String root) {
         return root + "/" + AGProtocol.STATIC_FILTER_LOCATION;
+    }
+
+    public static String getNDGeospatialDatatypeAutomation(String root) {
+        return root + "/" + AGProtocol.ND_GEOSPATIAL_DATATYPE_AUTOMATION;
     }
 
 }

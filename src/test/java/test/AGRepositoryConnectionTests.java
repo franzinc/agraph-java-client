@@ -1188,5 +1188,21 @@ public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
         AGRepositoryConnection conn = (AGRepositoryConnection)testCon;
 
         testXAResourceCommon(conn, true, false);
-    }           
+    }
+
+    @Test
+    public void testNDGeospatialDatatypeAutomation() throws Exception {
+        AGRepository repo = (AGRepository) createRepository();
+        try (AGRepositoryConnection conn = repo.getConnection()) {
+            boolean result = conn.getNDGeospatialDatatypeAutomation();
+
+            assertFalse("non-false result for nD geospatial automation.", result);
+            conn.enableNDGeospatialDatatypeAutomation();
+            result = conn.getNDGeospatialDatatypeAutomation();
+            assertTrue("non-true result for nD geospatial automation.", result);
+            conn.disableNDGeospatialDatatypeAutomation();
+            result = conn.getNDGeospatialDatatypeAutomation();
+            assertFalse("non-false result for nD geospatial automation.", result);
+        }
+    }
 }

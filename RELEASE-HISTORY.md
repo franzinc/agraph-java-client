@@ -1,5 +1,16 @@
 # AllegroGraph Java client release history
 
+## 2.2.2
+
+### rfe15921: nD geospatial automation
+
+nD Geospatial Automation can now be enabled, disabled and queried.
+
+New methods:
+ - AGRepositoryConnection.getNDGeospatialDatatypeAutomation
+ - AGRepositoryConnection.enableNDGeospatialDatatypeAutomation
+ - AGRepositoryConnection.disableNDGeospatialDatatypeAutomation
+
 ## 2.2.0
 
 ### rfe15689: Warmup operation
