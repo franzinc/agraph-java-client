@@ -178,6 +178,20 @@ public class Util {
         }
     }
 
+    /**
+     * Gets the value of the environment variable 'variable' returning
+     * defaultValue if it is not found.
+     *
+     * @param variable The environment variable to get.
+     * @param defaultValue The default to use when the variable is
+     * not set.
+     * @return The value of the environment variable or defaultValue.
+     */
+    public static String getEnvWithDefault(String variable, String defaultValue) {
+        return coalesce(ifBlank(System.getenv(variable), null),
+                        ifBlank(System.getProperty(variable), defaultValue));
+    }
+
     public static void gzip(File in, File out) throws IOException {
         try (final OutputStream os = new GZIPOutputStream(new FileOutputStream(out))) {
             FileUtils.copyFile(in, os);
@@ -483,7 +497,8 @@ public class Util {
     public static void DumpAgraphLog()
             throws java.io.FileNotFoundException,
             java.io.IOException {
-        String AgraphRootFilename = "../agraph/lisp/agraph.root";
+        String label = getEnvWithDefault("LABEL", "");
+        String AgraphRootFilename = "../agraph/lisp/agraph" + label + ".root";
         File AgraphRootFile = new File(AgraphRootFilename);
 
         if (AgraphRootFile.exists()) {

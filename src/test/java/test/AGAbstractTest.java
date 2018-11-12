@@ -58,6 +58,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static test.Util.coalesce;
 import static test.Util.ifBlank;
+import static test.Util.getEnvWithDefault;
 
 public class AGAbstractTest {
 
@@ -77,30 +78,37 @@ public class AGAbstractTest {
 
     public static String findServerUrl() {
         if (serverUrl == null) {
-            serverUrl = findServerUrl1();
+            serverUrl = findServerUrl1(false);
         }
         return serverUrl;
     }
 
     public static String findSslServerUrl() {
         if (sslServerUrl == null) {
-            sslServerUrl = findSslServerUrl1();
+            sslServerUrl = findServerUrl1(true);
         }
         return sslServerUrl;
     }
 
-    private static String findServerUrl1() {
-        String host = coalesce(ifBlank(System.getenv("AGRAPH_HOST"), null),
-                ifBlank(System.getProperty("AGRAPH_HOST"), null));
-        String port = coalesce(ifBlank(System.getenv("AGRAPH_PORT"), null),
-                ifBlank(System.getProperty("AGRAPH_PORT"), null));
+    /**
+     * Returns the url used to interface with the server which looks
+     * like http://localhost:10035.
+     *
+     * @param ssl If true returns an https url otherwise http.
+     * @return The url used to interface with the server.
+     */
+    private static String findServerUrl1(boolean ssl) {
+        String host = getEnvWithDefault("AGRAPH_HOST", null);
+        String port = getEnvWithDefault("AGRAPH_PORT", null);
+        String label = getEnvWithDefault("LABEL", ""); // looks like "-123" (label preceded by dash)
 
         if ((host == null || host.equals("localhost")) && port == null) {
-            File portFile = new File("../agraph/lisp/agraph.port");
+            File portFile = new File("../agraph/lisp/agraph" + label + "." + (ssl ? "ssl" : "") + "port");
             try {
                 host = "localhost";
                 if (portFile.exists()) {
-                    System.out.println("Reading agraph.port: " + portFile.getAbsolutePath());
+                    System.out.println("Reading agraph" + label + "." + (ssl ? "ssl" : "") +
+                                       "port: " + portFile.getAbsolutePath());
                     port = FileUtils.readFileToString(portFile).trim();
                 } else {
                     port = "10035";
@@ -110,31 +118,7 @@ public class AGAbstractTest {
             }
         }
 
-        return "http://" + coalesce(host, "localhost") + ":" + coalesce(port, "10035");
-    }
-
-    private static String findSslServerUrl1() {
-        String host = coalesce(ifBlank(System.getenv("AGRAPH_SSLHOST"), null),
-                ifBlank(System.getProperty("AGRAPH_SSLHOST"), null));
-        String port = coalesce(ifBlank(System.getenv("AGRAPH_SSLPORT"), null),
-                ifBlank(System.getProperty("AGRAPH_SSLPORT"), null));
-
-        if ((host == null || host.equals("localhost")) && port == null) {
-            File portFile = new File("../agraph/lisp/agraph.sslport");
-            try {
-                host = "localhost";
-                if (portFile.exists()) {
-                    System.out.println("Reading agraph.sslport: " + portFile.getAbsolutePath());
-                    port = FileUtils.readFileToString(portFile).trim();
-                } else {
-                    port = "10036";
-                }
-            } catch (Exception e) {
-                throw new RuntimeException("Trying to read SSLPortFile: " + portFile.getAbsolutePath(), e);
-            }
-        }
-
-        return "https://" + coalesce(host, "localhost") + ":" + coalesce(port, "10036");
+        return "http" + (ssl ? "s" : "") + "://" + coalesce(host, "localhost") + ":" + coalesce(port, "10035");
     }
 
     public static String username() {

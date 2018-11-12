@@ -4,7 +4,9 @@
 override VERSION = $(shell ./version.sh)
 
 export AGRAPH_HOST ?= $(shell echo $${AGRAPH_HOST:-localhost})
-export AGRAPH_PORT ?= $(shell echo $${AGRAPH_PORT-`cat ../agraph/lisp/agraph.port 2> /dev/null || echo 10035`})
+# Export LABEL, if label is specified prepend a dash to it otherwise leave it blank
+export LABEL = $(if $(label),-$(label))
+export AGRAPH_PORT ?= $(shell echo $${AGRAPH_PORT-`cat ../agraph/lisp/agraph$(LABEL).port 2> /dev/null || echo 10035`})
 
 # For tutorial
 example ?= all
