@@ -21,3 +21,7 @@ before_script:
 - $HOME/agraph/bin/agraph-control --config $HOME/agraph/lib/agraph.cfg start
 - export AGRAPH_PORT=10035
 - export AGRAPH_HOST=127.0.0.1
+notifications:
+  email:
+    recipients:
+      - allegrograph-dev@franz.com
