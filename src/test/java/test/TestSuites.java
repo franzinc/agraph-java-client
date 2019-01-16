@@ -56,6 +56,7 @@ public class TestSuites {
             SpogiTripleCacheTests.class,
             UploadCommitPeriodTests.class,
             NQuadsTests.class,
+            JSONLDTest.class,
             AGGraphQueryTests.class,
             QueryLimitOffsetTests.class,
             UntypedLiteralMatchingTest.class,
