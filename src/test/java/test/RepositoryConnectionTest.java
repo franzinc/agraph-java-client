@@ -10,6 +10,29 @@ package test;
  * Licensed under the Aduna BSD-style license.
  */
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Reader;
+import java.io.StringReader;
+import java.sql.Date;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.TimeZone;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.franz.agraph.repository.AGRepository;
+import com.franz.agraph.repository.AGServerVersion;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.common.iteration.Iterations;
 import org.eclipse.rdf4j.model.BNode;
@@ -46,27 +69,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Reader;
-import java.io.StringReader;
-import java.sql.Date;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.TimeZone;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -109,6 +111,8 @@ public abstract class RepositoryConnectionTest {
 
     protected Literal nameBob;
 
+    protected Literal nameTrudy;
+
     protected Literal mboxAlice;
 
     protected Literal mboxBob;
@@ -141,6 +145,8 @@ public abstract class RepositoryConnectionTest {
 
         nameAlice = vf.createLiteral("Alice");
         nameBob = vf.createLiteral("Bob");
+
+        nameTrudy = vf.createLiteral("Evil \t \n \r \\ Trudy");
 
         mboxAlice = vf.createLiteral("alice@example.org");
         mboxBob = vf.createLiteral("bob@example.org");
@@ -628,6 +634,29 @@ public abstract class RepositoryConnectionTest {
             boolean exists = testCon.prepareBooleanQuery(QueryLanguage.SPARQL, queryBuilder.toString()).evaluate();
 
             assertTrue(exists);
+        }
+
+        @Test
+        public void testTSVTupleQueryWithSpecialSymbols()
+                throws Exception {
+
+            AGServerVersion minVersion = new AGServerVersion("v6.6.0");
+            if (((AGRepository)testRepository).getServer().getComparableVersion().compareTo(minVersion) >= 0) {
+                testCon.add(alice, name, nameTrudy, context2);
+
+                StringBuilder queryBuilder = new StringBuilder();
+
+                queryBuilder.append("PREFIX foaf: <" + FOAF_NS + "> ");
+                queryBuilder.append("SELECT ?name WHERE ");
+                queryBuilder.append("{ ?p foaf:name ?name }");
+
+                try (TupleQueryResult res = testCon.prepareTupleQuery(QueryLanguage.SPARQL, queryBuilder.toString()).evaluate()) {
+                    while (res.hasNext()) {
+                        final BindingSet bs = res.next();
+                        assertEquals("", nameTrudy.getLabel(), bs.getValue("name").stringValue());
+                    }
+                }
+            }
         }
 
         @Test
