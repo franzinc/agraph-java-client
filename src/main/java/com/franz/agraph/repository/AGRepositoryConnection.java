@@ -68,13 +68,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
-
 
 /**
  * Implements the <a href="http://www.openrdf.org/">Sesame</a>
@@ -1259,6 +1259,30 @@ public class AGRepositoryConnection
             // found a bug in StatementCollector?
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public boolean hasStatement(Resource subj, IRI pred, Value obj,
+                                boolean includeInferred, Resource... contexts)
+            throws RepositoryException {
+
+        final AtomicBoolean hasItems = new AtomicBoolean();
+        AGHttpRepoClient client = prepareHttpRepoClient();
+        StatementCollector collector = new StatementCollector() {
+            public void handleStatement(Statement s) {
+                hasItems.set(true);
+            }
+        };
+        AGResponseHandler handler = new AGRDFHandler(
+                client.getPreferredRDFFormat(),
+                collector,
+                getValueFactory(),
+                client.getAllowExternalBlankNodeIds());
+        // only a single statement will be requested
+        client.getStatementsLimit(1, subj, pred, obj,
+                Boolean.toString(includeInferred), handler, contexts);
+
+        return hasItems.get();
     }
 
     /**

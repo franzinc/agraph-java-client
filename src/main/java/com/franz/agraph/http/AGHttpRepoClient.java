@@ -699,16 +699,15 @@ public class AGHttpRepoClient implements AutoCloseable {
                 contexts);
     }
 
-    public void getStatements(Resource subj, IRI pred, Value obj,
-                              String includeInferred,
-                              AGResponseHandler handler, Resource... contexts)
+    public void getStatementsLimit(int limit, Resource subj, IRI pred, Value obj,
+                                   String includeInferred,
+                                   AGResponseHandler handler, Resource... contexts)
             throws AGHttpException {
         String uri = Protocol.getStatementsLocation(getRoot());
         List<Header> headers = new ArrayList<>(1);
 
         headers.add(new Header(Protocol.ACCEPT_PARAM_NAME,
                 getPreferredRDFFormat().getDefaultMIMEType()));
-
 
         AGValueFactory vf = getValueFactory();
         List<NameValuePair> params = new ArrayList<>(5);
@@ -733,8 +732,19 @@ public class AGHttpRepoClient implements AutoCloseable {
         }
         params.add(new NameValuePair(Protocol.INCLUDE_INFERRED_PARAM_NAME,
                 includeInferred));
+        if (limit > 0) {
+            params.add(new NameValuePair(Protocol.LIMIT_PARAM_NAME,
+                    Integer.toString(limit)));
+        }
 
         get(uri, headers, params, handler);
+    }
+
+    public void getStatements(Resource subj, IRI pred, Value obj,
+                              String includeInferred,
+                              AGResponseHandler handler, Resource... contexts)
+            throws AGHttpException {
+        getStatementsLimit(0, subj, pred, obj, includeInferred, handler, contexts);
     }
 
     public void getStatements(RDFHandler handler, String... ids) throws AGHttpException {

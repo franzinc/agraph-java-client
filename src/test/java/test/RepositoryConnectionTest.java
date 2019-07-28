@@ -32,7 +32,12 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.franz.agraph.repository.AGRepository;
+import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServerVersion;
+import com.franz.agraph.http.AGHttpRepoClient;
+import com.franz.agraph.http.handler.AGResponseHandler;
+import com.franz.agraph.http.handler.AGRDFHandler;
+
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.common.iteration.Iterations;
 import org.eclipse.rdf4j.model.BNode;
@@ -64,6 +69,7 @@ import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFHandlerException;
 import org.eclipse.rdf4j.rio.RDFParseException;
 import org.eclipse.rdf4j.rio.helpers.RDFHandlerBase;
+import org.eclipse.rdf4j.rio.helpers.StatementCollector;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
 import org.junit.After;
 import org.junit.Before;
@@ -741,6 +747,44 @@ public abstract class RepositoryConnectionTest {
             dataset.addNamedGraph(context1);
             query.setDataset(dataset);
             assertTrue(query.evaluate());
+        }
+
+        @Test
+        public void testGetStatementsLimit()
+                throws Exception {
+            testCon.add(bob, name, nameBob);
+            testCon.add(bob, name, nameBob);
+            testCon.add(bob, name, nameBob);
+
+            final List<Statement> items = new ArrayList<>();
+            AGHttpRepoClient client = ((AGRepositoryConnection)testCon)
+                .prepareHttpRepoClient();
+            StatementCollector collector = new StatementCollector() {
+                public void handleStatement(Statement s) {
+                    items.add(s);
+                }
+            };
+            AGResponseHandler handler = new AGRDFHandler(
+                    client.getPreferredRDFFormat(),
+                    collector,
+                    ((AGRepositoryConnection)testCon).getRepository()
+                        .getValueFactory(),
+                    client.getAllowExternalBlankNodeIds());
+
+            client.getStatementsLimit(1, bob, name, nameBob, "false", handler);
+
+            assertTrue("The result should contain a single statement",
+                    items.size() == 1);
+
+            items.clear();
+            client.getStatementsLimit(2, bob, name, nameBob, "false", handler);
+            assertTrue("The result should contain two statements",
+                    items.size() == 2);
+
+            items.clear();
+            client.getStatementsLimit(0, bob, name, nameBob, "false", handler);
+            assertTrue("The result should contain all three statements",
+                    items.size() == 3);
         }
 
         @Test
