@@ -8,6 +8,10 @@ The RDF4J dependency has been upgraded from 2.2.2 to 2.4.0.  RDF4J
 versions prior to 2.4.0 have a moderate severity security
 vulnerability (CVE-2018-1000644).
 
+### rfe16203: Improved efficiency of conn.hasStatement()
+
+AGRepositoryConnection.hasStatement() is now much more efficient.  
+
 ### rfe15921: nD geospatial automation
 
 nD Geospatial Automation can now be enabled, disabled and queried.
