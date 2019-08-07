@@ -7,8 +7,8 @@ matrix:
   - env: AGRAPH_VERSION=6.3.0
   - env: AGRAPH_VERSION=6.2.3
 before_script:
-# /dev/shm in the container is too small for AllegroGraph server.  This is a workaround.
-- "sudo mv /dev/shm /dev/shm.real && sudo ln -s /run/shm /dev/shm"
+# SHM seems broken in the container, but this fixes it.
+- "sudo rm -rf /dev/shm && sudo ln -s /run/shm /dev/shm"
 - wget http://franz.com/ftp/pri/acl/ag/ag$AGRAPH_VERSION/linuxamd64.64/agraph-$AGRAPH_VERSION-linuxamd64.64.tar.gz -O /tmp/agraph.tar.gz
 - export AGRAPH_USER=test
 - export AGRAPH_PASSWORD=xyzzy
