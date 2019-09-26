@@ -1,26 +1,28 @@
 language: java
+jdk:
+  - openjdk10
 script:
-- make prepush
+  - make prepush batch=true
 matrix:
   include:
-  - env: AGRAPH_VERSION=6.4.5
-  - env: AGRAPH_VERSION=6.3.0
-  - env: AGRAPH_VERSION=6.2.3
+    - env: AGRAPH_VERSION=6.6.0
+    - env: AGRAPH_VERSION=6.5.0
+    - env: AGRAPH_VERSION=6.4.5
+    - env: AGRAPH_VERSION=6.3.0
+    - env: AGRAPH_VERSION=6.2.3
 before_script:
-# SHM seems broken in the container, but this fixes it.
-- "sudo rm -rf /dev/shm && sudo ln -s /run/shm /dev/shm"
-- wget http://franz.com/ftp/pri/acl/ag/ag$AGRAPH_VERSION/linuxamd64.64/agraph-$AGRAPH_VERSION-linuxamd64.64.tar.gz -O /tmp/agraph.tar.gz
-- export AGRAPH_USER=test
-- export AGRAPH_PASSWORD=xyzzy
-- tar -zxf /tmp/agraph.tar.gz
-- ./agraph-$AGRAPH_VERSION/install-agraph --no-configure $HOME/agraph
-- $HOME/agraph/lib/configure-agraph --non-interactive --super-user $AGRAPH_USER --super-password $AGRAPH_PASSWORD
-- echo -e "<Catalog java-catalog>\nMain $HOME/agraph/data/java-catalog\n</Catalog>" >> $HOME/agraph/lib/agraph.cfg
-- echo -e "<Catalog tests>\nMain $HOME/agraph/data/tests\n</Catalog>" >> $HOME/agraph/lib/agraph.cfg
-- echo -e "<DynamicCatalogs>\nMain $HOME/agraph/data/dynamic\n</DynamicCatalogs>" >> $HOME/agraph/lib/agraph.cfg
-- $HOME/agraph/bin/agraph-control --config $HOME/agraph/lib/agraph.cfg start
-- export AGRAPH_PORT=10035
-- export AGRAPH_HOST=127.0.0.1
+  - wget http://franz.com/ftp/pri/acl/ag/ag$AGRAPH_VERSION/linuxamd64.64/agraph-$AGRAPH_VERSION-linuxamd64.64.tar.gz -O /tmp/agraph.tar.gz
+  - export AGRAPH_USER=test
+  - export AGRAPH_PASSWORD=xyzzy
+  - tar -zxf /tmp/agraph.tar.gz
+  - ./agraph-$AGRAPH_VERSION/install-agraph --no-configure $HOME/agraph
+  - $HOME/agraph/lib/configure-agraph --non-interactive --super-user $AGRAPH_USER --super-password $AGRAPH_PASSWORD
+  - echo -e "<Catalog java-catalog>\nMain $HOME/agraph/data/java-catalog\n</Catalog>" >> $HOME/agraph/lib/agraph.cfg
+  - echo -e "<Catalog tests>\nMain $HOME/agraph/data/tests\n</Catalog>" >> $HOME/agraph/lib/agraph.cfg
+  - echo -e "<DynamicCatalogs>\nMain $HOME/agraph/data/dynamic\n</DynamicCatalogs>" >> $HOME/agraph/lib/agraph.cfg
+  - $HOME/agraph/bin/agraph-control --config $HOME/agraph/lib/agraph.cfg start
+  - export AGRAPH_PORT=10035
+  - export AGRAPH_HOST=127.0.0.1
 notifications:
   email:
     recipients:
