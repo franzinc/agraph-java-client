@@ -1,6 +1,4 @@
 language: java
-jdk:
-  - openjdk10
 script:
   - make prepush batch=true
 matrix:

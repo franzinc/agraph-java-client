@@ -16,32 +16,32 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 public class AGRepositorySchema {
 
     /**
-     * The AGRepository schema namespace (<tt>http://franz.com/agraph/repository/config#</tt>).
+     * The AGRepository schema namespace (<code>http://franz.com/agraph/repository/config#</code>).
      */
     public static final String NAMESPACE = "http://franz.com/agraph/repository/config#";
 
     /**
-     * <tt>http://franz.com/agraph/repository/config#serverUrl</tt>
+     * <code>http://franz.com/agraph/repository/config#serverUrl</code>
      */
     public final static IRI SERVERURL;
 
     /**
-     * <tt>http://franz.com/agraph/repository/config#username</tt>
+     * <code>http://franz.com/agraph/repository/config#username</code>
      */
     public final static IRI USERNAME;
 
     /**
-     * <tt>http://franz.com/agraph/repository/config#password</tt>
+     * <code>http://franz.com/agraph/repository/config#password</code>
      */
     public final static IRI PASSWORD;
 
     /**
-     * <tt>http://franz.com/agraph/repository/config#catalogId</tt>
+     * <code>http://franz.com/agraph/repository/config#catalogId</code>
      */
     public final static IRI CATALOGID;
 
     /**
-     * <tt>http://franz.com/agraph/repository/config#repositoryId</tt>
+     * <code>http://franz.com/agraph/repository/config#repositoryId</code>
      */
     public final static IRI REPOSITORYID;
 

@@ -26,7 +26,7 @@ public class AGRepositoryFactory implements RepositoryFactory {
     public static final String REPOSITORY_TYPE = "allegrograph:AGRepository";
 
     /**
-     * Returns the repository's type: <tt>allegrograph:AGRepository</tt>.
+     * Returns the repository's type: <code>allegrograph:AGRepository</code>.
      */
     public String getRepositoryType() {
         return REPOSITORY_TYPE;

@@ -57,11 +57,11 @@ public abstract class AGResponseHandler {
     /**
      * Gets the MIME type specified in the response headers of the supplied
      * method, if any. For example, if the response headers contain
-     * <tt>Content-Type: application/xml;charset=UTF-8</tt>, this method will
-     * return <tt>application/xml</tt> as the MIME type.
+     * <code>Content-Type: application/xml;charset=UTF-8</code>, this method will
+     * return <code>application/xml</code> as the MIME type.
      *
      * @param method the method to get the reponse MIME type from
-     * @return the response MIME type, or <tt>null</tt> if not available
+     * @return the response MIME type, or <code>null</code> if not available
      */
     protected String getResponseMIMEType(HttpMethod method) throws IOException {
         Header[] headers = method.getResponseHeaders("Content-Type");

@@ -94,7 +94,7 @@ import javax.transaction.xa.Xid;
  * com.franz.agraph.pool.AGConnPool}) and having exactly one thread
  * that uses each connection.</p>
  *
- * <h3><a name="sessions">Dedicated Session Overview</a></h3>
+ * <h3><a id="sessions">Dedicated Session Overview</a></h3>
  * <p>Sessions with AllegroGraph server are used for ACID transactions
  * and also for server code in InitFile and Scripts.
  * See more documentation for
@@ -156,7 +156,7 @@ import javax.transaction.xa.Xid;
  * <li>{@link #addSessionLoadScript(String)}</li>
  * </ul>
  *
- * <h3><a name="mapping">Data-type and Predicate Mapping</a></h3>
+ * <h3><a id="mapping">Data-type and Predicate Mapping</a></h3>
  * <p>For more details, see the HTTP Protocol docs for
  * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#mapping"
  * target="_top">Type Mappings</a>
@@ -544,7 +544,7 @@ public class AGRepositoryConnection
      * @param baseURI    the base URI against which any relative URIs in the data are
      *                   resolved. This defaults to the value of
      *                   {@link java.io.File#toURI() file.toURI()} if the value is set to
-     *                   <tt>null</tt>
+     *                   <code>null</code>
      * @param dataFormat the serialization format of the data
      * @param contexts   the contexts to add the data to. Note that this parameter is a
      *                   vararg and as such is optional. If no contexts are specified, the
@@ -571,7 +571,7 @@ public class AGRepositoryConnection
      * @param baseURI    the base URI against which any relative URIs in the data are
      *                   resolved. This defaults to the value of
      *                   {@link java.io.File#toURI() file.toURI()} if the value is set to
-     *                   <tt>null</tt>
+     *                   <code>null</code>
      * @param dataFormat the serialization format of the data
      * @param attributes a JSONObject of attribute bindings that will be added to each statement
      *                   imported from `file'. For RDFFormats that support the specification of
@@ -613,7 +613,7 @@ public class AGRepositoryConnection
      * @param baseURI    the base URI against which any relative URIs in the data are
      *                   resolved. This defaults to the value of {@link
      *                   java.net.URL#toExternalForm() url.toExternalForm()} if the value is
-     *                   set to <tt>null</tt>
+     *                   set to <code>null</code>
      * @param dataFormat the serialization format of the data
      * @param contexts   the contexts to add the data to. If one or more contexts are
      *                   specified the data is added to these contexts, ignoring any context
@@ -637,7 +637,7 @@ public class AGRepositoryConnection
      * @param baseURI    the base URI against which any relative URIs in the data are
      *                   resolved. This defaults to the value of {@link
      *                   java.net.URL#toExternalForm() url.toExternalForm()} if the value is
-     *                   set to <tt>null</tt>
+     *                   set to <code>null</code>
      * @param dataFormat the serialization format of the data
      * @param attributes a JSONObject of attribute bindings that will be added to each statement
      *                   imported from `url'. For RDFFormats that support the specification of
@@ -925,9 +925,9 @@ public class AGRepositoryConnection
      * Removes the statement(s) with the specified subject, predicate and object
      * from the repository, optionally restricted to the specified contexts.
      *
-     * @param subject   the statement's subject, or <tt>null</tt> for a wildcard
-     * @param predicate the statement's predicate, or <tt>null</tt> for a wildcard
-     * @param object    the statement's object, or <tt>null</tt> for a wildcard
+     * @param subject   the statement's subject, or <code>null</code> for a wildcard
+     * @param predicate the statement's predicate, or <code>null</code> for a wildcard
+     * @param object    the statement's object, or <code>null</code> for a wildcard
      * @param contexts  the context(s) to remove the data from. Note that this parameter is
      *                  a vararg and as such is optional. If no contexts are supplied the
      *                  method operates on the entire repository

@@ -173,7 +173,7 @@ public class AGHTTPClient implements AutoCloseable {
      * Checks whether the specified status code is in the 2xx-range, indicating a
      * successful request.
      *
-     * @return <tt>true</tt> if the status code is in the 2xx range
+     * @return <code>true</code> if the status code is in the 2xx range
      */
     private boolean is2xx(int statusCode) {
         return statusCode >= 200 && statusCode < 300;
