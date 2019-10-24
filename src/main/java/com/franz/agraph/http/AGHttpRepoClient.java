@@ -699,18 +699,11 @@ public class AGHttpRepoClient implements AutoCloseable {
                 contexts);
     }
 
-    public void getStatementsLimit(int limit, Resource subj, IRI pred, Value obj,
-                                   String includeInferred,
-                                   AGResponseHandler handler, Resource... contexts)
-            throws AGHttpException {
-        String uri = Protocol.getStatementsLocation(getRoot());
-        List<Header> headers = new ArrayList<>(1);
-
-        headers.add(new Header(Protocol.ACCEPT_PARAM_NAME,
-                getPreferredRDFFormat().getDefaultMIMEType()));
-
+    private List<NameValuePair> getStatementsParams(int limit, Resource subj, IRI pred, Value obj,
+                                                   String includeInferred,
+                                                   Resource... contexts) {
         AGValueFactory vf = getValueFactory();
-        List<NameValuePair> params = new ArrayList<>(5);
+        List<NameValuePair> params = new ArrayList<>(4);
         if (subj != null) {
             subj = getStorableResource(subj, vf);
             params.add(new NameValuePair(Protocol.SUBJECT_PARAM_NAME, Protocol
@@ -736,6 +729,64 @@ public class AGHttpRepoClient implements AutoCloseable {
             params.add(new NameValuePair(Protocol.LIMIT_PARAM_NAME,
                     Integer.toString(limit)));
         }
+        return params;
+    }
+
+    /**
+     * Retrieves the count of statements matching the provided
+     * subject, predicate, object and contexts, but does not read more
+     * than a specified number of statements; feeds the result to the
+     * response handler.
+     *
+     * @param limit           Maximum number of statements to count
+     * @param subj            Subject filter
+     * @param pred            Predicate filter
+     * @param obj             Object filter
+     * @param includeInferred If true, inferred triples will be included in the set
+     * @param handler         Response handler
+     * @param contexts        Optional context filter
+     * @throws AGHttpException if an error occurs.
+     */
+    public void getStatementsCountLimit(int limit, Resource subj, IRI pred, Value obj,
+                                        String includeInferred,
+                                        AGResponseHandler handler, Resource... contexts)
+        throws AGHttpException {
+        String uri = Protocol.getStatementsLocation(getRoot());
+        List<Header> headers = new ArrayList<>(1);
+
+        headers.add(new Header(Protocol.ACCEPT_PARAM_NAME, "text/integer"));
+
+        List<NameValuePair> params =
+            getStatementsParams(limit, subj, pred, obj, includeInferred, contexts);
+
+        get(uri, headers, params, handler);
+    }
+
+    /**
+     * Retrieves up to a specified number of statements matching the
+     * provided subject, predicate, object and contexts, and feeds the
+     * result to the response handler.
+     *
+     * @param limit           Maximum number of statements to retrieve
+     * @param subj            Subject filter
+     * @param pred            Predicate filter
+     * @param obj             Object filter
+     * @param includeInferred If true, inferred triples will be included in the result
+     * @param handler         Response handler
+     * @param contexts        Optional context filter
+     * @throws AGHttpException if an error occurs.
+     */
+    public void getStatementsLimit(int limit, Resource subj, IRI pred, Value obj,
+                                   String includeInferred,
+                                   AGResponseHandler handler, Resource... contexts)
+            throws AGHttpException {
+        String uri = Protocol.getStatementsLocation(getRoot());
+        List<Header> headers = new ArrayList<>(1);
+
+        headers.add(new Header(Protocol.ACCEPT_PARAM_NAME,
+                               getPreferredRDFFormat().getDefaultMIMEType()));
+        List<NameValuePair> params =
+            getStatementsParams(limit, subj, pred, obj, includeInferred, contexts);
 
         get(uri, headers, params, handler);
     }

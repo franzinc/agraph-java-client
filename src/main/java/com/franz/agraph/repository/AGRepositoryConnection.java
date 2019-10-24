@@ -10,6 +10,7 @@ import com.franz.agraph.http.exception.AGCustomStoredProcException;
 import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.http.exception.AGMalformedDataException;
 import com.franz.agraph.http.handler.AGDownloadHandler;
+import com.franz.agraph.http.handler.AGLongHandler;
 import com.franz.agraph.http.handler.AGRDFHandler;
 import com.franz.agraph.http.handler.AGRawStreamer;
 import com.franz.agraph.http.handler.AGResponseHandler;
@@ -68,7 +69,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -1266,23 +1266,13 @@ public class AGRepositoryConnection
                                 boolean includeInferred, Resource... contexts)
             throws RepositoryException {
 
-        final AtomicBoolean hasItems = new AtomicBoolean();
         AGHttpRepoClient client = prepareHttpRepoClient();
-        StatementCollector collector = new StatementCollector() {
-            public void handleStatement(Statement s) {
-                hasItems.set(true);
-            }
-        };
-        AGResponseHandler handler = new AGRDFHandler(
-                client.getPreferredRDFFormat(),
-                collector,
-                getValueFactory(),
-                client.getAllowExternalBlankNodeIds());
-        // only a single statement will be requested
-        client.getStatementsLimit(1, subj, pred, obj,
+        AGLongHandler handler = new AGLongHandler();
+        // Ask to count at most 1 statement.
+        client.getStatementsCountLimit(1, subj, pred, obj,
                 Boolean.toString(includeInferred), handler, contexts);
 
-        return hasItems.get();
+        return handler.getResult() > 0;
     }
 
     /**

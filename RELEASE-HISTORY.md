@@ -1,5 +1,13 @@
 # AllegroGraph Java client release history
 
+## 3.0.1
+
+### rfe16301: Speed up conn.hasStatement()
+
+`AGRepositoryConnection.hasStatement()` is significantly faster now,
+because the counting is moved to the server side and does not require
+parser initialization.
+
 ## 3.0.0
 
 ### rfe15904: Upgrade to rdf4j 2.4.0

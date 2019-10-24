@@ -36,6 +36,7 @@ import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServerVersion;
 import com.franz.agraph.http.AGHttpRepoClient;
 import com.franz.agraph.http.handler.AGResponseHandler;
+import com.franz.agraph.http.handler.AGLongHandler;
 import com.franz.agraph.http.handler.AGRDFHandler;
 
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
@@ -747,6 +748,37 @@ public abstract class RepositoryConnectionTest {
             dataset.addNamedGraph(context1);
             query.setDataset(dataset);
             assertTrue(query.evaluate());
+        }
+
+        @Test
+        public void testGetStatementsCountLimit()
+                throws Exception {
+            testCon.add(bob, name, nameBob);
+            testCon.add(bob, name, nameAlice);
+            testCon.add(alice, name, nameAlice);
+
+            AGHttpRepoClient client = ((AGRepositoryConnection)testCon)
+                .prepareHttpRepoClient();
+
+            AGLongHandler handler = new AGLongHandler();
+
+            client.getStatementsCountLimit(0, null, null, nameBob, "false", handler);
+            assertTrue("The result should be 1", handler.getResult() == 1);
+
+            client.getStatementsCountLimit(0, null, null, nameAlice, "false", handler);
+            assertTrue("The result should be 2", handler.getResult() == 2);
+
+            client.getStatementsCountLimit(1, null, null, nameAlice, "false", handler);
+            assertTrue("The result should be 1", handler.getResult() == 1);
+
+            client.getStatementsCountLimit(2, null, name, null, "false", handler);
+            assertTrue("The result should be 2", handler.getResult() == 2);
+
+            client.getStatementsCountLimit(0, null, name, null, "false", handler);
+            assertTrue("The result should be 3", handler.getResult() == 3);
+
+            client.getStatementsCountLimit(0, alice, name, nameBob, "false", handler);
+            assertTrue("The result should be 0", handler.getResult() == 0);
         }
 
         @Test
