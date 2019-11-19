@@ -11,6 +11,8 @@ import com.franz.agraph.http.handler.AGJSONArrayHandler;
 import com.franz.agraph.http.handler.AGRawStreamer;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.NameValuePair;
+import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.rdf4j.http.protocol.Protocol;
 import org.eclipse.rdf4j.model.Value;
@@ -24,6 +26,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -648,9 +651,25 @@ public class AGServer implements Closeable {
         return handler.getResult();
     }
 
-    public void changeUserPassword(String user, String password) {
-        // TODO Auto-generated method stub
+    /**
+     * Change the password for USER to PASSWORD
+     *
+     * @param user user id
+     * @param password the new password to require for user
+     * @throws AGHttpException if there is an error with this request
+     */
+    public void changeUserPassword(String user, String password) throws AGHttpException {
+        String url = serverURL + "/users/" + user + "/password";
+        Header[] headers = new Header[0];
+        NameValuePair[] params = {};
 
+        try {
+            RequestEntity request = new StringRequestEntity(password, "text/plain", "UTF-8");
+
+            getHTTPClient().post(url, headers, params, request, null);
+        } catch (UnsupportedEncodingException c) {
+            throw new AGHttpException(c);
+        }
     }
 
     /**

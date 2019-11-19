@@ -4,11 +4,15 @@
 
 package test;
 
+import com.franz.agraph.http.exception.AGHttpException;
+import com.franz.agraph.repository.AGServer;
 import junit.framework.Assert;
+import org.eclipse.rdf4j.http.protocol.UnauthorizedException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+
 
 import java.util.List;
 
@@ -17,21 +21,57 @@ public class UserManagementTests extends AGAbstractTest {
     @Test
     @Category(TestSuites.Prepush.class)
     public void addDeleteUsers() throws Exception {
+        String newuser1 = "newuser1";
+        String newuser2 = "newuser2";
         List<String> users = server.listUsers();
         Assert.assertTrue("expected some users", users.size() > 0);
-        if (!users.contains("newuser1")) {
-            server.addUser("newuser1", "newuser1");
+        if (!users.contains(newuser1)) {
+            server.addUser(newuser1, "password1");
         }
-        if (!users.contains("newuser2")) {
-            server.addUser("newuser2", "newuser2");
+        if (!users.contains(newuser2)) {
+            server.addUser(newuser2, "password2");
         }
         users = server.listUsers();
-        Assert.assertTrue(users.contains("newuser1"));
-        Assert.assertTrue(users.contains("newuser2"));
-        server.deleteUser("newuser2");
+        Assert.assertTrue(users.contains(newuser1));
+        Assert.assertTrue(users.contains(newuser2));
+        server.deleteUser(newuser2);
         users = server.listUsers();
-        Assert.assertTrue(users.contains("newuser1"));
-        Assert.assertFalse(users.contains("newuser2"));
+        Assert.assertTrue(users.contains(newuser1));
+        Assert.assertFalse(users.contains(newuser2));
+
+
+        // Verify the server is responsive using newuser1's existing auth.
+        AGServer testServer1 = new AGServer(server.getServerURL(), newuser1, "password1");
+
+        // give newuser1 'session' permission, so it can be checked for.
+        server.addUserPermission(newuser1, "session");
+
+        // make a request using newuser1, verify the permission we added is visible
+        List<String> permissions = testServer1.listUserPermissions(newuser1);
+        Assert.assertTrue(permissions.contains("session"));
+
+        // change newuser1 password
+        server.changeUserPassword(newuser1, "newpassword1");
+
+        // TODO: assertThrows() exists in junit5+
+        try { 
+            permissions = testServer1.listUserPermissions(newuser1);
+            Assert.fail("Expected AGHttpException exception not thrown");
+        } catch (AGHttpException c) {
+            if (c.getCause() instanceof UnauthorizedException) {
+                // success
+            } else {
+                Assert.fail("Expected UnauthorizedException exception not thrown");
+            }
+        }
+
+        // this should work
+        AGServer testServer2 = new AGServer(server.getServerURL(), newuser1, "newpassword1");
+        permissions = testServer2.listUserPermissions(newuser1);
+        Assert.assertEquals(1, permissions.size());
+        Assert.assertTrue(permissions.contains("session"));
+
+        // delete newuser1
         server.deleteUser("newuser1");
         users = server.listUsers();
         Assert.assertFalse(users.contains("newuser1"));

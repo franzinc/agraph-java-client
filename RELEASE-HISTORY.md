@@ -2,6 +2,11 @@
 
 ## 3.0.1
 
+### bug25987: Add implementation for AGServer.changeUserPassword()
+
+The `AGServer.changeUserPassword()` method was previously
+unimplemented. It is now supported.
+
 ### rfe16301: Speed up conn.hasStatement()
 
 `AGRepositoryConnection.hasStatement()` is significantly faster now,
