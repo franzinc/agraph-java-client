@@ -1,5 +1,15 @@
 # AllegroGraph Java client release history
 
+## 3.0.2
+
+### rfe16331: Add a system property to toggle context overriding
+
+The new system property
+`"com.franz.agraph.http.AGProtocol.overrideContext"` (the name is also
+accessible via `AGProtocol.PROP_OVERRIDE_CONTEXT`) can be used to
+enable context overriding behaviour according to RDF4J API
+specification. The server-side support is only available since v6.7.0.
+
 ## 3.0.1
 
 ### bug25987: Add implementation for AGServer.changeUserPassword()

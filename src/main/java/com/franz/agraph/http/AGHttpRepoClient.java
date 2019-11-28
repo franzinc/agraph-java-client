@@ -118,6 +118,7 @@ public class AGHttpRepoClient implements AutoCloseable {
     private static int defaultSessionLifetimeInSeconds = 3600;
     private static NameValuePair[] emptyParams = new NameValuePair[0];
     private static AGServerVersion supportedTSVTQRVersion = new AGServerVersion("6.4.2");
+    private static AGServerVersion supportedContextOverridingVersion = new AGServerVersion("6.7.0");
     final Logger logger = LoggerFactory.getLogger(this.getClass());
     // Used to create the pinger task
     private final ScheduledExecutorService executor;
@@ -1225,6 +1226,18 @@ public class AGHttpRepoClient implements AutoCloseable {
         }
         if (attributes != null) {
             params.add(new NameValuePair(AGProtocol.ATTRIBUTES_PARAM_NAME, attributes.toString()));
+        }
+        Boolean overrideContext = Boolean.parseBoolean(System.getProperty(AGProtocol.PROP_OVERRIDE_CONTEXT));
+        if (overrideContext) {
+            if (repo.getServer().getComparableVersion().compareTo(
+                    supportedContextOverridingVersion) >= 0) {
+                params.add(new NameValuePair(AGProtocol.OVERRIDE_CONTEXT_PARAM_NAME, "true"));
+            } else {
+                throw new IllegalArgumentException("Context overriding requires AG server support "
+                                                   + "(available starting from AG v"
+                                                   + supportedContextOverridingVersion
+                                                   + ")");
+            }
         }
         if (!overwrite) {
             post(url, headers, params,

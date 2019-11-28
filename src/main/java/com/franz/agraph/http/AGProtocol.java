@@ -489,6 +489,18 @@ public class AGProtocol extends Protocol {
     public static final String ATTRIBUTES_PARAM_NAME = "attributes";
 
     /**
+     * Used by the /statements service to override the context present
+     * in the data being loaded with the the supplied one.
+     */
+    public static final String OVERRIDE_CONTEXT_PARAM_NAME = "overrideContext";
+
+    /**
+     * The name of the system property used to toggle context
+     * overriding behaviour.
+     */
+    public static final String PROP_OVERRIDE_CONTEXT = "com.franz.agraph.http.AGProtocol.overrideContext";
+
+    /**
      * Relative location of static attribute filter service
      */
     public static final String STATIC_FILTER_LOCATION = "attributes/staticFilter";

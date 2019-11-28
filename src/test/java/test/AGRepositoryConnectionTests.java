@@ -11,13 +11,16 @@ import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGRDFFormat;
 import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
+import com.franz.agraph.repository.AGValueFactory;
 import com.franz.agraph.repository.AGServer;
 import com.franz.agraph.repository.AGServerVersion;
 import com.franz.agraph.repository.AGXid;
+import com.franz.agraph.http.AGProtocol;
 
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.URI;
+import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.GraphQuery;
@@ -644,6 +647,42 @@ public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
         assertTrue("bib should be known in context1", testCon.hasStatement(
                 null, name, nameBob, false, context1));
 
+    }
+
+    @Test
+    public void testContextOverriding() throws Exception {
+        AGRepository repo = (AGRepository) createRepository();
+        AGValueFactory vf = repo.getValueFactory();
+        AGRepositoryConnection conn = repo.getConnection();
+
+        // Save the old property value and set it to "true".
+        String oldPropValue = System.getProperty(AGProtocol.PROP_OVERRIDE_CONTEXT, "false");
+        System.setProperty(AGProtocol.PROP_OVERRIDE_CONTEXT, "true");
+
+        IRI originalContext = vf.createIRI("http://www.w3.org/2000/01/rdf-schema");
+        IRI substituteContext = vf.createIRI("http://example.org#override1");
+
+        try (final InputStream in = Util.resourceAsStream(TEST_DIR_PREFIX + "sample.trix")) {
+            if (conn.getServer().getComparableVersion().compareTo(new AGServerVersion("6.7.0")) >= 0) {
+                conn.add(in, null, AGRDFFormat.TRIX, substituteContext);
+                assertTrue("statements should be in the substitute context", conn.hasStatement(
+                               null, null, null, false, substituteContext));
+                assertFalse("no statements should be in the original context", conn.hasStatement(
+                                null, null, null, false, originalContext));
+            } else {
+                try {
+                    conn.add(in, null, AGRDFFormat.TRIX, substituteContext);
+                } catch (IllegalArgumentException e) {
+                    // If we caught IllegalArgumentException while testing
+                    // against pre-v6.7.0 AG, this is expected.
+                    return;
+                }
+                fail("context overriding must fail with pre-v6.7.0 AG servers");
+            }
+        } finally {
+            // Restore the old property value.
+            System.setProperty(AGProtocol.PROP_OVERRIDE_CONTEXT, oldPropValue);
+        }
     }
 
     @Test
