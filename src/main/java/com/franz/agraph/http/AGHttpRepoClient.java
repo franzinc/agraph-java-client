@@ -118,7 +118,7 @@ public class AGHttpRepoClient implements AutoCloseable {
     private static int defaultSessionLifetimeInSeconds = 3600;
     private static NameValuePair[] emptyParams = new NameValuePair[0];
     private static AGServerVersion supportedTSVTQRVersion = new AGServerVersion("6.4.2");
-    private static AGServerVersion supportedContextOverridingVersion = new AGServerVersion("6.7.0");
+    private static AGServerVersion supportedContextOverridingVersion = new AGServerVersion("7.0.0");
     final Logger logger = LoggerFactory.getLogger(this.getClass());
     // Used to create the pinger task
     private final ScheduledExecutorService executor;

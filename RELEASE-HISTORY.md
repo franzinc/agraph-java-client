@@ -8,7 +8,7 @@ The new system property
 `"com.franz.agraph.http.AGProtocol.overrideContext"` (the name is also
 accessible via `AGProtocol.PROP_OVERRIDE_CONTEXT`) can be used to
 enable context overriding behaviour according to RDF4J API
-specification. The server-side support is only available since v6.7.0.
+specification. The server-side support is only available since v7.0.0.
 
 ## 3.0.1
 

@@ -663,7 +663,7 @@ public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
         IRI substituteContext = vf.createIRI("http://example.org#override1");
 
         try (final InputStream in = Util.resourceAsStream(TEST_DIR_PREFIX + "sample.trix")) {
-            if (conn.getServer().getComparableVersion().compareTo(new AGServerVersion("6.7.0")) >= 0) {
+            if (conn.getServer().getComparableVersion().compareTo(new AGServerVersion("7.0.0")) >= 0) {
                 conn.add(in, null, AGRDFFormat.TRIX, substituteContext);
                 assertTrue("statements should be in the substitute context", conn.hasStatement(
                                null, null, null, false, substituteContext));
@@ -674,10 +674,10 @@ public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
                     conn.add(in, null, AGRDFFormat.TRIX, substituteContext);
                 } catch (IllegalArgumentException e) {
                     // If we caught IllegalArgumentException while testing
-                    // against pre-v6.7.0 AG, this is expected.
+                    // against pre-v7.0.0 AG, this is expected.
                     return;
                 }
-                fail("context overriding must fail with pre-v6.7.0 AG servers");
+                fail("context overriding must fail with pre-v7.0.0 AG servers");
             }
         } finally {
             // Restore the old property value.
