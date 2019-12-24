@@ -660,18 +660,21 @@ public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
         System.setProperty(AGProtocol.PROP_OVERRIDE_CONTEXT, "true");
 
         IRI originalContext = vf.createIRI("http://www.w3.org/2000/01/rdf-schema");
-        IRI substituteContext = vf.createIRI("http://example.org#override1");
+        IRI substituteContext1 = vf.createIRI("http://example.org#override1");
+        IRI substituteContext2 = vf.createIRI("http://example.org#override2");
 
         try (final InputStream in = Util.resourceAsStream(TEST_DIR_PREFIX + "sample.trix")) {
             if (conn.getServer().getComparableVersion().compareTo(new AGServerVersion("7.0.0")) >= 0) {
-                conn.add(in, null, AGRDFFormat.TRIX, substituteContext);
-                assertTrue("statements should be in the substitute context", conn.hasStatement(
-                               null, null, null, false, substituteContext));
+                conn.add(in, null, AGRDFFormat.TRIX, substituteContext1, substituteContext2);
+                assertTrue("statements should be in the substitute context 1", conn.hasStatement(
+                               null, null, null, false, substituteContext1));
+                assertTrue("statements should be in the substitute context 2", conn.hasStatement(
+                               null, null, null, false, substituteContext2));
                 assertFalse("no statements should be in the original context", conn.hasStatement(
                                 null, null, null, false, originalContext));
             } else {
                 try {
-                    conn.add(in, null, AGRDFFormat.TRIX, substituteContext);
+                    conn.add(in, null, AGRDFFormat.TRIX, substituteContext1);
                 } catch (IllegalArgumentException e) {
                     // If we caught IllegalArgumentException while testing
                     // against pre-v7.0.0 AG, this is expected.

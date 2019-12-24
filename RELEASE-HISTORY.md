@@ -2,6 +2,14 @@
 
 ## 3.0.2
 
+### rfe16340: Add test for loading data into multiple contexts
+
+The server-side support for loading data into multiple contexts is
+available since v7.0.0. In order to enable it, the system property
+`"com.franz.agraph.http.AGProtocol.overrideContext"` (the name is also
+accessible via `AGProtocol.PROP_OVERRIDE_CONTEXT`) must be set to
+`"true"`, otherwise all but first context arguments are ignored.
+
 ### rfe16331: Add a system property to toggle context overriding
 
 The new system property
