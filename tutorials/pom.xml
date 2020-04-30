@@ -4,7 +4,7 @@
   <groupId>com.franz</groupId>
   <artifactId>agraph-tutorial-parent</artifactId>
   <packaging>pom</packaging>
-  <version>3.0.2</version>
+  <version>3.0.3-SNAPSHOT</version>
   <name>agraph-tutorial-parent</name>
   <description>Parent POM for all tutorials</description>
 
