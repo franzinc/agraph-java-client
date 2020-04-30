@@ -2,6 +2,10 @@
 
 ## 3.0.2
 
+### Use HTTPS URL to reference repo1.maven.org
+
+Use HTTPS to access repo1.maven.org to avoid errors.
+
 ### rfe16340: Add test for loading data into multiple contexts
 
 The server-side support for loading data into multiple contexts is
