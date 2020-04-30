@@ -121,7 +121,7 @@ if [[ ${VERSION} =~ -SNAPSHOT$ ]]; then
 else
     info "Uploading a RELEASE version." 
     info "${DEPLOYMENT_URL}/${VERSION}"
-    if curl --fail --silent --head "${DEPLOYMENT_URL}/${VERSION}" > /dev/null; then
+    if curl --location --fail --silent --head "${DEPLOYMENT_URL}/${VERSION}" > /dev/null; then
         err "Version ${VERSION} already exists and cannot be overwritten."
         exit 1
     fi
