@@ -78,7 +78,7 @@ public class SpinTest extends AGAbstractTest {
         String ageFnSparql = "prefix kennedy: <" + kennedyNamespace + ">\n"
                 + "prefix xs: <http://www.w3.org/2001/XMLSchema#>\n"
                 + "select ( (2011 - xs:int(?birthYear)) as ?age ) { ?who kennedy:birth-year ?birthYear . }";
-        conn.putSpinFunction(new AGSpinFunction(ageFn, new String[] {"who"}, ageFnSparql));
+        conn.putSpinFunction(new AGSpinFunction(ageFn, new String[] {"?who"}, ageFnSparql));
         Assert.assertEquals(ageFnSparql, conn.getSpinFunction(ageFn));
 
         String queryString = "prefix ex: <" + baseURI + ">\n"
@@ -102,7 +102,7 @@ public class SpinTest extends AGAbstractTest {
         AGSpinFunction fn = list.get(0);
         Assert.assertEquals(list.toString(), ageFnSparql, fn.getQuery());
         Assert.assertEquals(list.toString(), 1, fn.getArguments().length);
-        Assert.assertEquals(list.toString(), "who", fn.getArguments()[0]);
+        Assert.assertEquals(list.toString(), "?who", fn.getArguments()[0]);
     }
 
     /**
