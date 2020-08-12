@@ -14,6 +14,7 @@
     <module>jena</module>
     <module>rdf4j</module>
     <module>2pc</module>
+    <module>failures</module>
   </modules>
   
   <properties>

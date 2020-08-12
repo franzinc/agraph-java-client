@@ -82,6 +82,10 @@ public class AGPoolConfig extends GenericObjectPoolConfig {
             setNumTestsPerEvictionRun(
                     Integer.parseInt(props.get(AGPoolProp.numTestsPerEvictionRun)));
         }
+        if (props.containsKey(AGPoolProp.lifo)) {
+            setLifo(
+                    Boolean.valueOf(props.get(AGPoolProp.lifo)));
+        }
 
         if (Boolean.parseBoolean(props.getOrDefault(AGPoolProp.warmup, "false"))) {
             final boolean includeStrings =

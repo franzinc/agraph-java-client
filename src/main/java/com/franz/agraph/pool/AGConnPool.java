@@ -267,7 +267,14 @@ public class AGConnPool implements ObjectPool<AGRepositoryConnection>, AutoClose
             // It would be safe to close a pool multiple times,
             // but if we don't delete the hook it will keep a
             // reference to the closed pool and waste memory.
-            Runtime.getRuntime().removeShutdownHook(shutdownHook);
+            try {
+                Runtime.getRuntime().removeShutdownHook(shutdownHook);
+            } catch (java.lang.IllegalStateException e) {
+                /*
+                ignore as this is expected if the close is happening
+                during a shutdown
+                */
+            }
         }
     }
 

@@ -89,6 +89,12 @@ attributes-tutorial: local-deploy
 	mvn $(MVN_ARGS) compile -Dmaven.repo.local=$(REPO) && \
 	mvn $(MVN_ARGS) exec:java -Dmaven.repo.local=$(REPO)
 
+failures-tutorial: local-deploy
+	cd tutorials/failures && \
+	mvn $(MVN_ARGS) compile -Dmaven.repo.local=$(REPO) && \
+	mvn $(MVN_ARGS) exec:java -Dmaven.repo.local=$(REPO)
+
+
 agq-tests: local-deploy
 	cd tutorials/agq && \
 	mvn $(MVN_ARGS) compile -Dmaven.repo.local=$(REPO) && \

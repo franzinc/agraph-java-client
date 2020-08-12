@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.franz</groupId>
+    <artifactId>agraph-tutorial-parent</artifactId>
+    <version>3.0.3-SNAPSHOT</version>
+  </parent>
+  <artifactId>failure-handling-examples</artifactId>
+  <packaging>jar</packaging>
+  <name>failures-tutorial</name>
+  <description>AllegroGraph Failure Handling examples</description>
+
+  <properties>
+    <main.class>com.franz.failures.NoSessionFail</main.class>
+  </properties>
+</project>

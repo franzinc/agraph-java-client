@@ -15,6 +15,11 @@ public class IndexManagementTests extends AGAbstractTest {
     @Test
     @Category(TestSuites.Prepush.class)
     public void manageIndices_rfe9930() throws Exception {
+        /**
+         * before 7.1.0    gposi, gspoi, ospgi, posgi, gospi, spogi, i
+         * 7.1.0 and after gposi, gspoi, ospgi, posgi, psogi, spogi, i
+         *                                             ^^^^^^
+         */
         int indexCount = 7;
         List<String> indices = conn.listValidIndices();
         Assert.assertTrue("expected more valid indices", indices.size() >= 24);

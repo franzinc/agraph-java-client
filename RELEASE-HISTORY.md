@@ -1,4 +1,17 @@
 # AllegroGraph Java client release history
+## 3.0.3
+
+### Add connection pool property AGPoolProp.lifo
+
+If this property has a value true (the default) then
+connections are taken out of the pool in a Last In First Out manner.
+If this property has a value false then connections
+are taken out of the pool in a First In First Out manner.
+For a connection pool to a load balancer FIFO is a better choice
+as it will cause work to be distributed to all backends.
+
+Also add a document a test cases related to handling failures during
+a transaction.
 
 ## 3.0.2
 

@@ -124,7 +124,10 @@ public enum AGPoolProp {
     warmupIncludeStrings,
 
     /** Boolean property, set to false to exclude triple indices from a warmup */
-    warmupIncludeTriples
+    warmupIncludeTriples,
+
+    /** Boolean property, true means LIFO and false means FIFO retrieval of objects from pool */
+    lifo
 
     // TODO whenExhaustedAction
 
