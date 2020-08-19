@@ -20,14 +20,14 @@ public class IndexManagementTests extends AGAbstractTest {
         Assert.assertTrue("expected more valid indices", indices.size() >= 24);
         indices = conn.listIndices();
         Assert.assertEquals("unexpected number of indices initially", indexCount, indices.size());
-        conn.dropIndex("gospi");
+        conn.dropIndex("gspoi");
         conn.dropIndex("spogi");
         indices = conn.listIndices();
         Assert.assertEquals("unexpected number of indices after drop", (indexCount - 2), indices.size());
-        conn.addIndex("gospi");
+        conn.addIndex("gspoi");
         indices = conn.listIndices();
         Assert.assertEquals("unexpected number of indices after add", (indexCount - 1), indices.size());
-        conn.addIndex("gospi");
+        conn.addIndex("gspoi");
         indices = conn.listIndices();
         Assert.assertEquals("unexpected number of indices after redundant add", (indexCount - 1), indices.size());
     }
