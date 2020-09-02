@@ -89,6 +89,7 @@ pom_template='''<?xml version="1.0" encoding="UTF-8"?>
 
 version, _ = subprocess.Popen([os.path.join(base_dir, '../version.sh')], 
                               shell=True, stdout=subprocess.PIPE).communicate()
+version = str(version,'utf-8').strip()
 
 mvn = subprocess.Popen('mvn dependency:list',
                        cwd=os.path.join(base_dir, '..'),
@@ -97,10 +98,10 @@ mvn = subprocess.Popen('mvn dependency:list',
 
 dependencies = []
 for line in mvn.stdout.readlines():
+    line = str(line,'utf-8');
     m = dep_pattern.match(line)
     if m:
         decl = dep_template.format(**m.groupdict(default=''))
         dependencies.append(decl)
 
-print pom_template.format(version=version,
-                          dependencies='\n'.join(dependencies))
+print (pom_template.format(version=version, dependencies='\n'.join(dependencies)))
