@@ -4,7 +4,7 @@
 // text, you must update the link on the client download page.
 = Java client for Franz AllegroGraph
 
-:version: 3.0.3-SNAPSHOT
+:version: 3.0.3
 
 This is the Java client for the http://franz.com/agraph/[Franz
 AllegroGraph] triple store.  It contains
