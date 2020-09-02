@@ -28,7 +28,7 @@ popd
 VERSION=$(./version.sh)
 
 # Commit the released version, add a tag.
-git add .
+git add -u
 git commit -m "Release ${VERSION}"
 # Use -f in case there was a problem with this release
 # and the tag already exists.
