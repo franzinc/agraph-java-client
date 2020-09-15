@@ -507,6 +507,11 @@ public class AGProtocol extends Protocol {
 
     public static final String ND_GEOSPATIAL_DATATYPE_AUTOMATION = "nd/geospatialDatatypeAutomation";
 
+    /**
+     * Relativec location of the query options services prefix.
+     */
+    public static final String QUERY_OPTIONS = "query-options";
+
     public static final String FILTER_PARAM_NAME = "filter";
 
     /**
@@ -733,4 +738,11 @@ public class AGProtocol extends Protocol {
         return root + "/" + AGProtocol.ND_GEOSPATIAL_DATATYPE_AUTOMATION;
     }
 
+    public static String getQueryOptionsLocation(String root) {
+        return root + "/" + AGProtocol.QUERY_OPTIONS;
+    }
+
+    public static String getQueryOptionLocation(String root, String name) {
+        return root + "/" + AGProtocol.QUERY_OPTIONS + "/" + encode(name);
+    }
 }

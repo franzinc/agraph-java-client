@@ -1,4 +1,23 @@
 # AllegroGraph Java client release history
+
+## 3.0.4
+
+### Add support for query options API
+
+The server-side support for setting query options on a per-user,
+per-repository basis is available in AG v7.1.0 and later and can be
+accessed from the Java client via `AGRepositoryConnection` methods:
+
+   - `Map<String, String> getQueryOptions()`;
+   - `String getQueryOption(String name)`;
+   - `void setQueryOption(String name, String value)`;
+   - `void removeQueryOption(Sring name)`.
+
+These methods mimic the namespaces API, the only difference being the
+`AGRepositoryConnection.getQueryOptions()` method that returns a
+`Map<String, String>` instead of a `RepositoryResult` for simplicity
+reasons.
+
 ## 3.0.3
 
 ### Add connection pool property AGPoolProp.lifo

@@ -65,6 +65,8 @@ import java.io.Reader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -1247,6 +1249,46 @@ public class AGRepositoryConnection
         }
     }
 
+    /**
+     * Gets the value of the query option.
+     *
+     * @param name a query option name
+     * @return the {@code String} value for the given query option or
+     *         {@code null} if query option is not set
+     * @throws RepositoryException if the query options API is not
+     *                             supported by the server or the
+     *                             query option name is unknown
+     */
+    public String getQueryOption(String name) throws RepositoryException {
+        return prepareHttpRepoClient().getQueryOption(name);
+    }
+
+    /**
+     * Gets a set of all currently set query options.
+     *
+     * @return a {@code Map<String, String>} from query option names to values
+     * @throws RepositoryException if the query options API is not
+     *                             supported by the server
+     */
+    public Map<String, String> getQueryOptions() throws RepositoryException {
+        try {
+            Map<String, String> queryOptionMap = new HashMap<>();
+            try (TupleQueryResult queryOptions = prepareHttpRepoClient().getQueryOptions()) {
+                while (queryOptions.hasNext()) {
+                    BindingSet bindingSet = queryOptions.next();
+                    Value name = bindingSet.getValue("name");
+                    Value value = bindingSet.getValue("value");
+                    if (name instanceof Literal && value instanceof Literal) {
+                        queryOptionMap.put(((Literal) name).getLabel(), ((Literal) value).getLabel());
+                    }
+                }
+            }
+            return queryOptionMap;
+        } catch (QueryEvaluationException e) {
+            throw new RepositoryException(e);
+        }
+    }
+
     public RepositoryResult<Statement> getStatements(Resource subj, IRI pred,
                                                      Value obj, boolean includeInferred, Resource... contexts)
             throws RepositoryException {
@@ -1766,6 +1808,29 @@ public class AGRepositoryConnection
     public void setNamespace(String prefix, String name)
             throws RepositoryException {
         prepareHttpRepoClient().setNamespacePrefix(prefix, name);
+    }
+
+    /**
+     * Removes the given query option's value. Does not throw an
+     * exception if the query option name is unknown.
+     *
+     * @param name a query option name
+     */
+    public void removeQueryOption(String name) throws RepositoryException {
+        prepareHttpRepoClient().removeQueryOption(name);
+    }
+
+    /**
+     * Sets query option given by name to the specified values.
+     *
+     * @param name  a query option name
+     * @param value a value for the given query option
+     * @throws RepositoryException if the given query option name is
+     *                             unknown or the value didn't pass
+     *                             the validation
+     */
+    public void setQueryOption(String name, String value) throws RepositoryException {
+        prepareHttpRepoClient().setQueryOption(name, value);
     }
 
     public long size(Resource... contexts) throws RepositoryException {

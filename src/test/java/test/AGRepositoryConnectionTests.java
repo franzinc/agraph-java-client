@@ -16,6 +16,7 @@ import com.franz.agraph.repository.AGServer;
 import com.franz.agraph.repository.AGServerVersion;
 import com.franz.agraph.repository.AGXid;
 import com.franz.agraph.http.AGProtocol;
+import com.franz.agraph.http.exception.AGHttpException;
 
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
@@ -54,6 +55,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.Arrays;
 import java.util.Random;
+import java.util.Map;
 
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
@@ -62,7 +64,10 @@ import javax.transaction.xa.Xid;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.junit.matchers.JUnitMatchers.hasItems;
+
 
 
 public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
@@ -1255,6 +1260,36 @@ public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
             conn.disableNDGeospatialDatatypeAutomation();
             result = conn.getNDGeospatialDatatypeAutomation();
             assertFalse("non-false result for nD geospatial automation.", result);
+        }
+    }
+
+    @Test
+    public void testQueryOptions() throws Exception {
+        // Cast to AGRepositoryConnection to get access to query options API.
+        AGRepositoryConnection agTestCon = (AGRepositoryConnection) testCon;
+
+        // Only run the test against AG servers that support query
+        // options API (7.1.0 and later).
+        AGServerVersion minVersion = new AGServerVersion("7.1.0");
+        if (agTestCon.getServer().getComparableVersion().compareTo(minVersion) >= 0) {
+
+            // Set several query options.
+            agTestCon.setQueryOption("engine", "mjqe");
+            agTestCon.setQueryOption("logLineLength", "100");
+
+            // Verify that getting a query option value by name works.
+            assertEquals(agTestCon.getQueryOption("engine"), "mjqe");
+
+            // Verify that listing all set query options works.
+            Map<String, String> options = agTestCon.getQueryOptions();
+            assertEquals(options.size(), 2);
+            assertThat(options.keySet(), hasItems("engine", "logLineLength"));
+            assertEquals(options.get("engine"), "mjqe");
+            assertEquals(options.get("logLineLength"), "100");
+
+            // Remove a query option and try to get its value again.
+            agTestCon.removeQueryOption("engine");
+            assertEquals(agTestCon.getQueryOption("engine"), null);
         }
     }
 }

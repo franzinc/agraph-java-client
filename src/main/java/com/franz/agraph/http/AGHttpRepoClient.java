@@ -119,6 +119,7 @@ public class AGHttpRepoClient implements AutoCloseable {
     private static NameValuePair[] emptyParams = new NameValuePair[0];
     private static AGServerVersion supportedTSVTQRVersion = new AGServerVersion("6.4.2");
     private static AGServerVersion supportedContextOverridingVersion = new AGServerVersion("7.0.0");
+    private static AGServerVersion supportedQueryOptionsVersion = new AGServerVersion("7.1.0");
     final Logger logger = LoggerFactory.getLogger(this.getClass());
     // Used to create the pinger task
     private final ScheduledExecutorService executor;
@@ -1288,36 +1289,26 @@ public class AGHttpRepoClient implements AutoCloseable {
         return handler.getResult();
     }
 
-    public TupleQueryResult getNamespaces() throws
-            AGHttpException {
+    /* Generic repository options helpers */
+
+    private TupleQueryResult getRepoOptions(String url) throws AGHttpException {
         try {
             TupleQueryResultBuilder builder = new TupleQueryResultBuilder();
-            getNamespaces(builder);
+            getRepoOptions(url, builder);
             return builder.getQueryResult();
         } catch (TupleQueryResultHandlerException e) {
-            // Found a bug in TupleQueryResultBuilder?
             throw new RuntimeException(e);
         }
     }
 
-    public void getNamespaces(TupleQueryResultHandler handler)
-            throws TupleQueryResultHandlerException,
-            AGHttpException {
-        String url = Protocol.getNamespacesLocation(getRoot());
+    private void getRepoOptions(String url, TupleQueryResultHandler handler)
+        throws TupleQueryResultHandlerException, AGHttpException {
         List<Header> headers = new ArrayList<>(1);
-
-        headers.add(new Header(Protocol.ACCEPT_PARAM_NAME,
-                getPreferredTQRFormat().getDefaultMIMEType()));
-
-        get(url, headers, null,
-                new AGTQRHandler(getPreferredTQRFormat(), handler, getValueFactory(), getAllowExternalBlankNodeIds()));
+        headers.add(new Header(Protocol.ACCEPT_PARAM_NAME, getPreferredTQRFormat().getDefaultMIMEType()));
+        get(url, headers, null, new AGTQRHandler(getPreferredTQRFormat(), handler, getValueFactory(), getAllowExternalBlankNodeIds()));
     }
 
-    public String getNamespace(String prefix) throws
-            AGHttpException {
-        String url = Protocol.getNamespacePrefixLocation(getRoot(),
-                prefix);
-
+    private String getRepoOption(String url) throws AGHttpException {
         AGStringHandler handler = new AGStringHandler();
         try {
             get(url, null, null, handler);
@@ -1329,25 +1320,77 @@ public class AGHttpRepoClient implements AutoCloseable {
         return handler.getResult();
     }
 
-    public void setNamespacePrefix(String prefix, String name)
-            throws AGHttpException {
-        String url = Protocol.getNamespacePrefixLocation(getRoot(),
-                prefix);
-
+    private void setRepoOption(String url, String value) throws AGHttpException {
         try {
-            put(url, null, null,
-                    new StringRequestEntity(name, "text/plain", "UTF-8"), null);
+            put(url, null, null, new StringRequestEntity(value, "text/plain", "UTF-8"), null);
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void removeNamespacePrefix(String prefix) throws AGHttpException {
-        String url = Protocol.getNamespacePrefixLocation(getRoot(),
-                prefix);
-
+    private void removeRepoOption(String url) throws AGHttpException {
         delete(url, null, null, null);
     }
+
+    /* Namespaces API */
+
+    public TupleQueryResult getNamespaces() throws AGHttpException {
+        return getRepoOptions(Protocol.getNamespacesLocation(getRoot()));
+    }
+
+    public void getNamespaces(TupleQueryResultHandler handler)
+        throws TupleQueryResultHandlerException, AGHttpException {
+        getRepoOptions(Protocol.getNamespacesLocation(getRoot()), handler);
+    }
+
+    public String getNamespace(String prefix) throws AGHttpException {
+        return getRepoOption(Protocol.getNamespacePrefixLocation(getRoot(), prefix));
+    }
+
+    public void setNamespacePrefix(String prefix, String name) throws AGHttpException {
+        setRepoOption(Protocol.getNamespacePrefixLocation(getRoot(), prefix), name);
+    }
+
+    public void removeNamespacePrefix(String prefix) throws AGHttpException {
+        removeRepoOption(Protocol.getNamespacePrefixLocation(getRoot(), prefix));
+    }
+
+    /* Query options API */
+
+    private void ensureQueryOptionsAPISupported() throws AGHttpException {
+        if (!(repo.getServer().getComparableVersion().compareTo(supportedQueryOptionsVersion) >= 0)) {
+            throw new AGHttpException(
+                "Query Options API requires server-side support (available starting from AG v"
+                + supportedQueryOptionsVersion + ")");
+        }
+    }
+
+    public TupleQueryResult getQueryOptions() throws AGHttpException {
+        ensureQueryOptionsAPISupported();
+        return getRepoOptions(AGProtocol.getQueryOptionsLocation(getRoot()));
+    }
+
+    public void getQueryOptions(TupleQueryResultHandler handler)
+        throws TupleQueryResultHandlerException, AGHttpException {
+        ensureQueryOptionsAPISupported();
+        getRepoOptions(AGProtocol.getQueryOptionsLocation(getRoot()), handler);
+    }
+
+    public String getQueryOption(String name) throws AGHttpException {
+        ensureQueryOptionsAPISupported();
+        return getRepoOption(AGProtocol.getQueryOptionLocation(getRoot(), name));
+    }
+
+    public void setQueryOption(String name, String value) throws AGHttpException {
+        ensureQueryOptionsAPISupported();
+        setRepoOption(AGProtocol.getQueryOptionLocation(getRoot(), name), value);
+    }
+
+    public void removeQueryOption(String name) throws AGHttpException {
+        ensureQueryOptionsAPISupported();
+        removeRepoOption(AGProtocol.getQueryOptionLocation(getRoot(), name));
+    }
+
 
     public void query(AGQuery q, boolean analyzeOnly, AGResponseHandler handler) throws
             AGHttpException {
