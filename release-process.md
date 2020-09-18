@@ -86,7 +86,7 @@ release it is necessary to have an account there, with appropriate
 permissions for the 'com.franz' group.
 
 Credentials for this account should be added to a file named 
-`~/m2/settings.xml`. If you do not have such a file, copy the default 
+`~/.m2/settings.xml`. If you do not have such a file, copy the default 
 one from `MAVEN_HOME/conf/settings.xml`. On AG development machines the 
 full path is /usr/share/apache-maven/conf/settings.xml .
 
