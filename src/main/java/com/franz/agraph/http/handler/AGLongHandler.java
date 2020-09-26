@@ -27,8 +27,12 @@ public class AGLongHandler extends AGResponseHandler {
         }*/
         InputStream response = getInputStream(method);
         try {
-            String str = streamToString(response);
-            result = Long.parseLong(str);
+            if (response == null) {
+                result = 0;
+            } else {
+                String str = streamToString(response);
+                result = Long.parseLong(str);
+            }
         } catch (NumberFormatException e) {
             throw new AGHttpException(
                     "Server responded with invalid long value: " + e.getLocalizedMessage(), e);

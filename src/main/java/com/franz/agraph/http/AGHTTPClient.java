@@ -274,7 +274,8 @@ public class AGHTTPClient implements AutoCloseable {
         boolean release = true;
         try {
             int httpCode = getHttpClient().executeMethod(method);
-            if (httpCode == HttpURLConnection.HTTP_OK) {
+            if (httpCode == HttpURLConnection.HTTP_OK
+                || httpCode == HttpURLConnection.HTTP_NO_CONTENT) {
                 if (handler != null) {
                     release = handler.releaseConnection();
                     handler.handleResponse(method);

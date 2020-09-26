@@ -43,20 +43,28 @@ public class AGRDFHandler extends AGResponseHandler {
 
     @Override
     public void handleResponse(HttpMethod method) throws IOException, AGHttpException {
+        /* TODO: server responds with text/plain here, not text/integer
         String mimeType = getResponseMIMEType(method);
         if (!mimeType.equals(getRequestMIMEType())) {
             throw new AGHttpException("unexpected response MIME type: " + mimeType);
         }
+        */
         InputStream response = getInputStream(method);
-        // Note: we ignore charset specified in the response.
-        Reader reader = new InputStreamReader(response, StandardCharsets.UTF_8);
-        try {
-            RDFParser parser = Rio.createParser(format, vf);
-            parser.setPreserveBNodeIDs(true);
-            parser.setRDFHandler(rdfhandler);
-            parser.parse(reader, method.getURI().getURI());
-        } catch (RDFParseException | RDFHandlerException e) {
-            throw new AGHttpException(e);
+
+        // 204 response, no statements
+        if (response == null) {
+            rdfhandler.endRDF();
+        } else {
+            // Note: we ignore charset specified in the response.
+            Reader reader = new InputStreamReader(response, StandardCharsets.UTF_8);
+            try {
+                RDFParser parser = Rio.createParser(format, vf);
+                parser.setPreserveBNodeIDs(true);
+                parser.setRDFHandler(rdfhandler);
+                parser.parse(reader, method.getURI().getURI());
+            } catch (RDFParseException | RDFHandlerException e) {
+                throw new AGHttpException(e);
+            }
         }
     }
 
