@@ -1,5 +1,16 @@
 # AllegroGraph Java client release history
 
+## 3.0.5
+
+### Add support for server returning a 204 response
+
+The AllegroGraph server, starting in vesion 7.1.0, may return
+a 204 (no content) response when it knows that it will not
+be returning any data.  The client will
+then create a null cursor, rather than creating an http
+cursor which when used immediately returns 'no data left'
+
+
 ## 3.0.4
 
 ### Add support for query options API

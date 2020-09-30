@@ -14,5 +14,5 @@ popd
 NEW_VERSION=$(./version.sh)
 
 # Commit the new version
-git add .
+git add -u
 git commit -m "Initial commit for v${NEW_VERSION}"
