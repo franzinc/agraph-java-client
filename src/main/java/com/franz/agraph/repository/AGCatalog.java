@@ -41,6 +41,7 @@ public class AGCatalog {
      * @see #getCatalogType()
      */
     public static final int NAMED_CATALOG = 2;
+    public static final String ROOT_CATALOG_NAME = "root";
     private final String catalogName;
     private final int catalogType;
     private final String catalogURL;
@@ -96,7 +97,7 @@ public class AGCatalog {
      */
     public static boolean isRootID(String catalogID) {
         boolean result = false;
-        if (catalogID == null || catalogID.equals("") || catalogID.equals("/")) {
+        if (catalogID == null || catalogID.equals("") || catalogID.equals("/") || catalogID.equals(ROOT_CATALOG_NAME)) {
             result = true;
         }
         return result;

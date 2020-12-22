@@ -1292,4 +1292,14 @@ public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
             assertEquals(agTestCon.getQueryOption("engine"), null);
         }
     }
+
+    @Test
+    public void testRootCatalog() throws Exception {
+        AGRepositoryConnection agTestCon = (AGRepositoryConnection) testCon;
+        AGServer server = agTestCon.getServer();
+        AGCatalog catalog = server.getCatalog("root");
+
+        assertEquals(catalog.getCatalogType(), catalog.ROOT_CATALOG);
+        assertEquals(catalog, server.getRootCatalog());
+    }
 }
