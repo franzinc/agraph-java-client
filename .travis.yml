@@ -25,3 +25,8 @@ notifications:
   email:
     recipients:
       - allegrograph-dev@franz.com
+
+cache:
+  directories:
+  - $HOME/.m2
+
