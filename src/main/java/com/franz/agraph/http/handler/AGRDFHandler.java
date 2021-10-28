@@ -7,7 +7,8 @@ package com.franz.agraph.http.handler;
 import com.franz.agraph.http.AGHttpRepoClient;
 import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.repository.AGValueFactory;
-import org.apache.commons.httpclient.HttpMethod;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
@@ -42,14 +43,14 @@ public class AGRDFHandler extends AGResponseHandler {
     }
 
     @Override
-    public void handleResponse(HttpMethod method) throws IOException, AGHttpException {
+    public void handleResponse(HttpResponse httpResponse, HttpUriRequest httpUriRequest) throws IOException, AGHttpException {
         /* TODO: server responds with text/plain here, not text/integer
         String mimeType = getResponseMIMEType(method);
         if (!mimeType.equals(getRequestMIMEType())) {
             throw new AGHttpException("unexpected response MIME type: " + mimeType);
         }
         */
-        InputStream response = getInputStream(method);
+        InputStream response = getInputStream(httpResponse);
 
         // 204 response, no statements
         if (response == null) {
@@ -61,7 +62,7 @@ public class AGRDFHandler extends AGResponseHandler {
                 RDFParser parser = Rio.createParser(format, vf);
                 parser.setPreserveBNodeIDs(true);
                 parser.setRDFHandler(rdfhandler);
-                parser.parse(reader, method.getURI().getURI());
+                parser.parse(reader, httpUriRequest.getURI().toString());
             } catch (RDFParseException | RDFHandlerException e) {
                 throw new AGHttpException(e);
             }

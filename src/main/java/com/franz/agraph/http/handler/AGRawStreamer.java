@@ -5,8 +5,10 @@
 package com.franz.agraph.http.handler;
 
 import com.franz.agraph.http.exception.AGHttpException;
-import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.io.input.AutoCloseInputStream;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.util.EntityUtils;
 import org.eclipse.rdf4j.query.resultio.BooleanQueryResultFormat;
 import org.eclipse.rdf4j.query.resultio.TupleQueryResultFormat;
 import org.eclipse.rdf4j.rio.RDFFormat;
@@ -18,7 +20,7 @@ import java.io.InputStream;
  * A handler that allows access to raw response stream.
  */
 public class AGRawStreamer extends AGResponseHandler {
-    private HttpMethod method;
+    private HttpResponse method;
 
     /**
      * Creates a streaming handler.
@@ -86,7 +88,7 @@ public class AGRawStreamer extends AGResponseHandler {
                     if (!closed) {
                         super.close();
                         closed = true;
-                        method.releaseConnection();
+                        EntityUtils.consumeQuietly(method.getEntity());
                     }
                 }
             };
@@ -97,9 +99,9 @@ public class AGRawStreamer extends AGResponseHandler {
     }
 
     @Override
-    public void handleResponse(HttpMethod method) throws IOException, AGHttpException {
+    public void handleResponse(HttpResponse httpResponse, HttpUriRequest httpUriRequest) throws IOException, AGHttpException {
         // Just save the method (it includes the input stream).
-        this.method = method;
+        this.method = httpResponse;
     }
 
     // Do not release request resources after handleResponse.

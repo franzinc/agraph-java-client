@@ -9,10 +9,14 @@ import com.franz.agraph.http.handler.AGJSONHandler;
 import com.franz.agraph.http.handler.AGStringHandler;
 import com.franz.agraph.repository.AGGraphQuery;
 import com.franz.agraph.repository.AGTupleQuery;
-import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HttpMethod;
-import org.apache.commons.httpclient.HttpMethodBase;
-import org.apache.commons.io.input.ReaderInputStream;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.ProtocolVersion;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.message.BasicHeader;
+import org.apache.http.message.BasicHttpResponse;
+import org.apache.http.message.BasicStatusLine;
 import org.eclipse.rdf4j.common.iteration.Iterations;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
@@ -29,7 +33,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -62,14 +66,14 @@ public class UnicodeTest extends AGAbstractTest {
     @Test
     public void testStringHandler() throws IOException, AGHttpException {
         final AGStringHandler handler = new AGStringHandler();
-        handler.handleResponse(mockResponse("जुप", "text/plain", "UTF-8"));
+        handler.handleResponse(mockResponse("जुप", "text/plain", "UTF-8"), null);
         assertThat(handler.getResult(), is("जुप"));
     }
 
     @Test
     public void testJSONHandler() throws IOException, AGHttpException, JSONException {
         final AGJSONHandler handler = new AGJSONHandler();
-        handler.handleResponse(mockResponse("{\"value\":\"जुप\"}", "application/json", "UTF-8"));
+        handler.handleResponse(mockResponse("{\"value\":\"जुप\"}", "application/json", "UTF-8"), null);
         assertThat(handler.getResult().get("value"), is("जुप"));
     }
 
@@ -173,30 +177,22 @@ public class UnicodeTest extends AGAbstractTest {
      * @param encoding Charset used to encode the body/
      * @return A response object.
      */
-    private HttpMethod mockResponse(String text, String mimeType, String encoding) {
-        return new HttpMethodBase() {
-            {
-                setResponseStream(new ReaderInputStream(new StringReader(text), encoding));
+    private HttpResponse mockResponse(String text, String mimeType, String encoding) {
+        return new BasicHttpResponse(new BasicStatusLine(new ProtocolVersion("HTTP", 1, 0), 200, "OK")) {
+
+            @Override
+            public HttpEntity getEntity() {
+                return new StringEntity(text, encoding);
             }
 
             @Override
-            public String getName() {
-                return "GET";
-            }
-
-            @Override
-            public String getResponseCharSet() {
-                return encoding;
-            }
-
-            @Override
-            public Header[] getResponseHeaders(String headerName) {
+            public Header[] getHeaders(String headerName) {
                 if (headerName.equalsIgnoreCase("content-type")) {
                     return new Header[] {
-                            new Header("Content-Type", mimeType + ";charset=" + encoding)
+                            new BasicHeader("Content-Type", mimeType + ";charset=" + encoding)
                     };
                 } else {
-                    return super.getResponseHeaders(headerName);
+                    return super.getHeaders(headerName);
                 }
             }
         };

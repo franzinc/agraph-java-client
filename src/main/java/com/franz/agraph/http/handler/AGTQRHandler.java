@@ -7,7 +7,8 @@ package com.franz.agraph.http.handler;
 import com.franz.agraph.http.AGHttpRepoClient;
 import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.repository.AGValueFactory;
-import org.apache.commons.httpclient.HttpMethod;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryResultHandlerException;
@@ -42,12 +43,12 @@ public class AGTQRHandler extends AGResponseHandler {
     }
 
     @Override
-    public void handleResponse(HttpMethod method) throws IOException, AGHttpException {
-        String mimeType = getResponseMIMEType(method);
+    public void handleResponse(HttpResponse httpResponse, HttpUriRequest httpUriRequest) throws IOException, AGHttpException {
+        String mimeType = getResponseMIMEType(httpResponse);
         if (!mimeType.equals(getRequestMIMEType())) {
             throw new AGHttpException("unexpected response MIME type: " + mimeType);
         }
-        InputStream response = getInputStream(method);
+        InputStream response = getInputStream(httpResponse);
         try {
             TupleQueryResultParser parser = QueryResultIO.createTupleParser(format, vf);
             parser.setQueryResultHandler(recoverBNodesTQRHandler(tqrhandler));

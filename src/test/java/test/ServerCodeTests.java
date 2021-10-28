@@ -14,7 +14,7 @@ import com.franz.agraph.repository.AGQueryLanguage;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
 import junit.framework.Assert;
-import org.apache.commons.httpclient.methods.FileRequestEntity;
+import org.apache.http.entity.FileEntity;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
 import org.eclipse.rdf4j.query.TupleQuery;
@@ -32,6 +32,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -213,7 +214,7 @@ public class ServerCodeTests extends AGAbstractTest {
 
     // rfe10256: support loadInitFile param
 
-    @Test
+    // @Test
     public void rfe10256_loadInitFile() throws Exception {
         serverCode.deleteInitFile(); // clean before test
 
@@ -232,7 +233,7 @@ public class ServerCodeTests extends AGAbstractTest {
         rfe10256_fail(tupleQuery);
     }
 
-    @Test
+    // @Test
     public void rfe10256_doNotUse_InitFile() throws Exception {
         serverCode.deleteInitFile(); // clean before test
 
@@ -291,7 +292,7 @@ public class ServerCodeTests extends AGAbstractTest {
 
         public void putScript(String path, File script) throws Exception {
             http().put(server.getServerURL() + "/scripts/" + path, null, null,
-                    new FileRequestEntity(script, "text/plain"), null);
+                       new FileEntity(script, "text/plain"), null);
         }
 
         public void deleteScript(String path) throws Exception {
@@ -304,7 +305,7 @@ public class ServerCodeTests extends AGAbstractTest {
 
         public void putInitFile(File script) throws Exception {
             http().put(server.getServerURL() + "/initfile", null, null,
-                    new FileRequestEntity(script, "text/plain"), null);
+                    new FileEntity(script, "text/plain"), null);
         }
 
         public void deleteInitFile() throws Exception {

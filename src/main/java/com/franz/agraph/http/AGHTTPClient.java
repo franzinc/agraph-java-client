@@ -11,22 +11,36 @@ import com.franz.agraph.http.handler.AGResponseHandler;
 import com.franz.agraph.http.handler.AGStringHandler;
 import com.franz.agraph.http.handler.AGTQRHandler;
 import com.franz.agraph.repository.AGValueFactory;
-
-import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpConnectionManager;
-import org.apache.commons.httpclient.HttpMethod;
-import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
-import org.apache.commons.httpclient.NameValuePair;
-import org.apache.commons.httpclient.UsernamePasswordCredentials;
-import org.apache.commons.httpclient.auth.AuthScope;
-import org.apache.commons.httpclient.methods.DeleteMethod;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.PutMethod;
-import org.apache.commons.httpclient.methods.RequestEntity;
-import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
-import org.apache.commons.httpclient.params.HttpMethodParams;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.AuthCache;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.config.SocketConfig;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.client.BasicAuthCache;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.message.BasicHeader;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 import org.eclipse.rdf4j.http.protocol.Protocol;
 import org.eclipse.rdf4j.http.protocol.UnauthorizedException;
 import org.eclipse.rdf4j.query.TupleQueryResult;
@@ -37,8 +51,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
@@ -73,60 +88,49 @@ public class AGHTTPClient implements AutoCloseable {
     private final String serverURL;
     private final HttpClient httpClient;
 
-    private AuthScope authScope;
     private String masqueradeAsUser;
 
     private boolean isClosed = false;
 
-    private HttpConnectionManager mManager = null;
+    private final HttpClientConnectionManager mManager;
     private final AGMethodRetryHandler retryHandler = new AGMethodRetryHandler();
 
     private final int httpNumRetries;
 
-    private AGHTTPClient(String serverURL, HttpClient client) {
+    private CredentialsProvider credsProvider;
+    private AuthCache authCache;
+
+    public AGHTTPClient(String serverURL, HttpClientConnectionManager manager,
+                        SocketConfig socketConfig) {
         this.serverURL = serverURL.replaceAll("/$", "");
-        this.httpClient = client;
+        this.mManager = manager != null ? manager : createManager();
+        HttpClientBuilder httpClientBuilder = HttpClients.custom()
+            .setConnectionManager(mManager)
+            .setRetryHandler(retryHandler);
+        if (socketConfig != null) {
+            httpClientBuilder.setDefaultSocketConfig(socketConfig);
+        }
+        this.httpClient = httpClientBuilder.build();
         this.httpNumRetries = Integer.parseInt(
             System.getProperty(PROP_HTTP_NUM_RETRIES, "" + DEFAULT_HTTP_NUM_RETRIES));
         if (logger.isDebugEnabled()) {
-            logger.debug("connect: " + serverURL + " " + client);
+            logger.debug("connect: {} {}", serverURL, httpClient);
         }
+    }
+
+    public AGHTTPClient(String serverURL, HttpClientConnectionManager manager) {
+        this(serverURL, manager, null);
     }
 
     public AGHTTPClient(String serverURL) {
-        this(serverURL, (MultiThreadedHttpConnectionManager) null);
+        this(serverURL, null, null);
     }
 
-    public AGHTTPClient(String serverURL, HttpConnectionManager manager) {
-        this(serverURL, new HttpClient(manager == null ? createManager() : manager));
-        if (manager == null) {
-            mManager = this.getHttpClient().getHttpConnectionManager();
-        }
-    }
-
-    // This is used for clients created by the connection pool.
-    public AGHTTPClient(String serverURL, HttpConnectionManagerParams params) {
-        this(serverURL, createManager(params));
-    }
-
-    private static HttpConnectionManager createManager() {
-        return createManager(null);
-    }
-
-    private static HttpConnectionManager createManager(HttpConnectionManagerParams params) {
-        // Use MultiThreadedHttpConnectionManager to allow concurrent access
-        // on HttpClient
-        final MultiThreadedHttpConnectionManager manager =
-                new MultiThreadedHttpConnectionManager();
-
-        if (params == null) {
-            params = new HttpConnectionManagerParams();
-        }
-
+    private static HttpClientConnectionManager createManager() {
+        PoolingHttpClientConnectionManager manager = new PoolingHttpClientConnectionManager();
         // Allow "unlimited" concurrent connections to the same host (default is 2)
-        params.setDefaultMaxConnectionsPerHost(Integer.MAX_VALUE);
-        params.setMaxTotalConnections(Integer.MAX_VALUE);
-        manager.setParams(params);
+        manager.setDefaultMaxPerRoute(Integer.MAX_VALUE);
+        manager.setMaxTotal(Integer.MAX_VALUE);
         return manager;
     }
 
@@ -147,24 +151,24 @@ public class AGHTTPClient implements AutoCloseable {
     }
 
     public void post(String url, Header[] headers, NameValuePair[] params,
-                     RequestEntity requestEntity, AGResponseHandler handler) throws AGHttpException {
-        PostMethod post = new PostMethod(url);
+                     HttpEntity requestEntity, AGResponseHandler handler) throws AGHttpException {
+        HttpPost post = new HttpPost(url);
         setDoAuthentication(post);
         for (Header header : headers) {
-            post.addRequestHeader(header);
+            post.addHeader(header);
         }
 
         if (System.getProperty("com.franz.agraph.http.useGzip", "true").equals("true")) {
-            post.addRequestHeader("Accept-encoding", "gzip");
+            post.addHeader("Accept-encoding", "gzip");
         }
         // bug21953. Only write params to body if content-type is appropriate.
-        Header contentType = post.getRequestHeader("Content-Type");
+        Header contentType = post.getFirstHeader("Content-Type");
         if (requestEntity == null && (contentType == null
                 || contentType.getValue().contains(Protocol.FORM_MIME_TYPE))) {
-            post.setRequestBody(params);
+            post.setEntity(new UrlEncodedFormEntity(Arrays.asList(params), StandardCharsets.UTF_8));
         } else {
-            post.setQueryString(params);
-            post.setRequestEntity(requestEntity);
+            post.setURI(getUri(url, params));
+            post.setEntity(requestEntity);
         }
         executeMethod(url, post, handler);
     }
@@ -181,21 +185,20 @@ public class AGHTTPClient implements AutoCloseable {
 
     public void get(String url, Header[] headers, NameValuePair[] params,
                     AGResponseHandler handler) throws AGHttpException {
+        URI uri = getUri(url, params);
         int numTries = httpNumRetries + 1; // Always make at least one attempt
         for (int i = 0; i < numTries; i++) {
-            GetMethod get = new GetMethod(url);
+            HttpGet get = new HttpGet(uri);
             setDoAuthentication(get);
             if (headers != null) {
                 for (Header header : headers) {
-                    get.addRequestHeader(header);
+                    get.setHeader(header);
                 }
             }
             if (System.getProperty("com.franz.agraph.http.useGzip", "true").equals("true")) {
-                get.addRequestHeader("Accept-encoding", "gzip");
+                get.setHeader("Accept-encoding", "gzip");
             }
-            if (params != null) {
-                get.setQueryString(params);
-            }
+
             boolean mightRetry = (i < numTries - 1);
             if (executeMethod(url, get, handler, mightRetry) == ExecuteResult.SUCCESS) {
                 return;
@@ -205,40 +208,47 @@ public class AGHTTPClient implements AutoCloseable {
         throw new AGHttpException("GET request failed (unreachable)");
     }
 
+    private URI getUri(String url, NameValuePair[] params) {
+        try {
+            URIBuilder uriBuilder = new URIBuilder(url);
+            if (params != null) {
+                uriBuilder = uriBuilder.addParameters(Arrays.asList(params));
+            }
+            return uriBuilder.build();
+        } catch (URISyntaxException exc) {
+            throw new AGHttpException(exc);
+        }
+    }
+
     public void delete(String url, Header[] headers, NameValuePair[] params, AGResponseHandler handler)
             throws AGHttpException {
-        DeleteMethod delete = new DeleteMethod(url);
+        HttpDelete delete = new HttpDelete(getUri(url, params));
         setDoAuthentication(delete);
         if (headers != null) {
             for (Header header : headers) {
-                delete.addRequestHeader(header);
+                delete.addHeader(header);
             }
-        }
-        if (params != null) {
-            delete.setQueryString(params);
         }
         executeMethod(url, delete, handler);
     }
 
-    public void put(String url, Header[] headers, NameValuePair[] params, RequestEntity requestEntity, AGResponseHandler handler) throws AGHttpException {
-        PutMethod put = new PutMethod(url);
+    public void put(String url, Header[] headers, NameValuePair[] params, HttpEntity requestEntity, AGResponseHandler handler)
+            throws AGHttpException {
+        HttpPut put = new HttpPut(getUri(url, params));
         setDoAuthentication(put);
         if (headers != null) {
             for (Header header : headers) {
-                put.addRequestHeader(header);
+                put.addHeader(header);
             }
         }
-        if (params != null) {
-            put.setQueryString(params);
-        }
         if (requestEntity != null) {
-            put.setRequestEntity(requestEntity);
+            put.setEntity(requestEntity);
         }
         executeMethod(url, put, handler);
     }
 
     private void executeMethod(String url,
-                               HttpMethod method,
+                               HttpUriRequest method,
                                AGResponseHandler handler) {
       executeMethod(url, method, handler, false);
     }
@@ -248,7 +258,7 @@ public class AGHTTPClient implements AutoCloseable {
     /**
      * Run the HTTP request given by the method.
      *
-     * @param method of the HTTP request
+     * @param httpUriRequest of the HTTP request
      * @param handler in case of 200 response status, it will be called on the method
      *        (note that it will NOT be called for other 2xx success status responses,
      *        which might be debatable)
@@ -258,7 +268,7 @@ public class AGHTTPClient implements AutoCloseable {
      *         or throws an AGHttpException
      */
     private ExecuteResult executeMethod(String url,
-                                        HttpMethod method,
+                                        HttpUriRequest httpUriRequest,
                                         AGResponseHandler handler,
                                         boolean returnRetryOn408) throws AGHttpException {
         // A note about retrying requests:
@@ -266,19 +276,37 @@ public class AGHTTPClient implements AutoCloseable {
         // reuse it for a second attempt. This method is unable to do the retry itself,
         // therefore returns ExecuteResult.RETRY.
 
-        // This retry handler takes care of retrying the HTTP request in case of
-        // connection problems. It does not deal with retrying in case of HTTP error codes.
-        method.getParams().setParameter(HttpMethodParams.RETRY_HANDLER, retryHandler);
         // Will be set to false if the handler takes ownership of the method object.
         // Otherwise we must close the method by the end of this procedure.
         boolean release = true;
+        HttpResponse httpResponse = null;
         try {
-            int httpCode = getHttpClient().executeMethod(method);
+            HttpClientContext context = HttpClientContext.create();
+            if (credsProvider != null && authCache != null) {
+                context.setCredentialsProvider(credsProvider);
+
+                // Reuse authCache if this is a request to client's serverUri.
+                URI serverUri = getUri(serverURL, null);
+                HttpHost serverHost = new HttpHost(serverUri.getHost(), serverUri.getPort(), serverUri.getScheme());
+                URI targetUri = getUri(url, null);
+                HttpHost targetHost = new HttpHost(targetUri.getHost(), targetUri.getPort(), targetUri.getScheme());
+                if (!serverHost.equals(targetHost)) {
+                    AuthCache newac = new BasicAuthCache();
+                    newac.put(targetHost, new BasicScheme());
+                    context.setAuthCache(newac);
+                } else {
+                    context.setAuthCache(authCache);
+                }
+            }
+            httpUriRequest.addHeader(new BasicHeader("Connection", "keep-alive"));
+
+            httpResponse = getHttpClient().execute(httpUriRequest, context);
+            int httpCode = httpResponse.getStatusLine().getStatusCode();
             if (httpCode == HttpURLConnection.HTTP_OK
                 || httpCode == HttpURLConnection.HTTP_NO_CONTENT) {
                 if (handler != null) {
                     release = handler.releaseConnection();
-                    handler.handleResponse(method);
+                    handler.handleResponse(httpResponse, httpUriRequest);
                 }
                 return ExecuteResult.SUCCESS;
             } else if (httpCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
@@ -294,16 +322,16 @@ public class AGHTTPClient implements AutoCloseable {
             } else {
                 AGErrorHandler errHandler = new AGErrorHandler();
                 release = errHandler.releaseConnection();
-                errHandler.handleResponse(method);
+                errHandler.handleResponse(httpResponse, httpUriRequest);
                 throw errHandler.getResult();
             }
         } catch (IOException e) {
             throw new AGHttpException(e);
         } finally {
-            if (release) {
+            if (release && httpResponse != null) {
                 // Note: this will read the response body if necessary
                 // to allow connection reuse.
-                method.releaseConnection();
+                EntityUtils.consumeQuietly(httpResponse.getEntity());
             }
         }
     }
@@ -319,22 +347,24 @@ public class AGHTTPClient implements AutoCloseable {
      * @param password the password
      */
     public void setUsernameAndPassword(String username, String password) {
-
         if (username != null && password != null) {
             logger.debug("Setting username '{}' and password for server at {}.", username, serverURL);
             try {
-                URL server = new URL(serverURL);
-                authScope = new AuthScope(server.getHost(), AuthScope.ANY_PORT);
-                httpClient.getState().setCredentials(authScope,
-                        new UsernamePasswordCredentials(username, password));
-                httpClient.getParams().setAuthenticationPreemptive(true);
-            } catch (MalformedURLException e) {
+                URI serverUri = new URI(serverURL);
+                HttpHost targetHost = new HttpHost(serverUri.getHost(), serverUri.getPort(), serverUri.getScheme());
+                credsProvider = new BasicCredentialsProvider();
+                credsProvider.setCredentials(AuthScope.ANY,
+                                             new UsernamePasswordCredentials(username, password));
+
+                authCache = new BasicAuthCache();
+                authCache.put(targetHost, new BasicScheme());
+
+            } catch (URISyntaxException e) {
                 logger.warn("Unable to set username and password for malformed URL " + serverURL, e);
             }
         } else {
-            authScope = null;
-            httpClient.getState().clearCredentials();
-            httpClient.getParams().setAuthenticationPreemptive(false);
+            credsProvider = null;
+            authCache = null;
         }
     }
 
@@ -349,10 +379,9 @@ public class AGHTTPClient implements AutoCloseable {
 
         // WARNING: The call to getCredentials will throw an IllegalArgumentException of credentials have not previously
         // been set with a call to setUsernameAndPassword
-        UsernamePasswordCredentials cred = (UsernamePasswordCredentials) httpClient.getState().getCredentials(authScope);
 
-        res[0] = cred.getUserName();
-        res[1] = cred.getPassword();
+        res[0] = credsProvider.getCredentials(AuthScope.ANY).getUserPrincipal().getName();
+        res[1] = credsProvider.getCredentials(AuthScope.ANY).getPassword();
 
         return res;
     }
@@ -369,19 +398,10 @@ public class AGHTTPClient implements AutoCloseable {
         masqueradeAsUser = user;
     }
 
-    protected final void setDoAuthentication(HttpMethod method) {
-        if (authScope != null
-                && httpClient.getState().getCredentials(authScope) != null) {
-            method.setDoAuthentication(true);
-        } else {
-            //method.setDoAuthentication(false);
-        }
+    protected final void setDoAuthentication(HttpRequest method) {
         if (masqueradeAsUser != null) {
-            method.addRequestHeader(new Header("x-masquerade-as-user", masqueradeAsUser));
+            method.addHeader(new BasicHeader("x-masquerade-as-user", masqueradeAsUser));
         }
-        // TODO probably doesn't belong here, need another method that
-        // HttpMethod objects pass through.
-        method.addRequestHeader(new Header("Connection", "keep-alive"));
     }
 
     /*-----------*
@@ -408,7 +428,7 @@ public class AGHTTPClient implements AutoCloseable {
             logger.debug("putRepository: " + repositoryURL);
         }
         Header[] headers = new Header[0];
-        NameValuePair[] params = {new NameValuePair(OVERRIDE_PARAM_NAME, "false")};
+        NameValuePair[] params = {new BasicNameValuePair(OVERRIDE_PARAM_NAME, "false")};
         put(repositoryURL, headers, params, null, null);
     }
 
@@ -419,7 +439,7 @@ public class AGHTTPClient implements AutoCloseable {
     }
 
     public TupleQueryResult getTupleQueryResult(String url) throws AGHttpException {
-        Header[] headers = {new Header(ACCEPT_PARAM_NAME, TupleQueryResultFormat.SPARQL.getDefaultMIMEType())};
+        Header[] headers = {new BasicHeader(ACCEPT_PARAM_NAME, TupleQueryResultFormat.SPARQL.getDefaultMIMEType())};
         NameValuePair[] params = new NameValuePair[0];
         TupleQueryResultBuilder builder = new TupleQueryResultBuilder();
         // TODO: avoid using AGValueFactory(null)
@@ -432,7 +452,7 @@ public class AGHTTPClient implements AutoCloseable {
             throws AGHttpException {
         String url = AGProtocol.getBlankNodesURL(repositoryURL);
         Header[] headers = new Header[0];
-        NameValuePair[] data = {new NameValuePair(AMOUNT_PARAM_NAME, Integer
+        NameValuePair[] data = {new BasicNameValuePair(AMOUNT_PARAM_NAME, Integer
                 .toString(amount))};
 
         AGStringHandler handler = new AGStringHandler();
@@ -464,11 +484,12 @@ public class AGHTTPClient implements AutoCloseable {
     public String openSession(String spec, boolean autocommit) throws AGHttpException {
         String url = AGProtocol.getSessionURL(serverURL);
         Header[] headers = new Header[0];
-        NameValuePair[] data = {new NameValuePair("store", spec),
-                new NameValuePair(AGProtocol.AUTOCOMMIT_PARAM_NAME,
-                        Boolean.toString(autocommit)),
-                new NameValuePair(AGProtocol.LIFETIME_PARAM_NAME,
-                        Long.toString(3600))}; // TODO have some kind of policy for this
+        NameValuePair[] data = {
+            new BasicNameValuePair("store", spec),
+            new BasicNameValuePair(AGProtocol.AUTOCOMMIT_PARAM_NAME,
+                                   Boolean.toString(autocommit)),
+            new BasicNameValuePair(AGProtocol.LIFETIME_PARAM_NAME,
+                                   Long.toString(3600))}; // TODO have some kind of policy for this
         AGStringHandler handler = new AGStringHandler();
         post(url, headers, data, null, handler);
         return handler.getResult();
@@ -477,9 +498,8 @@ public class AGHTTPClient implements AutoCloseable {
     @Override
     public void close() {
         logger.debug("close: " + serverURL + " " + mManager);
-        if (mManager instanceof MultiThreadedHttpConnectionManager) {
-            ((MultiThreadedHttpConnectionManager) mManager).shutdown();
-            mManager = null;
+        if (mManager instanceof PoolingHttpClientConnectionManager) {
+            mManager.shutdown();
         }
         isClosed = true;
     }
@@ -492,8 +512,9 @@ public class AGHTTPClient implements AutoCloseable {
                                  int amount) throws AGHttpException {
         String url = repositoryURL + "/encodedIds";
         Header[] headers = new Header[0];
-        NameValuePair[] data = {new NameValuePair("prefix", namespace),
-                new NameValuePair(AMOUNT_PARAM_NAME, Integer.toString(amount))};
+        NameValuePair[] data = {
+            new BasicNameValuePair("prefix", namespace),
+            new BasicNameValuePair(AMOUNT_PARAM_NAME, Integer.toString(amount))};
         AGStringHandler handler = new AGStringHandler();
         post(url, headers, data, null, handler);
         return handler.getResult().split("\n");

@@ -5,8 +5,9 @@
 package com.franz.agraph.http.handler;
 
 import com.franz.agraph.http.exception.AGHttpException;
-import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.io.FileUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.eclipse.rdf4j.query.resultio.BooleanQueryResultFormat;
 import org.eclipse.rdf4j.query.resultio.TupleQueryResultFormat;
 import org.eclipse.rdf4j.rio.RDFFormat;
@@ -125,7 +126,7 @@ public class AGDownloadHandler extends AGResponseHandler {
     }
 
     @Override
-    public void handleResponse(final HttpMethod method) throws IOException, AGHttpException {
-        FileUtils.copyInputStreamToFile(getInputStream(method), file);
+    public void handleResponse(final HttpResponse httpResponse, HttpUriRequest httpUriRequest) throws IOException, AGHttpException {
+        FileUtils.copyInputStreamToFile(getInputStream(httpResponse), file);
     }
 }

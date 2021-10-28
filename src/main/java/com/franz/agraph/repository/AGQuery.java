@@ -10,8 +10,8 @@ import com.franz.agraph.http.handler.AGDownloadHandler;
 import com.franz.agraph.http.handler.AGRawStreamer;
 import com.franz.agraph.http.handler.AGResponseHandler;
 import com.franz.agraph.http.handler.AGStringHandler;
-import org.apache.commons.httpclient.URIException;
-import org.apache.commons.httpclient.util.URIUtil;
+
+import org.apache.http.client.utils.URIBuilder;
 import org.eclipse.rdf4j.query.Binding;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
@@ -92,12 +92,12 @@ public abstract class AGQuery extends AbstractQuery {
      * @param option the name of a valid AllegroGraph SPARQL Query Option
      * @param value  String value to be encoded as the value of the prefixOption
      * @return String  the generated prefix.
-     * @throws URIException if there is an error while encoding <code>value</code>
      * @see <a href="../../../../../sparql-reference.html#sparql-queryoptions">SPARQL Query Options</a>
      */
-    public static String getFranzOptionPrefixString(String option, String value) throws URIException {
-        // this will only throw if utf-8 is an unsupported charset.
-        return "PREFIX franzOption_" + option + ": <franz:" + URIUtil.encodeQuery(value, "utf-8") + "> ";
+    public static String getFranzOptionPrefixString(String option, String value) {
+        // substring(1) to remove the leading / that is added automatically
+        String encodedValue = new URIBuilder().setPath(value).toString().substring(1);
+        return "PREFIX franzOption_" + option + ": <franz:" + encodedValue + "> ";
     }
 
     /**

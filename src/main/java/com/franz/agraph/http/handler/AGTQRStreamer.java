@@ -2,7 +2,8 @@ package com.franz.agraph.http.handler;
 
 import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.repository.AGValueFactory;
-import org.apache.commons.httpclient.HttpMethod;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.query.resultio.TupleQueryResultFormat;
 import org.slf4j.Logger;
@@ -14,7 +15,7 @@ public abstract class AGTQRStreamer extends AGResponseHandler {
     protected final Logger log = LoggerFactory.getLogger(this.getClass());
 
     protected AGValueFactory vf;
-    protected HttpMethod method;
+    protected HttpResponse method;
 
     public AGTQRStreamer(String mimeType) {
         super(mimeType);
@@ -26,7 +27,7 @@ public abstract class AGTQRStreamer extends AGResponseHandler {
     /**
      * False because the Result will release the HTTP resources.
      * For most responses, AGHTTPClient releases resources after
-     * calling {@link #handleResponse(HttpMethod)},
+     * calling {@link #handleResponse(HttpResponse, HttpUriRequest)},
      * but here the results are pulled when needed from the Result class,
      * which is an inner class of child classes.
      */
@@ -36,7 +37,7 @@ public abstract class AGTQRStreamer extends AGResponseHandler {
     }
 
     @Override
-    public abstract void handleResponse(HttpMethod method) throws IOException, AGHttpException;
+    public abstract void handleResponse(HttpResponse httpResponse, HttpUriRequest httpUriRequest) throws IOException, AGHttpException;
 
     public abstract TupleQueryResult getResult();
 

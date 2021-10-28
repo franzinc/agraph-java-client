@@ -9,11 +9,13 @@ import com.franz.agraph.http.AGProtocol;
 import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.http.handler.AGJSONArrayHandler;
 import com.franz.agraph.http.handler.AGRawStreamer;
-import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.NameValuePair;
-import org.apache.commons.httpclient.methods.StringRequestEntity;
-import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.NameValuePair;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.message.BasicHeader;
+import org.apache.http.message.BasicNameValuePair;
 import org.eclipse.rdf4j.http.protocol.Protocol;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.BindingSet;
@@ -26,7 +28,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -470,7 +471,7 @@ public class AGServer implements Closeable {
     public void addUser(String user, String password) throws AGHttpException {
         String url = serverURL + "/users/" + user;
         Header[] headers = new Header[0];
-        NameValuePair[] params = {new NameValuePair("password", password)};
+        NameValuePair[] params = {new BasicNameValuePair("password", password)};
         getHTTPClient().put(url, headers, params, null, null);
     }
 
@@ -482,8 +483,8 @@ public class AGServer implements Closeable {
      */
     public void deleteUser(String user) throws AGHttpException {
         String url = serverURL + "/users/" + user;
-        Header[] headers = new Header[0];
-        NameValuePair[] params = new NameValuePair[0];
+        Header[] headers = new BasicHeader[0];
+        NameValuePair[] params = new BasicNameValuePair[0];
         getHTTPClient().delete(url, headers, params, null);
     }
 
@@ -512,10 +513,10 @@ public class AGServer implements Closeable {
             repository = "*";
         }
         NameValuePair[] params = {
-                new NameValuePair("read", Boolean.toString(read)),
-                new NameValuePair("write", Boolean.toString(write)),
-                new NameValuePair("catalog", catalog),
-                new NameValuePair("repository", repository)};
+                new BasicNameValuePair("read", Boolean.toString(read)),
+                new BasicNameValuePair("write", Boolean.toString(write)),
+                new BasicNameValuePair("catalog", catalog),
+                new BasicNameValuePair("repository", repository)};
         getHTTPClient().put(url, headers, params, null, null);
     }
 
@@ -544,10 +545,10 @@ public class AGServer implements Closeable {
             repository = "*";
         }
         NameValuePair[] params = {
-                new NameValuePair("read", Boolean.toString(read)),
-                new NameValuePair("write", Boolean.toString(write)),
-                new NameValuePair("catalog", catalog),
-                new NameValuePair("repository", repository)};
+                new BasicNameValuePair("read", Boolean.toString(read)),
+                new BasicNameValuePair("write", Boolean.toString(write)),
+                new BasicNameValuePair("catalog", catalog),
+                new BasicNameValuePair("repository", repository)};
         getHTTPClient().delete(url, headers, params, null);
     }
 
@@ -565,8 +566,8 @@ public class AGServer implements Closeable {
      */
     public JSONArray listUserAccess(String user) throws AGHttpException {
         String url = serverURL + "/users/" + user + "/access";
-        Header[] headers = {new Header(Protocol.ACCEPT_PARAM_NAME, "application/json")};
-        NameValuePair[] params = {};
+        Header[] headers = {new BasicHeader(Protocol.ACCEPT_PARAM_NAME, "application/json")};
+        BasicNameValuePair[] params = {};
         AGJSONArrayHandler handler = new AGJSONArrayHandler();
         getHTTPClient().get(url, headers, params, handler);
         return handler.getResult();
@@ -589,18 +590,18 @@ public class AGServer implements Closeable {
         Header[] headers = {};
         List<NameValuePair> params = new ArrayList<>(4);
         if (s != null) {
-            params.add(new NameValuePair("s", s));
+            params.add(new BasicNameValuePair("s", s));
         }
         if (p != null) {
-            params.add(new NameValuePair("p", p));
+            params.add(new BasicNameValuePair("p", p));
         }
         if (o != null) {
-            params.add(new NameValuePair("o", o));
+            params.add(new BasicNameValuePair("o", o));
         }
         if (g != null) {
-            params.add(new NameValuePair("g", g));
+            params.add(new BasicNameValuePair("g", g));
         }
-        getHTTPClient().post(url, headers, params.toArray(new NameValuePair[params.size()]), null, null);
+        getHTTPClient().post(url, headers, params.toArray(new BasicNameValuePair[params.size()]), null, null);
     }
 
     /**
@@ -618,20 +619,20 @@ public class AGServer implements Closeable {
                                          String s, String p, String o, String g) throws AGHttpException {
         String url = serverURL + "/users/" + user + "/security-filters/" + type;
         Header[] headers = {};
-        List<NameValuePair> params = new ArrayList<>(4);
+        List<BasicNameValuePair> params = new ArrayList<>(4);
         if (s != null) {
-            params.add(new NameValuePair("s", s));
+            params.add(new BasicNameValuePair("s", s));
         }
         if (p != null) {
-            params.add(new NameValuePair("p", p));
+            params.add(new BasicNameValuePair("p", p));
         }
         if (o != null) {
-            params.add(new NameValuePair("o", o));
+            params.add(new BasicNameValuePair("o", o));
         }
         if (g != null) {
-            params.add(new NameValuePair("g", g));
+            params.add(new BasicNameValuePair("g", g));
         }
-        getHTTPClient().post(url, headers, params.toArray(new NameValuePair[params.size()]), null, null);
+        getHTTPClient().post(url, headers, params.toArray(new BasicNameValuePair[params.size()]), null, null);
     }
 
     /**
@@ -644,8 +645,8 @@ public class AGServer implements Closeable {
      */
     public JSONArray listUserSecurityFilters(String user, String type) throws AGHttpException {
         String url = serverURL + "/users/" + user + "/security-filters/" + type;
-        Header[] headers = {new Header(Protocol.ACCEPT_PARAM_NAME, "application/json")};
-        NameValuePair[] params = {};
+        Header[] headers = {new BasicHeader(Protocol.ACCEPT_PARAM_NAME, "application/json")};
+        BasicNameValuePair[] params = {};
         AGJSONArrayHandler handler = new AGJSONArrayHandler();
         getHTTPClient().get(url, headers, params, handler);
         return handler.getResult();
@@ -661,15 +662,11 @@ public class AGServer implements Closeable {
     public void changeUserPassword(String user, String password) throws AGHttpException {
         String url = serverURL + "/users/" + user + "/password";
         Header[] headers = new Header[0];
-        NameValuePair[] params = {};
+        BasicNameValuePair[] params = {};
 
-        try {
-            RequestEntity request = new StringRequestEntity(password, "text/plain", "UTF-8");
+        HttpEntity request = new StringEntity(password, StandardCharsets.UTF_8);
 
-            getHTTPClient().post(url, headers, params, request, null);
-        } catch (UnsupportedEncodingException c) {
-            throw new AGHttpException(c);
-        }
+        getHTTPClient().post(url, headers, params, request, null);
     }
 
     /**
@@ -683,8 +680,8 @@ public class AGServer implements Closeable {
      */
     public JSONArray listUserEffectiveAccess(String user) throws AGHttpException {
         String url = serverURL + "/users/" + user + "/effectiveAccess";
-        Header[] headers = {new Header(Protocol.ACCEPT_PARAM_NAME, "application/json")};
-        NameValuePair[] params = {};
+        Header[] headers = {new BasicHeader(Protocol.ACCEPT_PARAM_NAME, "application/json")};
+        BasicNameValuePair[] params = {};
         AGJSONArrayHandler handler = new AGJSONArrayHandler();
         getHTTPClient().get(url, headers, params, handler);
         return handler.getResult();
@@ -734,7 +731,7 @@ public class AGServer implements Closeable {
     public void addUserPermission(String user, String permission) throws AGHttpException {
         String url = serverURL + "/users/" + user + "/permissions/" + permission;
         Header[] headers = new Header[0];
-        NameValuePair[] params = {};
+        BasicNameValuePair[] params = {};
         getHTTPClient().put(url, headers, params, null, null);
     }
 
@@ -748,7 +745,7 @@ public class AGServer implements Closeable {
     public void deleteUserPermission(String user, String permission) throws AGHttpException {
         String url = serverURL + "/users/" + user + "/permissions/" + permission;
         Header[] headers = new Header[0];
-        NameValuePair[] params = {};
+        BasicNameValuePair[] params = {};
         getHTTPClient().delete(url, headers, params, null);
 
     }
@@ -772,7 +769,7 @@ public class AGServer implements Closeable {
     public void addRole(String role) throws AGHttpException {
         String url = serverURL + "/roles/" + role;
         Header[] headers = new Header[0];
-        NameValuePair[] params = {};
+        BasicNameValuePair[] params = {};
         getHTTPClient().put(url, headers, params, null, null);
     }
 
@@ -801,11 +798,11 @@ public class AGServer implements Closeable {
         if (repository == null) {
             repository = "*";
         }
-        NameValuePair[] params = {
-                new NameValuePair("read", Boolean.toString(read)),
-                new NameValuePair("write", Boolean.toString(write)),
-                new NameValuePair("catalog", catalog),
-                new NameValuePair("repository", repository)};
+        BasicNameValuePair[] params = {
+                new BasicNameValuePair("read", Boolean.toString(read)),
+                new BasicNameValuePair("write", Boolean.toString(write)),
+                new BasicNameValuePair("catalog", catalog),
+                new BasicNameValuePair("repository", repository)};
         getHTTPClient().put(url, headers, params, null, null);
     }
 
@@ -823,8 +820,8 @@ public class AGServer implements Closeable {
      */
     public JSONArray listRoleAccess(String role) throws AGHttpException {
         String url = serverURL + "/roles/" + role + "/access";
-        Header[] headers = {new Header(Protocol.ACCEPT_PARAM_NAME, "application/json")};
-        NameValuePair[] params = {};
+        Header[] headers = {new BasicHeader(Protocol.ACCEPT_PARAM_NAME, "application/json")};
+        BasicNameValuePair[] params = {};
         AGJSONArrayHandler handler = new AGJSONArrayHandler();
         getHTTPClient().get(url, headers, params, handler);
         return handler.getResult();
@@ -845,20 +842,20 @@ public class AGServer implements Closeable {
                                       String p, String o, String g) throws AGHttpException {
         String url = serverURL + "/roles/" + role + "/security-filters/" + type;
         Header[] headers = {};
-        List<NameValuePair> params = new ArrayList<>(4);
+        List<BasicNameValuePair> params = new ArrayList<>(4);
         if (s != null) {
-            params.add(new NameValuePair("s", s));
+            params.add(new BasicNameValuePair("s", s));
         }
         if (p != null) {
-            params.add(new NameValuePair("p", p));
+            params.add(new BasicNameValuePair("p", p));
         }
         if (o != null) {
-            params.add(new NameValuePair("o", o));
+            params.add(new BasicNameValuePair("o", o));
         }
         if (g != null) {
-            params.add(new NameValuePair("g", g));
+            params.add(new BasicNameValuePair("g", g));
         }
-        getHTTPClient().post(url, headers, params.toArray(new NameValuePair[params.size()]), null, null);
+        getHTTPClient().post(url, headers, params.toArray(new BasicNameValuePair[params.size()]), null, null);
     }
 
     /**
@@ -871,8 +868,8 @@ public class AGServer implements Closeable {
      */
     public JSONArray listRoleSecurityFilters(String role, String type) throws AGHttpException {
         String url = serverURL + "/roles/" + role + "/security-filters/" + type;
-        Header[] headers = {new Header(Protocol.ACCEPT_PARAM_NAME, "application/json")};
-        NameValuePair[] params = {};
+        Header[] headers = {new BasicHeader(Protocol.ACCEPT_PARAM_NAME, "application/json")};
+        BasicNameValuePair[] params = {};
         AGJSONArrayHandler handler = new AGJSONArrayHandler();
         getHTTPClient().get(url, headers, params, handler);
         return handler.getResult();
@@ -893,20 +890,20 @@ public class AGServer implements Closeable {
                                          String s, String p, String o, String g) throws AGHttpException {
         String url = serverURL + "/roles/" + role + "/security-filters/" + type;
         Header[] headers = {};
-        List<NameValuePair> params = new ArrayList<>(4);
+        List<BasicNameValuePair> params = new ArrayList<>(4);
         if (s != null) {
-            params.add(new NameValuePair("s", s));
+            params.add(new BasicNameValuePair("s", s));
         }
         if (p != null) {
-            params.add(new NameValuePair("p", p));
+            params.add(new BasicNameValuePair("p", p));
         }
         if (o != null) {
-            params.add(new NameValuePair("o", o));
+            params.add(new BasicNameValuePair("o", o));
         }
         if (g != null) {
-            params.add(new NameValuePair("g", g));
+            params.add(new BasicNameValuePair("g", g));
         }
-        getHTTPClient().delete(url, headers, params.toArray(new NameValuePair[params.size()]), null);
+        getHTTPClient().delete(url, headers, params.toArray(new BasicNameValuePair[params.size()]), null);
     }
 
     /**
@@ -930,7 +927,7 @@ public class AGServer implements Closeable {
     public void addUserRole(String user, String role) throws AGHttpException {
         String url = serverURL + "/users/" + user + "/roles/" + role;
         Header[] headers = {};
-        NameValuePair[] params = {};
+        BasicNameValuePair[] params = {};
         getHTTPClient().put(url, headers, params, null, null);
     }
 
@@ -944,7 +941,7 @@ public class AGServer implements Closeable {
     public void deleteUserRole(String user, String role) throws AGHttpException {
         String url = serverURL + "/users/" + user + "/roles/" + role;
         Header[] headers = {};
-        NameValuePair[] params = {};
+        BasicNameValuePair[] params = {};
         getHTTPClient().delete(url, headers, params, null);
 
     }
@@ -969,11 +966,11 @@ public class AGServer implements Closeable {
         if (repository == null) {
             repository = "*";
         }
-        NameValuePair[] params = {
-                new NameValuePair("read", Boolean.toString(read)),
-                new NameValuePair("write", Boolean.toString(write)),
-                new NameValuePair("catalog", catalog),
-                new NameValuePair("repository", repository)};
+        BasicNameValuePair[] params = {
+                new BasicNameValuePair("read", Boolean.toString(read)),
+                new BasicNameValuePair("write", Boolean.toString(write)),
+                new BasicNameValuePair("catalog", catalog),
+                new BasicNameValuePair("repository", repository)};
         getHTTPClient().delete(url, headers, params, null);
     }
 
@@ -986,7 +983,7 @@ public class AGServer implements Closeable {
     public void deleteRole(String role) throws AGHttpException {
         String url = serverURL + "/roles/" + role;
         Header[] headers = new Header[0];
-        NameValuePair[] params = new NameValuePair[0];
+        BasicNameValuePair[] params = new BasicNameValuePair[0];
         getHTTPClient().delete(url, headers, params, null);
     }
 
@@ -1000,7 +997,7 @@ public class AGServer implements Closeable {
     public void addRolePermission(String role, String permission) throws AGHttpException {
         String url = serverURL + "/roles/" + role + "/permissions/" + permission;
         Header[] headers = new Header[0];
-        NameValuePair[] params = {};
+        BasicNameValuePair[] params = {};
         getHTTPClient().put(url, headers, params, null, null);
     }
 
@@ -1014,7 +1011,7 @@ public class AGServer implements Closeable {
     public void deleteRolePermission(String role, String permission) throws AGHttpException {
         String url = serverURL + "/roles/" + role + "/permissions/" + permission;
         Header[] headers = new Header[0];
-        NameValuePair[] params = {};
+        BasicNameValuePair[] params = {};
         getHTTPClient().delete(url, headers, params, null);
 
     }
@@ -1196,8 +1193,8 @@ public class AGServer implements Closeable {
      */
     public Reader readLogFile() {
         final String url = AGProtocol.getLogLocation(serverURL);
-        final NameValuePair[] params = new NameValuePair[]{
-          new NameValuePair("all", "true")
+        final BasicNameValuePair[] params = new BasicNameValuePair[]{
+          new BasicNameValuePair("all", "true")
         };
         final AGRawStreamer handler = new AGRawStreamer();
         getHTTPClient().get(url, null, params, handler);

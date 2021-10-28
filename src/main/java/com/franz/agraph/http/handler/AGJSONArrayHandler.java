@@ -5,7 +5,8 @@
 package com.franz.agraph.http.handler;
 
 import com.franz.agraph.http.exception.AGHttpException;
-import org.apache.commons.httpclient.HttpMethod;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -21,14 +22,14 @@ public class AGJSONArrayHandler extends AGResponseHandler {
     }
 
     @Override
-    public void handleResponse(HttpMethod method) throws IOException, AGHttpException {
+    public void handleResponse(HttpResponse httpResponse, HttpUriRequest httpUriRequest) throws IOException, AGHttpException {
         /* TODO: server sometimes responds with text/plain, not application/json
         String mimeType = getResponseMIMEType(method);
         if (!mimeType.equals(getRequestMIMEType())) {
             throw new AGHttpException("unexpected response MIME type: " + mimeType);
         }*/
         try {
-            InputStream response = getInputStream(method);
+            InputStream response = getInputStream(httpResponse);
             String resp = streamToString(response);
             result = new JSONArray(resp);
         } catch (JSONException e) {

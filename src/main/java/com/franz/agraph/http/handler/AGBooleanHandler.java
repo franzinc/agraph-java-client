@@ -5,7 +5,8 @@
 package com.franz.agraph.http.handler;
 
 import com.franz.agraph.http.exception.AGHttpException;
-import org.apache.commons.httpclient.HttpMethod;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpUriRequest;
 
 import java.io.IOException;
 
@@ -18,12 +19,12 @@ public class AGBooleanHandler extends AGResponseHandler {
     }
 
     @Override
-    public void handleResponse(HttpMethod method) throws IOException, AGHttpException {
-        String mimeType = getResponseMIMEType(method);
+    public void handleResponse(HttpResponse httpResponse, HttpUriRequest httpUriRequest) throws IOException, AGHttpException {
+        String mimeType = getResponseMIMEType(httpResponse);
         if (!mimeType.equals(getRequestMIMEType())) {
             throw new AGHttpException("unexpected response MIME type: " + mimeType);
         }
-        result = Boolean.parseBoolean(streamToString(getInputStream(method)));
+        result = Boolean.parseBoolean(streamToString(getInputStream(httpResponse)));
     }
 
     public boolean getResult() {

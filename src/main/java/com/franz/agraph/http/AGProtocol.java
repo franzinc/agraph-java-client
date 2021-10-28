@@ -8,8 +8,6 @@
 package com.franz.agraph.http;
 
 import com.franz.agraph.http.exception.AGHttpException;
-import org.apache.commons.httpclient.URIException;
-import org.apache.commons.httpclient.util.URIUtil;
 import org.eclipse.rdf4j.http.protocol.Protocol;
 
 import java.io.UnsupportedEncodingException;
@@ -719,9 +717,9 @@ public class AGProtocol extends Protocol {
             if (uri == null) {
                 return root + "/" + SPIN + "/" + type;
             } else {
-                return root + "/" + SPIN + "/" + type + "/" + URIUtil.encodeAll(uri);
+                return root + "/" + SPIN + "/" + type + "/" + URLEncoder.encode(uri, "utf-8");
             }
-        } catch (URIException e) {
+        } catch (UnsupportedEncodingException e) {
             throw new AGHttpException(e);
         }
     }

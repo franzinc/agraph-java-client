@@ -6,13 +6,13 @@ package com.franz.agraph.http;
 
 import com.franz.agraph.http.exception.AGCustomStoredProcException;
 import com.franz.agraph.http.exception.AGHttpException;
+import com.franz.agraph.http.handler.AGBooleanHandler;
 import com.franz.agraph.http.handler.AGJSONArrayHandler;
 import com.franz.agraph.http.handler.AGJSONHandler;
 import com.franz.agraph.http.handler.AGLongHandler;
 import com.franz.agraph.http.handler.AGRDFHandler;
 import com.franz.agraph.http.handler.AGResponseHandler;
 import com.franz.agraph.http.handler.AGStringHandler;
-import com.franz.agraph.http.handler.AGBooleanHandler;
 import com.franz.agraph.http.handler.AGTQRHandler;
 import com.franz.agraph.http.storedproc.AGDeserializer;
 import com.franz.agraph.http.storedproc.AGSerializer;
@@ -30,13 +30,16 @@ import com.franz.agraph.repository.repl.DurabilityLevel;
 import com.franz.agraph.repository.repl.DurabilityVisitor;
 import com.franz.agraph.repository.repl.TransactionSettings;
 import org.apache.commons.codec.DecoderException;
-import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.NameValuePair;
-import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
-import org.apache.commons.httpclient.methods.RequestEntity;
-import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.apache.commons.io.input.ReaderInputStream;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.NameValuePair;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.InputStreamEntity;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.message.BasicHeader;
+import org.apache.http.message.BasicNameValuePair;
 import org.eclipse.rdf4j.OpenRDFUtil;
-import org.eclipse.rdf4j.common.io.IOUtil;
 import org.eclipse.rdf4j.http.protocol.Protocol;
 import org.eclipse.rdf4j.model.BNode;
 import org.eclipse.rdf4j.model.IRI;
@@ -63,11 +66,9 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.transaction.xa.Xid;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
@@ -80,7 +81,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import javax.transaction.xa.Xid;
 
 /**
  * The HTTP layer for interacting with AllegroGraph.
@@ -116,7 +116,7 @@ public class AGHttpRepoClient implements AutoCloseable {
                 }
             };
     private static int defaultSessionLifetimeInSeconds = 3600;
-    private static NameValuePair[] emptyParams = new NameValuePair[0];
+    private static NameValuePair[] emptyParams = new BasicNameValuePair[0];
     private static AGServerVersion supportedTSVTQRVersion = new AGServerVersion("6.4.2");
     private static AGServerVersion supportedContextOverridingVersion = new AGServerVersion("7.0.0");
     private static AGServerVersion supportedQueryOptionsVersion = new AGServerVersion("7.1.0");
@@ -455,13 +455,13 @@ public class AGHttpRepoClient implements AutoCloseable {
         }
 
         if (userAttributes != null) {
-            headers.add(new Header(AGProtocol.USER_ATTRIBUTE_HEADER, userAttributes));
+            headers.add(new BasicHeader(AGProtocol.USER_ATTRIBUTE_HEADER, userAttributes));
         }
         if (sendRollbackHeader) {
-            headers.add(new Header(AGProtocol.X_ROLLBACK_HEADER, "yes"));
+            headers.add(new BasicHeader(AGProtocol.X_ROLLBACK_HEADER, "yes"));
         }
         addReplHeader(headers);
-        return headers.toArray(new Header[headers.size()]);
+        return headers.toArray(new BasicHeader[headers.size()]);
     }
 
     private void addReplHeader(List<Header> headers) {
@@ -506,13 +506,13 @@ public class AGHttpRepoClient implements AutoCloseable {
         }
 
         if (value.length() > 0) {
-            headers.add(new Header(AGProtocol.X_REPL_SETTINGS, value.toString()));
+            headers.add(new BasicHeader(AGProtocol.X_REPL_SETTINGS, value.toString()));
         }
     }
 
     private NameValuePair[] prepareParams(Collection<? extends NameValuePair> params) {
         if (params != null) {
-            return params.toArray(new NameValuePair[params.size()]);
+            return params.toArray(new BasicNameValuePair[params.size()]);
         }
         return emptyParams;
     }
@@ -527,7 +527,7 @@ public class AGHttpRepoClient implements AutoCloseable {
 
     protected void post(String url, List<Header> headers,
                         Collection<? extends NameValuePair> params,
-                        RequestEntity requestEntity, AGResponseHandler handler) throws AGHttpException {
+                        HttpEntity requestEntity, AGResponseHandler handler) throws AGHttpException {
 
         getHTTPClient().post(url, prepareHeaders(headers), prepareParams(params),
                 requestEntity, handler);
@@ -535,7 +535,7 @@ public class AGHttpRepoClient implements AutoCloseable {
 
     protected void put(String url, List<Header> headers,
                        Collection<? extends NameValuePair> params,
-                       RequestEntity requestEntity, AGResponseHandler handler) throws AGHttpException {
+                       HttpEntity requestEntity, AGResponseHandler handler) throws AGHttpException {
 
         getHTTPClient().put(url, prepareHeaders(headers), prepareParams(params),
                 requestEntity, handler);
@@ -554,15 +554,15 @@ public class AGHttpRepoClient implements AutoCloseable {
         if (sessionRoot == null) {
             String url = AGProtocol.getSessionURL(getRoot());
             List<NameValuePair> params = new ArrayList<>(3);
-            params.add(new NameValuePair(AGProtocol.LIFETIME_PARAM_NAME,
+            params.add(new BasicNameValuePair(AGProtocol.LIFETIME_PARAM_NAME,
                     Integer.toString(lifetimeInSeconds)));
-            params.add(new NameValuePair(AGProtocol.AUTOCOMMIT_PARAM_NAME,
+            params.add(new BasicNameValuePair(AGProtocol.AUTOCOMMIT_PARAM_NAME,
                     Boolean.toString(autoCommit)));
-            params.add(new NameValuePair(AGProtocol.LOAD_INIT_FILE_PARAM_NAME,
+            params.add(new BasicNameValuePair(AGProtocol.LOAD_INIT_FILE_PARAM_NAME,
                     Boolean.toString(loadInitFile)));
             if (scripts != null) {
                 for (String script : scripts) {
-                    params.add(new NameValuePair("script", script));
+                    params.add(new BasicNameValuePair("script", script));
                 }
             }
             AGStringHandler handler = new AGStringHandler();
@@ -708,27 +708,27 @@ public class AGHttpRepoClient implements AutoCloseable {
         List<NameValuePair> params = new ArrayList<>(4);
         if (subj != null) {
             subj = getStorableResource(subj, vf);
-            params.add(new NameValuePair(Protocol.SUBJECT_PARAM_NAME, Protocol
+            params.add(new BasicNameValuePair(Protocol.SUBJECT_PARAM_NAME, Protocol
                     .encodeValue(subj)));
         }
         if (pred != null) {
-            params.add(new NameValuePair(Protocol.PREDICATE_PARAM_NAME,
-                    Protocol.encodeValue(pred)));
+            params.add(new BasicNameValuePair(Protocol.PREDICATE_PARAM_NAME,
+                                              Protocol.encodeValue(pred)));
         }
         if (obj != null) {
             obj = getStorableValue(obj, vf);
-            params.add(new NameValuePair(Protocol.OBJECT_PARAM_NAME, Protocol
+            params.add(new BasicNameValuePair(Protocol.OBJECT_PARAM_NAME, Protocol
                     .encodeValue(obj)));
         }
         for (Resource ctx : contexts) {
             ctx = getStorableResource(ctx, vf);
-            params.add(new NameValuePair(Protocol.CONTEXT_PARAM_NAME,
+            params.add(new BasicNameValuePair(Protocol.CONTEXT_PARAM_NAME,
                     Protocol.encodeContext(ctx)));
         }
-        params.add(new NameValuePair(Protocol.INCLUDE_INFERRED_PARAM_NAME,
+        params.add(new BasicNameValuePair(Protocol.INCLUDE_INFERRED_PARAM_NAME,
                 includeInferred));
         if (limit > 0) {
-            params.add(new NameValuePair(Protocol.LIMIT_PARAM_NAME,
+            params.add(new BasicNameValuePair(Protocol.LIMIT_PARAM_NAME,
                     Integer.toString(limit)));
         }
         return params;
@@ -756,7 +756,7 @@ public class AGHttpRepoClient implements AutoCloseable {
         String uri = Protocol.getStatementsLocation(getRoot());
         List<Header> headers = new ArrayList<>(1);
 
-        headers.add(new Header(Protocol.ACCEPT_PARAM_NAME, "text/integer"));
+        headers.add(new BasicHeader(Protocol.ACCEPT_PARAM_NAME, "text/integer"));
 
         List<NameValuePair> params =
             getStatementsParams(limit, subj, pred, obj, includeInferred, contexts);
@@ -785,7 +785,7 @@ public class AGHttpRepoClient implements AutoCloseable {
         String uri = Protocol.getStatementsLocation(getRoot());
         List<Header> headers = new ArrayList<>(1);
 
-        headers.add(new Header(Protocol.ACCEPT_PARAM_NAME,
+        headers.add(new BasicHeader(Protocol.ACCEPT_PARAM_NAME,
                                getPreferredRDFFormat().getDefaultMIMEType()));
         List<NameValuePair> params =
             getStatementsParams(limit, subj, pred, obj, includeInferred, contexts);
@@ -814,12 +814,12 @@ public class AGHttpRepoClient implements AutoCloseable {
         String uri = Protocol.getStatementsLocation(getRoot()) + "/id";
         List<Header> headers = new ArrayList<>(1);
 
-        headers.add(new Header(Protocol.ACCEPT_PARAM_NAME,
+        headers.add(new BasicHeader(Protocol.ACCEPT_PARAM_NAME,
                 getPreferredRDFFormat().getDefaultMIMEType()));
 
         List<NameValuePair> params = new ArrayList<>(5);
         for (String id : ids) {
-            params.add(new NameValuePair("id", id));
+            params.add(new BasicNameValuePair("id", id));
         }
 
         get(uri, headers, params, handler);
@@ -830,24 +830,24 @@ public class AGHttpRepoClient implements AutoCloseable {
         String uri = Protocol.getStatementsLocation(getRoot());
         List<Header> headers = new ArrayList<>(1);
 
-        headers.add(new Header("Content-Type",
+        headers.add(new BasicHeader("Content-Type",
                 RDFFormat.NTRIPLES.getDefaultMIMEType()));
 
         List<NameValuePair> params = new ArrayList<>(5);
         if (subj != null) {
-            params.add(new NameValuePair(Protocol.SUBJECT_PARAM_NAME, Protocol
+            params.add(new BasicNameValuePair(Protocol.SUBJECT_PARAM_NAME, Protocol
                     .encodeValue(subj)));
         }
         if (pred != null) {
-            params.add(new NameValuePair(Protocol.PREDICATE_PARAM_NAME,
+            params.add(new BasicNameValuePair(Protocol.PREDICATE_PARAM_NAME,
                     Protocol.encodeValue(pred)));
         }
         if (obj != null) {
-            params.add(new NameValuePair(Protocol.OBJECT_PARAM_NAME, Protocol
+            params.add(new BasicNameValuePair(Protocol.OBJECT_PARAM_NAME, Protocol
                     .encodeValue(obj)));
         }
         for (String encodedContext : Protocol.encodeContexts(contexts)) {
-            params.add(new NameValuePair(Protocol.CONTEXT_PARAM_NAME,
+            params.add(new BasicNameValuePair(Protocol.CONTEXT_PARAM_NAME,
                     encodedContext));
         }
         post(uri, headers, params, null, null);
@@ -859,19 +859,19 @@ public class AGHttpRepoClient implements AutoCloseable {
 
         List<NameValuePair> params = new ArrayList<>(5);
         if (subj != null) {
-            params.add(new NameValuePair(Protocol.SUBJECT_PARAM_NAME, Protocol
+            params.add(new BasicNameValuePair(Protocol.SUBJECT_PARAM_NAME, Protocol
                     .encodeValue(subj)));
         }
         if (pred != null) {
-            params.add(new NameValuePair(Protocol.PREDICATE_PARAM_NAME,
+            params.add(new BasicNameValuePair(Protocol.PREDICATE_PARAM_NAME,
                     Protocol.encodeValue(pred)));
         }
         if (obj != null) {
-            params.add(new NameValuePair(Protocol.OBJECT_PARAM_NAME, Protocol
+            params.add(new BasicNameValuePair(Protocol.OBJECT_PARAM_NAME, Protocol
                     .encodeValue(obj)));
         }
         for (String encodedContext : Protocol.encodeContexts(contexts)) {
-            params.add(new NameValuePair(Protocol.CONTEXT_PARAM_NAME,
+            params.add(new BasicNameValuePair(Protocol.CONTEXT_PARAM_NAME,
                     encodedContext));
         }
         delete(url, null, params, null);
@@ -891,7 +891,7 @@ public class AGHttpRepoClient implements AutoCloseable {
 
         List<NameValuePair> params = new ArrayList<>(1);
 
-        params.add(new NameValuePair(AGProtocol.ON_PARAM_NAME,
+        params.add(new BasicNameValuePair(AGProtocol.ON_PARAM_NAME,
                 Boolean.toString(autoCommit)));
         post(url, null, params, null, null);
         this.autoCommit = autoCommit;
@@ -914,7 +914,7 @@ public class AGHttpRepoClient implements AutoCloseable {
      * inside a call to
      * </p>
      * <p>
-     * {@link #upload(String, RequestEntity, String, boolean, String, IRI, RDFFormat, Resource...)}
+     * {@link #upload(String, HttpEntity, String, boolean, String, IRI, RDFFormat, Resource...)}
      * </p>
      * <p>
      * Defaults to period=0, meaning that no commits are done in an upload.
@@ -963,10 +963,10 @@ public class AGHttpRepoClient implements AutoCloseable {
 
         List<NameValuePair> params = new ArrayList<NameValuePair>(2);
 
-        params.add(new NameValuePair(AGProtocol.COMMIT_PHASE, phase.toString()));
-        params.add(new NameValuePair(AGProtocol.XID, new AGXid(xid).toString()));
+        params.add(new BasicNameValuePair(AGProtocol.COMMIT_PHASE, phase.toString()));
+        params.add(new BasicNameValuePair(AGProtocol.XID, new AGXid(xid).toString()));
 
-        post(url, null, params, (RequestEntity) null, null);
+        post(url, null, params, (HttpEntity) null, null);
     }
 
     public void commit() throws AGHttpException {
@@ -992,9 +992,9 @@ public class AGHttpRepoClient implements AutoCloseable {
 
         List<NameValuePair> params = new ArrayList<NameValuePair>(2);
 
-        params.add(new NameValuePair(AGProtocol.XID, new AGXid(xid).toString()));
+        params.add(new BasicNameValuePair(AGProtocol.XID, new AGXid(xid).toString()));
 
-        post(url, null, params, (RequestEntity) null, null);
+        post(url, null, params, (HttpEntity) null, null);
     }
 
     /**
@@ -1007,7 +1007,7 @@ public class AGHttpRepoClient implements AutoCloseable {
 
         List<Header> headers = new ArrayList<Header>(1);
 
-        headers.add(new Header(Protocol.ACCEPT_PARAM_NAME, "application/json"));
+        headers.add(new BasicHeader(Protocol.ACCEPT_PARAM_NAME, "application/json"));
 
         AGJSONArrayHandler handler = new AGJSONArrayHandler();
 
@@ -1044,31 +1044,9 @@ public class AGHttpRepoClient implements AutoCloseable {
                        JSONObject attributes, Resource... contexts)
             throws RDFParseException, AGHttpException {
         final Charset charset = dataFormat.hasCharset() ? dataFormat
-                .getCharset() : Charset.forName("UTF-8");
-
-        RequestEntity entity = new RequestEntity() {
-
-            public long getContentLength() {
-                return -1; // don't know
-            }
-
-            public String getContentType() {
-                String format = dataFormat.getDefaultMIMEType();
-                return format + "; charset="
-                        + charset.name();
-            }
-
-            public boolean isRepeatable() {
-                return false;
-            }
-
-            public void writeRequest(OutputStream out) throws IOException {
-                OutputStreamWriter writer = new OutputStreamWriter(out, charset);
-                IOUtil.transfer(contents, writer);
-                writer.flush();
-            }
-        };
-
+                .getCharset() : StandardCharsets.UTF_8;
+        ContentType contentType = ContentType.create(dataFormat.getDefaultMIMEType(), charset);
+        HttpEntity entity = new InputStreamEntity(new ReaderInputStream(contents, charset), contentType);
         upload(entity, baseURI, overwrite, null, null, null, attributes, contexts);
     }
 
@@ -1085,20 +1063,21 @@ public class AGHttpRepoClient implements AutoCloseable {
                        JSONObject attributes, Resource... contexts)
             throws RDFParseException, AGHttpException {
         String format = dataFormat.getDefaultMIMEType();
-        RequestEntity entity = new InputStreamRequestEntity(contents, size, format);
+        final Charset charset = dataFormat.hasCharset() ? dataFormat
+                .getCharset() : StandardCharsets.UTF_8;
+        HttpEntity entity = new InputStreamEntity(contents, size, ContentType.create(format, charset));
         upload(entity, baseURI, overwrite, null, null, null, attributes, contentEncoding, contexts);
     }
 
     public void sendRDFTransaction(InputStream rdftransaction) throws AGHttpException {
-        RequestEntity entity = new InputStreamRequestEntity(rdftransaction, -1,
-                "application/x-rdftransaction");
+        HttpEntity entity = new InputStreamEntity(rdftransaction, -1,
+                                                     ContentType.create("application/x-rdftransaction", "UTF-8"));
         upload(entity, null, false, null, null, null, null);
     }
 
     public void sendRDFTransaction(InputStream rdftransaction, JSONObject attributes)
             throws AGHttpException {
-        RequestEntity entity = new InputStreamRequestEntity(rdftransaction, -1,
-                "application/x-rdftransaction");
+        HttpEntity entity = new InputStreamEntity(rdftransaction, -1, ContentType.create("application/x-rdftransaction", "UTF-8"));
         upload(entity, null, false, null, null, null, attributes);
     }
 
@@ -1114,14 +1093,10 @@ public class AGHttpRepoClient implements AutoCloseable {
             return;
         }
 
-        try {
-            final String data = rows.toString();
-            RequestEntity entity = new StringRequestEntity(
-                    data, "application/json", "UTF-8");
-            upload(url, entity, null, false, null, null, null, contexts);
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
+        final String data = rows.toString();
+        HttpEntity entity = new StringEntity(
+                data, ContentType.create("application/json", "UTF-8"));
+        upload(url, entity, null, false, null, null, null, contexts);
     }
 
     public void deleteJSON(JSONArray rows, Resource... contexts)
@@ -1154,7 +1129,7 @@ public class AGHttpRepoClient implements AutoCloseable {
                 attributes, contexts);
     }
 
-    public void upload(RequestEntity reqEntity, String baseURI,
+    public void upload(HttpEntity reqEntity, String baseURI,
                        boolean overwrite, String serverSideFile, IRI serverSideURL,
                        RDFFormat dataFormat, JSONObject attributes,
                        Resource... contexts) throws AGHttpException {
@@ -1163,7 +1138,7 @@ public class AGHttpRepoClient implements AutoCloseable {
                 dataFormat, attributes, contexts);
     }
 
-    public void upload(RequestEntity reqEntity, String baseURI,
+    public void upload(HttpEntity reqEntity, String baseURI,
                        boolean overwrite, String serverSideFile, IRI serverSideURL,
                        RDFFormat dataFormat, JSONObject attributes, String contentEncoding,
                        Resource... contexts) throws AGHttpException {
@@ -1176,14 +1151,14 @@ public class AGHttpRepoClient implements AutoCloseable {
      * This method is called by the uploadJSON methods, which already have attributes
      * built into the input stream passed as part of the reqEntity.
      */
-    public void upload(String url, RequestEntity reqEntity, String baseURI,
+    public void upload(String url, HttpEntity reqEntity, String baseURI,
                        boolean overwrite, String serverSideFile, IRI serverSideURL,
                        RDFFormat dataFormat, Resource... contexts) throws AGHttpException {
         upload(url, reqEntity, baseURI, overwrite, serverSideFile, serverSideURL,
                 dataFormat, null, contexts);
     }
 
-    public void upload(String url, RequestEntity reqEntity, String baseURI,
+    public void upload(String url, HttpEntity reqEntity, String baseURI,
                        boolean overwrite, String serverSideFile, IRI serverSideURL,
                        RDFFormat dataFormat, JSONObject attributes,
                        Resource... contexts) throws AGHttpException {
@@ -1191,7 +1166,7 @@ public class AGHttpRepoClient implements AutoCloseable {
                 dataFormat, attributes, null, contexts);
     }
 
-    public void upload(String url, RequestEntity reqEntity, String baseURI,
+    public void upload(String url, HttpEntity reqEntity, String baseURI,
                        boolean overwrite, String serverSideFile, IRI serverSideURL,
                        RDFFormat dataFormat, JSONObject attributes, String contentEncoding,
                        Resource... contexts) throws AGHttpException {
@@ -1199,40 +1174,40 @@ public class AGHttpRepoClient implements AutoCloseable {
         List<Header> headers = new ArrayList<>(1);
         if (dataFormat != null) {
             String format = dataFormat.getDefaultMIMEType();
-            headers.add(new Header("Content-Type", format));
+            headers.add(new BasicHeader("Content-Type", format));
         }
         if (contentEncoding != null) {
-            headers.add(new Header("Content-Encoding", contentEncoding));
+            headers.add(new BasicHeader("Content-Encoding", contentEncoding));
         }
         List<NameValuePair> params = new ArrayList<>(5);
         for (String encodedContext : Protocol.encodeContexts(contexts)) {
-            params.add(new NameValuePair(Protocol.CONTEXT_PARAM_NAME,
+            params.add(new BasicNameValuePair(Protocol.CONTEXT_PARAM_NAME,
                     encodedContext));
         }
         if (baseURI != null && baseURI.trim().length() != 0) {
             String encodedBaseURI = Protocol.encodeValue(getValueFactory().createIRI(baseURI));
-            params.add(new NameValuePair(Protocol.BASEURI_PARAM_NAME,
+            params.add(new BasicNameValuePair(Protocol.BASEURI_PARAM_NAME,
                     encodedBaseURI));
         }
         if (uploadCommitPeriod > 0) {
-            params.add(new NameValuePair("commit", Integer.toString(uploadCommitPeriod)));
+            params.add(new BasicNameValuePair("commit", Integer.toString(uploadCommitPeriod)));
         }
         if (serverSideFile != null && serverSideFile.trim().length() != 0) {
-            params.add(new NameValuePair(AGProtocol.FILE_PARAM_NAME,
+            params.add(new BasicNameValuePair(AGProtocol.FILE_PARAM_NAME,
                     serverSideFile));
         }
         if (serverSideURL != null) {
-            params.add(new NameValuePair(AGProtocol.URL_PARAM_NAME,
+            params.add(new BasicNameValuePair(AGProtocol.URL_PARAM_NAME,
                     serverSideURL.stringValue()));
         }
         if (attributes != null) {
-            params.add(new NameValuePair(AGProtocol.ATTRIBUTES_PARAM_NAME, attributes.toString()));
+            params.add(new BasicNameValuePair(AGProtocol.ATTRIBUTES_PARAM_NAME, attributes.toString()));
         }
         Boolean overrideContext = Boolean.parseBoolean(System.getProperty(AGProtocol.PROP_OVERRIDE_CONTEXT));
         if (overrideContext) {
             if (repo.getServer().getComparableVersion().compareTo(
                     supportedContextOverridingVersion) >= 0) {
-                params.add(new NameValuePair(AGProtocol.OVERRIDE_CONTEXT_PARAM_NAME, "true"));
+                params.add(new BasicNameValuePair(AGProtocol.OVERRIDE_CONTEXT_PARAM_NAME, "true"));
             } else {
                 throw new IllegalArgumentException("Context overriding requires AG server support "
                                                    + "(available starting from AG v"
@@ -1267,7 +1242,7 @@ public class AGHttpRepoClient implements AutoCloseable {
         String url = Protocol.getContextsLocation(getRoot());
         List<Header> headers = new ArrayList<>(1);
 
-        headers.add(new Header(Protocol.ACCEPT_PARAM_NAME,
+        headers.add(new BasicHeader(Protocol.ACCEPT_PARAM_NAME,
                 getPreferredTQRFormat().getDefaultMIMEType()));
 
         get(url, headers, null,
@@ -1281,7 +1256,7 @@ public class AGHttpRepoClient implements AutoCloseable {
         String[] encodedContexts = Protocol.encodeContexts(contexts);
         List<NameValuePair> contextParams = new ArrayList<>(encodedContexts.length);
         for (String encodedContext : encodedContexts) {
-            contextParams.add(new NameValuePair(Protocol.CONTEXT_PARAM_NAME,
+            contextParams.add(new BasicNameValuePair(Protocol.CONTEXT_PARAM_NAME,
                     encodedContext));
         }
         AGLongHandler handler = new AGLongHandler();
@@ -1304,7 +1279,7 @@ public class AGHttpRepoClient implements AutoCloseable {
     private void getRepoOptions(String url, TupleQueryResultHandler handler)
         throws TupleQueryResultHandlerException, AGHttpException {
         List<Header> headers = new ArrayList<>(1);
-        headers.add(new Header(Protocol.ACCEPT_PARAM_NAME, getPreferredTQRFormat().getDefaultMIMEType()));
+        headers.add(new BasicHeader(Protocol.ACCEPT_PARAM_NAME, getPreferredTQRFormat().getDefaultMIMEType()));
         get(url, headers, null, new AGTQRHandler(getPreferredTQRFormat(), handler, getValueFactory(), getAllowExternalBlankNodeIds()));
     }
 
@@ -1321,11 +1296,7 @@ public class AGHttpRepoClient implements AutoCloseable {
     }
 
     private void setRepoOption(String url, String value) throws AGHttpException {
-        try {
-            put(url, null, null, new StringRequestEntity(value, "text/plain", "UTF-8"), null);
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
+        put(url, null, null, new StringEntity(value, ContentType.create("text/plain", "UTF-8")), null);
     }
 
     private void removeRepoOption(String url) throws AGHttpException {
@@ -1401,15 +1372,15 @@ public class AGHttpRepoClient implements AutoCloseable {
             url = AGProtocol.getSavedQueryLocation(url, q.getName());
         }
         List<Header> headers = new ArrayList<>(5);
-        headers.add(new Header("Content-Type", Protocol.FORM_MIME_TYPE
+        headers.add(new BasicHeader("Content-Type", Protocol.FORM_MIME_TYPE
                 + "; charset=utf-8"));
         if (handler.getRequestMIMEType() != null) {
-            headers.add(new Header(Protocol.ACCEPT_PARAM_NAME, handler
+            headers.add(new BasicHeader(Protocol.ACCEPT_PARAM_NAME, handler
                     .getRequestMIMEType()));
         }
         List<NameValuePair> queryParams = getQueryMethodParameters(q);
         if (analyzeOnly) {
-            queryParams.add(new NameValuePair("analyzeIndicesUsed", "true"));
+            queryParams.add(new BasicNameValuePair("analyzeIndicesUsed", "true"));
         }
         post(url, headers, queryParams, null, handler);
         if (sessionRoot != null && q.getName() != null) {
@@ -1429,75 +1400,75 @@ public class AGHttpRepoClient implements AutoCloseable {
                 bindings.length + 10);
 
         if (!q.isPrepared()) {
-            queryParams.add(new NameValuePair(Protocol.QUERY_LANGUAGE_PARAM_NAME,
+            queryParams.add(new BasicNameValuePair(Protocol.QUERY_LANGUAGE_PARAM_NAME,
                     ql.getName()));
             if (q instanceof AGUpdate) {
-                queryParams.add(new NameValuePair(Protocol.UPDATE_PARAM_NAME, q.getQueryString()));
+                queryParams.add(new BasicNameValuePair(Protocol.UPDATE_PARAM_NAME, q.getQueryString()));
             } else {
-                queryParams.add(new NameValuePair(Protocol.QUERY_PARAM_NAME, q.getQueryString()));
+                queryParams.add(new BasicNameValuePair(Protocol.QUERY_PARAM_NAME, q.getQueryString()));
             }
             if (q.getBaseURI() != null) {
-                queryParams.add(new NameValuePair(Protocol.BASEURI_PARAM_NAME, q.getBaseURI()));
+                queryParams.add(new BasicNameValuePair(Protocol.BASEURI_PARAM_NAME, q.getBaseURI()));
             }
             if (q.getMaxExecutionTime() > 0) {
-                queryParams.add(new NameValuePair(Protocol.TIMEOUT_PARAM_NAME, Integer.toString(q.getMaxExecutionTime())));
+                queryParams.add(new BasicNameValuePair(Protocol.TIMEOUT_PARAM_NAME, Integer.toString(q.getMaxExecutionTime())));
             }
-            queryParams.add(new NameValuePair(Protocol.INCLUDE_INFERRED_PARAM_NAME,
+            queryParams.add(new BasicNameValuePair(Protocol.INCLUDE_INFERRED_PARAM_NAME,
                     Boolean.toString(includeInferred)));
             if (q.isCheckVariables()) {
-                queryParams.add(new NameValuePair(AGProtocol.CHECK_VARIABLES,
+                queryParams.add(new BasicNameValuePair(AGProtocol.CHECK_VARIABLES,
                         Boolean.toString(q.isCheckVariables())));
             }
             if (q.getLimit() >= 0) {
-                queryParams.add(new NameValuePair(AGProtocol.LIMIT_PARAM_NAME,
+                queryParams.add(new BasicNameValuePair(AGProtocol.LIMIT_PARAM_NAME,
                         Integer.toString(q.getLimit())));
             }
             if (q.getOffset() >= 0) {
-                queryParams.add(new NameValuePair("offset",
+                queryParams.add(new BasicNameValuePair("offset",
                         Integer.toString(q.getOffset())));
             }
             if (q.isLoggingEnabled()) {
-                queryParams.add(new NameValuePair("logQuery", "true"));
+                queryParams.add(new BasicNameValuePair("logQuery", "true"));
             }
             if (planner != null) {
-                queryParams.add(new NameValuePair(AGProtocol.PLANNER_PARAM_NAME,
+                queryParams.add(new BasicNameValuePair(AGProtocol.PLANNER_PARAM_NAME,
                         planner));
             }
             if (q.getEngine() != null) {
-                queryParams.add(new NameValuePair("engine", q.getEngine()));
+                queryParams.add(new BasicNameValuePair("engine", q.getEngine()));
             }
 
             if (sessionRoot != null && save != null) {
-                queryParams.add(new NameValuePair(AGProtocol.SAVE_PARAM_NAME,
+                queryParams.add(new BasicNameValuePair(AGProtocol.SAVE_PARAM_NAME,
                         save));
             }
 
             if (ql == QueryLanguage.SPARQL && dataset != null) {
                 if (q instanceof AGUpdate) {
                     for (IRI graphURI : dataset.getDefaultRemoveGraphs()) {
-                        queryParams.add(new NameValuePair(Protocol.REMOVE_GRAPH_PARAM_NAME, String.valueOf(graphURI)));
+                        queryParams.add(new BasicNameValuePair(Protocol.REMOVE_GRAPH_PARAM_NAME, String.valueOf(graphURI)));
                     }
                     if (dataset.getDefaultInsertGraph() != null) {
-                        queryParams.add(new NameValuePair(Protocol.INSERT_GRAPH_PARAM_NAME, String.valueOf(dataset.getDefaultInsertGraph())));
+                        queryParams.add(new BasicNameValuePair(Protocol.INSERT_GRAPH_PARAM_NAME, String.valueOf(dataset.getDefaultInsertGraph())));
                     }
                     for (IRI defaultGraphURI : dataset.getDefaultGraphs()) {
-                        queryParams.add(new NameValuePair(Protocol.USING_GRAPH_PARAM_NAME, String.valueOf(defaultGraphURI)));
+                        queryParams.add(new BasicNameValuePair(Protocol.USING_GRAPH_PARAM_NAME, String.valueOf(defaultGraphURI)));
                     }
                     for (IRI namedGraphURI : dataset.getNamedGraphs()) {
-                        queryParams.add(new NameValuePair(Protocol.USING_NAMED_GRAPH_PARAM_NAME, String.valueOf(namedGraphURI)));
+                        queryParams.add(new BasicNameValuePair(Protocol.USING_NAMED_GRAPH_PARAM_NAME, String.valueOf(namedGraphURI)));
                     }
                 } else {
                     for (IRI defaultGraphURI : dataset.getDefaultGraphs()) {
                         if (defaultGraphURI == null) {
-                            queryParams.add(new NameValuePair(
+                            queryParams.add(new BasicNameValuePair(
                                     Protocol.CONTEXT_PARAM_NAME, Protocol.NULL_PARAM_VALUE));
                         } else {
-                            queryParams.add(new NameValuePair(
+                            queryParams.add(new BasicNameValuePair(
                                     Protocol.DEFAULT_GRAPH_PARAM_NAME, defaultGraphURI.toString()));
                         }
                     }
                     for (IRI namedGraphURI : dataset.getNamedGraphs()) {
-                        queryParams.add(new NameValuePair(
+                        queryParams.add(new BasicNameValuePair(
                                 Protocol.NAMED_GRAPH_PARAM_NAME, namedGraphURI.toString()));
                     }
                 }
@@ -1509,7 +1480,7 @@ public class AGHttpRepoClient implements AutoCloseable {
         for (Binding binding : bindings) {
             String paramName = Protocol.BINDING_PREFIX + binding.getName();
             String paramValue = Protocol.encodeValue(getStorableValue(binding.getValue(), getValueFactory()));
-            queryParams.add(new NameValuePair(paramName, paramValue));
+            queryParams.add(new BasicNameValuePair(paramName, paramValue));
         }
 
         return queryParams;
@@ -1571,54 +1542,54 @@ public class AGHttpRepoClient implements AutoCloseable {
         List<NameValuePair> params = new ArrayList<>();
         if (predicates != null) {
             for (String pred : predicates) {
-                params.add(new NameValuePair("predicate", pred));
+                params.add(new BasicNameValuePair("predicate", pred));
             }
         }
         if (indexLiterals) {
             if (indexLiteralTypes != null) {
                 for (String type : indexLiteralTypes) {
-                    params.add(new NameValuePair("indexLiteralType", type));
+                    params.add(new BasicNameValuePair("indexLiteralType", type));
                 }
             }
         } else {
             // only need to send this if it's false
-            params.add(new NameValuePair("indexLiterals", "false"));
+            params.add(new BasicNameValuePair("indexLiterals", "false"));
         }
         if (!indexResources.equals("true")) {
             // only need to send this if it's not "true"
-            params.add(new NameValuePair("indexResources", indexResources));
+            params.add(new BasicNameValuePair("indexResources", indexResources));
 
         }
         if (indexFields != null) {
             for (String field : indexFields) {
-                params.add(new NameValuePair("indexField", field));
+                params.add(new BasicNameValuePair("indexField", field));
             }
         }
         if (minimumWordSize != 3) {
-            params.add(new NameValuePair("minimumWordSize", Integer.toString(minimumWordSize)));
+            params.add(new BasicNameValuePair("minimumWordSize", Integer.toString(minimumWordSize)));
         }
         if (stopWords != null) {
             for (String word : stopWords) {
-                params.add(new NameValuePair("stopWord", word));
+                params.add(new BasicNameValuePair("stopWord", word));
             }
         }
         if (wordFilters != null) {
             for (String filter : wordFilters) {
-                params.add(new NameValuePair("wordFilter", filter));
+                params.add(new BasicNameValuePair("wordFilter", filter));
             }
         }
         if (innerChars != null) {
             for (String inner : innerChars) {
-                params.add(new NameValuePair("innerChars", inner));
+                params.add(new BasicNameValuePair("innerChars", inner));
             }
         }
         if (borderChars != null) {
             for (String border : borderChars) {
-                params.add(new NameValuePair("borderChars", border));
+                params.add(new BasicNameValuePair("borderChars", border));
             }
         }
         if (!tokenizer.equals("default")) {
-            params.add(new NameValuePair("tokenizer", tokenizer));
+            params.add(new BasicNameValuePair("tokenizer", tokenizer));
         }
         put(url, null, params, null, null);
     }
@@ -1655,7 +1626,7 @@ public class AGHttpRepoClient implements AutoCloseable {
     public String[] getFreetextIndices() throws AGHttpException {
         String url = AGProtocol.getFreetextIndexLocation(getRoot());
         AGStringHandler handler = new AGStringHandler();
-        getHTTPClient().get(url, new Header[0], new NameValuePair[0], handler);
+        getHTTPClient().get(url, new BasicHeader[0], new BasicNameValuePair[0], handler);
         return handler.getResult().split("\n");
     }
 
@@ -1687,30 +1658,30 @@ public class AGHttpRepoClient implements AutoCloseable {
             throws AGHttpException {
         String url = AGProtocol.getFreetextLocation(getRoot());
         List<Header> headers = new ArrayList<>(5);
-        headers.add(new Header("Content-Type", Protocol.FORM_MIME_TYPE
+        headers.add(new BasicHeader("Content-Type", Protocol.FORM_MIME_TYPE
                 + "; charset=utf-8"));
         if (handler.getRequestMIMEType() != null) {
-            headers.add(new Header(Protocol.ACCEPT_PARAM_NAME, handler
+            headers.add(new BasicHeader(Protocol.ACCEPT_PARAM_NAME, handler
                     .getRequestMIMEType()));
         }
         List<NameValuePair> queryParams = new ArrayList<>(6);
         if (pattern != null) {
-            queryParams.add(new NameValuePair("pattern", pattern));
+            queryParams.add(new BasicNameValuePair("pattern", pattern));
         }
         if (expression != null) {
-            queryParams.add(new NameValuePair("expression", expression));
+            queryParams.add(new BasicNameValuePair("expression", expression));
         }
         if (index != null) {
-            queryParams.add(new NameValuePair("index", index));
+            queryParams.add(new BasicNameValuePair("index", index));
         }
         if (sorted) {
-            queryParams.add(new NameValuePair("sorted", "true"));
+            queryParams.add(new BasicNameValuePair("sorted", "true"));
         }
         if (limit > 0) {
-            queryParams.add(new NameValuePair("limit", Integer.toString(limit)));
+            queryParams.add(new BasicNameValuePair("limit", Integer.toString(limit)));
         }
         if (offset > 0) {
-            queryParams.add(new NameValuePair("offset", Integer.toString(offset)));
+            queryParams.add(new BasicNameValuePair("offset", Integer.toString(offset)));
         }
         post(url, headers, queryParams, null, handler);
     }
@@ -1722,8 +1693,8 @@ public class AGHttpRepoClient implements AutoCloseable {
         String primtype_nt = NTriplesUtil.toNTriplesString(primitiveType);
 
         List<NameValuePair> params = new ArrayList<>(2);
-        params.add(new NameValuePair(AGProtocol.FTI_PREDICATE_PARAM_NAME, pred_nt));
-        params.add(new NameValuePair(AGProtocol.ENCODED_TYPE_PARAM_NAME,
+        params.add(new BasicNameValuePair(AGProtocol.FTI_PREDICATE_PARAM_NAME, pred_nt));
+        params.add(new BasicNameValuePair(AGProtocol.ENCODED_TYPE_PARAM_NAME,
                 primtype_nt));
         post(url, null, params, null, null);
     }
@@ -1734,7 +1705,7 @@ public class AGHttpRepoClient implements AutoCloseable {
         String pred_nt = NTriplesUtil.toNTriplesString(predicate);
 
         List<NameValuePair> params = new ArrayList<>(1);
-        params.add(new NameValuePair(AGProtocol.FTI_PREDICATE_PARAM_NAME, pred_nt));
+        params.add(new BasicNameValuePair(AGProtocol.FTI_PREDICATE_PARAM_NAME, pred_nt));
         delete(url, null, params, null);
     }
 
@@ -1758,8 +1729,8 @@ public class AGHttpRepoClient implements AutoCloseable {
         String primtype_nt = NTriplesUtil.toNTriplesString(primitiveType);
 
         List<NameValuePair> params = new ArrayList<>(2);
-        params.add(new NameValuePair(AGProtocol.TYPE_PARAM_NAME, datatype_nt));
-        params.add(new NameValuePair(AGProtocol.ENCODED_TYPE_PARAM_NAME,
+        params.add(new BasicNameValuePair(AGProtocol.TYPE_PARAM_NAME, datatype_nt));
+        params.add(new BasicNameValuePair(AGProtocol.ENCODED_TYPE_PARAM_NAME,
                 primtype_nt));
         post(url, null, params, null, null);
     }
@@ -1769,7 +1740,7 @@ public class AGHttpRepoClient implements AutoCloseable {
         String datatype_nt = NTriplesUtil.toNTriplesString(datatype);
 
         List<NameValuePair> params = new ArrayList<>(1);
-        params.add(new NameValuePair(AGProtocol.TYPE_PARAM_NAME, datatype_nt));
+        params.add(new BasicNameValuePair(AGProtocol.TYPE_PARAM_NAME, datatype_nt));
         delete(url, null, params, null);
     }
 
@@ -1814,8 +1785,7 @@ public class AGHttpRepoClient implements AutoCloseable {
         useDedicatedSession(isAutoCommit());
         String url = AGProtocol.getFunctorLocation(getRoot());
 
-        RequestEntity entity = new InputStreamRequestEntity(rulestream, -1,
-                null);
+        HttpEntity entity = new InputStreamEntity(rulestream, -1, null);
         post(url, null, null, entity, null);
     }
 
@@ -1830,11 +1800,10 @@ public class AGHttpRepoClient implements AutoCloseable {
     public String evalInServer(InputStream stream) throws AGHttpException {
         String url = AGProtocol.getEvalLocation(getRoot());
         List<Header> headers = new ArrayList<>();
-        headers.add(new Header("Content-Type", "text/plain; charset=utf-8"));
+        headers.add(new BasicHeader("Content-Type", "text/plain; charset=utf-8"));
 
         AGStringHandler handler = new AGStringHandler();
-        RequestEntity entity = new InputStreamRequestEntity(stream, -1,
-                null);
+        HttpEntity entity = new InputStreamEntity(stream, -1, null);
         post(url, headers, null, entity, handler);
         return handler.getResult();
     }
@@ -1860,12 +1829,12 @@ public class AGHttpRepoClient implements AutoCloseable {
         String url = AGProtocol.getGeoTypesCartesianLocation(getRoot());
 
         List<NameValuePair> params = new ArrayList<>(5);
-        params.add(new NameValuePair(AGProtocol.STRIP_WIDTH_PARAM_NAME,
+        params.add(new BasicNameValuePair(AGProtocol.STRIP_WIDTH_PARAM_NAME,
                 Float.toString(stripWidth)));
-        params.add(new NameValuePair(AGProtocol.XMIN_PARAM_NAME, Float.toString(xmin)));
-        params.add(new NameValuePair(AGProtocol.XMAX_PARAM_NAME, Float.toString(xmax)));
-        params.add(new NameValuePair(AGProtocol.YMIN_PARAM_NAME, Float.toString(ymin)));
-        params.add(new NameValuePair(AGProtocol.YMAX_PARAM_NAME, Float.toString(ymax)));
+        params.add(new BasicNameValuePair(AGProtocol.XMIN_PARAM_NAME, Float.toString(xmin)));
+        params.add(new BasicNameValuePair(AGProtocol.XMAX_PARAM_NAME, Float.toString(xmax)));
+        params.add(new BasicNameValuePair(AGProtocol.YMIN_PARAM_NAME, Float.toString(ymin)));
+        params.add(new BasicNameValuePair(AGProtocol.YMAX_PARAM_NAME, Float.toString(ymax)));
 
         AGStringHandler handler = new AGStringHandler();
         post(url, null, params, null, handler);
@@ -1877,13 +1846,13 @@ public class AGHttpRepoClient implements AutoCloseable {
         String url = AGProtocol.getGeoTypesSphericalLocation(getRoot());
 
         List<NameValuePair> params = new ArrayList<>(5);
-        params.add(new NameValuePair(AGProtocol.STRIP_WIDTH_PARAM_NAME,
+        params.add(new BasicNameValuePair(AGProtocol.STRIP_WIDTH_PARAM_NAME,
                 Float.toString(stripWidth)));
-        params.add(new NameValuePair(AGProtocol.UNIT_PARAM_NAME, unit));
-        params.add(new NameValuePair(AGProtocol.LATMIN_PARAM_NAME, Float.toString(latmin)));
-        params.add(new NameValuePair(AGProtocol.LONGMIN_PARAM_NAME, Float.toString(longmin)));
-        params.add(new NameValuePair(AGProtocol.LATMAX_PARAM_NAME, Float.toString(latmax)));
-        params.add(new NameValuePair(AGProtocol.LONGMAX_PARAM_NAME, Float.toString(longmax)));
+        params.add(new BasicNameValuePair(AGProtocol.UNIT_PARAM_NAME, unit));
+        params.add(new BasicNameValuePair(AGProtocol.LATMIN_PARAM_NAME, Float.toString(latmin)));
+        params.add(new BasicNameValuePair(AGProtocol.LONGMIN_PARAM_NAME, Float.toString(longmin)));
+        params.add(new BasicNameValuePair(AGProtocol.LATMAX_PARAM_NAME, Float.toString(latmax)));
+        params.add(new BasicNameValuePair(AGProtocol.LONGMAX_PARAM_NAME, Float.toString(longmax)));
 
         AGStringHandler handler = new AGStringHandler();
         post(url, null, params, null, handler);
@@ -1898,9 +1867,9 @@ public class AGHttpRepoClient implements AutoCloseable {
         String url = AGProtocol.getGeoPolygonLocation(getRoot());
 
         List<NameValuePair> params = new ArrayList<>(7);
-        params.add(new NameValuePair(AGProtocol.RESOURCE_PARAM_NAME, polygon));
+        params.add(new BasicNameValuePair(AGProtocol.RESOURCE_PARAM_NAME, polygon));
         for (String point : points) {
-            params.add(new NameValuePair(AGProtocol.POINT_PARAM_NAME, point));
+            params.add(new BasicNameValuePair(AGProtocol.POINT_PARAM_NAME, point));
         }
         put(url, null, params, null, null);
     }
@@ -1911,19 +1880,19 @@ public class AGHttpRepoClient implements AutoCloseable {
         String url = AGProtocol.getGeoBoxLocation(getRoot());
         List<Header> headers = new ArrayList<>(1);
 
-        headers.add(new Header(Protocol.ACCEPT_PARAM_NAME,
+        headers.add(new BasicHeader(Protocol.ACCEPT_PARAM_NAME,
                 getPreferredRDFFormat().getDefaultMIMEType()));
 
         List<NameValuePair> params = new ArrayList<>(7);
-        params.add(new NameValuePair(AGProtocol.TYPE_PARAM_NAME, type_uri));
-        params.add(new NameValuePair(AGProtocol.GEO_PREDICATE_PARAM_NAME, predicate_uri));
-        params.add(new NameValuePair(AGProtocol.XMIN_PARAM_NAME, Float.toString(xmin)));
-        params.add(new NameValuePair(AGProtocol.XMAX_PARAM_NAME, Float.toString(xmax)));
-        params.add(new NameValuePair(AGProtocol.YMIN_PARAM_NAME, Float.toString(ymin)));
-        params.add(new NameValuePair(AGProtocol.YMAX_PARAM_NAME, Float.toString(ymax)));
-        params.add(new NameValuePair(AGProtocol.INCLUDE_INFERRED_PARAM_NAME, Boolean.toString(infer)));
+        params.add(new BasicNameValuePair(AGProtocol.TYPE_PARAM_NAME, type_uri));
+        params.add(new BasicNameValuePair(AGProtocol.GEO_PREDICATE_PARAM_NAME, predicate_uri));
+        params.add(new BasicNameValuePair(AGProtocol.XMIN_PARAM_NAME, Float.toString(xmin)));
+        params.add(new BasicNameValuePair(AGProtocol.XMAX_PARAM_NAME, Float.toString(xmax)));
+        params.add(new BasicNameValuePair(AGProtocol.YMIN_PARAM_NAME, Float.toString(ymin)));
+        params.add(new BasicNameValuePair(AGProtocol.YMAX_PARAM_NAME, Float.toString(ymax)));
+        params.add(new BasicNameValuePair(AGProtocol.INCLUDE_INFERRED_PARAM_NAME, Boolean.toString(infer)));
         if (0 != limit) {
-            params.add(new NameValuePair(AGProtocol.LIMIT_PARAM_NAME, Integer.toString(limit)));
+            params.add(new BasicNameValuePair(AGProtocol.LIMIT_PARAM_NAME, Integer.toString(limit)));
         }
         get(url, headers, params, handler);
     }
@@ -1934,18 +1903,18 @@ public class AGHttpRepoClient implements AutoCloseable {
         String url = AGProtocol.getGeoCircleLocation(getRoot());
         List<Header> headers = new ArrayList<>(1);
 
-        headers.add(new Header(Protocol.ACCEPT_PARAM_NAME,
+        headers.add(new BasicHeader(Protocol.ACCEPT_PARAM_NAME,
                 getPreferredRDFFormat().getDefaultMIMEType()));
 
         List<NameValuePair> params = new ArrayList<>(7);
-        params.add(new NameValuePair(AGProtocol.TYPE_PARAM_NAME, type_uri));
-        params.add(new NameValuePair(AGProtocol.GEO_PREDICATE_PARAM_NAME, predicate_uri));
-        params.add(new NameValuePair(AGProtocol.X_PARAM_NAME, Float.toString(x)));
-        params.add(new NameValuePair(AGProtocol.Y_PARAM_NAME, Float.toString(y)));
-        params.add(new NameValuePair(AGProtocol.RADIUS_PARAM_NAME, Float.toString(radius)));
-        params.add(new NameValuePair(AGProtocol.INCLUDE_INFERRED_PARAM_NAME, Boolean.toString(infer)));
+        params.add(new BasicNameValuePair(AGProtocol.TYPE_PARAM_NAME, type_uri));
+        params.add(new BasicNameValuePair(AGProtocol.GEO_PREDICATE_PARAM_NAME, predicate_uri));
+        params.add(new BasicNameValuePair(AGProtocol.X_PARAM_NAME, Float.toString(x)));
+        params.add(new BasicNameValuePair(AGProtocol.Y_PARAM_NAME, Float.toString(y)));
+        params.add(new BasicNameValuePair(AGProtocol.RADIUS_PARAM_NAME, Float.toString(radius)));
+        params.add(new BasicNameValuePair(AGProtocol.INCLUDE_INFERRED_PARAM_NAME, Boolean.toString(infer)));
         if (0 != limit) {
-            params.add(new NameValuePair(AGProtocol.LIMIT_PARAM_NAME, Integer.toString(limit)));
+            params.add(new BasicNameValuePair(AGProtocol.LIMIT_PARAM_NAME, Integer.toString(limit)));
         }
         get(url, headers, params, handler);
     }
@@ -1955,18 +1924,18 @@ public class AGHttpRepoClient implements AutoCloseable {
         String url = AGProtocol.getGeoHaversineLocation(getRoot());
         List<Header> headers = new ArrayList<>(1);
 
-        headers.add(new Header(Protocol.ACCEPT_PARAM_NAME,
+        headers.add(new BasicHeader(Protocol.ACCEPT_PARAM_NAME,
                 getPreferredRDFFormat().getDefaultMIMEType()));
 
         List<NameValuePair> params = new ArrayList<>(7);
-        params.add(new NameValuePair(AGProtocol.TYPE_PARAM_NAME, type_uri));
-        params.add(new NameValuePair(AGProtocol.GEO_PREDICATE_PARAM_NAME, predicate_uri));
-        params.add(new NameValuePair(AGProtocol.LAT_PARAM_NAME, Float.toString(lat)));
-        params.add(new NameValuePair(AGProtocol.LON_PARAM_NAME, Float.toString(lon)));
-        params.add(new NameValuePair(AGProtocol.RADIUS_PARAM_NAME, Float.toString(radius)));
-        params.add(new NameValuePair(AGProtocol.INCLUDE_INFERRED_PARAM_NAME, Boolean.toString(infer)));
+        params.add(new BasicNameValuePair(AGProtocol.TYPE_PARAM_NAME, type_uri));
+        params.add(new BasicNameValuePair(AGProtocol.GEO_PREDICATE_PARAM_NAME, predicate_uri));
+        params.add(new BasicNameValuePair(AGProtocol.LAT_PARAM_NAME, Float.toString(lat)));
+        params.add(new BasicNameValuePair(AGProtocol.LON_PARAM_NAME, Float.toString(lon)));
+        params.add(new BasicNameValuePair(AGProtocol.RADIUS_PARAM_NAME, Float.toString(radius)));
+        params.add(new BasicNameValuePair(AGProtocol.INCLUDE_INFERRED_PARAM_NAME, Boolean.toString(infer)));
         if (0 != limit) {
-            params.add(new NameValuePair(AGProtocol.LIMIT_PARAM_NAME, Integer.toString(limit)));
+            params.add(new BasicNameValuePair(AGProtocol.LIMIT_PARAM_NAME, Integer.toString(limit)));
         }
         get(url, headers, params, handler);
     }
@@ -1976,16 +1945,16 @@ public class AGHttpRepoClient implements AutoCloseable {
         String url = AGProtocol.getGeoPolygonLocation(getRoot());
         List<Header> headers = new ArrayList<>(1);
 
-        headers.add(new Header(Protocol.ACCEPT_PARAM_NAME,
+        headers.add(new BasicHeader(Protocol.ACCEPT_PARAM_NAME,
                 getPreferredRDFFormat().getDefaultMIMEType()));
 
         List<NameValuePair> params = new ArrayList<>(7);
-        params.add(new NameValuePair(AGProtocol.TYPE_PARAM_NAME, type_uri));
-        params.add(new NameValuePair(AGProtocol.GEO_PREDICATE_PARAM_NAME, predicate_uri));
-        params.add(new NameValuePair(AGProtocol.POLYGON_PARAM_NAME, polygon));
-        params.add(new NameValuePair(AGProtocol.INCLUDE_INFERRED_PARAM_NAME, Boolean.toString(infer)));
+        params.add(new BasicNameValuePair(AGProtocol.TYPE_PARAM_NAME, type_uri));
+        params.add(new BasicNameValuePair(AGProtocol.GEO_PREDICATE_PARAM_NAME, predicate_uri));
+        params.add(new BasicNameValuePair(AGProtocol.POLYGON_PARAM_NAME, polygon));
+        params.add(new BasicNameValuePair(AGProtocol.INCLUDE_INFERRED_PARAM_NAME, Boolean.toString(infer)));
         if (0 != limit) {
-            params.add(new NameValuePair(AGProtocol.LIMIT_PARAM_NAME, Integer.toString(limit)));
+            params.add(new BasicNameValuePair(AGProtocol.LIMIT_PARAM_NAME, Integer.toString(limit)));
         }
         get(url, headers, params, handler);
     }
@@ -1997,16 +1966,16 @@ public class AGHttpRepoClient implements AutoCloseable {
 
         List<NameValuePair> params = new ArrayList<>(7);
         for (String objectOf : objectOfs) {
-            params.add(new NameValuePair(AGProtocol.OBJECTOF_PARAM_NAME, objectOf));
+            params.add(new BasicNameValuePair(AGProtocol.OBJECTOF_PARAM_NAME, objectOf));
         }
         for (String subjectOf : subjectOfs) {
-            params.add(new NameValuePair(AGProtocol.SUBJECTOF_PARAM_NAME, subjectOf));
+            params.add(new BasicNameValuePair(AGProtocol.SUBJECTOF_PARAM_NAME, subjectOf));
         }
         for (String undirected : undirecteds) {
-            params.add(new NameValuePair(AGProtocol.UNDIRECTED_PARAM_NAME, undirected));
+            params.add(new BasicNameValuePair(AGProtocol.UNDIRECTED_PARAM_NAME, undirected));
         }
         if (query != null) {
-            params.add(new NameValuePair(AGProtocol.QUERY_PARAM_NAME, query));
+            params.add(new BasicNameValuePair(AGProtocol.QUERY_PARAM_NAME, query));
         }
         put(url, null, params, null, null);
     }
@@ -2016,11 +1985,11 @@ public class AGHttpRepoClient implements AutoCloseable {
         String url = AGProtocol.getSNANeighborMatrixLocation(getRoot(), matrix);
 
         List<NameValuePair> params = new ArrayList<>(7);
-        params.add(new NameValuePair(AGProtocol.GENERATOR_PARAM_NAME, generator));
+        params.add(new BasicNameValuePair(AGProtocol.GENERATOR_PARAM_NAME, generator));
         for (String node : group) {
-            params.add(new NameValuePair(AGProtocol.GROUP_PARAM_NAME, node));
+            params.add(new BasicNameValuePair(AGProtocol.GROUP_PARAM_NAME, node));
         }
-        params.add(new NameValuePair(AGProtocol.DEPTH_PARAM_NAME, Integer.toString(depth)));
+        params.add(new BasicNameValuePair(AGProtocol.DEPTH_PARAM_NAME, Integer.toString(depth)));
         put(url, null, params, null, null);
     }
 
@@ -2037,7 +2006,7 @@ public class AGHttpRepoClient implements AutoCloseable {
         String url = AGProtocol.getIndicesURL(getRoot());
 
         List<NameValuePair> data = new ArrayList<>(1);
-        data.add(new NameValuePair("listValid", Boolean.toString(listValid)));
+        data.add(new BasicNameValuePair("listValid", Boolean.toString(listValid)));
 
         AGStringHandler handler = new AGStringHandler();
         get(url, null, data, handler);
@@ -2077,8 +2046,8 @@ public class AGHttpRepoClient implements AutoCloseable {
         String url = getRoot() + "/encodedIds/prefixes";
 
         List<NameValuePair> params = new ArrayList<>(2);
-        params.add(new NameValuePair("prefix", namespace));
-        params.add(new NameValuePair("format", format));
+        params.add(new BasicNameValuePair("prefix", namespace));
+        params.add(new BasicNameValuePair("format", format));
         post(url, null, params, null, null);
     }
 
@@ -2087,7 +2056,7 @@ public class AGHttpRepoClient implements AutoCloseable {
         String url = getRoot() + "/encodedIds/prefixes";
 
         List<NameValuePair> params = new ArrayList<>(2);
-        params.add(new NameValuePair("prefix", namespace));
+        params.add(new BasicNameValuePair("prefix", namespace));
         delete(url, null, params, null);
     }
 
@@ -2101,7 +2070,7 @@ public class AGHttpRepoClient implements AutoCloseable {
         String url = getRoot() + "/tripleCache";
 
         List<NameValuePair> params = new ArrayList<>(1);
-        params.add(new NameValuePair("size", Long.toString(size)));
+        params.add(new BasicNameValuePair("size", Long.toString(size)));
         put(url, null, params, null, null);
     }
 
@@ -2148,10 +2117,10 @@ public class AGHttpRepoClient implements AutoCloseable {
             throws AGHttpException {
         String url = AGProtocol.getStoredProcLocation(getRoot()) + "/" + functionName;
         List<Header> headers = new ArrayList<>(1);
-        headers.add(new Header("x-scripts", moduleName));
+        headers.add(new BasicHeader("x-scripts", moduleName));
 
         List<NameValuePair> params = new ArrayList<>(1);
-        params.add(new NameValuePair("spargstr", argsEncoded));
+        params.add(new BasicNameValuePair("spargstr", argsEncoded));
         AGStringHandler handler = new AGStringHandler();
         post(url, headers, params, null, handler);
         return handler.getResult();
@@ -2255,7 +2224,7 @@ public class AGHttpRepoClient implements AutoCloseable {
 
         List<NameValuePair> params = new ArrayList<>(2);
         if (comparisonMode != null) {
-            params.add(new NameValuePair("mode", comparisonMode));
+            params.add(new BasicNameValuePair("mode", comparisonMode));
         }
         delete(url, null, params, null);
     }
@@ -2264,11 +2233,11 @@ public class AGHttpRepoClient implements AutoCloseable {
         String url = Protocol.getStatementsLocation(getRoot()) + "/duplicates";
         List<Header> headers = new ArrayList<>(1);
 
-        headers.add(new Header(Protocol.ACCEPT_PARAM_NAME, getPreferredRDFFormat().getDefaultMIMEType()));
+        headers.add(new BasicHeader(Protocol.ACCEPT_PARAM_NAME, getPreferredRDFFormat().getDefaultMIMEType()));
 
         List<NameValuePair> params = new ArrayList<>(2);
         if (comparisonMode != null) {
-            params.add(new NameValuePair("mode", comparisonMode));
+            params.add(new BasicNameValuePair("mode", comparisonMode));
         }
 
         get(url, headers, params,
@@ -2291,22 +2260,22 @@ public class AGHttpRepoClient implements AutoCloseable {
         List<NameValuePair> params = new ArrayList<>(5);
         if (materializer != null) {
             for (String with : materializer.getWithRulesets()) {
-                params.add(new NameValuePair("with", with));
+                params.add(new BasicNameValuePair("with", with));
             }
             for (String without : materializer.getWithoutRulesets()) {
-                params.add(new NameValuePair("without", without));
+                params.add(new BasicNameValuePair("without", without));
             }
             Integer period = materializer.getCommitPeriod();
             if (period != null) {
-                params.add(new NameValuePair("commit", period.toString()));
+                params.add(new BasicNameValuePair("commit", period.toString()));
             }
             Boolean useTypeSubproperty = materializer.getUseTypeSubproperty();
             if (useTypeSubproperty != null) {
-                params.add(new NameValuePair("useTypeSubproperty", useTypeSubproperty.toString()));
+                params.add(new BasicNameValuePair("useTypeSubproperty", useTypeSubproperty.toString()));
             }
             Resource inferredGraph = materializer.getInferredGraph();
             if (inferredGraph != null) {
-                params.add(new NameValuePair("inferredGraph", Protocol.encodeContext(inferredGraph)));
+                params.add(new BasicNameValuePair("inferredGraph", Protocol.encodeContext(inferredGraph)));
             }
         } // else, using the server's default materializer
         AGLongHandler handler = new AGLongHandler();
@@ -2327,7 +2296,7 @@ public class AGHttpRepoClient implements AutoCloseable {
 
         List<NameValuePair> params = new ArrayList<>(2);
         if (inferredGraph != null) {
-            params.add(new NameValuePair("inferredGraph", Protocol.encodeContext(inferredGraph)));
+            params.add(new BasicNameValuePair("inferredGraph", Protocol.encodeContext(inferredGraph)));
         }
         AGLongHandler handler = new AGLongHandler();
         delete(url, null, params, handler);
@@ -2338,8 +2307,8 @@ public class AGHttpRepoClient implements AutoCloseable {
         String url = repoRoot + "/indices/optimize";
 
         List<NameValuePair> params = new ArrayList<>(2);
-        params.add(new NameValuePair("wait", Boolean.toString(wait)));
-        params.add(new NameValuePair("level", Integer.toString(level)));
+        params.add(new BasicNameValuePair("wait", Boolean.toString(wait)));
+        params.add(new BasicNameValuePair("level", Integer.toString(level)));
 
         post(url, null, params, null, null);
     }
@@ -2348,7 +2317,7 @@ public class AGHttpRepoClient implements AutoCloseable {
         String url = repoRoot + "/indices/optimize";
 
         List<NameValuePair> params = new ArrayList<>(1);
-        params.add(new NameValuePair("wait", Boolean.toString(wait)));
+        params.add(new BasicNameValuePair("wait", Boolean.toString(wait)));
         post(url, null, params, null, null);
     }
 
@@ -2359,9 +2328,9 @@ public class AGHttpRepoClient implements AutoCloseable {
         List<NameValuePair> params = new ArrayList<>(
                 (fn.getArguments() == null ? 0 : fn.getArguments().length) + 1);
 
-        params.add(new NameValuePair(AGProtocol.SPIN_QUERY, fn.getQuery()));
+        params.add(new BasicNameValuePair(AGProtocol.SPIN_QUERY, fn.getQuery()));
         for (int i = 0; fn.getArguments() != null && i < fn.getArguments().length; i++) {
-            params.add(new NameValuePair(AGProtocol.SPIN_ARGUMENTS, fn.getArguments()[i]));
+            params.add(new BasicNameValuePair(AGProtocol.SPIN_ARGUMENTS, fn.getArguments()[i]));
         }
         put(AGProtocol.spinURL(getRoot(), x, fn.getUri()), null, params, null, null);
     }
@@ -2664,20 +2633,20 @@ public class AGHttpRepoClient implements AutoCloseable {
 
         List<NameValuePair> params = new ArrayList<>(5);
 
-        params.add(new NameValuePair(AGProtocol.NAME_PARAM_NAME, name));
-        params.add(new NameValuePair(AGProtocol.ORDERED_PARAM_NAME, Boolean.toString(ordered)));
+        params.add(new BasicNameValuePair(AGProtocol.NAME_PARAM_NAME, name));
+        params.add(new BasicNameValuePair(AGProtocol.ORDERED_PARAM_NAME, Boolean.toString(ordered)));
 
         if (minimum >= 0) {
-            params.add(new NameValuePair(AGProtocol.MINIMUM_PARAM_NAME, Long.toString(minimum)));
+            params.add(new BasicNameValuePair(AGProtocol.MINIMUM_PARAM_NAME, Long.toString(minimum)));
         }
 
         if (maximum >= 0) {
-            params.add(new NameValuePair(AGProtocol.MAXIMUM_PARAM_NAME, Long.toString(maximum)));
+            params.add(new BasicNameValuePair(AGProtocol.MAXIMUM_PARAM_NAME, Long.toString(maximum)));
         }
 
         if (allowedValues != null) {
             for (String value : allowedValues) {
-                params.add(new NameValuePair(AGProtocol.ALLOWED_VALUE_PARAM_NAME, value));
+                params.add(new BasicNameValuePair(AGProtocol.ALLOWED_VALUE_PARAM_NAME, value));
             }
         }
 
@@ -2694,7 +2663,7 @@ public class AGHttpRepoClient implements AutoCloseable {
         String url = AGProtocol.getAttributeDefinitionLocation(getRoot());
 
         List<NameValuePair> params = new ArrayList<>(1);
-        params.add(new NameValuePair(AGProtocol.NAME_PARAM_NAME, name));
+        params.add(new BasicNameValuePair(AGProtocol.NAME_PARAM_NAME, name));
 
         delete(url, null, params, null);
     }
@@ -2729,7 +2698,7 @@ public class AGHttpRepoClient implements AutoCloseable {
 
         if (name != null) {
             params = new ArrayList<>(1);
-            params.add(new NameValuePair(AGProtocol.NAME_PARAM_NAME, name));
+            params.add(new BasicNameValuePair(AGProtocol.NAME_PARAM_NAME, name));
         }
 
         get(url, null, params, handler);
@@ -2757,7 +2726,7 @@ public class AGHttpRepoClient implements AutoCloseable {
         String url = AGProtocol.getStaticFilterLocation(getRoot());
 
         List<NameValuePair> params = new ArrayList<>(1);
-        params.add(new NameValuePair(AGProtocol.FILTER_PARAM_NAME, filter));
+        params.add(new BasicNameValuePair(AGProtocol.FILTER_PARAM_NAME, filter));
 
         post(url, null, params, null, null);
     }
@@ -2864,10 +2833,10 @@ public class AGHttpRepoClient implements AutoCloseable {
         final String url = getRoot() + "/" + AGProtocol.WARMUP;
         List<NameValuePair> params = new ArrayList<>(2);
         if (config != null) {
-            params.add(new NameValuePair(
+            params.add(new BasicNameValuePair(
                     AGProtocol.INCLUDE_STRINGS,
                     Boolean.toString(config.getIncludeStrings())));
-            params.add(new NameValuePair(
+            params.add(new BasicNameValuePair(
                     AGProtocol.INCLUDE_TRIPLES,
                     Boolean.toString(config.getIncludeTriples())));
         }

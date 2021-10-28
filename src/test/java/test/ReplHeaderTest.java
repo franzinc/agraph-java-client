@@ -9,9 +9,9 @@ import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.repl.DurabilityLevel;
 import com.franz.agraph.repository.repl.TransactionSettings;
 import com.franz.util.Ctx;
-import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.NameValuePair;
-import org.apache.commons.httpclient.methods.RequestEntity;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.NameValuePair;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,7 +42,7 @@ public class ReplHeaderTest extends AGAbstractTest {
             }
 
             @Override
-            public void post(String url, Header[] headers, NameValuePair[] params, RequestEntity requestEntity, AGResponseHandler handler) throws AGHttpException {
+            public void post(String url, Header[] headers, NameValuePair[] params, HttpEntity requestEntity, AGResponseHandler handler) throws AGHttpException {
                 super.post(url, headers, params, requestEntity, handler);
                 lastHeaders = headers;
             }

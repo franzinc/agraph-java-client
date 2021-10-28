@@ -3,17 +3,23 @@ package test;
 import com.franz.agraph.http.AGHTTPClient;
 import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.http.handler.AGResponseHandler;
-import org.apache.commons.httpclient.ConnectionPoolTimeoutException;
-import org.apache.commons.httpclient.HostConfiguration;
-import org.apache.commons.httpclient.HttpConnection;
-import org.apache.commons.httpclient.HttpConnectionManager;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpMethod;
-import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
-import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
+import org.apache.http.HttpClientConnection;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.conn.ConnectionRequest;
+import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * Low-level HTTP client tests.
@@ -26,7 +32,7 @@ public class AGHTTPClientTests {
     @Before
     public void setUp() {
         serverUrl = AGAbstractTest.findServerUrl();
-        manager = new AuditingConnectionManager(new MultiThreadedHttpConnectionManager());
+        manager = new AuditingConnectionManager(new PoolingHttpClientConnectionManager());
         client = new AGHTTPClient(serverUrl, manager);
         client.setUsernameAndPassword(
                 AGAbstractTest.username(),
@@ -42,20 +48,23 @@ public class AGHTTPClientTests {
         } catch (AGHttpException e) {
             // ignore
         }
-        manager.closeIdleConnections(0);
+        manager.closeIdleConnections(0, SECONDS);
         Assert.assertEquals(connectionsBefore, manager.getConnectionCount());
     }
 
     private static final class NullStreamer extends AGResponseHandler {
+
         public NullStreamer() {
             super("who/cares/and/why/is/this/required");
         }
+
         @Override
-        public void handleResponse(HttpMethod method) {
+        public void handleResponse(HttpResponse httpResponse, HttpUriRequest httpUriRequest) {
             // This streamer takes ownership of the connection,
             // so we must release it.
-            method.releaseConnection();
+            EntityUtils.consumeQuietly(httpResponse.getEntity());
         }
+
         @Override
         public boolean releaseConnection() {
             // The handler takes ownership of the connection.
@@ -64,11 +73,12 @@ public class AGHTTPClientTests {
     }
 
     // A connection manager that tracks the number of unreleased connections.
-    private static final class AuditingConnectionManager implements HttpConnectionManager {
-        private final HttpConnectionManager wrapped;
+    private static final class AuditingConnectionManager implements HttpClientConnectionManager {
+
+        private final HttpClientConnectionManager wrapped;
         private int connectionCount = 0;
 
-        public AuditingConnectionManager(final HttpConnectionManager wrapped) {
+        public AuditingConnectionManager(final HttpClientConnectionManager wrapped) {
             this.wrapped = wrapped;
         }
 
@@ -76,53 +86,47 @@ public class AGHTTPClientTests {
             return connectionCount;
         }
 
-        // We need to ensure that connections will be returned here,
-        // not directly to the wrapped manager.
-        private HttpConnection fixConnection(HttpConnection conn) {
-            conn.setHttpConnectionManager(this);
-            return conn;
-        }
-
         @Override
-        public HttpConnection getConnection(HostConfiguration hostConfiguration) {
+        public ConnectionRequest requestConnection(HttpRoute route, Object state) {
             connectionCount++;
-            return fixConnection(wrapped.getConnection(hostConfiguration));
+            return wrapped.requestConnection(route, state);
         }
 
         @Override
-        public HttpConnection getConnection(HostConfiguration hostConfiguration,
-                                            long timeout) throws HttpException {
-            connectionCount++;
-            return fixConnection(wrapped.getConnection(hostConfiguration, timeout));
-        }
-
-        @Override
-        public HttpConnection getConnectionWithTimeout(
-                HostConfiguration hostConfiguration,
-                long timeout) throws ConnectionPoolTimeoutException {
-            connectionCount++;
-            return fixConnection(wrapped.getConnectionWithTimeout(hostConfiguration, timeout));
-        }
-
-        @Override
-        public void releaseConnection(HttpConnection conn) {
+        public void releaseConnection(HttpClientConnection conn, Object newState, long validDuration, TimeUnit timeUnit) {
+            wrapped.releaseConnection(conn, newState, validDuration, timeUnit);
             connectionCount--;
-            wrapped.releaseConnection(conn);
         }
 
         @Override
-        public void closeIdleConnections(long idleTimeout) {
-            wrapped.closeIdleConnections(idleTimeout);
+        public void connect(HttpClientConnection conn, HttpRoute route, int connectTimeout, HttpContext context) throws IOException {
+            wrapped.connect(conn, route, connectTimeout, context);
         }
 
         @Override
-        public HttpConnectionManagerParams getParams() {
-            return wrapped.getParams();
+        public void upgrade(HttpClientConnection conn, HttpRoute route, HttpContext context) throws IOException {
+            wrapped.upgrade(conn, route, context);
         }
 
         @Override
-        public void setParams(HttpConnectionManagerParams params) {
-            wrapped.setParams(params);
+        public void routeComplete(HttpClientConnection conn, HttpRoute route, HttpContext context) throws IOException {
+            wrapped.routeComplete(conn, route, context);
+        }
+
+        @Override
+        public void closeIdleConnections(long idletime, TimeUnit timeUnit) {
+            wrapped.closeIdleConnections(idletime, timeUnit);
+            connectionCount = 0;
+        }
+
+        @Override
+        public void closeExpiredConnections() {
+            wrapped.closeExpiredConnections();
+        }
+
+        @Override
+        public void shutdown() {
+            wrapped.shutdown();
         }
     }
 }

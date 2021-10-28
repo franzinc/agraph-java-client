@@ -8,14 +8,17 @@ import com.franz.agraph.http.AGHTTPClient;
 import com.franz.agraph.http.AGHttpRepoClient;
 import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.pool.AGConnPool;
-import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.NameValuePair;
+import org.apache.http.Header;
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicHeader;
+import org.apache.http.message.BasicNameValuePair;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
 import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.base.AbstractRepository;
+
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -333,7 +336,7 @@ public class AGRepository extends AbstractRepository implements AGAbstractReposi
     public void setDuplicateSuppressionPolicy(String policy) throws RepositoryException {
         String url = repositoryURL + "/suppressDuplicates";
         Header[] headers = new Header[0];
-        NameValuePair[] data = {new NameValuePair("type", policy)};
+        NameValuePair[] data = {new BasicNameValuePair("type", policy)};
         try {
             getHTTPClient().put(url, headers, data, null, null);
         } catch (AGHttpException e) {
@@ -379,7 +382,7 @@ public class AGRepository extends AbstractRepository implements AGAbstractReposi
      */
     public void forceCheckpoint() throws RepositoryException {
         String url = repositoryURL + "/force-checkpoint";
-        Header[] hdr = new Header[0];
+        Header[] hdr = new BasicHeader[0];
         NameValuePair[] data = {};
         getHTTPClient().post(url, hdr, data, null, null);
     }

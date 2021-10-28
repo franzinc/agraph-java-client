@@ -11,7 +11,8 @@ import com.franz.agraph.http.exception.AGPreconditionFailedException;
 import com.franz.agraph.http.exception.AGQueryTimeoutException;
 import com.franz.agraph.http.exception.AGUnsupportedFileFormatException;
 import com.franz.agraph.http.exception.AGUnsupportedQueryLanguageException;
-import org.apache.commons.httpclient.HttpMethod;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpUriRequest;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -60,14 +61,14 @@ public class AGErrorHandler extends AGResponseHandler {
     }
 
     @Override
-    public void handleResponse(HttpMethod method) throws IOException, AGHttpException {
-        InputStream response = getInputStream(method);
+    public void handleResponse(HttpResponse httpResponse, HttpUriRequest httpUriRequest) throws IOException, AGHttpException {
+        InputStream response = getInputStream(httpResponse);
         String errorString = streamToString(response);
         if (!errorString.isEmpty()) {
             result = newException(errorString);
         } else {
             // Could be e.g. "HTTP 408 Request Timeout"
-            result = new AGHttpException("" + method.getStatusCode() + " " + method.getStatusText());
+            result = new AGHttpException("" + httpResponse.getStatusLine().getStatusCode() + " " + httpResponse.getStatusLine().getReasonPhrase());
         }
     }
 

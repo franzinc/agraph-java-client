@@ -7,7 +7,9 @@ package com.franz.agraph.http.handler;
 import com.franz.agraph.http.AGHttpRepoClient;
 import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.repository.AGValueFactory;
-import org.apache.commons.httpclient.HttpMethod;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.util.EntityUtils;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
@@ -38,7 +40,7 @@ public class AGTQRXMLStreamer extends AGTQRStreamer {
 
     private final AGValueFactory vf;
     private XMLStreamReader xml;
-    private HttpMethod method;
+    private HttpResponse method;
 
     public AGTQRXMLStreamer(AGValueFactory vf) {
         super(TupleQueryResultFormat.SPARQL.getDefaultMIMEType());
@@ -53,7 +55,7 @@ public class AGTQRXMLStreamer extends AGTQRStreamer {
     /**
      * False because the Result will release the HTTP resources.
      * For most responses, AGHTTPClient releases resources after
-     * calling {@link #handleResponse(HttpMethod)},
+     * calling {@link #handleResponse(HttpResponse, HttpUriRequest)},
      * but here the results are pulled when needed from the {@link Result}.
      */
     @Override
@@ -62,10 +64,10 @@ public class AGTQRXMLStreamer extends AGTQRStreamer {
     }
 
     @Override
-    public void handleResponse(HttpMethod method) throws IOException, AGHttpException {
-        this.method = method;
+    public void handleResponse(HttpResponse httpResponse, HttpUriRequest httpUriRequest) throws IOException, AGHttpException {
+        this.method = httpResponse;
         try {
-            xml = xmlInputFactory.createXMLStreamReader(AGResponseHandler.getInputStream(method));
+            xml = xmlInputFactory.createXMLStreamReader(AGResponseHandler.getInputStream(httpResponse));
         } catch (XMLStreamException e) {
             throw new AGHttpException(e);
         }
@@ -228,12 +230,7 @@ public class AGTQRXMLStreamer extends AGTQRStreamer {
         public void close() throws QueryEvaluationException {
             if (!closed) {
                 closed = true;
-                try {
-                    method.getResponseBodyAsStream().close();
-                    method.releaseConnection();
-                } catch (IOException e) {
-                    throw new QueryEvaluationException("I/O error closing resources", e);
-                }
+                EntityUtils.consumeQuietly(method.getEntity());
             }
         }
 

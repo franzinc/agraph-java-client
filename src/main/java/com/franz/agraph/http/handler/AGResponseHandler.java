@@ -5,10 +5,11 @@
 package com.franz.agraph.http.handler;
 
 import com.franz.agraph.http.exception.AGHttpException;
-import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HeaderElement;
-import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.Header;
+import org.apache.http.HeaderElement;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpUriRequest;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,13 +24,17 @@ public abstract class AGResponseHandler {
         requestMIMEType = mimeType;
     }
 
-    protected static InputStream getInputStream(HttpMethod method) throws IOException {
-        InputStream is = method.getResponseBodyAsStream();
-        Header h = method.getResponseHeader("Content-Encoding");
-        if (h != null && h.getValue().equals("gzip")) {
-            is = new GZIPInputStream(is);
+    protected static InputStream getInputStream(HttpResponse httpResponse) throws IOException {
+        if (httpResponse.getEntity() != null) {
+            InputStream is = httpResponse.getEntity().getContent();
+            Header h = httpResponse.getFirstHeader("Content-Encoding");
+            if (h != null && h.getValue().equals("gzip")) {
+                is = new GZIPInputStream(is);
+            }
+            return is;
+        } else {
+            return null;
         }
-        return is;
     }
 
     protected static String streamToString(InputStream in) throws IOException {
@@ -41,11 +46,11 @@ public abstract class AGResponseHandler {
         return requestMIMEType;
     }
 
-    public abstract void handleResponse(HttpMethod method) throws IOException, AGHttpException;
+    public abstract void handleResponse(HttpResponse httpResponse, HttpUriRequest httpUriRequest) throws IOException, AGHttpException;
 
     /**
      * For most responses, AGHTTPClient releases resources after
-     * calling {@link #handleResponse(HttpMethod)}; this can be
+     * calling {@link #handleResponse(HttpResponse, HttpUriRequest)}; this can be
      * overridden in subclasses that stream results.
      *
      * @return Boolean  always returns true
@@ -60,11 +65,11 @@ public abstract class AGResponseHandler {
      * <code>Content-Type: application/xml;charset=UTF-8</code>, this method will
      * return <code>application/xml</code> as the MIME type.
      *
-     * @param method the method to get the reponse MIME type from
+     * @param httpResponse the method to get the reponse MIME type from
      * @return the response MIME type, or <code>null</code> if not available
      */
-    protected String getResponseMIMEType(HttpMethod method) throws IOException {
-        Header[] headers = method.getResponseHeaders("Content-Type");
+    protected String getResponseMIMEType(HttpResponse httpResponse) throws IOException {
+        Header[] headers = httpResponse.getHeaders("Content-Type");
 
         for (Header header : headers) {
             HeaderElement[] headerElements = header.getElements();

@@ -7,8 +7,7 @@ package com.franz.agraph.pool;
 import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
-import org.apache.commons.httpclient.params.HttpConnectionParams;
-import org.apache.commons.httpclient.params.HttpMethodParams;
+import org.apache.http.config.SocketConfig;
 
 /**
  * Property names to open a {@link AGRepositoryConnection}.
@@ -62,8 +61,8 @@ public enum AGConnProp {
      * A timeout value of zero is interpreted as an infinite timeout.
      * <p>WARNING: this may break long queries.</p>
      *
-     * @see HttpConnectionParams#setSoTimeout(int)
-     * @see HttpMethodParams#SO_TIMEOUT
+     * @see SocketConfig#getSoTimeout
+
      * @since v4.4
      */
     httpSocketTimeout;

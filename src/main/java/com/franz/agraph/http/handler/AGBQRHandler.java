@@ -5,7 +5,8 @@
 package com.franz.agraph.http.handler;
 
 import com.franz.agraph.http.exception.AGHttpException;
-import org.apache.commons.httpclient.HttpMethod;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.eclipse.rdf4j.query.resultio.BooleanQueryResultFormat;
 import org.eclipse.rdf4j.query.resultio.BooleanQueryResultParser;
 import org.eclipse.rdf4j.query.resultio.QueryResultIO;
@@ -24,12 +25,12 @@ public class AGBQRHandler extends AGResponseHandler {
     }
 
     @Override
-    public void handleResponse(HttpMethod method) throws IOException, AGHttpException {
-        String mimeType = getResponseMIMEType(method);
+    public void handleResponse(HttpResponse httpResponse, HttpUriRequest httpUriRequest) throws IOException, AGHttpException {
+        String mimeType = getResponseMIMEType(httpResponse);
         if (!mimeType.equals(getRequestMIMEType())) {
             throw new AGHttpException("unexpected response MIME type: " + mimeType);
         }
-        InputStream response = getInputStream(method);
+        InputStream response = getInputStream(httpResponse);
         try {
             BooleanQueryResultFormat format = BooleanQueryResultFormat.TEXT;
             BooleanQueryResultParser parser = QueryResultIO.createBooleanParser(format);

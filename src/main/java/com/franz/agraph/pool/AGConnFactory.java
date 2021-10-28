@@ -10,7 +10,7 @@ import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
-import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
+import org.apache.http.config.SocketConfig;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.PooledObjectFactory;
@@ -42,11 +42,11 @@ public class AGConnFactory extends BasePooledObjectFactory<AGRepositoryConnectio
 
     @Override
     public AGRepositoryConnection create() throws Exception {
-        final HttpConnectionManagerParams params = new HttpConnectionManagerParams();
+        SocketConfig socketConfig = null;
         if (props.httpSocketTimeout != null) {
-            params.setSoTimeout(props.httpSocketTimeout);
+            socketConfig = SocketConfig.custom().setSoTimeout(props.httpSocketTimeout).build();
         }
-        AGHTTPClient httpClient = new AGHTTPClient(props.serverUrl, params);
+        AGHTTPClient httpClient = new AGHTTPClient(props.serverUrl, null, socketConfig);
         final AGServer server = new AGServer(props.username, props.password, httpClient);
         final AGCatalog catalog;
         if (props.catalog != null) {
