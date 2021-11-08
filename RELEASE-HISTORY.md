@@ -1,5 +1,13 @@
 # AllegroGraph Java client release history
 
+## 4.0.0
+
+### migrate from HttpClient v3.1 to HttpClient v4.5.13
+
+Migrate from the deprecated Apache (commons) HttpClient library to
+    httpcomponents-HttpClient.
+    
+
 ## 3.0.5
 
 ### Add support for server returning a 204 response
