@@ -121,7 +121,7 @@ jena-compliance-tests: FORCE
 			test.AGReifierTest"
 
 test-release: FORCE
-	python test-release/make-pom.py > test-release/pom.xml
+	python3 test-release/make-pom.py > test-release/pom.xml
 	cd test-release && mvn $(MVN_ARGS) test -Dtest=test.TestSuites\$$Prepush,test.TestSuites\$$Stress
 
 local-deploy: FORCE
