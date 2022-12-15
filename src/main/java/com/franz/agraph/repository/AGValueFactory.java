@@ -8,7 +8,6 @@ import com.franz.agraph.http.AGHTTPClient;
 import com.franz.agraph.http.AGHttpRepoClient;
 import com.franz.agraph.http.exception.AGHttpException;
 import org.apache.jena.graph.Node;
-import org.apache.jena.vocabulary.RDF;
 import org.eclipse.rdf4j.model.BNode;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Resource;
@@ -25,7 +24,7 @@ import java.util.regex.Pattern;
 public class AGValueFactory extends SimpleValueFactory {
     private static final Pattern AG_BNODE_ID_PATTERN = Pattern.compile("\\Ab[0-9A-Fa-f]{8}x\\d+\\z");
     // Expected type of tagged literals
-    private static final String RDF_LANG_STRING = RDF.langString.toString();
+    private static final String RDF_LANG_STRING = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString";
 
     // Jena sometimes creates empty urls - for instance in RDF/XML writer
     // it tries to create an URI representing the file containing the data,
