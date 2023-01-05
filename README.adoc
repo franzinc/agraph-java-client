@@ -124,8 +124,12 @@ correspond to your server configuration as well.
 
 Each tutorial is a separate Maven project. To compile the tutorials
 first install the AllegroGraph Java client into your local repository.
-This process is described in the 'Usage' section. Then run the
-following command in the directory containing the tutorial:
+This process is described in the 'Usage' section. One way of the installation is a 2-step process. Build and install the agraph-java-client-{version}.jar locally by executing the following command in the repository root:
+
+     mvn package
+     mvn install:install-file -Dfile=./target/agraph-java-client-{version}-SNAPSHOT.jar -DpomFile=pom.xml
+
+Then run the following command in the directory containing the tutorial:
 
      mvn compile
 
