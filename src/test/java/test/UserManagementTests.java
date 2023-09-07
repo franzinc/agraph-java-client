@@ -124,7 +124,13 @@ public class UserManagementTests extends AGAbstractTest {
         Assert.assertEquals(access.getString("catalog"), "*");
         Assert.assertEquals(access.getString("repository"), "*");
 
+       /* beginning in 7.4.0 users are given session permission
+        * remove so that tests continue to work
+        */
+       server.deleteUserPermission(user, "session");
+
         List<String> permissions = server.listUserPermissions(user);
+
         Assert.assertTrue(permissions.isEmpty());
 
         permissions = server.listUserEffectivePermissions(user);
