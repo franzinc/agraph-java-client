@@ -4,11 +4,9 @@
 
 package test;
 
-import com.franz.agraph.jena.AGModel;
-import com.franz.agraph.jena.AGQuery;
-import com.franz.agraph.jena.AGQueryExecutionFactory;
-import com.franz.agraph.jena.AGQueryFactory;
+import com.franz.agraph.jena.*;
 import junit.framework.Test;
+import junit.framework.TestCase;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
@@ -20,18 +18,24 @@ import java.io.FileNotFoundException;
 import java.util.Iterator;
 
 
-public class AGResultSetTest extends AGModelTest {
+public class AGResultSetTest extends TestCase {
+    private static final JenaUtil util = new JenaUtil(AGResultSetTest.class);
+
     public AGResultSetTest(String name) {
         super(name);
     }
 
     public static Test suite() {
-        util = new JenaUtil(AGResultSetTest.class);
         return util;
     }
 
+    private AGModel getModel() {
+        AGGraph graph = util.getMaker().createGraph("http://ag-resultset-test");
+        return new AGModel(graph);
+    }
+
     public void testResultSet() throws FileNotFoundException {
-        AGModel model = (AGModel) getModel();
+        AGModel model = getModel();
         model.read(Util.resourceAsStream("/test/default-graph.nt"), null, "N-TRIPLE");
         try {
             String queryString = "SELECT ?s ?p ?o  WHERE {?s ?p ?o .}";

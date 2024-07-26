@@ -13,7 +13,6 @@ import java.util.Iterator;
 public class JenaSparqlUpdateTest {
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void dataset() throws Exception {
         Dataset ds = DatasetFactory.create();
         Iterator<String> it = ds.listNames();

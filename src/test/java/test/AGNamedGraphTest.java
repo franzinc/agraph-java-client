@@ -4,64 +4,37 @@
 
 package test;
 
-import com.franz.agraph.jena.AGGraphMaker;
-import com.franz.agraph.repository.AGRepositoryConnection;
-import junit.framework.Test;
+import junit.extensions.TestSetup;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.test.AbstractTestGraph;
-import org.junit.AfterClass;
-import org.junit.Before;
+
 
 public class AGNamedGraphTest extends AbstractTestGraph {
-    protected static JenaUtil util = new JenaUtil(AGNamedGraphTest.class);
+    private static final JenaUtil util = new JenaUtil(AGNamedGraphTest.class);
     private static int graphId = 0;
-    protected AGRepositoryConnection conn = null;
-    protected AGGraphMaker maker = null;
 
     public AGNamedGraphTest(String name) {
         super(name);
     }
 
-    public static Test suite() {
+    public static TestSetup suite() {
         return util;
-    }
-
-    @AfterClass
-    public static void tearDownOnce() {
-        util.disconnect();
-    }
-
-    @Override
-    @Before
-    public void setUp() throws Exception {
-        super.setUp();
-        conn = util.getConn();
-        maker = util.getMaker();
     }
 
     @Override
     public Graph getGraph() {
-        Graph graph = maker.createGraph("http://named" + graphId);
+        Graph graph = util.getMaker().createGraph("http://named" + graphId);
         graphId++;
         return graph;
     }
 
-
     @Override
     public void testRemoveAll() {
-        //super.testRemoveAll();
         testRemoveAll("");
         testRemoveAll("a R b");
         testRemoveAll("c S d; e:ff GGG hhhh; i J 27; Ell Em 'en'");
-    }
-
-    public void testRemoveAll(String triples) {
-        Graph g = getGraph();
-        graphAdd(g, triples);
-        g.clear();
-        assertTrue(g.isEmpty());
     }
 
     @Override

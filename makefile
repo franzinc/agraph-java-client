@@ -40,18 +40,20 @@ default: build
 clean: dist-clean
 	mvn $(MVN_ARGS) clean
 
-prepush: clean all-tutorials agq-tests jena-compliance-tests javadoc
-	mvn $(MVN_ARGS) test -Dtests.include=test.TestSuites\$$Prepush
+prepush: clean all-tutorials prepush-testsuite javadoc
 	# Force Java to use ASCII (i.e. not UTF-8) as the default encoding.
 	env LC_ALL=C mvn $(MVN_ARGS) test -Dtests.include=test.TestSuites\$$Unicode
 
-test-bigger: test-stress test-stress-events test-xa
+prepush-testsuite:
+	mvn $(MVN_ARGS) test -Dtests.include=test.TestSuites\$$Prepush
+
+test-bigger: prepush-testsuite test-stress test-stress-events test-xa
 
 test-broken: FORCE
 	mvn $(MVN_ARGS) test -Dtests.include=test.TestSuites\$$Broken
 
 test-stress: FORCE
-	mvn $(MVN_ARGS) test -Dtests.include=test.TestSuites\$$Prepush,test.TestSuites\$$Stress
+	mvn $(MVN_ARGS) test -Dtest.TestSuites\$$Stress
 
 test-stress-events: FORCE
 	$(EXEC_JAVA) -Dexec.mainClass=test.stress.Events -Dexec.args="--catalog java-catalog --load 2 --query 2 --time 1 --size 100000"
@@ -67,7 +69,7 @@ lubm-sparql: FORCE
 	mvn $(MVN_ARGS) test-compile
 	$(EXEC_JAVA) -Dexec.mainClass=test.lubm.AGLubmSparql -Dexample=$(example)
 
-all-tutorials: tutorial jena-tutorial attributes-tutorial 2pc-tutorial
+all-tutorials: tutorial jena-tutorial attributes-tutorial 2pc-tutorial agq-tutorial
 
 tutorial: local-deploy
 	cd tutorials/rdf4j && \
@@ -95,7 +97,7 @@ failures-tutorial: local-deploy
 	mvn $(MVN_ARGS) exec:java -Dmaven.repo.local=$(REPO)
 
 
-agq-tests: local-deploy
+agq-tutorial: local-deploy
 	cd tutorials/agq && \
 	mvn $(MVN_ARGS) compile -Dmaven.repo.local=$(REPO) && \
 	mvn $(MVN_ARGS) test -Dmaven.repo.local=$(REPO)
@@ -113,12 +115,7 @@ repository-tests: FORCE
 	mvn $(MVN_ARGS) test -Dtests.include=test.openrdf.repository.AGAllRepositoryTests
 
 jena-compliance-tests: FORCE
-	mvn $(MVN_ARGS) test -Dtests.include="test.AGGraphMakerTest,\
-			test.AGGraphTest,\
-			test.AGModelTest,\
-			test.AGPrefixMappingTest,\
-			test.AGResultSetTest,\
-			test.AGReifierTest"
+	mvn $(MVN_ARGS) test -Dtests.include=test.TestSuites\$$JenaCompliance
 
 test-release: FORCE
 	python3 test-release/make-pom.py > test-release/pom.xml

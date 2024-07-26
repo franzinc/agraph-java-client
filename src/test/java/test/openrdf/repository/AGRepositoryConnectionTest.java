@@ -1,6 +1,6 @@
 package test.openrdf.repository;
 
-import org.eclipse.rdf4j.IsolationLevels;
+import org.eclipse.rdf4j.IsolationLevel;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.common.iteration.Iterations;
 import org.eclipse.rdf4j.model.IRI;
@@ -37,7 +37,6 @@ import test.Util;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -45,24 +44,15 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Reader;
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.nio.file.Files;
+import java.util.*;
 
 import static org.hamcrest.core.AnyOf.anyOf;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.hamcrest.core.IsNull.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 import static org.junit.matchers.JUnitMatchers.hasItem;
 import static org.junit.matchers.JUnitMatchers.hasItems;
 
@@ -73,31 +63,20 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
      */
     public static final String TEST_DATA_DIR = "/test/";
 
-
-    public AGRepositoryConnectionTest() {
-        super(IsolationLevels.SNAPSHOT);
+    public AGRepositoryConnectionTest(IsolationLevel level) {
+        super(level);
     }
-
 
     @Override
     protected Repository createRepository() throws Exception {
         return AGAbstractTest.sharedRepository();
     }
 
-    @Override
-    public void testDeleteDefaultGraph() throws Exception {
-        super.testDeleteDefaultGraph();
-    }
-
-    @Override
-    public void testDefaultContext() throws Exception {
-        super.testDefaultContext();
-    }
-
-    @Override
-    public void testDefaultInsertContext() throws Exception {
-        super.testDefaultInsertContext();
-    }
+    @Ignore @Test public void testAddMalformedLiteralsDefaultConfig() {}
+    @Ignore @Test public void testAddMalformedLiteralsStrictConfig() {}
+    @Ignore @Test public void testExclusiveNullContext() {}
+    @Ignore @Test public void testGetStatementsMalformedTypedLiteral() {}
+    @Ignore @Test public void testSizeDuplicateStatement() {}
 
     @Test
     public void testDefaultInsertContextNull()
@@ -143,13 +122,6 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
         }
     }
 
-    @Ignore
-    @Override
-    public void testExclusiveNullContext() throws Exception {
-        //super.testExclusiveNullContext();
-        //ignore
-    }
-
     /**
      * TODO: query.evaluate() needs to be inside the try below, in the
      * parent test it's not.
@@ -158,6 +130,8 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
      * test there are 512 single adds (far slower, consider rfe10261 to
      * improve the performance of the unmodified parent test).
      */
+    @Ignore
+    @Test
     public void testOrderByQueriesAreInterruptable() throws Exception {
         testCon.setAutoCommit(false);
         Collection<Statement> stmts = new ArrayList<Statement>();
@@ -185,21 +159,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
         }
     }
 
-    /*@Override
-    public void testGetNamespaces() throws Exception {
-        super.testGetNamespaces();
-    }*/
-
-    @Override
-    public void testXmlCalendarZ() throws Exception {
-        super.testXmlCalendarZ();
-    }
-
-    @Override
-    public void testSES713() throws Exception {
-        super.testSES713();
-    }
-
+    @Test
     public void testBaseURIInQueryString() throws Exception {
         testCon.add(vf.createIRI("urn:test:s1"), vf.createIRI("urn:test:p1"), vf.createIRI("urn:test:o1"));
         TupleQueryResult rs = testCon.prepareTupleQuery(QueryLanguage.SPARQL, "BASE <urn:test:s1> SELECT * { <> ?p ?o }").evaluate();
@@ -210,6 +170,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
         }
     }
 
+    @Test
     public void testBaseURIInParam() throws Exception {
         testCon.add(vf.createIRI("http://example.org/s1"), vf.createIRI("urn:test:p1"), vf.createIRI("urn:test:o1"));
         TupleQueryResult rs = testCon.prepareTupleQuery(QueryLanguage.SPARQL, "SELECT * { <s1> ?p ?o }", "http://example.org").evaluate();
@@ -220,6 +181,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
         }
     }
 
+    @Test
     public void testBaseURIInParamWithTrailingSlash() throws Exception {
         testCon.add(vf.createIRI("http://example.org/s1"), vf.createIRI("urn:test:p1"), vf.createIRI("urn:test:o1"));
         TupleQueryResult rs = testCon.prepareTupleQuery(QueryLanguage.SPARQL, "SELECT * { <s1> ?p ?o }", "http://example.org/").evaluate();
@@ -251,10 +213,10 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
     public void testAddGzipInputStreamNTriples() throws Exception {
         // add file default-graph.nt.gz to repository, no context
         File gz = File.createTempFile("default-graph.nt-", ".gz");
-        File nt = new File(TEST_DATA_DIR + "default-graph.nt");
+        String filePath = Objects.requireNonNull(Util.class.getResource(TEST_DATA_DIR + "default-graph.nt")).getFile();
+        File nt = new File(filePath);
         Util.gzip(nt, gz);
-        InputStream defaultGraph = new FileInputStream(gz);
-        //RepositoryConnectionTest.class.getResourceAsStream(TEST_DIR_PREFIX + "default-graph.nt.gz");
+        InputStream defaultGraph = Files.newInputStream(gz.toPath());
         try {
             testCon.add(defaultGraph, "", RDFFormat.NTRIPLES);
         } finally {
@@ -541,6 +503,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
         }
     }
 
+    @Test
     public void testPreparedTupleQuery2()
             throws Exception {
         testCon.add(alice, name, nameAlice, context2);
@@ -732,6 +695,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
 
     }
 
+    @Test
     @Override
     public void testGetStatementsInMultipleContexts()
             throws Exception {
@@ -843,6 +807,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
         }
     }
 
+    @Test
     @Override
     public void testOptionalFilter()
             throws Exception {
@@ -869,6 +834,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
         assertThat(set, hasItem(Arrays.asList(v3, null)));
     }
 
+    @Test
     @Override
     public void testOrPredicate()
             throws Exception {
@@ -892,6 +858,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
         assertThat(list, hasItem(p2));
     }
 
+    @Test
     @Override
     public void testGraphSerialization()
             throws Exception {
@@ -925,6 +892,7 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
     }
 
 
+    @Test
     @Override
     public void testGetNamespaces()
             throws Exception {

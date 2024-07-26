@@ -16,13 +16,7 @@ import org.eclipse.rdf4j.query.QueryLanguage;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.junit.Test;
-import org.junit.experimental.categories.Categories;
-import org.junit.experimental.categories.Categories.ExcludeCategory;
-import org.junit.experimental.categories.Categories.IncludeCategory;
 import org.junit.experimental.categories.Category;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite.SuiteClasses;
-import test.TestSuites.NonPrepushTest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -165,18 +159,6 @@ public class QuickTests extends AGAbstractTest {
         String serverURL = server.getServerURL();
         AGServer server2 = new AGServer(serverURL + "/", username(), password());
         Assert.assertEquals(serverURL, server2.getServerURL());
-    }
-
-    @RunWith(Categories.class)
-    @ExcludeCategory(NonPrepushTest.class)
-    @SuiteClasses( {QuickTests.class})
-    public static class Prepush {
-    }
-
-    @RunWith(Categories.class)
-    @IncludeCategory(TestSuites.Broken.class)
-    @SuiteClasses( {QuickTests.class})
-    public static class Broken {
     }
 
 }

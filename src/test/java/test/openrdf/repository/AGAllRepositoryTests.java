@@ -8,9 +8,10 @@ import org.junit.runners.Suite;
         AGCascadeValueExceptionTest.class,
         AGEquivalentTest.class,
         AGRDFSchemaRepositoryConnectionTest.class,
+        AGRepositoryConnectionTest.class,
         AGSparqlAggregatesTest.class,
         AGSparqlOrderByTest.class,
-        AGSparqlRegexTest.class,
+        AGSparqlRegexTest.class
 })
 public class AGAllRepositoryTests {
 }

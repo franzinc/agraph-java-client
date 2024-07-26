@@ -4,22 +4,22 @@
 
 package test;
 
-import junit.framework.Test;
+import junit.extensions.TestSetup;
 import org.apache.jena.graph.Graph;
 
 public class AGAnonGraphTest extends AGNamedGraphTest {
+    private static final JenaUtil util = new JenaUtil(AGAnonGraphTest.class);
     public AGAnonGraphTest(String name) {
         super(name);
     }
 
-    public static Test suite() {
-        util = new JenaUtil(AGAnonGraphTest.class);
+    public static TestSetup suite() {
         return util;
     }
 
     @Override
     public Graph getGraph() {
-        return maker.createGraph();
+        return util.getMaker().createGraph();
     }
 
 }

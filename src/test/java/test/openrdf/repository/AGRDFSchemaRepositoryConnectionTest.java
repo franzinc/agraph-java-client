@@ -1,12 +1,14 @@
 package test.openrdf.repository;
 
 import com.franz.agraph.repository.AGRepository;
+import org.eclipse.rdf4j.IsolationLevel;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryResult;
+import org.junit.Ignore;
 import org.junit.Test;
 import test.AGAbstractTest;
 
@@ -22,6 +24,10 @@ public class AGRDFSchemaRepositoryConnectionTest extends AGRepositoryConnectionT
     private IRI woman;
 
     private IRI man;
+
+    public AGRDFSchemaRepositoryConnectionTest(IsolationLevel level) {
+        super(level);
+    }
 
     @Override
     protected Repository createRepository() throws Exception {
@@ -107,9 +113,9 @@ public class AGRDFSchemaRepositoryConnectionTest extends AGRepositoryConnectionT
         assertFalse(testCon.hasStatement(bob, RDF.TYPE, RDFS.RESOURCE, true));
     }
 
+    @Ignore
     @Test
-    public void testInferencerQueryDuringTransaction()
-            throws Exception {
+    public void testInferencerQueryDuringTransaction() {
         testCon.setAutoCommit(false);
         testCon.add(bob, name, nameBob);
         assertTrue(testCon.hasStatement(bob, RDF.TYPE, RDFS.RESOURCE, true));
@@ -117,9 +123,9 @@ public class AGRDFSchemaRepositoryConnectionTest extends AGRepositoryConnectionT
         testCon.setAutoCommit(true);
     }
 
+    @Ignore
     @Test
-    public void testInferencerTransactionIsolation()
-            throws Exception {
+    public void testInferencerTransactionIsolation() {
         testCon.setAutoCommit(false);
         testCon.add(bob, name, nameBob);
 

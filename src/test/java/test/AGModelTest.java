@@ -5,18 +5,14 @@
 package test;
 
 import com.franz.agraph.jena.AGGraph;
-import com.franz.agraph.jena.AGGraphMaker;
 import com.franz.agraph.jena.AGModel;
-import com.franz.agraph.repository.AGRepositoryConnection;
 import junit.framework.Test;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.test.AbstractTestModel;
 
 public class AGModelTest extends AbstractTestModel {
-    protected static JenaUtil util = new JenaUtil(AGModelTest.class);
+    private static final JenaUtil util = new JenaUtil(AGModelTest.class);
     private static int graphId = 0;
-    protected AGRepositoryConnection conn = null;
-    protected AGGraphMaker maker = null;
 
     public AGModelTest(String name) {
         super(name);
@@ -27,19 +23,11 @@ public class AGModelTest extends AbstractTestModel {
     }
 
     @Override
-    public void setUp() {
-        conn = util.getConn();
-        maker = util.getMaker();
-        super.setUp();
-    }
-
-    @Override
     public Model getModel() {
-        AGGraph graph = util.getMaker().createGraph("http://anon" + graphId);
+        AGGraph graph = util.getMaker().createGraph("http://ag-model-test-" + graphId);
         graphId++;
         return new AGModel(graph);
     }
-
 
     public void testContainsResource() {
         //TODO Again deal with this _a notation for blank nodes

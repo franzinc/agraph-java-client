@@ -38,52 +38,78 @@ public class TestSuites {
     @RunWith(Categories.class)
     @ExcludeCategory(NonPrepushTest.class)
     @SuiteClasses( {
+            AGConnPoolWarmupTest.class,
+            AGGraphQueryTests.class,
+            AGHTTPClientTests.class,
             AGMaterializerTests.class,
-            MasqueradeAsUserTests.class,
-            UserManagementTests.class,
-            TutorialTests.class,
-            LiteralAndResourceResultsTest.class,
-            QuickTests.class,
+            AGQueryExecutionTest.class,
             AGRepositoryConnectionTests.class,
-            RDFTransactionTest.class,
-            JenaTests.class,
+            AGRepositoryFactoryTest.class,
+            AGServerTests.class,
+            AGServerVersionTests.class,
+            AGTripleAttributesTest.class,
+            AGUtilTest.class,
+            BlankNodeTests.class,
             BulkModeTests.class,
-            IndexManagementTests.class,
+            ContextsVarargsTest.class,
+            DeleteDuplicatesTests.class,
+            DownloadTest.class,
+            DynamicCatalogTests.class,
             EncodableNamespaceTests.class,
             FederationTests.class,
-            SessionTests.class,
-            ServerCodeTests.class,
-            SpogiTripleCacheTests.class,
-            UploadCommitPeriodTests.class,
-            NQuadsTests.class,
-            JSONLDTest.class,
-            AGGraphQueryTests.class,
-            QueryLimitOffsetTests.class,
-            UntypedLiteralMatchingTest.class,
-            AGConnPoolSessionTest.class,
-            AGConnPoolWarmupTest.class,
-            BlankNodeTests.class,
-            MappingsTests.class,
-            DynamicCatalogTests.class,
-            SpinTest.class,
             FreetextTests.class,
-            DeleteDuplicatesTests.class,
-            SparqlUpdateTests.class,
-            SparqlDefaultTest.class,
-            SparqlDefaultDatasetTest.class,
-            AGRepositoryFactoryTest.class,
-            AGQueryExecutionTest.class,
-            AGTripleAttributesTest.class,
-            Unicode.class,
-            DownloadTest.class,
-            AGUtilTest.class,
+            IndexManagementTests.class,
+            JSONLDTest.class,
+            LiteralAndResourceResultsTest.class,
+            MappingsTests.class,
+            MasqueradeAsUserTests.class,
+            NQuadsTests.class,
+            QueryLimitOffsetTests.class,
+            QuickTests.class,
+            RDFTransactionTest.class,
+            ReifiedStatementTest.class,
             ReplHeaderTest.class,
-            AGServerVersionTests.class,
-            AGHTTPClientTests.class,
+            ServerCodeTests.class,
+            SessionTests.class,
+            SparqlDefaultDatasetTest.class,
+            SparqlDefaultTest.class,
+            SparqlUpdateTests.class,
+            SpinTest.class,
+            SpogiTripleCacheTests.class,
+            TutorialTests.class,
+            UntypedLiteralMatchingTest.class,
+            UploadCommitPeriodTests.class,
+            UserManagementTests.class,
             WarmupTests.class,
+
+            JenaCompliance.class,
+            OpenRDF.class,
+            Unicode.class,
+
     })
     public static class Prepush {
     }
+
+    @RunWith(Categories.class)
+    @SuiteClasses( {
+            AGAnonGraphTest.class,
+            AGGraphMakerTest.class,
+            AGModelTest.class,
+            AGNamedGraphTest.class,
+            AGPrefixMappingTest.class,
+            AGReifierTest.class,
+            AGResultSetTest.class,
+            JenaSparqlUpdateTest.class,
+            JenaTests.class
+    })
+    public static class JenaCompliance { }
+
+    @RunWith(Categories.class)
+    @SuiteClasses( {
+            test.openrdf.AGSparqlUpdateTest.class,
+            test.openrdf.repository.AGAllRepositoryTests.class
+    })
+    public static class OpenRDF { }
 
     @RunWith(Categories.class)
     @SuiteClasses( {
@@ -105,10 +131,10 @@ public class TestSuites {
     @RunWith(Categories.class)
     @IncludeCategory(Broken.class)
     @ExcludeCategory(NotApplicableForAgraph.class)
-    @SuiteClasses( {TutorialTests.class,
-            QuickTests.class,
+    @SuiteClasses( {
             AGConnPoolClosingTest.class,
-            AGRepositoryConnectionTests.class})
+            TripleIdTests.class
+    })
     public static class Broken implements NonPrepushTest {
     }
 
@@ -120,7 +146,7 @@ public class TestSuites {
     @RunWith(Categories.class)
     @IncludeCategory(Stress.class)
     @ExcludeCategory(Prepush.class)
-    @SuiteClasses( {QuickTests.class,
+    @SuiteClasses( {
             TransactionStressTest.class,
             AGConnPoolClosingTest.class,
             AGConnPoolSessionTest.class

@@ -32,6 +32,7 @@ import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.ntriples.NTriplesWriter;
 import org.eclipse.rdf4j.rio.rdfxml.RDFXMLWriter;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -896,7 +897,7 @@ public class TutorialTests extends AGAbstractTest {
     /**
      * Social Network Analysis
      */
-    @Category(TestSuites.Broken.class)
+    @Ignore
     @Test
     public void example21() throws Exception {
         AGValueFactory vf = repo.getValueFactory();
