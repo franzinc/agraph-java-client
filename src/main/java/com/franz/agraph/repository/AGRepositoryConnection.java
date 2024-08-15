@@ -96,7 +96,7 @@ import javax.transaction.xa.Xid;
  * com.franz.agraph.pool.AGConnPool}) and having exactly one thread
  * that uses each connection.</p>
  *
- * <h3><a id="sessions">Dedicated Session Overview</a></h3>
+ * <h2><a id="sessions">Dedicated Session Overview</a></h2>
  * <p>Sessions with AllegroGraph server are used for ACID transactions
  * and also for server code in InitFile and Scripts.
  * See more documentation for
@@ -235,11 +235,6 @@ public class AGRepositoryConnection
                 + " " + getHttpRepoClientInternal()
                 + "}";
     }
-
-    /*
-     * @Override protected void finalize() throws Throwable { try { if
-     * (isOpen()) { close(); } } finally { super.finalize(); } }
-     */
 
     @Override
     public AGAbstractRepository getRepository() {
@@ -1012,6 +1007,7 @@ public class AGRepositoryConnection
      * @see #setAutoCommit(boolean)
      * @deprecated since release 2.7.0. Use isActive() instead.
      */
+    @Deprecated
     @Override
     public boolean isAutoCommit() throws RepositoryException {
         return prepareHttpRepoClient().isAutoCommit();
@@ -1033,7 +1029,7 @@ public class AGRepositoryConnection
      *
      * @deprecated As of release 2.7.0, use begin() instead.
      */
-    @Override
+    @Deprecated @Override
     public void setAutoCommit(boolean autoCommit) throws RepositoryException {
         prepareHttpRepoClient().setAutoCommit(autoCommit);
     }
@@ -1883,6 +1879,7 @@ public class AGRepositoryConnection
      * @see #createFreetextIndex(String, AGFreetextIndexConfig)
      * @deprecated
      */
+    @Deprecated
     public void createFreetextIndex(String name, IRI[] predicates)
             throws RepositoryException {
         AGFreetextIndexConfig config = AGFreetextIndexConfig.newInstance();
@@ -1899,6 +1896,7 @@ public class AGRepositoryConnection
      * @see #getFreetextIndexConfig(String)
      * @deprecated
      */
+    @Deprecated
     public String[] getFreetextPredicates(String index) throws RepositoryException {
         return prepareHttpRepoClient().getFreetextPredicates(index);
     }
@@ -1924,6 +1922,7 @@ public class AGRepositoryConnection
      * @see #listFreetextIndices()
      * @deprecated
      */
+    @Deprecated
     public String[] getFreetextIndices() throws RepositoryException {
         return prepareHttpRepoClient().getFreetextIndices();
     }
@@ -2653,6 +2652,7 @@ public class AGRepositoryConnection
      * @since v4.2
      * @deprecated The stored proc feature and API are experimental, and subject to change in a future release.
      */
+    @Deprecated
     public Object callStoredProc(String functionName, String moduleName, Object... args)
             throws RepositoryException {
         return prepareHttpRepoClient().callStoredProc(functionName, moduleName, args);

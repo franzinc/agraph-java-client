@@ -8,6 +8,8 @@ import com.franz.agraph.repository.AGBooleanQuery;
 import com.franz.agraph.repository.AGGraphQuery;
 import com.franz.agraph.repository.AGTupleQuery;
 import com.franz.agraph.repository.AGUpdate;
+import org.apache.jena.atlas.json.JsonArray;
+import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
@@ -60,7 +62,7 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 
     @Override
     public void abort() {
-        throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+        throw new AGExecutionAbortedException();
     }
 
     @Override
@@ -106,6 +108,16 @@ public class AGQueryExecution implements QueryExecution, Closeable {
             throw new QueryException(e);
         }
         return result;
+    }
+
+    @Override
+    public JsonArray execJson() {
+        throw new AGUnsupportedOperationException();
+    }
+
+    @Override
+    public Iterator<JsonObject> execJsonItems() {
+        throw new AGUnsupportedOperationException();
     }
 
     @Override
@@ -283,15 +295,14 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 
     @Override
     public Context getContext() {
-        throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+        throw new AGUnsupportedOperationException();
     }
 
     @Override
     public Dataset getDataset() {
-        throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+        throw new AGUnsupportedOperationException();
     }
 
-    @Override
     public void setInitialBinding(QuerySolution binding) {
         this.binding = binding;
     }
@@ -322,27 +333,24 @@ public class AGQueryExecution implements QueryExecution, Closeable {
     }
 
 
-    @Override
     public void setTimeout(long timeout) {
         this.timeout = timeout;
     }
 
-
-    @Override
     public void setTimeout(long arg0, TimeUnit arg1) {
         this.timeout = arg1.toMillis(arg0);
     }
 
-
-    @Override
     public void setTimeout(long arg0, long arg1) {
         setTimeout(arg0, TimeUnit.MILLISECONDS, arg1, TimeUnit.MILLISECONDS);
     }
 
-
-    @Override
     public void setTimeout(long timeout1, TimeUnit timeUnit1, long timeout2, TimeUnit timeUnit2) {
         this.timeout = asMillis(timeout1, timeUnit1);
+    }
+
+    public String getQueryString() {
+        return this.query.getQueryString();
     }
 
     private long asMillis(long duration, TimeUnit timeUnit) {
@@ -351,13 +359,13 @@ public class AGQueryExecution implements QueryExecution, Closeable {
 
     @Override
     public long getTimeout1() {
-        return 0;
+        throw new AGUnsupportedOperationException();
     }
 
 
     @Override
     public long getTimeout2() {
-        return 0;
+        throw new AGUnsupportedOperationException();
     }
 
     @Override

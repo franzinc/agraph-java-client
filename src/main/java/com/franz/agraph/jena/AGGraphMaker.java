@@ -5,9 +5,9 @@
 package com.franz.agraph.jena;
 
 import com.franz.agraph.repository.AGRepositoryConnection;
-import org.apache.jena.graph.GraphMaker;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.ontology.models.GraphMaker;
 import org.apache.jena.shared.AlreadyExistsException;
 import org.apache.jena.shared.DoesNotExistException;
 import org.apache.jena.util.CollectionFactory;
@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * Implements the Jena GraphMaker interface for AllegroGraph.
@@ -28,7 +29,7 @@ import java.util.Set;
 public class AGGraphMaker implements GraphMaker, Closeable {
     // TODO make this persistent?
     protected Map<String, AGGraph> created = CollectionFactory.createHashedMap();
-    private AGRepositoryConnection conn;
+    private final AGRepositoryConnection conn;
     private AGGraph defaultGraph;
 
     public AGGraphMaker(AGRepositoryConnection conn) {
@@ -46,7 +47,6 @@ public class AGGraphMaker implements GraphMaker, Closeable {
     public void close() {
     }
 
-    @Override
     public AGGraph getGraph() {
         if (defaultGraph == null) {
             defaultGraph = new AGGraph(this, null);
@@ -54,7 +54,6 @@ public class AGGraphMaker implements GraphMaker, Closeable {
         return defaultGraph;
     }
 
-    @Override
     public AGGraph createGraph() {
         // Get an unused blank node id from the server.  Note that using
         // createAnon() would generate an illegal id based on a uuid.
@@ -68,7 +67,6 @@ public class AGGraphMaker implements GraphMaker, Closeable {
         return createGraph(uri, false);
     }
 
-    @Override
     public AGGraph createGraph(String uri, boolean strict) {
         AGGraph g = created.get(uri);
         if (g == null) {
@@ -96,14 +94,20 @@ public class AGGraphMaker implements GraphMaker, Closeable {
         return null != created.get(uri);
     }
 
-    @Override
+    @Deprecated
     public ExtendedIterator<String> listGraphs() {
         return new NiceIterator<String>().andThen(created.keySet().iterator());
     }
 
-    @Override
+    @Deprecated
     public AGGraph openGraph() {
         return getGraph();
+    }
+
+    public Stream<String> names() {
+        Set<String> names = created.keySet();
+        names.add(defaultGraph.getName());
+        return names.stream();
     }
 
     @Override
@@ -111,7 +115,6 @@ public class AGGraphMaker implements GraphMaker, Closeable {
         return openGraph(name, false);
     }
 
-    @Override
     public AGGraph openGraph(String uri, boolean strict) {
         AGGraph g = created.get(uri);
         if (g == null) {

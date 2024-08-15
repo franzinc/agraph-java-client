@@ -11,6 +11,7 @@ package com.franz.agraph.http.exception;
  * @since v4.2
  * @deprecated The stored proc feature and API are experimental, and subject to change in a future release.
  */
+@Deprecated
 public class AGCustomStoredProcException extends AGHttpException {
 
     private static final long serialVersionUID = -2612222758468197539L;

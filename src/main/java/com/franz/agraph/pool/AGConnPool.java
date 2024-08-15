@@ -212,6 +212,7 @@ public class AGConnPool implements ObjectPool<AGRepositoryConnection>, AutoClose
      * @return A connection.
      * @deprecated Use {@link #borrowObject()} instead.
      */
+    @Deprecated
     public AGRepositoryConnection borrowConnection() {
         return borrowObject();
     }

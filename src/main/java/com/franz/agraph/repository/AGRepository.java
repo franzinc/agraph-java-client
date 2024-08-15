@@ -227,7 +227,7 @@ public class AGRepository extends AbstractRepository implements AGAbstractReposi
      *
      * @deprecated not applicable to AllegroGraph
      */
-    @Override
+    @Deprecated @Override
     public File getDataDir() {
         return null;
     }
@@ -237,7 +237,7 @@ public class AGRepository extends AbstractRepository implements AGAbstractReposi
      *
      * @deprecated not applicable to AllegroGraph
      */
-    @Override
+    @Deprecated @Override
     public void setDataDir(File dataDir) {
         // TODO: consider using this for client-side logging
     }

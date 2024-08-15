@@ -24,7 +24,7 @@ public class AGNodeFactory {
         Node s = asNode(st.getSubject());
         Node p = asNode(st.getPredicate());
         Node o = asNode(st.getObject());
-        return new Triple(s, p, o);
+        return Triple.create(s, p, o);
     }
 
     public static Quad asQuad(Statement st) {
@@ -52,7 +52,7 @@ public class AGNodeFactory {
             } else if (datatype != null) {
                 node = NodeFactory.createLiteral(lit.getLabel(), null, NodeFactory.getType(datatype.toString()));
             } else {
-                node = NodeFactory.createLiteral(lit.stringValue());
+                node = NodeFactory.createLiteralString(lit.stringValue());
             }
         } else {
             throw new IllegalArgumentException("Cannot create Node from Value: " + v);

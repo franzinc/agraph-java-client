@@ -10,6 +10,7 @@ import java.util.ArrayList;
  * @since v4.2
  * @deprecated The stored proc feature and API are experimental, and subject to change in a future release.
  */
+@Deprecated
 public class AGEncoder {
 
     static char codeToChar[] =

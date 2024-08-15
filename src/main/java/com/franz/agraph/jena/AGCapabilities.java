@@ -7,15 +7,11 @@ package com.franz.agraph.jena;
 import org.apache.jena.graph.Capabilities;
 import org.apache.jena.graph.impl.AllCapabilities;
 
-/**
- * Implements the Jena Capabilities interface for AllegroGraph.
- */
-public class AGCapabilities extends AllCapabilities implements Capabilities {
+public class AGCapabilities {
 
-    @Override
-    // TODO: "true" would require support for D-entailment
-    public boolean handlesLiteralTyping() {
-        return false;
+    private static final Capabilities instance = AllCapabilities.create(true, true, true, false);;
+
+    public static Capabilities getInstance() {
+        return instance;
     }
-
 }

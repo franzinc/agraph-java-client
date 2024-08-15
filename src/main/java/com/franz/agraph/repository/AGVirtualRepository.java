@@ -162,6 +162,7 @@ public class AGVirtualRepository extends AbstractRepository implements AGAbstrac
      * @throws UnsupportedOperationException this operation is unsupported
      * @deprecated not applicable to AllegroGraph
      */
+    @Deprecated
     public File getDataDir() {
         throw new UnsupportedOperationException("getDataDir is inapplicable for AG repositories");
     }
@@ -172,6 +173,7 @@ public class AGVirtualRepository extends AbstractRepository implements AGAbstrac
      * @throws UnsupportedOperationException this operation is unsupported
      * @deprecated not applicable to AllegroGraph
      */
+    @Deprecated
     public void setDataDir(File dataDir) {
         throw new UnsupportedOperationException("setDataDir is inapplicable for AG repositories");
     }

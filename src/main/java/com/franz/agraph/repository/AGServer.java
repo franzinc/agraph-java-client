@@ -136,7 +136,6 @@ public class AGServer implements Closeable {
      * SSLCAFile /path/ca.cert
      * }</pre>
      * For more details, see <a href="http://www.franz.com/agraph/support/documentation/current/daemon-config.html#client-index">Server configuration</a>.
-     * <p>
      *
      * @param httpClient the AGHTTPClient instance to use
      * @see #AGServer(String)
@@ -494,7 +493,6 @@ public class AGServer implements Closeable {
      * Access is documented
      * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-user-access"
      * target="_top">here</a>.
-     * <p>
      *
      * @param user       user id
      * @param read       read access
@@ -526,7 +524,6 @@ public class AGServer implements Closeable {
      * Access is documented
      * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#delete-user-access"
      * target="_top">here</a>.
-     * <p>
      *
      * @param user       user id
      * @param read       read access
@@ -558,7 +555,6 @@ public class AGServer implements Closeable {
      * Access is documented
      * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#get-user-access"
      * target="_top">here</a>.
-     * <p>
      *
      * @param user user id
      * @return a JSONArray describing <code>user</code>'s access list
@@ -693,7 +689,6 @@ public class AGServer implements Closeable {
      * Permissions are documented
      * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#get-user-permissions"
      * target="_top">here</a>.
-     * <p>
      *
      * @param user user id
      * @return list of permissions
@@ -711,7 +706,6 @@ public class AGServer implements Closeable {
      * Permissions are documented
      * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#get-user-permissions"
      * target="_top">here</a>.
-     * <p>
      *
      * @param user user id
      * @return list of permissions
@@ -779,7 +773,6 @@ public class AGServer implements Closeable {
      * Access is documented
      * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#put-user-access"
      * target="_top">here</a>.
-     * <p>
      *
      * @param role       role id
      * @param read       read access
@@ -812,7 +805,6 @@ public class AGServer implements Closeable {
      * Access is documented
      * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#get-user-access"
      * target="_top">here</a>.
-     * <p>
      *
      * @param role role id
      * @return the access list for the specified role
@@ -1022,7 +1014,6 @@ public class AGServer implements Closeable {
      * Permissions are documented
      * <a href="http://www.franz.com/agraph/support/documentation/current/http-protocol.html#get-role-permissions"
      * target="_top">here</a>.
-     * <p>
      *
      * @param role role id
      * @return list of permissions

@@ -130,10 +130,7 @@ public class AGGraph extends GraphBase implements Graph, Closeable {
 
     @Override
     public Capabilities getCapabilities() {
-        if (capabilities == null) {
-            capabilities = new AGCapabilities();
-        }
-        return capabilities;
+        return AGCapabilities.getInstance();
     }
 
     @Override
@@ -146,12 +143,6 @@ public class AGGraph extends GraphBase implements Graph, Closeable {
         return new AGTransactionHandler(this);
     }
 
-    /*@Override
-    public String toString() {
-        if (graphNode == null)
-            return "default-graph";
-        return graphNode.toString();
-    }*/
     @Override
     public String toString() {
         return toString(getName() + (closed ? " (closed) " : " (size: " + graphBaseSize() + ")."), this);

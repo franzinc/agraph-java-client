@@ -208,6 +208,7 @@ public abstract class AGQuery extends AbstractQuery {
      * @return String  the name of the engine used to perform this query
      * @deprecated internal use only
      */
+    @Deprecated
     public String getEngine() {
         return engine;
     }
@@ -219,6 +220,7 @@ public abstract class AGQuery extends AbstractQuery {
      * @see #getEngine()
      * @deprecated internal use only
      */
+    @Deprecated
     public void setEngine(String engine) {
         this.engine = engine;
     }

@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.franz</groupId>
   <artifactId>agraph-java-client</artifactId>
-  <version>4.0.1-SNAPSHOT</version>
+  <version>5.0.0-alpha-SNAPSHOT</version>
   <name>agraph-java-client</name>
   <description>Java client API for Franz AllegroGraph</description>
   <url>https://github.com/franzinc/agraph-java-client</url>
@@ -37,13 +37,19 @@
   
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <tests.include>test.TestSuites$Prepush</tests.include>
-    <tests.exclude />
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
+    <maven.compiler.release>17</maven.compiler.release>
+
     <!-- All RDF4J deps use the same version. -->
     <rdf4j.version>2.4.0</rdf4j.version>
     <!-- Same thing applies to Jena. -->
-    <jena.version>3.3.0</jena.version>
+    <jena.version>5.1.0</jena.version>
+
+    <tests.include>test.TestSuites$Prepush</tests.include>
+    <tests.exclude />
   </properties>
+
 
   <!--Use a separate profile for release deployment. -->
   <profiles>
@@ -136,11 +142,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.5.1</version>
-        <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
-        </configuration>
+        <version>3.13.0</version>
       </plugin>
       
       <!-- Common test settings. -->
@@ -234,37 +236,31 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.1.0</version>
+        <version>3.6.3</version>
         <configuration>
-          <author>true</author>
           <destDir>doc</destDir>
+          <doclint>all,-missing</doclint>
+          <failOnError>true</failOnError>
+          <failOnWarnings>false</failOnWarnings>
+
+          <author>true</author>
           <doctitle>Franz, Inc. AllegroGraph Java Client ${project.version} Javadoc</doctitle>
-          <footer>Copyright &amp;copy; 2008-${year} Franz Inc.</footer>
+          <bottom>Copyright &amp;copy; 2008-${year} Franz Inc.</bottom>
           <header>Franz Inc, AllegroGraph Java Client</header>
+
           <nodeprecated>false</nodeprecated>
           <nodeprecatedlist>false</nodeprecatedlist>
           <noindex>false</noindex>
           <nonavbar>false</nonavbar>
           <notree>false</notree>
-          <offlineLinks>
-            <offlineLink>
-              <url>http://download.oracle.com/javase/8/docs/api/</url>
-              <location>${basedir}/lib/java</location>
-            </offlineLink>
-            <offlineLink>
-              <url>http://docs.rdf4j.org/javadoc/${rdf4j.release}/</url>
-              <location>${basedir}/lib/rdf4j</location>
-            </offlineLink>
-            <offlineLink>
-              <!-- Apache only hosts the very latest version. -->
-              <url>https://www.javadoc.io/doc/org.apache.jena/jena-core/${jena.version}/</url>
-              <location>${basedir}/lib/jena</location>
-            </offlineLink>
-          </offlineLinks>
+          <links>
+            <link>https://jena.apache.org/documentation/javadoc/jena/</link>
+            <link>https://docs.rdf4j.org/javadoc/2.5.4/</link>
+          </links>
           <overview>${basedir}/src/main/javadoc/overview.html</overview>
           <reportOutputDirectory>${basedir}</reportOutputDirectory>
           <show>public</show>
-          <source>1.8</source>
+          <source>17</source>
           <splitindex>true</splitindex>
           <use>true</use>
           <version>true</version>
@@ -308,7 +304,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>2.17</version>
+        <version>3.2.2</version>
         <executions>
           <!-- Check for main sources -->
           <execution>
@@ -384,6 +380,10 @@
     <repository>
       <id>central</id>
       <url>https://repo1.maven.org/maven2</url>
+    </repository>
+    <repository>
+      <id>clazzes</id>
+      <url>https://maven.clazzes.org/</url>
     </repository>
   </repositories>
 

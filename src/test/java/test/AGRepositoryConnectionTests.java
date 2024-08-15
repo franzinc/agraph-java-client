@@ -16,7 +16,6 @@ import com.franz.agraph.repository.AGServer;
 import com.franz.agraph.repository.AGServerVersion;
 import com.franz.agraph.repository.AGXid;
 import com.franz.agraph.http.AGProtocol;
-import com.franz.agraph.http.exception.AGHttpException;
 
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
@@ -38,13 +37,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Categories;
-import org.junit.experimental.categories.Categories.ExcludeCategory;
-import org.junit.experimental.categories.Categories.IncludeCategory;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite.SuiteClasses;
 import test.RepositoryConnectionTest.RepositoryConnectionTests;
-import test.TestSuites.NonPrepushTest;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -1109,18 +1102,6 @@ public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
             // Secondarily verify that the cached id (id2) is the same as id1.
             assertEquals(id1, id2);
         }
-    }
-
-    @RunWith(Categories.class)
-    @ExcludeCategory(NonPrepushTest.class)
-    @SuiteClasses( {AGRepositoryConnectionTests.class})
-    public static class Prepush {
-    }
-
-    @RunWith(Categories.class)
-    @IncludeCategory(TestSuites.Broken.class)
-    @SuiteClasses( {AGRepositoryConnectionTests.class})
-    public static class Broken {
     }
 
     private class TestXid implements Xid {

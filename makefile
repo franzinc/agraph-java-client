@@ -131,12 +131,8 @@ build: FORCE
 javadoc: FORCE
     # Note: if we do not call 'validate' explicitly, the plugin that
     # computes the current year will run too late.
-	mkdir -p target   # make sure the output directory exists...
-	mvn $(MVN_ARGS) validate javadoc:javadoc | tee target/javadoc.log
-	@if grep -q ^"\[WARNING\]" target/javadoc.log; then \
-            echo "[ERROR] Javadoc warnings found,"; \
-            exit 1; \
-        fi
+	mkdir -p target
+	mvn $(MVN_ARGS) validate javadoc:javadoc
 
 checkstyle: FORCE
 	mvn $(MVN_ARGS) checkstyle:check

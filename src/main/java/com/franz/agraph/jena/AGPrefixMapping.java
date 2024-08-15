@@ -5,8 +5,8 @@
 package com.franz.agraph.jena;
 
 import org.apache.jena.rdf.model.impl.Util;
+import org.apache.jena.riot.system.RiotChars;
 import org.apache.jena.shared.PrefixMapping;
-import org.apache.xerces.util.XMLChar;
 import org.eclipse.rdf4j.model.Namespace;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.RepositoryResult;
@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 
 /**
  * Implements the Jena PrefixMapping interface for AllegroGraph.
@@ -104,7 +105,7 @@ public class AGPrefixMapping implements PrefixMapping {
     public String qnameFor(String uri) {
         int split = Util.splitNamespaceXML(uri);
         String ns = uri.substring(0, split), local = uri.substring(split);
-        if (local.equals("")) {
+        if (local.isEmpty()) {
             return null;
         }
         String prefix = getNsURIPrefix(ns);
@@ -133,26 +134,28 @@ public class AGPrefixMapping implements PrefixMapping {
         return getNsPrefixMap().equals(other.getNsPrefixMap());
     }
 
-    @Override
-    public PrefixMapping setNsPrefix(String prefix, String uri) {
-        checkUnlocked();
-        // TODO support an empty prefix for the default namespace
-        if (prefix.length() > 0 && !XMLChar.isValidNCName(prefix))
-        // required by AbstractTestPrefixMapping#testCheckNames()
-        {
+    /**
+     * <a href="https://www.w3.org/TeamSubmission/turtle/#prefixName">See Turtle grammar</a>
+     */
+    private static void validateNsPrefix(String prefix) {
+        if (prefix.isEmpty()) {
+            return;
+        }
+        boolean startOk = RiotChars.isPNChars_U(prefix.charAt(0));
+        boolean allOk = prefix.chars().allMatch(RiotChars::isPNChars);
+        if (!(startOk && allOk)) {
             throw new PrefixMapping.IllegalPrefixException(prefix);
         }
-        if (uri == null)
-        // required by AbstractTestPrefixMapping#testNullURITrapped()
-        // TODO: why not an IllegalArgumentException?
-        {
-            throw new NullPointerException("null URIs are prohibited as arguments to setNsPrefix");
-        }
-        try {
-            getGraph().getConnection().setNamespace(prefix, uri);
-        } catch (RepositoryException e) {
-            throw new RuntimeException(e);
-        }
+    }
+
+    @Override
+    public PrefixMapping setNsPrefix(String prefix, String uri) {
+        validateNsPrefix(prefix);
+        Objects.requireNonNull(uri);
+
+        checkUnlocked();
+        getGraph().getConnection().setNamespace(prefix, uri);
+
         return this;
     }
 

@@ -7,8 +7,8 @@ package test;
 import com.franz.agraph.jena.AGGraphMaker;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import junit.framework.Test;
-import org.apache.jena.graph.GraphMaker;
 import org.apache.jena.graph.test.AbstractTestGraphMaker;
+import org.apache.jena.ontology.models.GraphMaker;
 
 public class AGGraphMakerTest extends AbstractTestGraphMaker {
     private static final JenaUtil util = new JenaUtil(AGGraphMakerTest.class);

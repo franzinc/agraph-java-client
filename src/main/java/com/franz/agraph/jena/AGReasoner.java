@@ -66,7 +66,7 @@ public class AGReasoner implements Reasoner {
 
     @Override
     public void addDescription(Model configSpec, Resource base) {
-        throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+        throw new AGUnsupportedOperationException();
 
     }
 
@@ -80,39 +80,39 @@ public class AGReasoner implements Reasoner {
 
     @Override
     public Reasoner bindSchema(Graph tbox) throws ReasonerException {
-        throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+        throw new AGUnsupportedOperationException();
     }
 
     @Override
     public Reasoner bindSchema(Model tbox) throws ReasonerException {
-        throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+        throw new AGUnsupportedOperationException();
     }
 
     @Override
     public Capabilities getGraphCapabilities() {
-        throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+        throw new AGUnsupportedOperationException();
     }
 
     @Override
     public Model getReasonerCapabilities() {
-        throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+        throw new AGUnsupportedOperationException();
     }
 
     @Override
     public void setDerivationLogging(boolean logOn) {
-        throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+        throw new AGUnsupportedOperationException();
 
     }
 
     @Override
     public void setParameter(Property parameterUri, Object value) {
-        throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+        throw new AGUnsupportedOperationException();
 
     }
 
     @Override
     public boolean supportsProperty(Property property) {
-        throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+        throw new AGUnsupportedOperationException();
     }
 
 

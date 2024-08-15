@@ -4,7 +4,7 @@
   <groupId>com.franz</groupId>
   <artifactId>agraph-tutorial-parent</artifactId>
   <packaging>pom</packaging>
-  <version>4.0.1-SNAPSHOT</version>
+  <version>5.0.0-alpha-SNAPSHOT</version>
   <name>agraph-tutorial-parent</name>
   <description>Parent POM for all tutorials</description>
 
@@ -16,27 +16,24 @@
     <module>2pc</module>
     <module>failures</module>
   </modules>
-  
+
   <properties>
-    <!-- This should match RDF4J version used by AG. -->
-    <rdf4j.version>2.2.2</rdf4j.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    
+    <maven.compiler.release>17</maven.compiler.release>
+
+    <!-- This should match RDF4J version used by AG. -->
+    <rdf4j.version>2.4.0</rdf4j.version>
     <!-- This has to be redefined in child projects. -->
     <main.class />
   </properties>
-  
+
   <build>
     <plugins>
       <!-- Compiler settings. -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.5.1</version>
-        <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
-        </configuration>
+        <version>3.13.0</version>
       </plugin>
 
       <!-- Main class (for 'mvn exec') -->

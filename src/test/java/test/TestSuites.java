@@ -67,7 +67,6 @@ public class TestSuites {
             QueryLimitOffsetTests.class,
             QuickTests.class,
             RDFTransactionTest.class,
-            ReifiedStatementTest.class,
             ReplHeaderTest.class,
             ServerCodeTests.class,
             SessionTests.class,

@@ -11,6 +11,7 @@ import java.util.List;
  * @since v4.2
  * @deprecated The stored proc feature and API are experimental, and subject to change in a future release.
  */
+@Deprecated
 public class AGDeserializer {
 
     /* data to process */

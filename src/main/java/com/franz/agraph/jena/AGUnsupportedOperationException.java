@@ -7,8 +7,10 @@ package com.franz.agraph.jena;
 /**
  * A utility class for operations not currently supported by AllegroGraph.
  */
-class AGUnsupportedOperation {
+class AGUnsupportedOperationException extends UnsupportedOperationException {
+    private static final String message = "Operation is unsupported in AG Java client";
 
-    public static final String message = "This method is not currently supported.";
-
+    public AGUnsupportedOperationException() {
+        super(message);
+    }
 }

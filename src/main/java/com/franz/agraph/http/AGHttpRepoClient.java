@@ -1623,6 +1623,7 @@ public class AGHttpRepoClient implements AutoCloseable {
      * @see #listFreetextIndices()
      * @deprecated
      */
+    @Deprecated
     public String[] getFreetextIndices() throws AGHttpException {
         String url = AGProtocol.getFreetextIndexLocation(getRoot());
         AGStringHandler handler = new AGStringHandler();
@@ -2113,6 +2114,7 @@ public class AGHttpRepoClient implements AutoCloseable {
      * @since v4.2
      * @deprecated The stored proc feature and API are experimental, and subject to change in a future release.
      */
+    @Deprecated
     public String callStoredProcEncoded(String functionName, String moduleName, String argsEncoded)
             throws AGHttpException {
         String url = AGProtocol.getStoredProcLocation(getRoot()) + "/" + functionName;
@@ -2143,6 +2145,7 @@ public class AGHttpRepoClient implements AutoCloseable {
      * @since v4.2
      * @deprecated The stored proc feature and API are experimental, and subject to change in a future release.
      */
+    @Deprecated
     public Object callStoredProc(String functionName, String moduleName, Object... args)
             throws AGHttpException {
         Object o = AGDeserializer.decodeAndDeserialize(
@@ -2517,7 +2520,6 @@ public class AGHttpRepoClient implements AutoCloseable {
      * quietly exhibiting the two problems described above).
      * <p>
      * This method and approach are experimental and subject to change.
-     * <p>
      *
      * @param allow true enables a workaround to support external bnodes
      * @see #getAllowExternalBlankNodeIds()

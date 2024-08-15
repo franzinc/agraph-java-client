@@ -4,6 +4,7 @@
 
 package com.franz.agraph.jena;
 
+import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.sparql.engine.binding.Binding;
@@ -12,6 +13,8 @@ import org.eclipse.rdf4j.query.QueryEvaluationException;
 import org.eclipse.rdf4j.query.TupleQueryResult;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * Implements the Jena ResultSet interface for AllegroGraph.
@@ -32,6 +35,11 @@ public class AGResultSet implements ResultSet {
     }
 
     @Override
+    public void close() {
+        this.model.close();
+    }
+
+    @Override
     public List<String> getResultVars() {
         try {
             return result.getBindingNames();
@@ -42,7 +50,7 @@ public class AGResultSet implements ResultSet {
 
     @Override
     public int getRowNumber() {
-        throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+        throw new AGUnsupportedOperationException();
     }
 
     @Override
@@ -68,6 +76,14 @@ public class AGResultSet implements ResultSet {
     }
 
     @Override
+    public void forEachRemaining(Consumer<? super QuerySolution> action) {
+        Objects.requireNonNull(action);
+        while (this.hasNext()) {
+            action.accept(this.next());
+        }
+    }
+
+    @Override
     /**
      * This method is not supported.  Use next() instead and iterate
      * over the returned QuerySolution.
@@ -76,7 +92,7 @@ public class AGResultSet implements ResultSet {
      *
      */
     public Binding nextBinding() {
-        throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+        throw new AGUnsupportedOperationException();
     }
 
     @Override

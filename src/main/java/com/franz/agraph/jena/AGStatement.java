@@ -7,11 +7,9 @@ package com.franz.agraph.jena;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.ReifiedStatement;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.impl.PropertyImpl;
-import org.apache.jena.rdf.model.impl.ReifiedStatementImpl;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.rdf.model.impl.StatementImpl;
 
@@ -45,14 +43,6 @@ public class AGStatement extends StatementImpl {
     @Override
     public AGModel getModel() {
         return (AGModel) super.getModel();
-    }
-
-    /**
-     * create a ReifiedStatement corresponding to this Statement
-     */
-    public ReifiedStatement createReifiedStatement() {
-        Resource bnode = getModel().createResource();
-        return ReifiedStatementImpl.create(this.getModel(), bnode.asNode(), this);
     }
 
 }

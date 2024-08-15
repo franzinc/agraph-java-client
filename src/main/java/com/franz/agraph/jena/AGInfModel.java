@@ -33,12 +33,12 @@ public class AGInfModel extends AGModel implements InfModel {
 
     @Override
     public Model getDeductionsModel() {
-        throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+        throw new AGUnsupportedOperationException();
     }
 
     @Override
     public Iterator<Derivation> getDerivation(Statement statement) {
-        throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+        throw new AGUnsupportedOperationException();
     }
 
     @Override
@@ -54,7 +54,7 @@ public class AGInfModel extends AGModel implements InfModel {
     @Override
     public StmtIterator listStatements(Resource subject, Property predicate,
                                        RDFNode object, Model posit) {
-        throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+        throw new AGUnsupportedOperationException();
     }
 
     @Override
@@ -71,12 +71,12 @@ public class AGInfModel extends AGModel implements InfModel {
 
     @Override
     public void setDerivationLogging(boolean logOn) {
-        throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+        throw new AGUnsupportedOperationException();
     }
 
     @Override
     public ValidityReport validate() {
-        throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+        throw new AGUnsupportedOperationException();
     }
 
 

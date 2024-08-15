@@ -79,22 +79,22 @@ public class AGInfGraph extends AGGraph implements InfGraph {
     @Override
     public ExtendedIterator<Triple> find(Node subject, Node property,
                                          Node object, Graph param) {
-        throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+        throw new AGUnsupportedOperationException();
     }
 
     @Override
     public Graph getDeductionsGraph() {
-        throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+        throw new AGUnsupportedOperationException();
     }
 
     @Override
     public Iterator<Derivation> getDerivation(Triple triple) {
-        throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+        throw new AGUnsupportedOperationException();
     }
 
     @Override
     public Node getGlobalProperty(Node property) {
-        throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+        throw new AGUnsupportedOperationException();
     }
 
     @Override
@@ -125,17 +125,17 @@ public class AGInfGraph extends AGGraph implements InfGraph {
 
     @Override
     public void setDerivationLogging(boolean logOn) {
-        throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+        throw new AGUnsupportedOperationException();
     }
 
     @Override
     public boolean testGlobalProperty(Node property) {
-        throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+        throw new AGUnsupportedOperationException();
     }
 
     @Override
     public ValidityReport validate() {
-        throw new UnsupportedOperationException(AGUnsupportedOperation.message);
+        throw new AGUnsupportedOperationException();
     }
 
 

@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.franz</groupId>
     <artifactId>agraph-tutorial-parent</artifactId>
-    <version>4.0.1-SNAPSHOT</version>
+    <version>5.0.0-alpha-SNAPSHOT</version>
   </parent>
   <artifactId>agq</artifactId>
   <packaging>jar</packaging>
@@ -13,8 +13,7 @@
 
   <properties>
     <main.class>com.franz.agq.Main</main.class>
-    <junit.jupiter.version>5.0.0-M4</junit.jupiter.version>
-    <junit.platform.version>1.0.0-M4</junit.platform.version>
+    <junit5.version>5.11.0</junit5.version>
   </properties>
   
   <build>
@@ -22,8 +21,7 @@
       <!-- Tests -->
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
-        <!-- 2.20 refuses to work with junit 5. -->
-        <version>2.19.1</version>
+        <version>3.3.1</version>
         <configuration>
           <includes>
             <include>**/Test*.java</include>
@@ -32,22 +30,22 @@
             <include>**/*TestCase.java</include>
           </includes>
         </configuration>
-        <dependencies>
-          <dependency>
-            <groupId>org.junit.platform</groupId>
-            <artifactId>junit-platform-surefire-provider</artifactId>
-            <version>${junit.platform.version}</version>
-          </dependency>
-          <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>${junit.jupiter.version}</version>
-          </dependency>
-        </dependencies>
       </plugin>
     </plugins>
-  </build>   
-  
+  </build>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>${junit5.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
     <!-- Command line parser -->
     <dependency>
@@ -91,12 +89,17 @@
       <artifactId>rdf4j-rio-binary</artifactId>
       <version>${rdf4j.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.eclipse.rdf4j</groupId>
+      <artifactId>rdf4j-queryresultio-sparqlxml</artifactId>
+      <version>${rdf4j.version}</version>
+    </dependency>
 
     <!-- Testing libraries -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
-      <version>${junit.jupiter.version}</version>
+      <version>${junit5.version}</version>
       <scope>test</scope>
     </dependency>
     <!-- Need this to compare CSV files in tests -->

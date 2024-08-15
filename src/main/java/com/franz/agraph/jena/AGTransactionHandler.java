@@ -5,8 +5,6 @@
 package com.franz.agraph.jena;
 
 import org.apache.jena.graph.impl.TransactionHandlerBase;
-import org.apache.jena.shared.Command;
-import org.apache.jena.shared.JenaException;
 import org.eclipse.rdf4j.repository.RepositoryException;
 
 /**
@@ -51,21 +49,6 @@ public class AGTransactionHandler extends TransactionHandlerBase {
         } catch (RepositoryException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    @Override
-    public Object executeInTransaction(Command c) {
-        try {
-            begin();
-            c.execute();
-            commit();
-        } catch (Throwable e) {
-            throw new JenaException(e);
-        }
-
-        // TODO determine what object to return here, currently the
-        // command is executed for side effects rather than a result.
-        return null;
     }
 
     @Override
