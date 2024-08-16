@@ -23,8 +23,7 @@ import org.eclipse.rdf4j.rio.RDFParseException;
 import org.eclipse.rdf4j.rio.RDFParser;
 import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.rio.helpers.StatementCollector;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -47,7 +46,6 @@ public class AGRepositoryFactoryTest extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void getRepositoryUsingConfig() throws Exception {
         Model graph = parseTurtleGraph(configFile);
         updateGraphForTestServer(graph);
@@ -68,7 +66,6 @@ public class AGRepositoryFactoryTest extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void getRepositoryUsingManager() throws Exception {
         final Path confDir = Files.createTempDirectory("repomgr");
         closeLater(() -> FileUtils.deleteDirectory(confDir.toFile()));

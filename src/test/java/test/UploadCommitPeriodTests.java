@@ -7,13 +7,11 @@ package test;
 import junit.framework.Assert;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.rio.RDFFormat;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 public class UploadCommitPeriodTests extends AGAbstractTest {
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void uploadCommitPeriod_rfe10059() throws Exception {
         String path = "/tutorial/java-kennedy.ntriples";
         Assert.assertEquals("expected commit period 0", 0, conn.getUploadCommitPeriod());

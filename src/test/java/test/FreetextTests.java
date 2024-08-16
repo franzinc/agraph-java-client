@@ -6,13 +6,11 @@ package test;
 
 import com.franz.agraph.repository.AGFreetextIndexConfig;
 import junit.framework.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 public class FreetextTests extends AGAbstractTest {
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testConfigInnerChars() throws Exception {
         AGFreetextIndexConfig config = AGFreetextIndexConfig.newInstance();
         config.getInnerChars().add("alpha");
@@ -22,7 +20,6 @@ public class FreetextTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testConfigBorderChars() throws Exception {
         AGFreetextIndexConfig config = AGFreetextIndexConfig.newInstance();
         config.getBorderChars().add("digit");
@@ -32,7 +29,6 @@ public class FreetextTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testConfigTokenizer() throws Exception {
         AGFreetextIndexConfig config = AGFreetextIndexConfig.newInstance();
         Assert.assertEquals("getTokenizer() should be default", "default", config.getTokenizer());

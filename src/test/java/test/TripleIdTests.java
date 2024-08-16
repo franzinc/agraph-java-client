@@ -14,13 +14,11 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.repository.RepositoryResult;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 public class TripleIdTests extends AGAbstractTest {
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void tripleIds_rfe10177() throws Exception {
         BNode bnode = vf.createBNode();
         IRI foo = vf.createIRI("http://Foo");

@@ -14,14 +14,12 @@ import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryLanguage;
 import org.eclipse.rdf4j.query.TupleQuery;
 import org.eclipse.rdf4j.query.TupleQueryResult;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 
 public class LiteralAndResourceResultsTest extends AGAbstractTest {
 
     @Test
-    @Category(TestSuites.Prepush.class)
     /**
      * Shows how to get subclasses of Value (Literal, URI, BNode)
      * back from results (rather than just getting Values), and

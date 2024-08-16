@@ -12,8 +12,8 @@ import org.eclipse.rdf4j.query.resultio.BooleanQueryResultFormat;
 import org.eclipse.rdf4j.query.resultio.TupleQueryResultFormat;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,7 +39,7 @@ public class DownloadTest extends AGAbstractTest {
     // Add the test triple and create a temp file before each test
     // WARNING: Do *not* name the method setUp, or you'll override
     // the superclass' method and get an NPE.
-    @Before
+    @BeforeEach
     public void prepare() throws Exception {
         conn = getConnection();
         final URI uri = conn.getValueFactory().createURI(NS, TEXT);

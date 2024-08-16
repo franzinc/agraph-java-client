@@ -19,13 +19,11 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.query.QueryLanguage;
 import org.eclipse.rdf4j.query.Update;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 public class SparqlUpdateTests extends AGAbstractTest {
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testSesameUpdate() throws Exception {
         IRI s = vf.createIRI("http://example/book1");
         IRI p = vf.createIRI("http://purl.org/dc/elements/1.1/title");
@@ -48,7 +46,6 @@ public class SparqlUpdateTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testSesameUpdateViaBooleanQuery() throws Exception {
         IRI s = vf.createIRI("http://example/book1");
         IRI p = vf.createIRI("http://purl.org/dc/elements/1.1/title");
@@ -72,7 +69,6 @@ public class SparqlUpdateTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testJenaUpdate() throws Exception {
         AGGraphMaker maker = closeLater(new AGGraphMaker(conn));
         AGGraph graph = closeLater(maker.getUnionOfAllGraphs());
@@ -101,7 +97,6 @@ public class SparqlUpdateTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testJenaDeleteWithoutGraphs() throws Exception {
         AGGraphMaker maker = closeLater(new AGGraphMaker(conn));
         AGGraph graph = closeLater(maker.getGraph());
@@ -128,7 +123,6 @@ public class SparqlUpdateTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testJenaDeleteUsingGraphs() throws Exception {
         AGGraphMaker maker = closeLater(new AGGraphMaker(conn));
         AGGraph defaultGraph = closeLater(maker.getGraph());

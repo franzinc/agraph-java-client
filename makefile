@@ -41,20 +41,22 @@ default: build
 clean: dist-clean
 	mvn $(MVN_ARGS) clean
 
-prepush: clean all-tutorials prepush-testsuite javadoc
+prepush: clean all-tutorials test-prepush test-unicode javadoc
+
+test-bigger: test-prepush test-stress test-stress-events test-xa
+
+test-unicode:
 	# Force Java to use ASCII (i.e. not UTF-8) as the default encoding.
-	env LC_ALL=C mvn $(MVN_ARGS) test -Dtests.include=test.TestSuites\$$Unicode
+	env LC_ALL=C mvn $(MVN_ARGS) test -Dtest=test.suites.UnicodeTests
 
-prepush-testsuite:
-	mvn $(MVN_ARGS) test -Dtests.include=test.TestSuites\$$Prepush
-
-test-bigger: prepush-testsuite test-stress test-stress-events test-xa
+test-prepush:
+	mvn $(MVN_ARGS) test -Dtest=test.suites.PrepushTests
 
 test-broken: FORCE
-	mvn $(MVN_ARGS) test -Dtests.include=test.TestSuites\$$Broken
+	mvn $(MVN_ARGS) test -Dtest=test.suites.BrokenTests
 
 test-stress: FORCE
-	mvn $(MVN_ARGS) test -Dtest.TestSuites\$$Stress
+	mvn $(MVN_ARGS) test -Dtest=test.suites.StressTests
 
 test-stress-events: FORCE
 	$(EXEC_JAVA) -Dexec.mainClass=test.stress.Events -Dexec.args="--catalog java-catalog --load 2 --query 2 --time 1 --size 100000"
@@ -103,24 +105,10 @@ agq-tutorial: local-deploy
 	mvn $(MVN_ARGS) compile -Dmaven.repo.local=$(REPO) && \
 	mvn $(MVN_ARGS) test -Dmaven.repo.local=$(REPO)
 
-sparql-query-tests: FORCE
-	mvn $(MVN_ARGS) test -Dtests.include=test.openrdf.AGSparqlQueryTest
-
-sparql-update-tests: FORCE
-	mvn $(MVN_ARGS) test -Dtests.include=test.openrdf.AGSparqlUpdateTest,test.openrdf.AGSparqlUpdateConformanceTest
-
-repository-connection-tests: FORCE
-	mvn $(MVN_ARGS) test -Dtests.include=test.openrdf.repository.AGRepositoryConnectionTest
-
-repository-tests: FORCE
-	mvn $(MVN_ARGS) test -Dtests.include=test.openrdf.repository.AGAllRepositoryTests
-
-jena-compliance-tests: FORCE
-	mvn $(MVN_ARGS) test -Dtests.include=test.TestSuites\$$JenaCompliance
-
 test-release: FORCE
 	python3 test-release/make-pom.py > test-release/pom.xml
-	cd test-release && mvn $(MVN_ARGS) test -Dtest=test.TestSuites\$$Prepush,test.TestSuites\$$Stress
+	cd test-release && mvn $(MVN_ARGS) test -Dtest=test.suites.PrepushTests
+	cd test-release && mvn $(MVN_ARGS) test -Dtest=test.suites.StressTests
 
 local-deploy: FORCE
 	mvn $(MVN_ARGS) install -DskipTests=true -Dmaven.repo.local=$(REPO)

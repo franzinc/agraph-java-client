@@ -15,8 +15,7 @@ import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.query.QueryLanguage;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.RepositoryResult;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +31,6 @@ public class QuickTests extends AGAbstractTest {
     public static final String NS = "http://franz.com/test/";
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void bnode() throws Exception {
         assertEquals("size", 0, conn.size());
         BNode s = vf.createBNode();
@@ -53,7 +51,6 @@ public class QuickTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void bnode_rfe9776() throws Exception {
         IRI orderedCollection = vf.createIRI("http://lumas#orderedCollection");
         IRI property = vf.createIRI("http://lumas#hasId");
@@ -89,7 +86,6 @@ public class QuickTests extends AGAbstractTest {
      * holds; this test used to fail, but now passes, adding to Prepush.
      */
     @Test
-    @Category(TestSuites.Prepush.class)
     public void namespaceAfterError() throws Exception {
         IRI alice = vf.createIRI("http://example.org/people/alice");
         IRI name = vf.createIRI("http://example.org/ontology/name");
@@ -109,7 +105,6 @@ public class QuickTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void bulkDelete() throws Exception {
         IRI alice = vf.createIRI("http://example.org/people/alice");
         IRI firstname = vf.createIRI("http://example.org/ontology/firstname");
@@ -125,7 +120,6 @@ public class QuickTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void openRepo_rfe9837() throws Exception {
         AGRepository repo2 = closeLater(cat.openRepository(repo.getRepositoryID()));
         AGRepositoryConnection conn2 = closeLater(repo2.getConnection());
@@ -154,7 +148,6 @@ public class QuickTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void serverUrlTrailingSlashRemoved() throws Exception {
         String serverURL = server.getServerURL();
         AGServer server2 = new AGServer(serverURL + "/", username(), password());

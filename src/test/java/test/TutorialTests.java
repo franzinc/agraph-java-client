@@ -32,9 +32,8 @@ import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.ntriples.NTriplesWriter;
 import org.eclipse.rdf4j.rio.rdfxml.RDFXMLWriter;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -897,7 +896,7 @@ public class TutorialTests extends AGAbstractTest {
     /**
      * Social Network Analysis
      */
-    @Ignore
+    @Disabled
     @Test
     public void example21() throws Exception {
         AGValueFactory vf = repo.getValueFactory();

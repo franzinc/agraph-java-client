@@ -8,8 +8,7 @@ import com.franz.agraph.repository.AGFormattedNamespace;
 import junit.framework.Assert;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.repository.RepositoryException;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +16,6 @@ import java.util.List;
 public class EncodableNamespaceTests extends AGAbstractTest {
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void encodableNamespaces_rfe10197() throws Exception {
         String NS0 = "http://franz.com/ns0";
         String FORMAT0 = "[a-z][0-9]-[a-f]{3}";

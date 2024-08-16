@@ -15,14 +15,13 @@ import com.franz.agraph.repository.AGValueFactory;
 import com.franz.util.Closer;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.eclipse.rdf4j.rio.RDFFormat;
-import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import test.AGAbstractTest;
-import test.TestSuites;
 import test.Util;
 
 import java.time.Duration;
@@ -62,7 +61,7 @@ public class AGConnPoolSessionTest {
         return repo;
     }
 
-    @After
+    @AfterEach
     public void closeAfter() {
         closer.close();
     }
@@ -81,7 +80,6 @@ public class AGConnPoolSessionTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testPlain() throws Exception {
         AGServer server = closeLater(new AGServer(AGAbstractTest.findServerUrl(), AGAbstractTest.username(), AGAbstractTest.password()));
         AGCatalog catalog = server.getCatalog(AGAbstractTest.CATALOG_ID);
@@ -97,7 +95,6 @@ public class AGConnPoolSessionTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testPoolDedicated() throws Exception {
         String oldOverride = System.setProperty("com.franz.agraph.http.overrideServerUseMainPortForSessions", "true");
         AGConnPool pool = closeLater(AGConnPool.create(
@@ -130,7 +127,6 @@ public class AGConnPoolSessionTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testPoolTx() throws Exception {
         String oldOverride = System.setProperty("com.franz.agraph.http.overrideServerUseMainPortForSessions", "true");
         AGConnPool pool = closeLater(AGConnPool.create(
@@ -166,7 +162,6 @@ public class AGConnPoolSessionTest {
      * in many concurrent threads.
      */
     @Test
-    @Category(TestSuites.Stress.class)
     public void deleteDatatypeMapping() throws Exception {
         final int NUM = 20;
         final int MINUTES = 1;
@@ -224,8 +219,7 @@ public class AGConnPoolSessionTest {
     }
 
     @Test
-    //@Category(TestSuites.Stress.class)
-    @Category(TestSuites.Broken.class) // This test is unreliable and has been disabled. -- dancy
+    @Tag("Broken") // This test is unreliable and has been disabled. -- dancy
     public void maxActive() throws Exception {
         final int seconds = 5;
         final int clients = 4;
@@ -282,7 +276,6 @@ public class AGConnPoolSessionTest {
     }
 
     @Test
-    @Category(TestSuites.Stress.class)
     public void fast() throws Exception {
         final int seconds = 35;
         final int clients = 8;
@@ -350,7 +343,6 @@ public class AGConnPoolSessionTest {
     // fetching a non-pool connection for every use. Not intended to be run as
     // part of the test suite.
     @Test
-    @Category(TestSuites.NonPrepushTest.class)
     public void connectionTimeTest() throws Exception {
         System.out.println("Testing AGConnProp.Session.SHARED");
         doTestConnection(AGConnProp.Session.SHARED, true, 1000);

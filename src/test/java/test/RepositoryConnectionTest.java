@@ -31,6 +31,7 @@ import java.util.TimeZone;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.franz.agraph.http.exception.AGUnsupportedQueryLanguageException;
 import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServerVersion;
@@ -55,7 +56,6 @@ import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.BooleanQuery;
 import org.eclipse.rdf4j.query.GraphQuery;
-import org.eclipse.rdf4j.query.GraphQueryResult;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
 import org.eclipse.rdf4j.query.QueryLanguage;
 import org.eclipse.rdf4j.query.TupleQuery;
@@ -72,16 +72,9 @@ import org.eclipse.rdf4j.rio.RDFParseException;
 import org.eclipse.rdf4j.rio.helpers.RDFHandlerBase;
 import org.eclipse.rdf4j.rio.helpers.StatementCollector;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 public abstract class RepositoryConnectionTest {
 
@@ -126,7 +119,7 @@ public abstract class RepositoryConnectionTest {
 
     protected Literal Александър;
 
-    @Before
+    @BeforeEach
     public void setUp()
             throws Exception {
         testRepository = createRepository();
@@ -166,7 +159,7 @@ public abstract class RepositoryConnectionTest {
         context2 = vf.createIRI("urn:x-local:graph2");
     }
 
-    @After
+    @AfterEach
     public void tearDown()
             throws Exception {
         if (testCon2 != null) {
@@ -402,195 +395,9 @@ public abstract class RepositoryConnectionTest {
             testCon.setAutoCommit(true);
         }
 
-        // Unsupported query language: 'SeRQL'
-        @Test(expected = QueryEvaluationException.class)
-        public void testSimpleTupleQuery() throws Exception {
-            testCon.add(alice, name, nameAlice, context2);
-            testCon.add(alice, mbox, mboxAlice, context2);
-            testCon.add(context2, publisher, nameAlice);
 
-            testCon.add(bob, name, nameBob, context1);
-            testCon.add(bob, mbox, mboxBob, context1);
-            testCon.add(context1, publisher, nameBob);
-
-            StringBuilder queryBuilder = new StringBuilder();
-            queryBuilder.append(" SELECT name, mbox");
-            queryBuilder.append(" FROM {} foaf:name {name};");
-            queryBuilder.append("         foaf:mbox {mbox}");
-            queryBuilder.append(" USING NAMESPACE foaf = <" + FOAF_NS + ">");
-
-            TupleQueryResult result = testCon.prepareTupleQuery(QueryLanguage.SERQL, queryBuilder.toString()).evaluate();
-
-            try {
-                assertTrue(result != null);
-                assertTrue(result.hasNext());
-
-                while (result.hasNext()) {
-                    BindingSet solution = result.next();
-                    assertTrue(solution.hasBinding("name"));
-                    assertTrue(solution.hasBinding("mbox"));
-
-                    Value nameResult = solution.getValue("name");
-                    Value mboxResult = solution.getValue("mbox");
-
-                    assertTrue((nameAlice.equals(nameResult) || nameBob.equals(nameResult)));
-                    assertTrue((mboxAlice.equals(mboxResult) || mboxBob.equals(mboxResult)));
-                }
-            } finally {
-                result.close();
-            }
-        }
-
-        // Unsupported query language: 'SeRQL'
-        @Test(expected = QueryEvaluationException.class)
-        public void testSimpleTupleQueryUnicode()
-                throws Exception {
-            testCon.add(alexander, name, Александър);
-
-            StringBuilder queryBuilder = new StringBuilder();
-            queryBuilder.append(" SELECT person");
-            queryBuilder.append(" FROM {person} foaf:name {").append(Александър.getLabel()).append("}");
-            queryBuilder.append(" USING NAMESPACE foaf = <" + FOAF_NS + ">");
-
-            TupleQueryResult result = testCon.prepareTupleQuery(QueryLanguage.SERQL, queryBuilder.toString()).evaluate();
-
-            try {
-                assertTrue(result != null);
-                assertTrue(result.hasNext());
-
-                while (result.hasNext()) {
-                    BindingSet solution = result.next();
-                    assertTrue(solution.hasBinding("person"));
-                    assertEquals(alexander, solution.getValue("person"));
-                }
-            } finally {
-                result.close();
-            }
-        }
-
-        // Unsupported query language: 'SeRQL'
-        @Test(expected = QueryEvaluationException.class)
-        public void testPreparedTupleQuery()
-                throws Exception {
-            testCon.add(alice, name, nameAlice, context2);
-            testCon.add(alice, mbox, mboxAlice, context2);
-            testCon.add(context2, publisher, nameAlice);
-
-            testCon.add(bob, name, nameBob, context1);
-            testCon.add(bob, mbox, mboxBob, context1);
-            testCon.add(context1, publisher, nameBob);
-
-            StringBuilder queryBuilder = new StringBuilder();
-            queryBuilder.append(" SELECT name, mbox");
-            queryBuilder.append(" FROM {} foaf:name {name};");
-            queryBuilder.append("         foaf:mbox {mbox}");
-            queryBuilder.append(" USING NAMESPACE foaf = <" + FOAF_NS + ">");
-
-            TupleQuery query = testCon.prepareTupleQuery(QueryLanguage.SERQL, queryBuilder.toString());
-            query.setBinding("name", nameBob);
-
-            TupleQueryResult result = query.evaluate();
-
-            try {
-                assertTrue(result != null);
-                assertTrue(result.hasNext());
-
-                while (result.hasNext()) {
-                    BindingSet solution = result.next();
-                    assertTrue(solution.hasBinding("name"));
-                    assertTrue(solution.hasBinding("mbox"));
-
-                    Value nameResult = solution.getValue("name");
-                    Value mboxResult = solution.getValue("mbox");
-
-                    assertEquals("unexpected value for name: " + nameResult, nameBob, nameResult);
-                    assertEquals("unexpected value for mbox: " + mboxResult, mboxBob, mboxResult);
-                }
-            } finally {
-                result.close();
-            }
-        }
-
-        // Unsupported query language: 'SeRQL'
-        @Test(expected = QueryEvaluationException.class)
-        public void testPreparedTupleQueryUnicode()
-                throws Exception {
-            testCon.add(alexander, name, Александър);
-
-            StringBuilder queryBuilder = new StringBuilder();
-            queryBuilder.append(" SELECT person");
-            queryBuilder.append(" FROM {person} foaf:name {name}");
-            queryBuilder.append(" USING NAMESPACE foaf = <" + FOAF_NS + ">");
-
-            TupleQuery query = testCon.prepareTupleQuery(QueryLanguage.SERQL, queryBuilder.toString());
-            query.setBinding("name", Александър);
-
-            TupleQueryResult result = query.evaluate();
-
-            try {
-                assertTrue(result != null);
-                assertTrue(result.hasNext());
-
-                while (result.hasNext()) {
-                    BindingSet solution = result.next();
-                    assertTrue(solution.hasBinding("person"));
-                    assertEquals(alexander, solution.getValue("person"));
-                }
-            } finally {
-                result.close();
-            }
-        }
-
-        // Unsupported query language: 'SeRQL'
-        @Test(expected = QueryEvaluationException.class)
-        public void testSimpleGraphQuery()
-                throws Exception {
-            testCon.add(alice, name, nameAlice, context2);
-            testCon.add(alice, mbox, mboxAlice, context2);
-            testCon.add(context2, publisher, nameAlice);
-
-            testCon.add(bob, name, nameBob, context1);
-            testCon.add(bob, mbox, mboxBob, context1);
-            testCon.add(context1, publisher, nameBob);
-
-            StringBuilder queryBuilder = new StringBuilder();
-            queryBuilder.append(" CONSTRUCT *");
-            queryBuilder.append(" FROM {} foaf:name {name};");
-            queryBuilder.append("         foaf:mbox {mbox}");
-            queryBuilder.append(" USING NAMESPACE foaf = <" + FOAF_NS + ">");
-
-            GraphQueryResult result = testCon.prepareGraphQuery(QueryLanguage.SERQL, queryBuilder.toString()).evaluate();
-
-            try {
-                assertTrue(result != null);
-                assertTrue(result.hasNext());
-
-                while (result.hasNext()) {
-                    Statement st = result.next();
-                    if (name.equals(st.getPredicate())) {
-                        assertTrue(nameAlice.equals(st.getObject()) || nameBob.equals(st.getObject()));
-                    } else {
-                        assertTrue(mbox.equals(st.getPredicate()));
-                        assertTrue(mboxAlice.equals(st.getObject()) || mboxBob.equals(st.getObject()));
-                    }
-                }
-            } finally {
-                result.close();
-            }
-        }
-
-        // Unsupported query language: 'SeRQL'
-        @Test(expected = QueryEvaluationException.class)
-        public void testPreparedGraphQuery()
-                throws Exception {
-            testCon.add(alice, name, nameAlice, context2);
-            testCon.add(alice, mbox, mboxAlice, context2);
-            testCon.add(context2, publisher, nameAlice);
-
-            testCon.add(bob, name, nameBob, context1);
-            testCon.add(bob, mbox, mboxBob, context1);
-            testCon.add(context1, publisher, nameBob);
-
+        @Test
+        public void testUnsupportedQueryLanguage() {
             StringBuilder queryBuilder = new StringBuilder();
             queryBuilder.append(" CONSTRUCT *");
             queryBuilder.append(" FROM {} foaf:name {name};");
@@ -600,26 +407,9 @@ public abstract class RepositoryConnectionTest {
             GraphQuery query = testCon.prepareGraphQuery(QueryLanguage.SERQL, queryBuilder.toString());
             query.setBinding("name", nameBob);
 
-            GraphQueryResult result = query.evaluate();
-
-            try {
-                assertTrue(result != null);
-                assertTrue(result.hasNext());
-
-                while (result.hasNext()) {
-                    Statement st = result.next();
-                    assertTrue(name.equals(st.getPredicate()) || mbox.equals(st.getPredicate()));
-                    if (name.equals(st.getPredicate())) {
-                        assertTrue("unexpected value for name: " + st.getObject(), nameBob.equals(st.getObject()));
-                    } else {
-                        assertTrue(mbox.equals(st.getPredicate()));
-                        assertTrue("unexpected value for mbox: " + st.getObject(), mboxBob.equals(st.getObject()));
-                    }
-
-                }
-            } finally {
-                result.close();
-            }
+            QueryEvaluationException e = assertThrows(QueryEvaluationException.class, query::evaluate);
+            Throwable cause = e.getCause();
+            Assertions.assertInstanceOf(AGUnsupportedQueryLanguageException.class, cause);
         }
 
         @Test
@@ -1468,9 +1258,8 @@ public abstract class RepositoryConnectionTest {
             assertEquals(Arrays.asList(context2), Iterations.asList(testCon.getContextIDs()));
         }
 
-        @SuppressWarnings("deprecation")
+        @Disabled // was marked as Broken but it passes
         @Test
-        @Category(TestSuites.Broken.class)
         public void testXmlCalendarZ()
                 throws Exception {
             String NS = "http://example.org/rdf/";

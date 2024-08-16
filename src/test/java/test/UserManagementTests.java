@@ -10,8 +10,7 @@ import junit.framework.Assert;
 import org.eclipse.rdf4j.http.protocol.UnauthorizedException;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 
 import java.util.List;
@@ -19,7 +18,6 @@ import java.util.List;
 public class UserManagementTests extends AGAbstractTest {
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void addDeleteUsers() throws Exception {
         String newuser1 = "newuser1";
         String newuser2 = "newuser2";
@@ -78,7 +76,6 @@ public class UserManagementTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void userAccess() throws Exception {
         List<String> users = server.listUsers();
         if (!users.contains("newuser1")) {
@@ -106,7 +103,6 @@ public class UserManagementTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void userRoles() throws Exception {
         final String user = "user-test";
         final String role = "role-test";

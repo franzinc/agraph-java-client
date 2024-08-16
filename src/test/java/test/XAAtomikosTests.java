@@ -11,12 +11,12 @@ import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.eclipse.rdf4j.repository.RepositoryResult;
-import org.junit.After;
-import org.junit.AfterClass;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.Assume;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
@@ -51,19 +51,19 @@ public class XAAtomikosTests extends AGAbstractTest {
     private AGRepositoryConnection independentConnection;
     private XAResource independentXAResource;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
         server = newAGServer();
         Assume.assumeTrue("XA was added in AG 6.5.0",
                 server.getComparableVersion().compareTo(new AGServerVersion("6.5")) >= 0);
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
         server.close();
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         agrepo = freshRepository(CATALOG_ID, REPO_ID);
         closer.closeLater(agrepo);
@@ -85,7 +85,7 @@ public class XAAtomikosTests extends AGAbstractTest {
         independentXAResource.setTransactionTimeout(XAUtils.XA_TIMEOUT);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         closer.close();
     }

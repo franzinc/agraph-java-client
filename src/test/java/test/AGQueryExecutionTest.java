@@ -8,13 +8,15 @@ import com.franz.agraph.jena.AGQueryExecutionFactory;
 import com.franz.agraph.jena.AGQueryFactory;
 import com.franz.agraph.repository.AGCatalog;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.query.QueryException;
+import org.apache.jena.query.QueryParseException;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.StmtIterator;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.repository.RepositoryException;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
@@ -22,22 +24,12 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class AGQueryExecutionTest extends AGAbstractTest {
 
-    protected static final String FOAF_NS = "http://xmlns.com/foaf/0.1/";
-
-    public static String SERVER_URL = System.getProperty(
-            "com.franz.agraph.test.serverURL", "http://localhost:10035");
     public static String CATALOG_ID = System.getProperty(
             "com.franz.agraph.test.catalogID", "/");
-    public static String REPOSITORY_ID = System.getProperty(
-            "com.franz.agraph.test.repositoryID", "testRepo");
-    public static String USERNAME = System.getProperty(
-            "com.franz.agraph.test.username", "test");
-    public static String PASSWORD = System.getProperty(
-            "com.franz.agraph.test.password", "xyzzy");
 
     protected static AGCatalog catalog;
 
@@ -50,6 +42,7 @@ public class AGQueryExecutionTest extends AGAbstractTest {
     protected static ValueFactory vf;
 
 
+    @BeforeEach
     @Override
     public void setUp() throws Exception {
         super.setUp();
@@ -78,28 +71,13 @@ public class AGQueryExecutionTest extends AGAbstractTest {
         }
     }
 
-    @Test//(expected=QueryException.class)
-    public void testExecConstructTriplesForNullQuery() throws RepositoryException {
-        String queryString = null;
-        AGQuery query = AGQueryFactory.create(queryString);
-        try (AGQueryExecution qe = AGQueryExecutionFactory.create(query, model)) {
-            qe.execConstructTriples();
-            Assert.fail("expected exception for null query string.");
-        } catch (Exception e) {
-            // TODO: handle exception
-        }
-    }
 
-
-    @Test//(expected=QueryException.class)
+    @Test
     public void testExecConstructTriplesForBadQuery() throws RepositoryException {
         String queryString = "select * from emp where emp_id=1";
         AGQuery query = AGQueryFactory.create(queryString);
         try (AGQueryExecution qe = AGQueryExecutionFactory.create(query, model)) {
-            qe.execConstructTriples();
-            Assert.fail("expected exception for bad query string.");
-        } catch (Exception e) {
-            // TODO: handle exception
+            assertThrows(QueryException.class, qe::execConstructTriples);
         }
     }
 
@@ -118,15 +96,12 @@ public class AGQueryExecutionTest extends AGAbstractTest {
     }
 
 
-    @Test//(expected=QueryException.class)
+    @Test
     public void testExecConstructTriplesForNonConstructQuery() throws RepositoryException {
         String queryString = "select ?s ?p ?o where { ?s ?p ?o . } limit 1";
         AGQuery query = AGQueryFactory.create(queryString);
         try (AGQueryExecution qe = AGQueryExecutionFactory.create(query, model)) {
-            qe.execConstructTriples();
-            Assert.fail("expected exception for non construct query.");
-        } catch (Exception e) {
-            // TODO: handle exception
+            assertThrows(QueryException.class, qe::execConstructTriples);
         }
     }
 
@@ -147,29 +122,6 @@ public class AGQueryExecutionTest extends AGAbstractTest {
         }
     }
 
-    @Test//(expected=QueryException.class)
-    public void testExecDescribeTriplesForNullQuery() throws RepositoryException {
-        String queryString = null;
-        AGQuery query = AGQueryFactory.create(queryString);
-        try (AGQueryExecution qe = AGQueryExecutionFactory.create(query, model)) {
-            qe.execDescribeTriples();
-            Assert.fail("expected exception for null query string.");
-        } catch (Exception e) {
-            // TODO: handle exception
-        }
-    }
-
-    @Test//(expected=QueryException.class)
-    public void testExecDescribeTriplesForBadQuery() throws RepositoryException {
-        String queryString = "select * from emp where emp_id=1";
-        AGQuery query = AGQueryFactory.create(queryString);
-        try (AGQueryExecution qe = AGQueryExecutionFactory.create(query, model)) {
-            qe.execDescribeTriples();
-            Assert.fail("expected exception for bad query string.");
-        } catch (Exception e) {
-            // TODO: handle exception
-        }
-    }
 
     @Test
     public void testExecDescribeTriplesForZeroResult() throws RepositoryException {
@@ -183,15 +135,12 @@ public class AGQueryExecutionTest extends AGAbstractTest {
     }
 
 
-    @Test//(expected=QueryException.class)
+    @Test
     public void testExecDescribeTriplesForNonDescribeQuery() throws RepositoryException {
         String queryString = "select ?s ?p ?o where { ?s ?p ?o . } limit 1";
         AGQuery query = AGQueryFactory.create(queryString);
         try (AGQueryExecution qe = AGQueryExecutionFactory.create(query, model)) {
-            qe.execDescribeTriples();
-            Assert.fail("expected exception for non describe query.");
-        } catch (Exception e) {
-            // TODO: handle exception
+            assertThrows(QueryException.class, qe::execDescribeTriples);
         }
     }
 
@@ -229,46 +178,34 @@ public class AGQueryExecutionTest extends AGAbstractTest {
         }
     }
 
-    @Test//(expected=QueryParseException.class)
+    @Test
     public void testgetQueryWithOutNamespaceWrongQuery() throws RepositoryException {
         String queryString = "select sdfdsfdsf ?s ?p ?o where { ?s ?p ?o . }";
         AGQuery query = AGQueryFactory.create(queryString);
         try (AGQueryExecution qe = AGQueryExecutionFactory.create(query, model)) {
-            qe.getQuery();
-            Assert.fail("expected exception for bad query string.");
-        } catch (Exception e) {
-            // TODO: handle exception
+            assertThrows(QueryParseException.class, qe::getQuery);
         }
     }
 
-    @Test//(expected=QueryParseException.class)
-    public void testgetQueryForNullQuery() throws RepositoryException {
+    @Test
+    public void testgetQueryForNullQuery() {
         String queryString = null;
-        AGQuery query = AGQueryFactory.create(queryString);
-        try (AGQueryExecution qe = AGQueryExecutionFactory.create(query, model)) {
-            qe.getQuery();
-            Assert.fail("expected exception for null query string.");
-        } catch (Exception e) {
-            // TODO: handle exception
-        }
+        assertThrows(QueryParseException.class, () ->
+                AGQueryFactory.create(queryString)
+        );
     }
 
 
-    // Needs Sparql a query which takes more than 1 sec to execute
-    @Test//(expected=QueryException.class)
+    @Test
     public void testSetTimeoutForExecSelect() throws RepositoryException {
         String queryString = "SELECT * WHERE { ?s ?p ?o . ?s1 ?p1 ?o1 . ?s2 ?p2 ?o2 . ?s3 ?p3 ?o3 } ORDER BY ?s1 ?p1 ?o1 LIMIT 1000";
-
         AGQuery query = AGQueryFactory.create(queryString);
-
         try (AGQueryExecution qe = AGQueryExecutionFactory.create(query, model)) {
             qe.setTimeout(1001);
-            qe.execSelect();
-            Assert.fail("expected exception for query execution time.");
-        } catch (Exception e) {
-            // TODO: handle exception
+            assertThrows(QueryException.class, qe::execSelect);
         }
     }
+
 
     @Test
     public void testSetTimeoutForExecSelectWithZero() throws RepositoryException {
@@ -295,18 +232,13 @@ public class AGQueryExecutionTest extends AGAbstractTest {
     }
 
 
-    // Needs Sparql a query which takes more than 1 sec to execute
-    @Test//(expected=QueryException.class)
+    @Test
     public void testSetTimeoutWithTimeunitForExecSelect() throws RepositoryException {
         String queryString = "SELECT * WHERE { ?s ?p ?o . ?s1 ?p1 ?o1 . ?s2 ?p2 ?o2 . ?s3 ?p3 ?o3 } ORDER BY ?s1 ?p1 ?o1 LIMIT 1000";
         AGQuery query = AGQueryFactory.create(queryString);
-
         try (AGQueryExecution qe = AGQueryExecutionFactory.create(query, model)) {
             qe.setTimeout(1, TimeUnit.SECONDS);
-            qe.execSelect();
-            Assert.fail("expected exception for query execution time.");
-        } catch (Exception e) {
-            // TODO: handle exception
+            assertThrows(QueryException.class, qe::execSelect);
         }
     }
 

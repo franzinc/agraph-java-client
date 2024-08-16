@@ -23,8 +23,8 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDFS;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 public class UntypedLiteralMatchingTest extends AGAbstractTest {
 
@@ -32,7 +32,7 @@ public class UntypedLiteralMatchingTest extends AGAbstractTest {
      * This was a failing ARQ test sent in by Holger (spr38458)
      */
     @Test
-    @Category(TestSuites.Broken.class)
+    @Tag("Broken")
     public void testARQUntypedLiteralMatching() {
         // Model model = AG.getInstance().createModel("http://aldi.com.au");
         AGGraphMaker maker = closeLater(new AGGraphMaker(conn));
@@ -75,7 +75,6 @@ public class UntypedLiteralMatchingTest extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     /**
      * This is the AG equivalent of that test (rfe10983)
      */

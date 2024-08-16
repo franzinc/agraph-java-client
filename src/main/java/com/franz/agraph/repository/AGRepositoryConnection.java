@@ -3244,7 +3244,7 @@ public class AGRepositoryConnection
         private long maximum = -1;
 
         /**
-         * Constructor
+         * To define an attribute, use {@link #defineAttribute(String)} instead of calling the constructor directly.
          *
          * @param name of the attribute
          */
@@ -3332,6 +3332,11 @@ public class AGRepositoryConnection
             return this;
         }
     }
+
+    public AttributeDefinition defineAttribute(String name) {
+        return new AttributeDefinition(name);
+    }
+
     /**
      * Asks the server to read store's internal data structures into memory.
      *

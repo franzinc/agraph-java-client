@@ -13,8 +13,8 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -29,7 +29,7 @@ public class AGHTTPClientTests {
     private AuditingConnectionManager manager;
     private String serverUrl;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         serverUrl = AGAbstractTest.findServerUrl();
         manager = new AuditingConnectionManager(new PoolingHttpClientConnectionManager());

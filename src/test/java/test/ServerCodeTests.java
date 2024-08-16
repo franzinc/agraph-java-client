@@ -25,14 +25,13 @@ import org.eclipse.rdf4j.rio.RDFParseException;
 import org.eclipse.rdf4j.rio.RDFParser;
 import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.rio.helpers.StatementCollector;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -58,7 +57,7 @@ public class ServerCodeTests extends AGAbstractTest {
     private static String RULES = "java-rules.prolog";
     private static AGServerCode serverCode;
 
-    @BeforeClass
+    @BeforeAll
     public static void installScripts() throws Exception {
         serverCode = new AGServerCode(server);
         serverCode.putScript(SProcTest.SCRIPT, STORED_PROC);
@@ -66,7 +65,7 @@ public class ServerCodeTests extends AGAbstractTest {
         serverCode.deleteInitFile(); // clean
     }
 
-    @AfterClass
+    @AfterAll
     public static void cleanup() throws Exception {
         serverCode.deleteInitFile();
     }

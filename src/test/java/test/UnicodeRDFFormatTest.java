@@ -13,79 +13,56 @@ import org.eclipse.rdf4j.query.QueryEvaluationException;
 import org.eclipse.rdf4j.query.QueryLanguage;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.rio.RDFFormat;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.FieldSource;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Tests handling of non-ascii characters with various RDF formats.
  */
-@RunWith(Parameterized.class)
 public class UnicodeRDFFormatTest extends AGAbstractTest {
-    private final RDFFormat format;
-    private RDFFormat oldFormat;
 
-    public UnicodeRDFFormatTest(final RDFFormat format) {
-        this.format = format;
-    }
+    private static final List<RDFFormat> FORMATS = Arrays.asList(RDFFormat.NQUADS, RDFFormat.TRIX);
 
-    // @Parameters(name="{index}: {0}") -- need newer JUnit for that?
-    @Parameterized.Parameters
-    public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][] {
-                {RDFFormat.NQUADS},
-                {RDFFormat.TRIX}
-        });
-    }
-
-    @Before
-    public void setUpFormat() {
-        oldFormat = conn.prepareHttpRepoClient().getPreferredRDFFormat();
+    private void setFormat(RDFFormat format) {
         conn.prepareHttpRepoClient().setPreferredRDFFormat(format);
     }
 
-    @After
-    public void tearDownFormat() {
-        conn.prepareHttpRepoClient().setPreferredRDFFormat(oldFormat);
-    }
-
-    @Test
-    public void testAddUnicodeLiteral() throws RepositoryException {
+    @ParameterizedTest @FieldSource("FORMATS")
+    public void testAddUnicodeLiteral(RDFFormat format) throws RepositoryException {
+        setFormat(format);
         IRI s = vf.createIRI("http://franz.com/s");
         IRI p = vf.createIRI("http://franz.com/p");
         Literal o = vf.createLiteral("जुप");
         conn.add(s, p, o);
         List<Statement> result = Iterations.asList(conn.getStatements(s, p, null, false));
-        assertThat(result.size(), is(1));
-        assertThat(result.get(0).getObject().stringValue(), is("जुप"));
+        assertEquals(result.size(), 1);
+        assertEquals(result.get(0).getObject().stringValue(), "जुप");
     }
 
-    @Test
-    public void testAddUnicodeSubject() throws RepositoryException {
+    @ParameterizedTest @FieldSource("FORMATS")
+    public void testAddUnicodeSubject(RDFFormat format) throws RepositoryException {
+        setFormat(format);
         IRI s = vf.createIRI("http://franz.com/जुप");
         IRI p = vf.createIRI("http://franz.com/p");
         Literal o = vf.createLiteral("o");
         conn.add(s, p, o);
         List<Statement> result = Iterations.asList(conn.getStatements(s, p, null, false));
-        assertThat(result.size(), is(1));
-        assertThat(result.get(0).getSubject().stringValue(), is("http://franz.com/जुप"));
+        assertEquals(result.size(), 1);
+        assertEquals(result.get(0).getSubject().stringValue(), "http://franz.com/जुप");
     }
 
-    @Test
-    public void testUnicodeCreate() throws RepositoryException, QueryEvaluationException {
+    @ParameterizedTest @FieldSource("FORMATS")
+    public void testUnicodeCreate(RDFFormat format) throws RepositoryException, QueryEvaluationException {
+        setFormat(format);
         AGGraphQuery query = conn.prepareGraphQuery(QueryLanguage.SPARQL,
                 "CONSTRUCT { <s> <p> \"जुप\"} WHERE {}");
         List<Statement> result = Iterations.asList(query.evaluate());
-        assertThat(result.size(), is(1));
-        assertThat(result.get(0).getObject().stringValue(), is("जुप"));
+        assertEquals(result.size(), 1);
+        assertEquals(result.get(0).getObject().stringValue(), "जुप");
     }
 }

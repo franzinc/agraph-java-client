@@ -7,13 +7,11 @@ package test;
 import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.repository.AGCatalog;
 import junit.framework.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 public class DynamicCatalogTests extends AGAbstractTest {
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void dynamicCatalogs_rfe10175() throws Exception {
         String catalogID = "dynamicCatalog1";
         String repoID = "repo1";

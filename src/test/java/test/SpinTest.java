@@ -11,11 +11,10 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.eclipse.rdf4j.query.QueryLanguage;
 import org.eclipse.rdf4j.rio.RDFFormat;
-import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
@@ -33,7 +32,7 @@ public class SpinTest extends AGAbstractTest {
 
     private IRI context;
 
-    @Before
+    @BeforeEach
     public void installScripts() throws Exception {
         conn.setAutoCommit(true);
         context = vf.createIRI(kennedyNamespace);
@@ -43,17 +42,17 @@ public class SpinTest extends AGAbstractTest {
         Util.add(conn, "/tutorial/java-kennedy.ntriples", kennedyNamespace, RDFFormat.NTRIPLES, context);
     }
 
-    @After
+    @AfterEach
     public void cleanup0() throws Exception {
 //        conn.remove((Resource)null, null, null);
     }
 
-    @After
+    @AfterEach
     public void cleanup1() throws Exception {
         conn.prepareHttpRepoClient().deleteHardSpinFunction(ageFn);
     }
 
-    @After
+    @AfterEach
     public void cleanup2() throws Exception {
         conn.prepareHttpRepoClient().deleteHardSpinMagicProperty(parentsMP);
     }
@@ -62,7 +61,6 @@ public class SpinTest extends AGAbstractTest {
      * rfe10988
      */
     @Test
-    @Category(TestSuites.Prepush.class)
     public void spinFunction() throws Exception {
         try {
             Assert.fail(conn.getSpinFunction(ageFn));
@@ -109,7 +107,6 @@ public class SpinTest extends AGAbstractTest {
      * rfe11117
      */
     @Test
-    @Category(TestSuites.Prepush.class)
     public void listSpinFunctions_0args() throws Exception {
         String ageFnSparql = "prefix kennedy: <" + kennedyNamespace + ">\n"
                 + "prefix xs: <http://www.w3.org/2001/XMLSchema#>\n"
@@ -128,7 +125,6 @@ public class SpinTest extends AGAbstractTest {
      * rfe11117
      */
     @Test
-    @Category(TestSuites.Prepush.class)
     public void listSpinFunctions_2args() throws Exception {
         String ageFnSparql = "prefix kennedy: <" + kennedyNamespace + ">\n"
                 + "prefix xs: <http://www.w3.org/2001/XMLSchema#>\n"
@@ -149,7 +145,6 @@ public class SpinTest extends AGAbstractTest {
      * rfe10988
      */
     @Test
-    @Category(TestSuites.Prepush.class)
     public void spinMagicProperty() throws Exception {
         try {
             Assert.fail(conn.getSpinMagicProperty(parentsMP));

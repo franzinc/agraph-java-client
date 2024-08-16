@@ -18,10 +18,8 @@ import org.eclipse.rdf4j.query.QueryLanguage;
 import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.RepositoryResult;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 import test.AGAbstractTest;
-import test.TestSuites;
 
 import java.util.LinkedList;
 import java.util.Random;
@@ -51,7 +49,6 @@ public class TransactionStressTest {
     }
 
     @Test
-    @Category(TestSuites.Stress.class)
     public void test() throws Exception {
         AGRepositoryConnection conn = connect();
         try {

@@ -4,7 +4,7 @@ import junit.framework.Assert;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class ContextsVarargsTest {
 

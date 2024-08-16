@@ -28,12 +28,11 @@ import org.eclipse.rdf4j.query.resultio.TupleQueryResultFormat;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.json.JSONException;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -46,13 +45,13 @@ public class UnicodeTest extends AGAbstractTest {
     private RDFFormat oldRDFFormat;
     private TupleQueryResultFormat oldTQRFormat;
 
-    @Before
+    @BeforeEach
     public void setUpFormat() {
         oldRDFFormat = conn.prepareHttpRepoClient().getPreferredRDFFormat();
         oldTQRFormat = conn.prepareHttpRepoClient().getPreferredTQRFormat();
     }
 
-    @After
+    @AfterEach
     public void tearDownFormat() {
         conn.prepareHttpRepoClient().setPreferredRDFFormat(oldRDFFormat);
         conn.prepareHttpRepoClient().setPreferredTQRFormat(oldTQRFormat);

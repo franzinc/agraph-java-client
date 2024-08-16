@@ -14,13 +14,11 @@ import com.franz.agraph.repository.AGTupleQuery;
 import junit.framework.Assert;
 import org.eclipse.rdf4j.query.QueryLanguage;
 import org.eclipse.rdf4j.rio.RDFFormat;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 public class QueryLimitOffsetTests extends AGAbstractTest {
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void sesameQueryLimitOffset_tests() throws Exception {
         Util.add(conn, "/tutorial/java-vcards.rdf", null, RDFFormat.RDFXML);
         String queryString = "SELECT ?s ?p ?o  WHERE {?s ?p ?o .}";
@@ -38,7 +36,6 @@ public class QueryLimitOffsetTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void jenaQueryLimitOffset_tests() throws Exception {
         Util.add(conn, "/tutorial/java-vcards.rdf", null, RDFFormat.RDFXML);
         AGGraphMaker maker = new AGGraphMaker(conn);

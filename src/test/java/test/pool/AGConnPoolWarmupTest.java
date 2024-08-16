@@ -4,12 +4,10 @@ import com.franz.agraph.pool.AGConnPool;
 import com.franz.agraph.pool.AGConnProp;
 import com.franz.agraph.pool.AGPoolProp;
 import com.franz.agraph.repository.AGServer;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import test.AGAbstractTest;
-import test.TestSuites;
 import test.Util;
 
 import java.util.ArrayList;
@@ -22,13 +20,13 @@ public class AGConnPoolWarmupTest {
     private AGServer server;
     private int logLengthBeforeTest;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         server = AGAbstractTest.newAGServer();
         logLengthBeforeTest = Util.getLogSize(server);
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
         // Make sure the repository is deleted.
         AGAbstractTest.deleteRepository(AGAbstractTest.CATALOG_ID, STORE);
@@ -70,7 +68,6 @@ public class AGConnPoolWarmupTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testDefaultWarmup() {
         makePool(null, null).close();
         assertStringsWarmedUpRecently();
@@ -78,7 +75,6 @@ public class AGConnPoolWarmupTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testWarmupNoStrings() {
         makePool(false, null).close();
         assertStringsNotWarmedUpRecently();
@@ -86,7 +82,6 @@ public class AGConnPoolWarmupTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testWarmupNoTriples() {
         makePool(null, false).close();
         assertStringsWarmedUpRecently();
@@ -94,7 +89,6 @@ public class AGConnPoolWarmupTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testWarmupAllExplicit() {
         makePool(true, true).close();
         assertStringsWarmedUpRecently();
@@ -102,7 +96,6 @@ public class AGConnPoolWarmupTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testWarmupNothing() {
         makePool(false, false).close();
         assertStringsNotWarmedUpRecently();

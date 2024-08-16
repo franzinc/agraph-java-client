@@ -5,19 +5,13 @@
 package test;
 
 import junit.framework.Assert;
-import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.rio.RDFFormat;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 import com.franz.agraph.repository.AGServerVersion;
-
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 
 public class JSONLDTest extends AGAbstractTest {
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void test_JSONLD() throws Exception {
         AGServerVersion minVersion = new AGServerVersion("v6.5.0");
         if (server.getComparableVersion().compareTo(minVersion) >= 0) {

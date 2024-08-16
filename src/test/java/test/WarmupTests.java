@@ -1,14 +1,13 @@
 package test;
 
 import com.franz.agraph.repository.WarmupConfig;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class WarmupTests extends AGAbstractTest {
     private int logLengthBeforeTest;
 
-    @Before
+    @BeforeEach
     @Override
     public void setUp() throws Exception {
         super.setUp();
@@ -32,7 +31,6 @@ public class WarmupTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testServerDefaultWarmup() {
         conn.warmup();
         assertStringsWarmedUpRecently();
@@ -40,7 +38,6 @@ public class WarmupTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testDefaultWarmup() {
         conn.warmup(WarmupConfig.create());
         assertStringsWarmedUpRecently();
@@ -48,7 +45,6 @@ public class WarmupTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testWarmupNoStrings() {
         conn.warmup(WarmupConfig.create().excludeStrings());
         assertStringsNotWarmedUpRecently();
@@ -56,7 +52,6 @@ public class WarmupTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testWarmupNoTriples() {
         conn.warmup(WarmupConfig.create().excludeTriples());
         assertStringsWarmedUpRecently();
@@ -64,7 +59,6 @@ public class WarmupTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testWarmupNothing() {
         conn.warmup(WarmupConfig.create().excludeStrings().excludeTriples());
         assertStringsNotWarmedUpRecently();

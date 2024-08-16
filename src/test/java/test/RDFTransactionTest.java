@@ -6,15 +6,13 @@ package test;
 
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Resource;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 import static org.junit.Assert.assertEquals;
 
 public class RDFTransactionTest extends AGAbstractTest {
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void sendRDFTransaction() throws Exception {
         IRI context1 = vf.createIRI("http://example.org/context1");
         conn.sendRDFTransaction(Util.resourceAsStream("/test/rdftransaction.xml"));

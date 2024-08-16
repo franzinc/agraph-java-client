@@ -12,13 +12,11 @@ import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.eclipse.rdf4j.repository.RepositoryResult;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 public class MappingsTests extends AGAbstractTest {
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testClearMappings() throws Exception {
         conn.clearMappings();
         String[] mappings = conn.getDatatypeMappings();

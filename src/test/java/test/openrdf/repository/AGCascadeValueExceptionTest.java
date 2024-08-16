@@ -2,8 +2,8 @@ package test.openrdf.repository;
 
 import org.eclipse.rdf4j.repository.CascadeValueExceptionTest;
 import org.eclipse.rdf4j.repository.Repository;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import test.AGAbstractTest;
 
 public class AGCascadeValueExceptionTest extends CascadeValueExceptionTest {
@@ -13,13 +13,23 @@ public class AGCascadeValueExceptionTest extends CascadeValueExceptionTest {
         return AGAbstractTest.sharedRepository();
     }
 
-    @Ignore @Test @Override public void testValueExceptionEqualPlain() {}
-    @Ignore @Test @Override public void testValueExceptionEqualTyped() {}
-    @Ignore @Test @Override public void testValueExceptionGreaterThanOrEqualPlain() {}
-    @Ignore @Test @Override public void testValueExceptionGreaterThanOrEqualTyped() {}
-    @Ignore @Test @Override public void testValueExceptionGreaterThanPlain() {}
-    @Ignore @Test @Override public void testValueExceptionGreaterThanTyped() {}
-    @Ignore @Test @Override public void testValueExceptionNotEqualPlain() {}
-    @Ignore @Test @Override public void testValueExceptionNotEqualTyped() {}
+    @Disabled
+    @Test @Override public void testValueExceptionEqualPlain() {}
+    @Disabled
+    @Test
+    @Override public void testValueExceptionEqualTyped() {}
+    @Disabled
+    @Test @Override public void testValueExceptionGreaterThanOrEqualPlain() {}
+    @Disabled
+    @Test @Override public void testValueExceptionGreaterThanOrEqualTyped() {}
+    @Disabled
+    @Test @Override public void testValueExceptionGreaterThanPlain() {}
+    @Disabled
+    @Test @Override public void testValueExceptionGreaterThanTyped() {}
+    @Disabled
+    @Test @Override public void testValueExceptionNotEqualPlain() {}
+    @Disabled
+    @Test
+    @Override public void testValueExceptionNotEqualTyped() {}
 
 }

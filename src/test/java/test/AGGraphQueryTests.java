@@ -8,13 +8,11 @@ import com.franz.agraph.repository.AGGraphQuery;
 import junit.framework.Assert;
 import org.eclipse.rdf4j.query.QueryLanguage;
 import org.eclipse.rdf4j.rio.RDFFormat;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 public class AGGraphQueryTests extends AGAbstractTest {
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void graphQuery_count_rfe10447() throws Exception {
         Util.add(conn, "/test/example.nq", null, RDFFormat.NQUADS);
         String queryString = "construct {?s ?p ?o} where {?s ?p ?o}";

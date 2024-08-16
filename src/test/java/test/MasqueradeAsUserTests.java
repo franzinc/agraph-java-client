@@ -10,13 +10,12 @@ import junit.framework.Assert;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.vocabulary.OWL;
 import org.eclipse.rdf4j.rio.ntriples.NTriplesUtil;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 public class MasqueradeAsUserTests extends AGAbstractTest {
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void limitedUser() throws Exception {
         server.addUser("lim", "lim");
         AGRepositoryConnection conn = repo.getConnection();
@@ -39,7 +38,7 @@ public class MasqueradeAsUserTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Broken.class) // no error thrown for no such user
+    @Tag("Broken") // no error thrown for no such user
     public void noSuchUser() throws Exception {
         conn.clear();
         try {

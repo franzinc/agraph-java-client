@@ -22,13 +22,11 @@ import org.eclipse.rdf4j.query.QueryLanguage;
 import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 public class BlankNodeTests extends AGAbstractTest {
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void jenaExternalBlankNodeRoundTrips_spr38494() throws Exception {
         AGGraphMaker maker = closeLater(new AGGraphMaker(conn));
         AGGraph graph = closeLater(maker.createGraph("http://aldi1.com.au"));
@@ -45,7 +43,6 @@ public class BlankNodeTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void jenaModelBlankNodeRoundTrips_spr38494() throws Exception {
         AGGraphMaker maker = closeLater(new AGGraphMaker(conn));
         AGGraph graph = closeLater(maker.createGraph("http://aldi1.com.au"));
@@ -61,7 +58,6 @@ public class BlankNodeTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void sesameExternalBlankNodeRoundTrips_spr38494() throws Exception {
         BNode bnode = ValueFactoryImpl.getInstance().createBNode();
         BNode bnode2 = vf.createBNode("external");
@@ -98,7 +94,6 @@ public class BlankNodeTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void sesameAGBlankNodeRoundTrips_spr38494() throws Exception {
         BNode bnode = vf.createBNode();
         IRI p = vf.createIRI("http://p");
@@ -109,7 +104,6 @@ public class BlankNodeTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void blankNodesPerRequest() throws Exception {
         vf.setBlankNodesPerRequest(vf.getBlankNodesPerRequest() * 10);
         vf.createBNode();

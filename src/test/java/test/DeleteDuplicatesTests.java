@@ -10,13 +10,12 @@ import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.eclipse.rdf4j.rio.RDFFormat;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 public class DeleteDuplicatesTests extends AGAbstractTest {
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testDuplicateSuppressionPolicy() throws Exception {
         Assert.assertEquals("expected false", "false", repo.getDuplicateSuppressionPolicy());
         repo.setDuplicateSuppressionPolicy("spog");
@@ -32,7 +31,6 @@ public class DeleteDuplicatesTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testSPOG() throws Exception {
         Util.add(conn, "/test/example.nq", null, RDFFormat.NQUADS);
         Assert.assertEquals("expected size 10", 10, conn.size());
@@ -52,7 +50,6 @@ public class DeleteDuplicatesTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testSPO() throws Exception {
         Util.add(conn, "/test/example.nq", null, RDFFormat.NQUADS);
         Assert.assertEquals("expected size 10", 10, conn.size());
@@ -77,7 +74,7 @@ public class DeleteDuplicatesTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Broken.class)
+    @Tag("Broken")
     public void testDefault() throws Exception {
         Util.add(conn, "/test/example.nq", null, RDFFormat.NQUADS);
         Assert.assertEquals("expected size 10", 10, conn.size());
@@ -92,7 +89,6 @@ public class DeleteDuplicatesTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testCommit() throws Exception {
         Util.add(conn, "/test/example.nq", null, RDFFormat.NQUADS);
         Assert.assertEquals("expected size 10", 10, conn.size());
@@ -110,7 +106,6 @@ public class DeleteDuplicatesTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testRollback() throws Exception {
         Util.add(conn, "/test/example.nq", null, RDFFormat.NQUADS);
         Assert.assertEquals("expected size 10", 10, conn.size());

@@ -78,10 +78,6 @@ Use this command to run the default testsuite. This assumes that AllegroGraph is
 
     mvn test
 
-To include long running tests, do
-
-    mvn test -Dtests.include=test.TestSuites\$Prepush,test.TestSuites\$Stress
-
 === Distribution
 
 To build a distribution archive, do

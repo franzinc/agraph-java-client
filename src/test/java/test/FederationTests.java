@@ -14,13 +14,11 @@ import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryLanguage;
 import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.repository.RepositoryException;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 public class FederationTests extends AGAbstractTest {
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void federationBNodes() throws Exception {
         BNode bnode = vf.createBNode();
         conn.add(bnode, RDF.TYPE, vf.createIRI("http://Foo"));

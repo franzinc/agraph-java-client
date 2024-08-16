@@ -13,9 +13,8 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 // Since ALL HTTP calls will carry the repl headers,
 // we generally just use a size() call to capture and check
@@ -29,7 +28,7 @@ public class ReplHeaderTest extends AGAbstractTest {
     private AGRepositoryConnection mock;
     private Header[] lastHeaders;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         super.setUp();
 
@@ -69,14 +68,12 @@ public class ReplHeaderTest extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testNoReplHeaderByDefault() {
         mock.size();
         Assert.assertNull(getReplHeader());
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testSetIntegerDurability() {
         mock.setTransactionSettings(settings.withDurability(42));
         mock.size();
@@ -84,7 +81,6 @@ public class ReplHeaderTest extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testSetKeywordDurability() {
         mock.setTransactionSettings(settings.withDurability(DurabilityLevel.QUORUM));
         mock.size();
@@ -92,7 +88,6 @@ public class ReplHeaderTest extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testSetTimeout() {
         mock.setTransactionSettings(settings.withDistributedTransactionTimeout(42));
         mock.size();
@@ -100,7 +95,6 @@ public class ReplHeaderTest extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testSetLatency() {
         mock.setTransactionSettings(settings.withTransactionLatencyCount(42));
         mock.size();
@@ -108,7 +102,6 @@ public class ReplHeaderTest extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testSetLatencyTimeout() {
         mock.setTransactionSettings(settings.withTransactionLatencyTimeout(42));
         mock.size();
@@ -116,7 +109,6 @@ public class ReplHeaderTest extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testSetAll() {
         mock.setTransactionSettings(
                 settings.withDurability(1)
@@ -131,7 +123,6 @@ public class ReplHeaderTest extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testResetDurability() {
         mock.setTransactionSettings(
                 settings.withDurability(DurabilityLevel.QUORUM)
@@ -141,7 +132,6 @@ public class ReplHeaderTest extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testResetDurabilityNullInteger() {
         mock.setTransactionSettings(
                 settings.withDurability(DurabilityLevel.QUORUM)
@@ -151,7 +141,6 @@ public class ReplHeaderTest extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testResetDurabilityNullLevel() {
         mock.setTransactionSettings(
                 settings.withDurability(DurabilityLevel.QUORUM)
@@ -161,7 +150,6 @@ public class ReplHeaderTest extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testResetTimeout() {
         mock.setTransactionSettings(
                 settings.withDistributedTransactionTimeout(42)
@@ -171,7 +159,6 @@ public class ReplHeaderTest extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testResetLatency() {
         mock.setTransactionSettings(
                 settings.withTransactionLatencyCount(42)
@@ -181,7 +168,6 @@ public class ReplHeaderTest extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testResetLatencyTimeout() {
         mock.setTransactionSettings(
                 settings.withTransactionLatencyTimeout(42)
@@ -191,7 +177,6 @@ public class ReplHeaderTest extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testContextManager() {
         mock.setTransactionSettings(settings.withDurability(DurabilityLevel.QUORUM));
         mock.size();
@@ -205,7 +190,6 @@ public class ReplHeaderTest extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testCommitSettings() {
         mock.commit(settings.withDurability(42));
         Assert.assertEquals("durability=42", getReplHeader());

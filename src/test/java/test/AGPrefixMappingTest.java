@@ -10,16 +10,16 @@ import junit.extensions.TestSetup;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.shared.AbstractTestPrefixMapping;
 import org.apache.jena.shared.PrefixMapping;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 public class AGPrefixMappingTest extends AbstractTestPrefixMapping {
     private static final JenaUtil util = new JenaUtil(AGPrefixMappingTest.class);
     protected AGRepositoryConnection conn = null;
     protected AGGraphMaker maker = null;
 
-    public AGPrefixMappingTest(String name) {
-        super(name);
+    public AGPrefixMappingTest() {
+        super("AGPrefixMappingTest");
     }
 
     public static TestSetup suite() {
@@ -39,22 +39,22 @@ public class AGPrefixMappingTest extends AbstractTestPrefixMapping {
         return graph.getPrefixMapping();
     }
 
-    @Ignore @Test @Override
+    @Disabled @Test @Override
     public void testStrPrefix2() {
         // Fails due to unicode character in namespace prefix, which AG does not accept
     }
 
-    @Ignore @Test @Override
+    @Disabled @Test @Override
     public void testAddOtherPrefixMapping() {
         // TODO: fails needing rfe9413
     }
 
-    @Ignore @Test @Override
+    @Disabled @Test @Override
     public void testEquality() {
         // TODO: fails needing rfe9413
     }
 
-    @Ignore @Test @Override
+    @Disabled @Test @Override
     public void testSecondPrefixReplacesReverseMap() {
         // Fails because we do not guarantee the order
         // in which namespace mapping are returned.

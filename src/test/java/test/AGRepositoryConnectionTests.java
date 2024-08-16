@@ -33,10 +33,10 @@ import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFParseException;
 import org.json.JSONObject;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import test.RepositoryConnectionTest.RepositoryConnectionTests;
 
 import java.io.File;
@@ -61,15 +61,13 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.junit.matchers.JUnitMatchers.hasItems;
 
-
-
 public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
 
     private static final String TEST_REPO_1 = "testRepo1";
     private String oldUseAddStatementBuffer;
     private String oldAddStatementBufferMaxSize;
 
-    @Before
+    @BeforeEach
     public void setUp()
             throws Exception {
         super.setUp();
@@ -78,7 +76,7 @@ public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
         oldAddStatementBufferMaxSize = System.getProperty(AGRepositoryConnection.PROP_ADD_STATEMENT_BUFFER_MAX_SIZE, null);
     }
 
-    @After
+    @AfterEach
     public void tearDown()
             throws Exception {
         if (oldUseAddStatementBuffer != null) {
@@ -95,7 +93,7 @@ public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
         super.tearDown();
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownAll() {
         AGServer server = new AGServer(AGAbstractTest.findServerUrl(), 
                                        AGAbstractTest.username(), 
@@ -694,7 +692,7 @@ public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
         AGRepositoryConnection conn = repo.getConnection();
 
         // define all attributes used in the import data set.
-        conn.new AttributeDefinition("color").add();
+        conn.defineAttribute("color").add();
 
         try (final InputStream in = Util.resourceAsStream(TEST_DIR_PREFIX + "sample.nqx")) {
             conn.add(in, null, AGRDFFormat.NQX);

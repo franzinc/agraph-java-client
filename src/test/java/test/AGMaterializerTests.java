@@ -7,7 +7,6 @@ package test;
 import com.franz.agraph.repository.AGMaterializer;
 import junit.framework.AssertionFailedError;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.vocabulary.OWL;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
@@ -17,8 +16,8 @@ import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 public class AGMaterializerTests extends AGAbstractTest {
 
@@ -41,7 +40,7 @@ public class AGMaterializerTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
+    @Tag("a")
     public void materializeOverDefaultGraph() throws Exception {
         IRI a = vf.createIRI("http://a");
         IRI p = vf.createIRI("http://p");
@@ -67,7 +66,6 @@ public class AGMaterializerTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void materializeIntoNamedGraph() throws Exception {
         IRI a = vf.createIRI("http://a");
         IRI p = vf.createIRI("http://p");
@@ -101,7 +99,6 @@ public class AGMaterializerTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void materializeOverDefaultGraphTransactional() throws Exception {
         IRI a = vf.createIRI("http://a");
         IRI p = vf.createIRI("http://p");
@@ -123,7 +120,6 @@ public class AGMaterializerTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void materializeOverDefaultGraphUseTypeSubproperty() throws Exception {
         IRI a = vf.createIRI("http://a");
         IRI A = vf.createIRI("http://A");
@@ -146,8 +142,9 @@ public class AGMaterializerTests extends AGAbstractTest {
         Assert.assertTrue(conn.hasStatement(a, RDF.TYPE, B, false));
     }
 
+
     @Test
-    @Category(TestSuites.Broken.class)
+    @Tag("Broken")
     public void materializeOverNamedGraphs() throws Exception {
         Util.add(conn, "/test/example.nq", null, RDFFormat.NQUADS);
         conn.add(vf.createIRI("http://xmlns.com/foaf/0.1/name"), RDFS.DOMAIN, OWL.INDIVIDUAL);

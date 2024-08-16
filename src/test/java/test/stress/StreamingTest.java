@@ -18,8 +18,8 @@ import org.eclipse.rdf4j.query.QueryResultHandlerException;
 import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.query.TupleQueryResultHandler;
 import org.eclipse.rdf4j.query.TupleQueryResultHandlerException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import test.AGAbstractTest;
 
 import java.lang.management.ManagementFactory;
@@ -49,7 +49,7 @@ public class StreamingTest extends AGAbstractTest {
     private String limit = null;
     private long minSeconds = 20;
 
-    @Before
+    @BeforeEach
     public void openLargeRepo() throws Exception {
         // do not use the super.repo because the contents are deleted in BeforeClass
         AGCatalog cat = server.getCatalog(Events.Defaults.CATALOG);

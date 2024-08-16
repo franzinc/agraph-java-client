@@ -10,8 +10,8 @@ import com.franz.agraph.jena.AGModel;
 import junit.framework.Assert;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.rio.RDFFormat;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -19,7 +19,6 @@ import java.io.FileOutputStream;
 public class NQuadsTests extends AGAbstractTest {
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void nquads_sesame_rfe10201() throws Exception {
         Util.add(conn, "/test/example.nq", null, RDFFormat.NQUADS);
         Assert.assertEquals("expected size 10", 10, conn.size());
@@ -30,7 +29,6 @@ public class NQuadsTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void nquads_jena_rfe10201() throws Exception {
         AGGraphMaker maker = closeLater(new AGGraphMaker(conn));
         AGGraph graph = closeLater(maker.getUnionOfAllGraphs());
@@ -45,7 +43,7 @@ public class NQuadsTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Broken.class)
+    @Tag("Broken")
     public void sesameAddContextOverridesNQuadsContext() throws Exception {
         IRI bob = vf.createIRI("http://example.org/bob/foaf.rdf");
         // the add context is ignored -- it should override
@@ -54,7 +52,7 @@ public class NQuadsTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Broken.class)
+    @Tag("Broken")
     public void jenaGraphOverridesNQuadsContext() throws Exception {
         AGGraphMaker maker = closeLater(new AGGraphMaker(conn));
         AGGraph graph = closeLater(maker.getGraph());

@@ -11,9 +11,7 @@ import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
-
+import org.junit.jupiter.api.Test;
 import java.io.IOException;
 
 public class SparqlDefaultTest extends AGAbstractTest {
@@ -22,7 +20,6 @@ public class SparqlDefaultTest extends AGAbstractTest {
      * Tests DEFAULT using a Sesame MemoryStore.
      */
     @Test
-    @Category(TestSuites.NotApplicableForAgraph.class)
     public void testMemoryStoreDEFAULT() throws Exception {
         Repository repo = new SailRepository(new MemoryStore());
         repo.initialize();
@@ -34,7 +31,6 @@ public class SparqlDefaultTest extends AGAbstractTest {
      * Tests DEFAULT using an AG store.
      */
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testAGDEFAULT() throws Exception {
         testDEFAULT(conn);
     }

@@ -23,14 +23,13 @@ import org.eclipse.rdf4j.query.TupleQueryResultHandler;
 import org.eclipse.rdf4j.query.TupleQueryResultHandlerException;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryResult;
-import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import test.AGAbstractTest;
-import test.TestSuites;
 import test.Util;
 
 import java.util.ArrayList;
@@ -55,7 +54,7 @@ public class AGConnPoolClosingTest extends Closer {
         }).collect(Collectors.toList());
     }
 
-    @After
+    @AfterEach
     public void closeAfter() throws Exception {
         close();
         Map<String, String> sessions = AGAbstractTest.sessions(AGAbstractTest.newAGServer());
@@ -65,7 +64,6 @@ public class AGConnPoolClosingTest extends Closer {
     }
 
     @Test
-    @Category(TestSuites.Stress.class)
     public void openAG() throws Exception {
         final String repoName = "pool.openAG";
         final AGConnPool pool = closeLater(AGConnPool.create(
@@ -172,8 +170,8 @@ public class AGConnPoolClosingTest extends Closer {
     }
 
     @Test
-    // @Category(TestSuites.Stress.class)
-    @Category(TestSuites.Broken.class) // This test is unreliable and has been disabled. -- dancy
+    // This test is unreliable and has been disabled. -- dancy
+    @Tag("Broken")
     public void openSockets_bug21099() throws Exception {
         final String repoName = "pool.bug21099";
 
@@ -264,7 +262,7 @@ public class AGConnPoolClosingTest extends Closer {
     }
 
     @Test
-    @Category(TestSuites.Broken.class)
+    @Tag("Broken")
     /**
      * Test without the pool.
      */
@@ -314,7 +312,7 @@ public class AGConnPoolClosingTest extends Closer {
 
 
     @Test
-    @Category(TestSuites.Broken.class)
+    @Tag("Broken")
     /**
      * Test for invalid configuration of HttpSessionManager
      * Test fails if the AGConnFactory does not properly initialize

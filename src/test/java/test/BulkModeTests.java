@@ -8,15 +8,13 @@ import junit.framework.Assert;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.rio.RDFFormat;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 import static org.junit.Assert.assertEquals;
 
 public class BulkModeTests extends AGAbstractTest {
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void bulkMode_rfe10303() throws Exception {
         Assert.assertFalse("expected bulkMode false", repo.isBulkMode());
         Assert.assertTrue("expected autoCommit true", conn.isAutoCommit());

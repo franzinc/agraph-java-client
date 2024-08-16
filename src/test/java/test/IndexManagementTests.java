@@ -5,15 +5,13 @@
 package test;
 
 import junit.framework.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 public class IndexManagementTests extends AGAbstractTest {
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void manageIndices_rfe9930() throws Exception {
         /**
          * before 7.1.0    gposi, gspoi, ospgi, posgi, gospi, spogi, i

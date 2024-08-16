@@ -11,8 +11,7 @@ import com.franz.agraph.repository.AGRepositoryConnection;
 import junit.framework.Assert;
 import org.eclipse.rdf4j.model.vocabulary.OWL;
 import org.eclipse.rdf4j.repository.RepositoryException;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -22,7 +21,6 @@ import static test.Util.logTimeStamped;
 public class SessionTests extends AGAbstractTest {
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void sessionUsingDedicatedPort() throws Exception {
         int mainPort = getPort(conn);
         String oldUse = System.setProperty("com.franz.agraph.http.useMainPortForSessions", "false");
@@ -45,7 +43,6 @@ public class SessionTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void sessionUsingMainPort() throws Exception {
         int mainPort = getPort(conn);
         String oldUse = System.setProperty("com.franz.agraph.http.useMainPortForSessions", "true");
@@ -73,7 +70,6 @@ public class SessionTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void sessionLifetime_rfe9436() throws Exception {
         // Seconds
         int conn2Life = 5;
@@ -152,7 +148,6 @@ public class SessionTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void sessionLifetime_rfe14296() throws Exception {
         int connLife = 2;
         conn.setSessionLifetime(connLife);

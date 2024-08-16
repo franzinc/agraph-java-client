@@ -29,19 +29,17 @@ import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFParserRegistry;
 import org.eclipse.rdf4j.rio.Rio;
-import org.junit.After;
-import org.junit.AfterClass;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -57,7 +55,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static test.Util.coalesce;
-import static test.Util.ifBlank;
 import static test.Util.getEnvWithDefault;
 
 public class AGAbstractTest {
@@ -161,7 +158,7 @@ public class AGAbstractTest {
         return sharedRepo;
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpOnce() {
         server = newAGServer();
         try {
@@ -250,7 +247,7 @@ public class AGAbstractTest {
         return map;
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownOnce() throws Exception {
         // try to clean up...
         server.deleteRepository(REPO_ID, CATALOG_ID);
@@ -440,7 +437,7 @@ public class AGAbstractTest {
         log = LoggerFactory.getLogger(this.getClass().getName() + "." + testName);
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
 //        try {
 //            cat.deleteRepository(REPO_ID);
@@ -461,7 +458,7 @@ public class AGAbstractTest {
         conn.setNamespace("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
     }
 
-    @After
+    @AfterEach
     public void tearDown() throws Exception {
         closer.close();
         conn.close();

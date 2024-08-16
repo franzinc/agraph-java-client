@@ -17,10 +17,8 @@ import org.eclipse.rdf4j.rio.RDFParseException;
 import org.eclipse.rdf4j.rio.RDFParser;
 import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.rio.helpers.StatementCollector;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 import test.AGAbstractTest;
-import test.TestSuites;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,7 +26,6 @@ import java.io.InputStream;
 public class AGSparqlUpdateTest extends SPARQLUpdateTest {
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void batchUpdate() throws Exception {
         IRI s = f.createIRI("http://example/book1");
         IRI p = f.createIRI("http://purl.org/dc/elements/1.1/title");
@@ -51,7 +48,6 @@ public class AGSparqlUpdateTest extends SPARQLUpdateTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void updateViaBooleanQuery() throws Exception {
         IRI s = f.createIRI("http://example/book1");
         IRI p = f.createIRI("http://purl.org/dc/elements/1.1/title");

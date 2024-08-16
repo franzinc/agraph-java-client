@@ -28,8 +28,7 @@ import org.apache.jena.vocabulary.RDFS;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -49,7 +48,6 @@ public class JenaTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void jenaAutoCommitTrue() throws Exception {
         // this is the default, but try setting it explicitly
         conn.setAutoCommit(true);
@@ -68,7 +66,6 @@ public class JenaTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void jenaAutoCommitFalse() throws Exception {
         //conn.setAutoCommit(false);
 
@@ -95,7 +92,6 @@ public class JenaTests extends AGAbstractTest {
 
     // cf. rfe13511
     @Test
-    @Category(TestSuites.Prepush.class)
     public void sparqlOrderByError_bug19157_rfe9971_no_check() throws Exception {
         AGGraphMaker maker = closeLater(new AGGraphMaker(conn));
         AGGraph graph = closeLater(maker.getGraph());
@@ -121,7 +117,6 @@ public class JenaTests extends AGAbstractTest {
 
     // cf. rfe13511
     @Test
-    @Category(TestSuites.Prepush.class)
     public void sparqlOrderByError_bug19157_rfe9971_yes_check() throws Exception {
         AGGraphMaker maker = closeLater(new AGGraphMaker(conn));
         AGGraph graph = closeLater(maker.getGraph());
@@ -152,7 +147,6 @@ public class JenaTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void jenaGraphs_bug19491() throws Exception {
         // This test is largely obsolete/superseded by jenaGraphScopedReasoning
         AGGraphMaker maker = closeLater(new AGGraphMaker(conn));
@@ -178,7 +172,6 @@ public class JenaTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void jenaReasoning_bug19484() throws Exception {
         AGGraphMaker maker = closeLater(new AGGraphMaker(conn));
         AGGraph graph = closeLater(maker.getGraph());
@@ -216,7 +209,6 @@ public class JenaTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void savingModel_spr37167() throws Exception {
         AGGraphMaker maker = closeLater(new AGGraphMaker(conn));
         AGGraph graph = closeLater(maker.getGraph());
@@ -243,7 +235,6 @@ public class JenaTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void jenaRestrictionReasoning() throws Exception {
         AGGraphMaker maker = closeLater(new AGGraphMaker(conn));
         AGGraph graph = closeLater(maker.getGraph());
@@ -307,7 +298,6 @@ public class JenaTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void jenaGraphScopedReasoning() throws Exception {
         AGGraphMaker maker = closeLater(new AGGraphMaker(conn));
         AGGraph gd = closeLater(maker.getGraph());
@@ -386,7 +376,6 @@ public class JenaTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void testIsEmpty() throws Exception {
         AGGraphMaker maker = closeLater(new AGGraphMaker(conn));
         AGGraph gd = closeLater(maker.getGraph());
@@ -485,7 +474,6 @@ public class JenaTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void jenaReadTurtle() throws Exception {
         AGGraphMaker maker = closeLater(new AGGraphMaker(conn));
         AGGraph g = closeLater(maker.getGraph());
@@ -496,7 +484,6 @@ public class JenaTests extends AGAbstractTest {
     }
 
     @Test
-    @Category(TestSuites.Prepush.class)
     public void jenaDeleteQuads() throws Exception {
         AGGraphMaker maker = closeLater(new AGGraphMaker(conn));
         AGGraph unionGraph = closeLater(maker.getUnionOfAllGraphs());

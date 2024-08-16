@@ -46,8 +46,12 @@
     <!-- Same thing applies to Jena. -->
     <jena.version>5.1.0</jena.version>
 
-    <tests.include>test.TestSuites$Prepush</tests.include>
-    <tests.exclude />
+    <junit4.version>4.13.2</junit4.version>
+    <junit5.version>5.11.0</junit5.version>
+
+    <!-- Default test suite -->
+    <test>test.suites.PrepushTests</test>
+
   </properties>
 
 
@@ -149,38 +153,12 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.19.1</version>
+        <version>3.3.1</version>
         <configuration>
           <reportFormat>plain</reportFormat>
           <useFile>false</useFile>
-          <excludes>
-            <exclude>${tests.exclude}</exclude>
-          </excludes>
-          <includes>
-            <include>${tests.include}</include>
-          </includes>
+          <test>${test}</test>
           <systemPropertyVariables>
-            <org.apache.commons.logging.Log>
-              org.apache.commons.logging.impl.SimpleLog
-            </org.apache.commons.logging.Log>
-            <org.apache.commons.logging.Log>
-              org.apache.commons.logging.impl.SimpleLog
-            </org.apache.commons.logging.Log>
-            <org.apache.commons.logging.simplelog.defaultlog>
-              info
-            </org.apache.commons.logging.simplelog.defaultlog>
-            <org.apache.commons.logging.simplelog.log.org>
-              info
-            </org.apache.commons.logging.simplelog.log.org>
-            <org.apache.commons.logging.simplelog.log.httpclient>
-              info
-            </org.apache.commons.logging.simplelog.log.httpclient>
-            <org.apache.commons.logging.simplelog.showlogname>
-              true
-            </org.apache.commons.logging.simplelog.showlogname>
-            <org.apache.commons.logging.simplelog.showdatetime>
-              true
-            </org.apache.commons.logging.simplelog.showdatetime>
             <AGRAPH_HOST>${env.AGRAPH_HOST}</AGRAPH_HOST>
             <AGRAPH_PORT>${env.AGRAPH_PORT}</AGRAPH_PORT>
             <AGRAPH_ROOT>${env.root}</AGRAPH_ROOT>
@@ -401,11 +379,50 @@
     </repository>
   </distributionManagement>
 
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>${junit5.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.13.1</version>
+      <version>${junit4.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.vintage</groupId>
+      <artifactId>junit-vintage-engine</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.platform</groupId>
+      <artifactId>junit-platform-suite</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <version>${junit5.version}</version>
       <scope>test</scope>
     </dependency>
 
@@ -437,6 +454,12 @@
       <version>${jena.version}</version>
       <type>test-jar</type>
       <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.jena</groupId>
+      <artifactId>jena-ontapi</artifactId>
+      <version>${jena.version}</version>
     </dependency>
 
     <dependency>
