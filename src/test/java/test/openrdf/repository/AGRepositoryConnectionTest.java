@@ -44,6 +44,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Reader;
 import java.io.StringReader;
+import java.net.URL;
 import java.nio.file.Files;
 import java.util.*;
 
@@ -213,14 +214,14 @@ public class AGRepositoryConnectionTest extends RepositoryConnectionTest {
     public void testAddGzipInputStreamNTriples() throws Exception {
         // add file default-graph.nt.gz to repository, no context
         File gz = File.createTempFile("default-graph.nt-", ".gz");
-        String filePath = Objects.requireNonNull(Util.class.getResource(TEST_DATA_DIR + "default-graph.nt")).getFile();
-        File nt = new File(filePath);
+
+        URL ntResource = getClass().getResource(TEST_DATA_DIR + "default-graph.nt");
+        assertNotNull(ntResource);
+        File nt = new File(ntResource.toURI());
+
         Util.gzip(nt, gz);
-        InputStream defaultGraph = Files.newInputStream(gz.toPath());
-        try {
+        try (InputStream defaultGraph = Files.newInputStream(gz.toPath())) {
             testCon.add(defaultGraph, "", RDFFormat.NTRIPLES);
-        } finally {
-            defaultGraph.close();
         }
 
         assertTrue("Repository should contain newly added statements", testCon
