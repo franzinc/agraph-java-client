@@ -1,4 +1,5 @@
-# Standard Franz make rules forward to Maven.
+# This reports important environment settigns whenever the makefile is evaluated
+$(info $(shell mvn --version))
 
 # Client version, not AG version.  This is extracted from pom.xml
 override VERSION = $(shell ./version.sh)
