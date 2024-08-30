@@ -7,7 +7,7 @@ package com.franz.agraph.repository;
 import com.franz.agraph.http.AGHTTPClient;
 import com.franz.agraph.http.AGProtocol;
 import com.franz.agraph.http.exception.AGHttpException;
-import org.eclipse.rdf4j.RDF4JException;
+import org.eclipse.rdf4j.common.exception.RDF4JException;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.TupleQueryResult;
@@ -173,12 +173,9 @@ public class AGCatalog {
     }
 
     /**
-     * Returns a List of repository ids contained in this catalog.
-     *
      * @return a List of repository ids contained in this catalog
-     * @throws org.eclipse.rdf4j.RDF4JException if there is an error during the request
      */
-    public List<String> listRepositories() throws RDF4JException {
+    public List<String> listRepositories() {
         String url = getRepositoriesURL();
         List<String> result = new ArrayList<>(5);
         try (TupleQueryResult tqresult = getHTTPClient().getTupleQueryResult(url)) {
@@ -196,20 +193,19 @@ public class AGCatalog {
      *
      * @param repoId name of the repository to lookup
      * @return true if the repository id is contained in this catalog
-     * @throws RDF4JException if repository does not exist
      *                          TODO: revisit the decision to throw instead of returning null
      *                          if does not exit. Why throw?
      *                          <p>
      *                          TODO: have this throw a RepositoryException instead, either
      *                          by modifying contains() or catching and rethrowing here.
      */
-    public boolean hasRepository(String repoId) throws RDF4JException {
+    public boolean hasRepository(String repoId) {
         List<String> repos = listRepositories();
         return repos.contains(repoId);
     }
 
     /**
-     * Returns an {@link Repository#initialize() uninitialized}
+     * Returns an {@link Repository#init() uninitialized}
      * AGRepository instance for the given
      * {@link #listRepositories() repository id}.
      * <p>
@@ -227,7 +223,7 @@ public class AGCatalog {
     }
 
     /**
-     * Returns an {@link Repository#initialize() uninitialized}
+     * Returns an {@link Repository#init() uninitialized}
      * AGRepository instance for the given
      * {@link #listRepositories() repository id}.
      * <p>

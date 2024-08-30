@@ -15,7 +15,7 @@ import org.apache.jena.vocabulary.RDF;
 import org.eclipse.rdf4j.model.BNode;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.GraphQueryResult;
 import org.eclipse.rdf4j.query.QueryLanguage;
@@ -59,7 +59,7 @@ public class BlankNodeTests extends AGAbstractTest {
 
     @Test
     public void sesameExternalBlankNodeRoundTrips_spr38494() throws Exception {
-        BNode bnode = ValueFactoryImpl.getInstance().createBNode();
+        BNode bnode = SimpleValueFactory.getInstance().createBNode();
         BNode bnode2 = vf.createBNode("external");
         IRI p = vf.createIRI("http://p");
         conn.clear();

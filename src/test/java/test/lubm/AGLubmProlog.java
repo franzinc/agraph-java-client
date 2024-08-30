@@ -10,7 +10,7 @@ import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
 import com.franz.agraph.repository.AGTupleQuery;
-import org.eclipse.rdf4j.OpenRDFException;
+import org.eclipse.rdf4j.common.exception.RDF4JException;
 
 import java.util.Calendar;
 
@@ -49,7 +49,7 @@ public class AGLubmProlog {
     public static int ITERATIONS = Integer.parseInt(System.getProperty(
             "com.franz.agraph.lubm.iterations", "3"));
 
-    public static void main(String[] args) throws OpenRDFException {
+    public static void main(String[] args) throws RDF4JException {
 
         AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
         if (!server.listCatalogs().contains(CATALOG_ID)) {
@@ -63,7 +63,7 @@ public class AGLubmProlog {
             System.exit(1);
         }
         AGRepository repo = catalog.createRepository(REPOSITORY_ID);
-        repo.initialize();
+        repo.init();
         AGRepositoryConnection conn = repo.getConnection();
         System.out.println("Connected to " + repo.getRepositoryURL() + ": "
                 + conn.size() + " triples.");
@@ -102,7 +102,7 @@ public class AGLubmProlog {
     }
 
     public static void doQuery1(AGRepositoryConnection ts)
-            throws OpenRDFException {
+            throws RDF4JException {
         String query = "(select0 (?x) "
                 + "(:count-only t)"
                 + "(q ?x !ub:takesCourse !u0d0:GraduateCourse0)"
@@ -111,7 +111,7 @@ public class AGLubmProlog {
     }
 
     public static void doQuery2(AGRepositoryConnection ts)
-            throws OpenRDFException {
+            throws RDF4JException {
         String query = "(select0 (?x ?y ?z) "
                 + "(:count-only t)"
                 + "(:distinct t) "
@@ -126,7 +126,7 @@ public class AGLubmProlog {
     }
 
     public static void doQuery3(AGRepositoryConnection ts)
-            throws OpenRDFException {
+            throws RDF4JException {
         String query = "(select0 (?x) "
                 + "(:count-only t)"
                 + "(q ?x !ub:publicationAuthor !u0d0:AssistantProfessor0)"
@@ -135,7 +135,7 @@ public class AGLubmProlog {
     }
 
     public static void doQuery4(AGRepositoryConnection ts)
-            throws OpenRDFException {
+            throws RDF4JException {
         String query = "(select0 (?x ?name ?email ?telephone) "
                 + "(:count-only t)"
                 + "(q ?x !ub:worksFor !<http://www.Department0.University0.edu>)"
@@ -146,7 +146,7 @@ public class AGLubmProlog {
     }
 
     public static void doQuery5(AGRepositoryConnection ts)
-            throws OpenRDFException {
+            throws RDF4JException {
         String query = "(select0 (?x) "
                 + "(:count-only t)"
                 + "(q ?x !ub:memberOf !<http://www.Department0.University0.edu>)"
@@ -155,7 +155,7 @@ public class AGLubmProlog {
     }
 
     public static void doQuery6(AGRepositoryConnection ts)
-            throws OpenRDFException {
+            throws RDF4JException {
         String query = "(select0 (?x) "
                 + "(:distinct t) "
                 + "(:count-only t)"
@@ -164,7 +164,7 @@ public class AGLubmProlog {
     }
 
     public static void doQuery7(AGRepositoryConnection ts)
-            throws OpenRDFException {
+            throws RDF4JException {
         String query = "(select0 (?x ?y) "
                 + "(:count-only t)"
                 + "(q !u0d0:AssociateProfessor0 !ub:teacherOf ?y)"
@@ -174,7 +174,7 @@ public class AGLubmProlog {
     }
 
     public static void doQuery8(AGRepositoryConnection ts)
-            throws OpenRDFException {
+            throws RDF4JException {
         String query = "(select0 (?y ?x ?email) "
                 + "(:count-only t)"
                 + "(q ?y !ub:subOrganizationOf !<http://www.University0.edu>)"
@@ -185,7 +185,7 @@ public class AGLubmProlog {
     }
 
     public static void doQuery9(AGRepositoryConnection ts)
-            throws OpenRDFException {
+            throws RDF4JException {
         String query = "(select0 (?x ?y ?z) "
                 + "(:count-only t)"
                 + "(q ?x !ub:advisor ?y)"
@@ -197,7 +197,7 @@ public class AGLubmProlog {
     }
 
     public static void doQuery10(AGRepositoryConnection ts)
-            throws OpenRDFException {
+            throws RDF4JException {
         String query = "(select0 (?x) "
                 + "(:count-only t)"
                 + "(q ?x !ub:takesCourse !u0d0:GraduateCourse0)"
@@ -206,7 +206,7 @@ public class AGLubmProlog {
     }
 
     public static void doQuery11(AGRepositoryConnection ts)
-            throws OpenRDFException {
+            throws RDF4JException {
         String query = "(select0 (?x) "
                 + "(:count-only t)"
                 + "(q ?x !ub:subOrganizationOf !<http://www.University0.edu>)"
@@ -215,7 +215,7 @@ public class AGLubmProlog {
     }
 
     public static void doQuery12(AGRepositoryConnection ts)
-            throws OpenRDFException {
+            throws RDF4JException {
         String query = "(select0 (?x ?y) "
                 + "(:count-only t)"
                 + "(q ?y !ub:subOrganizationOf !<http://www.University0.edu>)"
@@ -225,7 +225,7 @@ public class AGLubmProlog {
     }
 
     public static void doQuery13(AGRepositoryConnection ts)
-            throws OpenRDFException {
+            throws RDF4JException {
         String query = "(select0 (?x) "
                 + "(:count-only t)"
                 + "(q !<http://www.University0.edu> !ub:hasAlumnus ?x)"
@@ -234,7 +234,7 @@ public class AGLubmProlog {
     }
 
     public static void doQuery14(AGRepositoryConnection ts)
-            throws OpenRDFException {
+            throws RDF4JException {
         String query = "(select0 (?x) "
                 + "(:distinct t) "
                 + "(:count-only t)"
@@ -243,7 +243,7 @@ public class AGLubmProlog {
     }
 
     public static void doQuery(AGRepositoryConnection conn, int qi, String query)
-            throws OpenRDFException {
+            throws RDF4JException {
         System.out.format("[%tT]Query %2d:", Calendar.getInstance(), qi);
         AGTupleQuery tupleQuery = conn.prepareTupleQuery(
                 AGQueryLanguage.PROLOG, query);

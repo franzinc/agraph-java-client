@@ -802,7 +802,7 @@ public class Main {
             final AGCatalog catalog = server.getCatalog(options.getCatalog());
             final AGRepository repo = catalog.openRepository(options.getRepository());
             try {
-                repo.initialize();
+                repo.init();
                 final AGRepositoryConnection conn = repo.getConnection();
                 try {
                     if (options.isOutputStdout()) {

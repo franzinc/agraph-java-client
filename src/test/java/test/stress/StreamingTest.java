@@ -55,7 +55,7 @@ public class StreamingTest extends AGAbstractTest {
         AGCatalog cat = server.getCatalog(Events.Defaults.CATALOG);
         if (cat.hasRepository(Events.Defaults.REPOSITORY)) {
             repo = closeLater(cat.openRepository(Events.Defaults.REPOSITORY));
-            repo.initialize();
+            repo.init();
             conn = closeLater(repo.getConnection());
             repoSize = conn.size();
             if (repoSize < SIZE) {
@@ -71,7 +71,7 @@ public class StreamingTest extends AGAbstractTest {
         if (repo == null) {
             cat = server.getCatalog(CATALOG_ID);
             repo = closeLater(cat.createRepository("big-java-test"));
-            repo.initialize();
+            repo.init();
             vf = repo.getValueFactory();
             conn = closeLater(repo.getConnection());
             conn.setAutoCommit(false);

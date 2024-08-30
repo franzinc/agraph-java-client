@@ -185,11 +185,24 @@ public class AGAbstractTest {
             AGCatalog cat = server.getCatalog(catalog);
             cat.deleteRepository(repoName);
             AGRepository repo = cat.createRepository(repoName);
-            repo.initialize();
+            repo.init();
             return repo;
         } catch (Exception e) {
             throw new RuntimeException("server url: " + server.getServerURL(), e);
         }
+    }
+
+    public static AGRepository newTestRepository(String name) {
+        return AGAbstractTest.newAGServer()
+                .createCatalog(CATALOG_ID)
+                .createRepository(name);
+    }
+
+    public static void cleanupTestRepository(AGRepository repo) {
+        String id = repo.getRepositoryID();
+        AGCatalog catalog = repo.getCatalog();
+        repo.close();
+        catalog.deleteRepository(id);
     }
 
     public static void deleteRepository(String catalog, String repo) throws RepositoryException {
@@ -201,7 +214,7 @@ public class AGAbstractTest {
 
     private static void ping() throws RepositoryException {
         try (AGRepository repo = cat.createRepository(REPO_ID)) {
-            repo.initialize();
+            repo.init();
             try (AGRepositoryConnection conn = repo.getConnection()) {
                 conn.ping();
             }
@@ -445,7 +458,7 @@ public class AGAbstractTest {
 //            // Ignore - it's probably the first test.
 //        }
         repo = cat.createRepository(REPO_ID);
-        repo.initialize();
+        repo.init();
         vf = repo.getValueFactory();
         conn = getConnection();
         conn.deleteStaticAttributeFilter();

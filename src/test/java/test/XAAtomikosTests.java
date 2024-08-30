@@ -11,12 +11,12 @@ import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.eclipse.rdf4j.repository.RepositoryResult;
-import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.Assume;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;

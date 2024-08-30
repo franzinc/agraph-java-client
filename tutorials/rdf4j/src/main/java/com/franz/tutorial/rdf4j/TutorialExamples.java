@@ -19,7 +19,7 @@ import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.eclipse.rdf4j.query.*;
-import org.eclipse.rdf4j.query.impl.DatasetImpl;
+import org.eclipse.rdf4j.query.impl.SimpleDataset;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryResult;
@@ -102,7 +102,7 @@ public class TutorialExamples {
         AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);
         deleteOnExit(REPOSITORY_ID, CATALOG_ID);
         println("Got a repository.");
-        myRepository.initialize();
+        myRepository.init();
         println("Initialized repository.");
         println("Repository is writable? " + myRepository.isWritable());
         AGRepositoryConnection conn = myRepository.getConnection();
@@ -1358,7 +1358,7 @@ public class TutorialExamples {
         // SPARQL examples using Dataset objects. 
         println("--------------------------------------------------------------------");
         queryString = "SELECT ?s ?p ?o WHERE {?s ?p ?o . }";
-        DatasetImpl ds = new DatasetImpl();
+        SimpleDataset ds = new SimpleDataset();
         ds.addDefaultGraph(null);    // AG default graph as SPARQL default graph.
         tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         tupleQuery.setDataset(ds);
@@ -1371,7 +1371,7 @@ public class TutorialExamples {
         println("--------------------------------------------------------------------");
         // testing named graph query
         queryString = "SELECT ?s ?p ?o WHERE {?s ?p ?o . }";
-        ds = new DatasetImpl();
+        ds = new SimpleDataset();
         ds.addNamedGraph(context1);
         tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         tupleQuery.setDataset(ds);
@@ -1386,7 +1386,7 @@ public class TutorialExamples {
         
         println("--------------------------------------------------------------------");
         queryString = "SELECT ?s ?p ?o ?c WHERE { GRAPH ?c {?s ?p ?o . } }";        
-        ds = new DatasetImpl();
+        ds = new SimpleDataset();
         ds.addNamedGraph(context1);
         tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         tupleQuery.setDataset(ds);
@@ -1741,7 +1741,7 @@ public class TutorialExamples {
         
         AGAbstractRepository rainbowRepo = server.federate(
                 redConn.getRepository(), greenConn.getRepository());
-        rainbowRepo.initialize();
+        rainbowRepo.init();
         println("Federation is writable? " + rainbowRepo.isWritable());
         AGRepositoryConnection rainbowConn = rainbowRepo.getConnection();
         closeBeforeExit(rainbowConn);

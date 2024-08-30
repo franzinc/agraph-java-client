@@ -39,7 +39,7 @@ public class TransactionStressTest {
         AGServer server = new AGServer(findServerUrl(), username(), password());
         AGCatalog catalog = server.getCatalog(AGAbstractTest.CATALOG_ID);
         AGRepository repository = catalog.createRepository("transaction-stress");
-        repository.initialize();
+        repository.init();
         AGRepositoryConnection conn = repository.getConnection();
         return conn;
     }

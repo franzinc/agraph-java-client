@@ -1,10 +1,12 @@
 package test;
 
-import junit.framework.Assert;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.ValueFactory;
-import org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class ContextsVarargsTest {
 
@@ -15,24 +17,24 @@ public class ContextsVarargsTest {
      */
     @Test
     public void howToPassContexts() {
-        ValueFactory vf = new ValueFactoryImpl();
+        ValueFactory vf = SimpleValueFactory.getInstance();
 
         // null array
-        Assert.assertEquals(null, m((Resource[]) null)); // this is *not* the null context
+        assertNull(m((Resource[]) null)); // this is *not* the null context
 
         // empty array
-        Assert.assertEquals(0, m().length); // using varargs
-        Assert.assertEquals(0, m(new Resource[0]).length); // using explicit array
+        assertEquals(0, m().length); // using varargs
+        assertEquals(0, m(new Resource[0]).length); // using explicit array
 
         // non-empty array, using varargs
-        Assert.assertEquals(1, m((Resource) null).length); // just the null context
-        Assert.assertEquals(1, m(vf.createIRI("http://a")).length);
-        Assert.assertEquals(3, m(null, vf.createIRI("http://a"), vf.createIRI("http://b")).length);
+        assertEquals(1, m((Resource) null).length); // just the null context
+        assertEquals(1, m(vf.createIRI("http://a")).length);
+        assertEquals(3, m(null, vf.createIRI("http://a"), vf.createIRI("http://b")).length);
 
         // non-empty, using an explicit array
-        Assert.assertEquals(1, m(new Resource[] {null}).length); // just the null context
-        Assert.assertEquals(1, m(new Resource[] {vf.createIRI("http://a")}).length);
-        Assert.assertEquals(3, m(new Resource[] {null, vf.createIRI("http://a"), vf.createIRI("http://b")}).length);
+        assertEquals(1, m(new Resource[] {null}).length); // just the null context
+        assertEquals(1, m(new Resource[] {vf.createIRI("http://a")}).length);
+        assertEquals(3, m(new Resource[] {null, vf.createIRI("http://a"), vf.createIRI("http://b")}).length);
     }
 
     /**

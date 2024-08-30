@@ -1056,7 +1056,7 @@ public class AGServer implements Closeable {
     public AGRepository createRepository(String reponame, AGCatalog catalog,
                                          boolean strict) throws RepositoryException {
         AGRepository repo = catalog.createRepository(reponame.trim(), strict);
-        repo.initialize();
+        repo.init();
 
         return repo;
     }

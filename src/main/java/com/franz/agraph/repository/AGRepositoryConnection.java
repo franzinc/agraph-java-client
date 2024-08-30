@@ -18,12 +18,10 @@ import com.franz.agraph.pool.AGConnPool;
 import com.franz.agraph.repository.repl.TransactionSettings;
 import com.franz.util.Ctx;
 import org.apache.commons.codec.DecoderException;
-import org.eclipse.rdf4j.OpenRDFUtil;
-import org.eclipse.rdf4j.RDF4JException;
 import org.eclipse.rdf4j.common.io.GZipUtil;
 import org.eclipse.rdf4j.common.io.ZipUtil;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.common.iteration.CloseableIteratorIteration;
-import org.eclipse.rdf4j.common.iteration.Iteration;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Namespace;
@@ -31,7 +29,6 @@ import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.impl.SimpleNamespace;
-import org.eclipse.rdf4j.model.impl.StatementImpl;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
@@ -49,8 +46,8 @@ import org.eclipse.rdf4j.rio.RDFParseException;
 import org.eclipse.rdf4j.rio.RDFParserRegistry;
 import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.rio.UnsupportedRDFormatException;
+import org.eclipse.rdf4j.rio.helpers.NTriplesUtil;
 import org.eclipse.rdf4j.rio.helpers.StatementCollector;
-import org.eclipse.rdf4j.rio.ntriples.NTriplesUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -77,6 +74,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
+
+import com.franz.util.Util;
 
 /**
  * Implements the <a href="http://www.openrdf.org/">Sesame</a>
@@ -378,7 +377,7 @@ public class AGRepositoryConnection
     @Override
     protected void addWithoutCommit(Resource subject, IRI predicate,
                                     Value object, Resource... contexts) throws RepositoryException {
-        Statement st = new StatementImpl(subject, predicate, object);
+        Statement st = vf.createStatement(subject, predicate, object);
         JSONArray rows = encodeJSON(st, null, contexts);
 
         if (isUseAddStatementBuffer()) {
@@ -394,7 +393,7 @@ public class AGRepositoryConnection
 
     protected void addWithoutCommit(Resource subject, IRI predicate,
                                     Value object, JSONObject attributes, Resource... contexts) throws RepositoryException {
-        Statement st = new StatementImpl(subject, predicate, object);
+        Statement st = vf.createStatement(subject, predicate, object);
         JSONArray rows = encodeJSON(st, attributes, contexts);
 
         if (isUseAddStatementBuffer()) {
@@ -417,7 +416,7 @@ public class AGRepositoryConnection
 
     public void add(Iterable<? extends Statement> statements,
                     Resource... contexts) throws RepositoryException {
-        OpenRDFUtil.verifyContextNotNull(contexts);
+        Util.verifyContextNotNull(contexts);
         JSONArray rows = new JSONArray();
         for (Statement st : statements) {
             JSONArray rows_st = encodeJSON(st, null, contexts);
@@ -433,7 +432,7 @@ public class AGRepositoryConnection
     public void add(Iterable<? extends Statement> statements,
                     JSONObject attributes,
                     Resource... contexts) throws RepositoryException {
-        OpenRDFUtil.verifyContextNotNull(contexts);
+        Util.verifyContextNotNull(contexts);
         JSONArray rows = new JSONArray();
         for (Statement st : statements) {
             JSONArray rows_st = encodeJSON(st, attributes, contexts);
@@ -456,11 +455,11 @@ public class AGRepositoryConnection
         }
     }
 
-    public <E extends Exception> void add(
-            Iteration<? extends Statement, E> statementIter,
-            Resource... contexts) throws RepositoryException, E {
-        OpenRDFUtil.verifyContextNotNull(contexts);
+    public void add(CloseableIteration<? extends Statement> statementIter, Resource... contexts)
+            throws RepositoryException {
+        Util.verifyContextNotNull(contexts);
         JSONArray rows = new JSONArray();
+
         while (statementIter.hasNext()) {
             append(rows, encodeJSON(statementIter.next(), null, contexts));
         }
@@ -471,11 +470,9 @@ public class AGRepositoryConnection
         }
     }
 
-    public <E extends Exception> void add(
-            Iteration<? extends Statement, E> statementIter,
-            JSONObject attributes,
-            Resource... contexts) throws RepositoryException, E {
-        OpenRDFUtil.verifyContextNotNull(contexts);
+    public void add(CloseableIteration<? extends Statement> statementIter, JSONObject attributes, Resource... contexts)
+            throws RepositoryException {
+        Util.verifyContextNotNull(contexts);
         JSONArray rows = new JSONArray();
         while (statementIter.hasNext()) {
             append(rows, encodeJSON(statementIter.next(), attributes, contexts));
@@ -532,7 +529,7 @@ public class AGRepositoryConnection
 
     private String encodeValueForStorageJSON(Value v) {
         Value storableValue = AGHttpRepoClient.getStorableValue(v, vf, getHttpRepoClientInternal().getAllowExternalBlankNodeIds());
-        return NTriplesUtil.toNTriplesString(storableValue);
+        return Util.NTriples.toNTriplesString(storableValue);
     }
 
     /**
@@ -910,13 +907,13 @@ public class AGRepositoryConnection
      */
     public void add(Resource subject, IRI predicate, Value object, Resource... contexts)
             throws RepositoryException {
-        OpenRDFUtil.verifyContextNotNull(contexts);
+        Util.verifyContextNotNull(contexts);
         addWithoutCommit(subject, predicate, object, contexts);
     }
 
     public void add(Resource subject, IRI predicate, Value object, JSONObject attributes, Resource... contexts)
             throws RepositoryException {
-        OpenRDFUtil.verifyContextNotNull(contexts);
+        Util.verifyContextNotNull(contexts);
         addWithoutCommit(subject, predicate, object, attributes, contexts);
     }
 
@@ -935,25 +932,25 @@ public class AGRepositoryConnection
      */
     public void remove(Resource subject, IRI predicate, Value object, Resource... contexts)
             throws RepositoryException {
-        OpenRDFUtil.verifyContextNotNull(contexts);
+        Util.verifyContextNotNull(contexts);
         removeWithoutCommit(subject, predicate, object, contexts);
     }
 
     public void remove(Statement st, Resource... contexts)
             throws RepositoryException {
-        OpenRDFUtil.verifyContextNotNull(contexts);
+        Util.verifyContextNotNull(contexts);
         removeWithoutCommit(st, contexts);
     }
 
     public void add(Statement st, Resource... contexts)
             throws RepositoryException {
-        OpenRDFUtil.verifyContextNotNull(contexts);
+        Util.verifyContextNotNull(contexts);
         addWithoutCommit(st, contexts);
     }
 
     public void add(Statement st, JSONObject attributes, Resource... contexts)
             throws RepositoryException {
-        OpenRDFUtil.verifyContextNotNull(contexts);
+        Util.verifyContextNotNull(contexts);
         addWithoutCommit(st, attributes, contexts);
     }
 
@@ -986,7 +983,7 @@ public class AGRepositoryConnection
 
     public void remove(Iterable<? extends Statement> statements,
                        Resource... contexts) throws RepositoryException {
-        OpenRDFUtil.verifyContextNotNull(contexts);
+        Util.verifyContextNotNull(contexts);
         JSONArray rows = new JSONArray();
         for (Statement st : statements) {
             append(rows, encodeJSON(st, null, contexts));
@@ -994,10 +991,9 @@ public class AGRepositoryConnection
         prepareHttpRepoClient().deleteJSON(rows);
     }
 
-    public <E extends Exception> void remove(
-            Iteration<? extends Statement, E> statements, Resource... contexts)
-            throws RepositoryException, E {
-        OpenRDFUtil.verifyContextNotNull(contexts);
+    public void remove(CloseableIteration<? extends Statement> statements, Resource... contexts)
+            throws RepositoryException {
+        Util.verifyContextNotNull(contexts);
         JSONArray rows = new JSONArray();
         while (statements.hasNext()) {
             append(rows, encodeJSON(statements.next(), null, contexts));
@@ -1222,11 +1218,8 @@ public class AGRepositoryConnection
      * @param elements the set of elements
      * @return RepositoryResult  the set of elements as a RepositoryResult
      */
-    public <E> RepositoryResult<E> createRepositoryResult(
-            Iterable<? extends E> elements) {
-        return new RepositoryResult<>(
-                new CloseableIteratorIteration<E, RepositoryException>(elements
-                        .iterator()));
+    public <E> RepositoryResult<E> createRepositoryResult(Iterable<? extends E> elements) {
+        return new RepositoryResult<>(new CloseableIteratorIteration<E>(elements.iterator()));
     }
 
     public String getNamespace(String prefix) throws RepositoryException {
@@ -2461,22 +2454,16 @@ public class AGRepositoryConnection
     }
 
     /**
-     * Returns a list of actively managed indices for this repository.
-     *
      * @return a list of actively managed indices for this repository
-     * @throws RDF4JException if there is an error during the request
      */
-    public List<String> listIndices() throws RDF4JException {
+    public List<String> listIndices() {
         return prepareHttpRepoClient().listIndices(false);
     }
 
     /**
-     * Returns a list of all possible index types for this repository.
-     *
      * @return a list of valid index types
-     * @throws RDF4JException if there is an error during the request
      */
-    public List<String> listValidIndices() throws RDF4JException {
+    public List<String> listValidIndices() {
         return prepareHttpRepoClient().listIndices(true);
     }
 
@@ -2616,14 +2603,10 @@ public class AGRepositoryConnection
     }
 
     /**
-     * Returns a list of the registered encodable namespaces.
-     *
      * @return List  a list of the registered encodable namespaces
-     * @throws RDF4JException if there is a problem parsing the request
      * @see #registerEncodableNamespace(String, String)
      */
-    public List<AGFormattedNamespace> listEncodableNamespaces()
-            throws RDF4JException {
+    public List<AGFormattedNamespace> listEncodableNamespaces() {
         List<AGFormattedNamespace> result = new ArrayList<>();
         try (TupleQueryResult tqresult = prepareHttpRepoClient()
                 .getEncodableNamespaces()) {
@@ -2825,27 +2808,25 @@ public class AGRepositoryConnection
     /**
      * @param uri SPIN function identifier
      * @return String  the SPIN function query text
-     * @throws RDF4JException if there is an error with this request
      * @see #putSpinFunction(AGSpinFunction)
      * @see #deleteSpinFunction(String)
      * @see #listSpinFunctions()
      * @see #getSpinMagicProperty(String)
      * @since v4.4
      */
-    public String getSpinFunction(String uri) throws RDF4JException {
+    public String getSpinFunction(String uri) {
         return prepareHttpRepoClient().getSpinFunction(uri);
     }
 
     /**
      * @return List  currently defined SPIN functions
-     * @throws RDF4JException if there is an error with this request
      * @see #getSpinFunction(String)
      * @see #putSpinFunction(AGSpinFunction)
      * @see #deleteSpinFunction(String)
      * @see #listSpinMagicProperties()
      * @since v4.4
      */
-    public List<AGSpinFunction> listSpinFunctions() throws RDF4JException {
+    public List<AGSpinFunction> listSpinFunctions() {
         try (TupleQueryResult list = prepareHttpRepoClient().listSpinFunctions()) {
             List<AGSpinFunction> result = new ArrayList<>();
             while (list.hasNext()) {
@@ -2857,49 +2838,45 @@ public class AGRepositoryConnection
 
     /**
      * @param fn the SPIN function to add
-     * @throws RDF4JException if there is an error with this request
      * @see #getSpinFunction(String)
      * @see #deleteSpinFunction(String)
      * @see #putSpinMagicProperty(AGSpinMagicProperty)
      * @since v4.4
      */
-    public void putSpinFunction(AGSpinFunction fn) throws RDF4JException {
+    public void putSpinFunction(AGSpinFunction fn) {
         prepareHttpRepoClient().putSpinFunction(fn);
     }
 
     /**
      * @param uri SPIN function identifier
-     * @throws RDF4JException if there is an error with this request
      * @see #putSpinFunction(AGSpinFunction)
      * @see #getSpinFunction(String)
      * @since v4.4
      */
-    public void deleteSpinFunction(String uri) throws RDF4JException {
+    public void deleteSpinFunction(String uri) {
         prepareHttpRepoClient().deleteSpinFunction(uri);
     }
 
     /**
      * @param uri SPIN magic property identifier
      * @return String  describing the SPIN magic property
-     * @throws RDF4JException if there is an error with this request
      * @see #putSpinMagicProperty(AGSpinMagicProperty)
      * @see #deleteSpinMagicProperty(String)
      * @since v4.4
      */
-    public String getSpinMagicProperty(String uri) throws RDF4JException {
+    public String getSpinMagicProperty(String uri) {
         return prepareHttpRepoClient().getSpinMagicProperty(uri);
     }
 
     /**
      * @return List  all defined SPIN magic properties
-     * @throws RDF4JException if there is an error with this request
      * @see #getSpinMagicProperty(String)
      * @see #putSpinMagicProperty(AGSpinMagicProperty)
      * @see #deleteSpinMagicProperty(String)
      * @see #listSpinFunctions()
      * @since v4.4
      */
-    public List<AGSpinMagicProperty> listSpinMagicProperties() throws RDF4JException {
+    public List<AGSpinMagicProperty> listSpinMagicProperties() {
         try (TupleQueryResult list = prepareHttpRepoClient().listSpinMagicProperties()) {
             List<AGSpinMagicProperty> result = new ArrayList<>();
             while (list.hasNext()) {
@@ -2911,24 +2888,22 @@ public class AGRepositoryConnection
 
     /**
      * @param uri SPIN magic property identifier
-     * @throws RDF4JException if there is an error with this request
      * @see #putSpinMagicProperty(AGSpinMagicProperty)
      * @see #getSpinMagicProperty(String)
      * @since v4.4
      */
-    public void deleteSpinMagicProperty(String uri) throws RDF4JException {
+    public void deleteSpinMagicProperty(String uri) {
         prepareHttpRepoClient().deleteSpinMagicProperty(uri);
     }
 
     /**
      * @param fn the SPIN magic property to add
-     * @throws RDF4JException if there is an error with this request
      * @see #getSpinMagicProperty(String)
      * @see #deleteSpinMagicProperty(String)
      * @see #putSpinFunction(AGSpinFunction)
      * @since v4.4
      */
-    public void putSpinMagicProperty(AGSpinMagicProperty fn) throws RDF4JException {
+    public void putSpinMagicProperty(AGSpinMagicProperty fn) {
         prepareHttpRepoClient().putSpinMagicProperty(fn);
     }
 

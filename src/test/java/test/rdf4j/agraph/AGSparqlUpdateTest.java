@@ -2,7 +2,7 @@
  ** See the file LICENSE for the full license governing this code.
  ******************************************************************************/
 
-package test.openrdf;
+package test.rdf4j.agraph;
 
 import junit.framework.Assert;
 import org.eclipse.rdf4j.model.IRI;
@@ -12,18 +12,28 @@ import org.eclipse.rdf4j.query.Update;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.rio.RDFFormat;
-import org.eclipse.rdf4j.rio.RDFHandlerException;
 import org.eclipse.rdf4j.rio.RDFParseException;
 import org.eclipse.rdf4j.rio.RDFParser;
 import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.rio.helpers.StatementCollector;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
-import test.AGAbstractTest;
+import test.rdf4j.RDF4JTestsHelper;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 public class AGSparqlUpdateTest extends SPARQLUpdateTest {
+
+    @Override
+    protected Repository newRepository() throws Exception {
+        return RDF4JTestsHelper.getTestRepository();
+    }
+
+    @AfterAll
+    public static void cleanUp() {
+        RDF4JTestsHelper.clearTestRepository();
+    }
 
     @Test
     public void batchUpdate() throws Exception {
@@ -70,30 +80,16 @@ public class AGSparqlUpdateTest extends SPARQLUpdateTest {
         Assert.assertFalse("Incorrect title should be gone", con.hasStatement(s, p, o_wrong, false, g));
     }
 
-    @Override
-    protected Repository newRepository() throws Exception {
-        return AGAbstractTest.sharedRepository();
-    }
-
-    /* protected methods */
-
     protected void loadDataset(String datasetFile)
             throws RDFParseException, RepositoryException, IOException {
         logger.debug("loading dataset...");
-        InputStream dataset = org.eclipse.rdf4j.query.parser.sparql.SPARQLUpdateTest.class.getResourceAsStream(datasetFile);
-        try {
+        try (InputStream dataset = org.eclipse.rdf4j.testsuite.query.parser.sparql.SPARQLUpdateTest.class.getResourceAsStream(datasetFile)) {
             RDFParser parser = Rio.createParser(RDFFormat.TRIG, f);
             parser.setPreserveBNodeIDs(true);
             StatementCollector collector = new StatementCollector();
             parser.setRDFHandler(collector);
             parser.parse(dataset, "");
             con.add(collector.getStatements());
-        } catch (RDFParseException e) {
-            throw new RuntimeException(e);
-        } catch (RDFHandlerException e) {
-            throw new RuntimeException(e);
-        } finally {
-            dataset.close();
         }
     }
 

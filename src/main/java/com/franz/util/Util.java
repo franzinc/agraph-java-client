@@ -4,7 +4,15 @@
 
 package com.franz.util;
 
-import org.eclipse.rdf4j.common.iteration.Iteration;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.BNode;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Triple;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.rio.helpers.BasicWriterSettings;
+import org.eclipse.rdf4j.rio.helpers.NTriplesUtil;
 
 import java.util.Iterator;
 
@@ -30,7 +38,7 @@ public final class Util {
      * <p>
      * <code>
      * try (TupleQueryResult result = ...) {
-     *   for (BindingSet set : Util.iter(result)) { ... }
+     * for (BindingSet set : Util.iter(result)) { ... }
      * }
      * </code>
      *
@@ -38,7 +46,7 @@ public final class Util {
      * @param <T> Type of objects returned from the iteration.
      * @return An iterable to be used in a for-each loop.
      */
-    public static <T> Iterable<T> iter(final Iteration<T, ? extends RuntimeException> i) {
+    public static <T> Iterable<T> iter(final CloseableIteration<T> i) {
         return () -> new Iterator<T>() {
             @Override
             public boolean hasNext() {
@@ -90,9 +98,9 @@ public final class Util {
 
     /**
      * Computes the first index where two arrays differ.
-     *
+     * <p>
      * If the arrays are identical -1 is returned.
-     *
+     * <p>
      * If one array is a prefix of the other then the length
      * of the shorter array is returned.
      *
@@ -117,7 +125,7 @@ public final class Util {
      * @param a First array.
      * @param b Second array.
      * @return Comparison result as specified by
-     *         {@link Comparable#compareTo(Object)}.
+     * {@link Comparable#compareTo(Object)}.
      * @throws NullPointerException If either array is null.
      */
     public static int compare(int[] a, int[] b) {
@@ -126,5 +134,50 @@ public final class Util {
             return Integer.compare(a[m], b[m]);
         }
         return Integer.compare(a.length, b.length);
+    }
+
+    public static void verifyContextNotNull(Resource... contexts) {
+        if (contexts == null) {
+            String message = "Illegal value null array for contexts argument; either the value should be cast to Resource or an empty array should be supplied";
+            throw new IllegalArgumentException(message);
+        }
+    }
+
+    public static class NTriples {
+        private static final boolean XSD_STRING_TO_PLAIN_LITERAL = BasicWriterSettings.XSD_STRING_TO_PLAIN_LITERAL.getDefaultValue();
+
+        public static String toNTriplesString(Value storableValue) {
+            if (storableValue instanceof Literal literal) {
+                return NTriplesUtil.toNTriplesString(literal, XSD_STRING_TO_PLAIN_LITERAL);
+            } else if (storableValue instanceof IRI iri) {
+                return NTriplesUtil.toNTriplesString(iri);
+            } else if (storableValue instanceof BNode node) {
+                return toNTriplesString(node);
+            } else if (storableValue instanceof Triple triple) {
+                return toNTriplesString(triple);
+            } else {
+                throw new IllegalArgumentException("Unknown value type: " + storableValue.getClass());
+            }
+        }
+
+        /**
+         * The implementation of this method in org.eclipse.rdf4j.rio.helpers.NTriplesUtil
+         * (previously org.eclipse.rdf4j.rio.ntriples.NTriplesUtil)
+         * performs an expensive id validation/transformation for BNode ids, and we don't want to do that
+         */
+        private static String toNTriplesString(BNode bNode) {
+            String id = bNode.getID();
+            if (id == null || id.isEmpty()) {
+                return "_:genid" + Integer.toHexString(bNode.hashCode());
+            } else {
+                return "_:" + id;
+            }
+        }
+
+        private static String toNTriplesString(Triple triple) {
+            return "<<" + toNTriplesString(triple.getSubject()) + " "
+                    + toNTriplesString(triple.getPredicate()) + " "
+                    + toNTriplesString(triple.getObject()) + ">>";
+        }
     }
 }

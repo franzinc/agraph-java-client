@@ -83,7 +83,7 @@ public class AttributesExample {
      * @return void
      * @throws Exception
      */
-    private static void printRows(String headerMsg, CloseableIteration<?, ?> rows)
+    private static void printRows(String headerMsg, CloseableIteration<?> rows)
         throws Exception {
     println(headerMsg);
         int count = 0;
@@ -145,7 +145,7 @@ public class AttributesExample {
              * 
              * The following (ordered) relationship holds: low < medium < high
              */
-            AttributeDefinition seclev = conn.new AttributeDefinition("securityLevel")
+            AttributeDefinition seclev = conn.defineAttribute("securityLevel")
             		.ordered(true)
             		.allowedValue("low")
             		.allowedValue("medium")
@@ -159,7 +159,7 @@ public class AttributesExample {
              * applicable to. Only the below 4 values are allowed, and zero or
              * more can be assigned.
              */
-            AttributeDefinition dept = conn.new AttributeDefinition("department")
+            AttributeDefinition dept = conn.defineAttribute("department")
             		.allowedValue("devel")
             		.allowedValue("hr")
             		.allowedValue("sales")
@@ -177,7 +177,7 @@ public class AttributesExample {
              * Similar to department, only the below 5 values are valid, and
              * zero or more can be assigned.
              */
-            AttributeDefinition access = conn.new AttributeDefinition("accessToken")
+            AttributeDefinition access = conn.defineAttribute("accessToken")
             		.allowedValue("A")
             		.allowedValue("B")
             		.allowedValue("C")
@@ -241,7 +241,7 @@ public class AttributesExample {
             		.put("accessToken", new JSONArray().put("D").put("E"));
 
             // Add statements with supplied attributes.
-            conn.add(s, pDept, vf.createURI(ex, "ops"), infoAttrs);
+            conn.add(s, pDept, vf.createIRI(ex, "ops"), infoAttrs);
             conn.add(s, pSalary, vf.createLiteral(100000), salaryAttrs);
 
             // Add a statement with defaulted attributes using the defaultAttributes SPARQL prefix.

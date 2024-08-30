@@ -9,7 +9,7 @@ import com.franz.agraph.repository.AGRepositoryConnection;
 import junit.framework.Assert;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.vocabulary.OWL;
-import org.eclipse.rdf4j.rio.ntriples.NTriplesUtil;
+import org.eclipse.rdf4j.rio.helpers.NTriplesUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Tag;
 

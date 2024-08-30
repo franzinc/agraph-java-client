@@ -2,7 +2,7 @@
  ** See the file LICENSE for the full license governing this code.
  ******************************************************************************/
 
-package test.openrdf;
+package test.rdf4j.agraph;
 
 import org.eclipse.rdf4j.model.BNode;
 import org.eclipse.rdf4j.model.IRI;
@@ -1574,7 +1574,7 @@ public abstract class SPARQLUpdateTest {
     protected Repository createRepository()
             throws Exception {
         Repository repository = newRepository();
-        repository.initialize();
+        repository.init();
         RepositoryConnection con = repository.getConnection();
         con.clear();
         con.clearNamespaces();

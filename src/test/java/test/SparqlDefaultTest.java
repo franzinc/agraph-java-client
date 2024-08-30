@@ -22,7 +22,7 @@ public class SparqlDefaultTest extends AGAbstractTest {
     @Test
     public void testMemoryStoreDEFAULT() throws Exception {
         Repository repo = new SailRepository(new MemoryStore());
-        repo.initialize();
+        repo.init();
         RepositoryConnection conn = repo.getConnection();
         testDEFAULT(conn);
     }

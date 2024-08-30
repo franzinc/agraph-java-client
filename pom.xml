@@ -42,7 +42,7 @@
     <maven.compiler.release>17</maven.compiler.release>
 
     <!-- All RDF4J deps use the same version. -->
-    <rdf4j.version>2.4.0</rdf4j.version>
+    <rdf4j.version>5.0.2</rdf4j.version>
     <!-- Same thing applies to Jena. -->
     <jena.version>5.1.0</jena.version>
 
@@ -233,7 +233,7 @@
           <notree>false</notree>
           <links>
             <link>https://jena.apache.org/documentation/javadoc/jena/</link>
-            <link>https://docs.rdf4j.org/javadoc/2.5.4/</link>
+            <link>https://docs.rdf4j.org/javadoc/${rdf4j.version}</link>
           </links>
           <overview>${basedir}/src/main/javadoc/overview.html</overview>
           <reportOutputDirectory>${basedir}</reportOutputDirectory>
@@ -389,6 +389,13 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+      <dependency>
+        <groupId>org.eclipse.rdf4j</groupId>
+        <artifactId>rdf4j-bom</artifactId>
+        <version>${rdf4j.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -432,10 +439,10 @@
       <version>${rdf4j.version}</version>
       <scope>test</scope>
     </dependency>
-    
+
     <dependency>
       <groupId>org.eclipse.rdf4j</groupId>
-      <artifactId>rdf4j-store-testsuite</artifactId>
+      <artifactId>rdf4j-repository-testsuite</artifactId>
       <version>${rdf4j.version}</version>
       <scope>test</scope>
     </dependency>
@@ -472,16 +479,7 @@
       <groupId>org.eclipse.rdf4j</groupId>
       <artifactId>rdf4j-runtime</artifactId>
       <version>${rdf4j.version}</version>
-      <exclusions>
-        <!-- Libraries are not supposed to depend on a concrete
-             implementation of a logging framework, but RDF4J does.
-             Note that all logging in RDF4J is still done using SLF4J,
-             so removing logback does not break anything. -->
-        <exclusion>
-          <groupId>ch.qos.logback</groupId>
-          <artifactId>logback-classic</artifactId>
-        </exclusion>
-      </exclusions>
+      <type>pom</type>
     </dependency>
 
     <dependency>
@@ -495,7 +493,19 @@
       <artifactId>rdf4j-rio-rdfxml</artifactId>
       <version>${rdf4j.version}</version>
     </dependency>
-    
+
+    <dependency>
+      <groupId>org.eclipse.rdf4j</groupId>
+      <artifactId>rdf4j-queryresultio-text</artifactId>
+      <version>${rdf4j.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.eclipse.rdf4j</groupId>
+      <artifactId>rdf4j-queryresultio-sparqljson</artifactId>
+      <version>${rdf4j.version}</version>
+    </dependency>
+
     <dependency>
       <groupId>org.apache.jena</groupId>
       <artifactId>jena-core</artifactId>
@@ -519,7 +529,7 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>1.7.25</version>
+      <version>1.7.36</version>
     </dependency>
     
     <dependency>
@@ -545,7 +555,7 @@
     <dependency>
       <groupId>commons-logging</groupId>
       <artifactId>commons-logging</artifactId>
-      <version>1.1.1</version>
+      <version>1.3.3</version>
     </dependency>
 
     <dependency>
@@ -578,16 +588,7 @@
       <version>2.5</version>
       <scope>provided</scope>
     </dependency>
-    <dependency>
-      <groupId>org.eclipse.rdf4j</groupId>
-      <artifactId>rdf4j-queryresultio-text</artifactId>
-      <version>${rdf4j.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.rdf4j</groupId>
-      <artifactId>rdf4j-queryresultio-sparqljson</artifactId>
-      <version>${rdf4j.version}</version>
-    </dependency>
+
     <dependency>
       <groupId>com.atomikos</groupId>
       <artifactId>transactions-jta</artifactId>

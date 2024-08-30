@@ -22,7 +22,7 @@
     <maven.compiler.release>17</maven.compiler.release>
 
     <!-- This should match RDF4J version used by AG. -->
-    <rdf4j.version>2.4.0</rdf4j.version>
+    <rdf4j.version>5.0.2</rdf4j.version>
     <!-- This has to be redefined in child projects. -->
     <main.class />
   </properties>

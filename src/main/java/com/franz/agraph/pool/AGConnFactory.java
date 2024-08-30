@@ -65,7 +65,7 @@ public class AGConnFactory extends BasePooledObjectFactory<AGRepositoryConnectio
         } else {
             // Create directly to skip a redundant check
             repo = new AGRepository(catalog, props.repository);
-            repo.initialize();
+            repo.init();
         }
         AGRepositoryConnection conn = repo.getConnection();
         if (props.sessionLifetime != null) {

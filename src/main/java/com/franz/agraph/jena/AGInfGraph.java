@@ -15,7 +15,7 @@ import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.reasoner.ValidityReport;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.eclipse.rdf4j.query.Dataset;
-import org.eclipse.rdf4j.query.impl.DatasetImpl;
+import org.eclipse.rdf4j.query.impl.SimpleDataset;
 import org.eclipse.rdf4j.repository.RepositoryException;
 
 import java.util.Iterator;
@@ -73,7 +73,7 @@ public class AGInfGraph extends AGGraph implements InfGraph {
     protected Dataset getDataset() {
         // use the whole underlying repository, it is designed to
         // contain just the right set of graphs.
-        return new DatasetImpl();
+        return new SimpleDataset();
     }
 
     @Override

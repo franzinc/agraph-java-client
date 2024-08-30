@@ -28,7 +28,7 @@ import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.query.Dataset;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
 import org.eclipse.rdf4j.query.QueryLanguage;
-import org.eclipse.rdf4j.query.impl.DatasetImpl;
+import org.eclipse.rdf4j.query.impl.SimpleDataset;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.eclipse.rdf4j.rio.RDFHandlerException;
@@ -149,7 +149,7 @@ public class AGGraph extends GraphBase implements Graph, Closeable {
     }
 
     protected Dataset getDataset() {
-        final DatasetImpl dataset = new DatasetImpl();
+        final SimpleDataset dataset = new SimpleDataset();
         // If we have any non-default contexts, construct a dataset.
         // Otherwise just use an empty dataset.
         // This is preferable since using 'null' to specify

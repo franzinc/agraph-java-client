@@ -4,7 +4,11 @@
 
 package test;
 
-import com.franz.agraph.jena.*;
+import com.franz.agraph.jena.AGGraph;
+import com.franz.agraph.jena.AGModel;
+import com.franz.agraph.jena.AGQuery;
+import com.franz.agraph.jena.AGQueryExecutionFactory;
+import com.franz.agraph.jena.AGQueryFactory;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import org.apache.jena.query.QueryExecution;

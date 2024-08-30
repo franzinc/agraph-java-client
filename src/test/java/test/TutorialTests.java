@@ -25,9 +25,10 @@ import org.eclipse.rdf4j.model.vocabulary.OWL;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.query.Dataset;
 import org.eclipse.rdf4j.query.QueryLanguage;
 import org.eclipse.rdf4j.query.TupleQuery;
-import org.eclipse.rdf4j.query.impl.DatasetImpl;
+import org.eclipse.rdf4j.query.impl.SimpleDataset;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.ntriples.NTriplesWriter;
@@ -236,7 +237,7 @@ public class TutorialTests extends AGAbstractTest {
         repo = cat.createRepository("example8");
         closeLater(() -> cat.deleteRepository("example8"));
         closeLater(repo);
-        repo.initialize();
+        repo.init();
         conn = getConnection(repo);
         vf = repo.getValueFactory();
         example6();
@@ -338,7 +339,7 @@ public class TutorialTests extends AGAbstractTest {
                 statementSet(conn.getStatements(null, null, null, false, null, context2)));
 
         // testing named graph query
-        DatasetImpl ds = new DatasetImpl();
+        SimpleDataset ds = new SimpleDataset();
         ds.addNamedGraph(context1);
         ds.addNamedGraph(context2);
         AGTupleQuery tupleQuery = conn.prepareTupleQuery(
@@ -357,7 +358,7 @@ public class TutorialTests extends AGAbstractTest {
                 }),
                 statementSet(tupleQuery.evaluate()));
 
-        ds = new DatasetImpl();
+        ds = new SimpleDataset();
         ds.addDefaultGraph(null);
         tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, "SELECT ?s ?p ?o WHERE {?s ?p ?o . }");
         tupleQuery.setDataset(ds);
@@ -612,21 +613,21 @@ public class TutorialTests extends AGAbstractTest {
         AGRepository redRepo = cat.createRepository("redthingsjv-ex16");
         closeLater(() -> cat.deleteRepository("redthingsjv-ex16"));
         closeLater(redRepo);
-        redRepo.initialize();
+        redRepo.init();
         AGRepositoryConnection redConn = getConnection(redRepo);
         redConn.clear();
         ValueFactory rf = redConn.getValueFactory();
         AGRepository greenRepo = cat.createRepository("greenthingsjv-ex16");
         closeLater(() -> cat.deleteRepository("greenthingsjv-ex16"));
         closeLater(greenRepo);
-        greenRepo.initialize();
+        greenRepo.init();
         AGRepositoryConnection greenConn = getConnection(greenRepo);
         greenConn.clear();
         ValueFactory gf = greenConn.getValueFactory();
         AGServer server = cat.getServer();
         AGAbstractRepository rainbowRepo = server.federate(redRepo, greenRepo);
         closeLater(rainbowRepo);
-        rainbowRepo.initialize();
+        rainbowRepo.init();
         assertFalse("Federation is writable?", rainbowRepo.isWritable());
         AGRepositoryConnection rainbowConn = getConnection(rainbowRepo);
         String ex = "http://example.org/";

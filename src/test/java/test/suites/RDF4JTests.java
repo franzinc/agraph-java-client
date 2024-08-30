@@ -4,6 +4,6 @@ import org.junit.platform.suite.api.SelectPackages;
 import org.junit.platform.suite.api.Suite;
 
 @Suite
-@SelectPackages("test.openrdf")
-public class OpenRDFTests {
+@SelectPackages("test.rdf4j")
+public class RDF4JTests {
 }

@@ -29,6 +29,7 @@ import com.franz.agraph.repository.WarmupConfig;
 import com.franz.agraph.repository.repl.DurabilityLevel;
 import com.franz.agraph.repository.repl.DurabilityVisitor;
 import com.franz.agraph.repository.repl.TransactionSettings;
+import com.franz.util.Util;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.http.Header;
@@ -39,7 +40,6 @@ import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
-import org.eclipse.rdf4j.OpenRDFUtil;
 import org.eclipse.rdf4j.http.protocol.Protocol;
 import org.eclipse.rdf4j.model.BNode;
 import org.eclipse.rdf4j.model.IRI;
@@ -59,7 +59,7 @@ import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFHandler;
 import org.eclipse.rdf4j.rio.RDFHandlerException;
 import org.eclipse.rdf4j.rio.RDFParseException;
-import org.eclipse.rdf4j.rio.ntriples.NTriplesUtil;
+import org.eclipse.rdf4j.rio.helpers.NTriplesUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -1170,7 +1170,7 @@ public class AGHttpRepoClient implements AutoCloseable {
                        boolean overwrite, String serverSideFile, IRI serverSideURL,
                        RDFFormat dataFormat, JSONObject attributes, String contentEncoding,
                        Resource... contexts) throws AGHttpException {
-        OpenRDFUtil.verifyContextNotNull(contexts);
+        Util.verifyContextNotNull(contexts);
         List<Header> headers = new ArrayList<>(1);
         if (dataFormat != null) {
             String format = dataFormat.getDefaultMIMEType();

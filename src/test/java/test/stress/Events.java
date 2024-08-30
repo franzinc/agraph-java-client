@@ -36,7 +36,7 @@ import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.query.TupleQueryResultHandler;
 import org.eclipse.rdf4j.query.TupleQueryResultHandlerException;
 import org.eclipse.rdf4j.repository.RepositoryException;
-import org.eclipse.rdf4j.rio.ntriples.NTriplesUtil;
+import org.eclipse.rdf4j.rio.helpers.NTriplesUtil;
 import test.Util;
 
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -144,7 +144,7 @@ public class Events implements Closeable {
                 AGCatalog catalog = server.getCatalog(myCatalog);
                 repoPool = catalog.createRepository(myRepo);
                 repoPool.setConnPool(pool);
-                repoPool.initialize();
+                repoPool.init();
             } finally {
                 server.close();
             }
@@ -192,7 +192,7 @@ public class Events implements Closeable {
         AGServer server = closer.closeLater(new AGServer(Defaults.URL, Defaults.USERNAME, Defaults.PASSWORD));
         AGCatalog cat = server.getCatalog(Defaults.CATALOG);
         AGRepository repo = closer.closeLater(cat.createRepository(Defaults.REPOSITORY));
-        repo.initialize();
+        repo.init();
         AGRepositoryConnection conn = closer.closeLater(repo.getConnection());
         if (!Defaults.SHARED) {
             // Force an auto-committing non-shared backend

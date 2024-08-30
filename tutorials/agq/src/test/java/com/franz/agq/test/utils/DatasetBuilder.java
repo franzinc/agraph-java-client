@@ -1,15 +1,13 @@
 package com.franz.agq.test.utils;
 
 import com.franz.agraph.repository.AGRepositoryConnection;
+import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Resource;
-import org.eclipse.rdf4j.model.URI;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.eclipse.rdf4j.repository.RepositoryException;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -62,7 +60,7 @@ public class DatasetBuilder implements AutoCloseable {
     private String base;
     private Resource graph;
     private Resource subject;
-    private URI predicate;
+    private IRI predicate;
     private Value object;
 
     /**
@@ -150,7 +148,7 @@ public class DatasetBuilder implements AutoCloseable {
      *
      * @return An URI object.
      */
-    private URI getURI(final String namespace, final String suffix) {
+    private IRI getIRI(final String namespace, final String suffix) {
         final String prefix;
         if (namespace != null) {
             if (namespaces.containsKey(namespace)) {
@@ -166,8 +164,8 @@ public class DatasetBuilder implements AutoCloseable {
             prefix = base;
         }
         return prefix == null ?
-                valueFactory.createURI(suffix) :
-                valueFactory.createURI(prefix, suffix);
+                valueFactory.createIRI(suffix) :
+                valueFactory.createIRI(prefix, suffix);
     }
 
     /**
@@ -244,7 +242,7 @@ public class DatasetBuilder implements AutoCloseable {
      * @return The builder (for chaining).
      */
     public DatasetBuilder g(final String namespace, final String suffix) {
-        return graph(getURI(namespace, suffix));
+        return graph(getIRI(namespace, suffix));
     }
 
     /**
@@ -338,7 +336,7 @@ public class DatasetBuilder implements AutoCloseable {
      * @return The builder (for chaining).
      */
     public DatasetBuilder s(final String namespace, final String suffix) {
-        return subject(getURI(namespace, suffix));
+        return subject(getIRI(namespace, suffix));
     }
 
     /**
@@ -399,7 +397,7 @@ public class DatasetBuilder implements AutoCloseable {
      *
      * @return The builder (for chaining).
      */
-    public DatasetBuilder predicate(final URI predicate) {
+    public DatasetBuilder predicate(final IRI predicate) {
         if (this.subject == null) {
             throw new RuntimeException("Missing subject.");
         }
@@ -417,7 +415,7 @@ public class DatasetBuilder implements AutoCloseable {
      *
      * @return The builder (for chaining).
      */
-    public DatasetBuilder p(final URI predicate) {
+    public DatasetBuilder p(final IRI predicate) {
         return predicate(predicate);
     }
 
@@ -432,7 +430,7 @@ public class DatasetBuilder implements AutoCloseable {
      * @return The builder (for chaining).
      */
     public DatasetBuilder p(final String namespace, final String suffix) {
-        return predicate(getURI(namespace, suffix));
+        return predicate(getIRI(namespace, suffix));
     }
 
     /**
@@ -618,7 +616,7 @@ public class DatasetBuilder implements AutoCloseable {
      *
      * @return The builder (for chaining).
      */
-    public DatasetBuilder ot(final String value, final URI datatype) {
+    public DatasetBuilder ot(final String value, final IRI datatype) {
         return o(valueFactory.createLiteral(value, datatype));
     }
 
@@ -631,7 +629,7 @@ public class DatasetBuilder implements AutoCloseable {
      * @return The builder (for chaining).
      */
     public DatasetBuilder ot(final String value, final String datatype) {
-        return o(valueFactory.createLiteral(value, getURI(null, datatype)));
+        return o(valueFactory.createLiteral(value, getIRI(null, datatype)));
     }
 
     /**
@@ -647,7 +645,7 @@ public class DatasetBuilder implements AutoCloseable {
                              final String datatypeNamespace,
                              final String datatypeSuffix) {
         return o(valueFactory.createLiteral(
-                value, getURI(datatypeNamespace, datatypeSuffix)));
+                value, getIRI(datatypeNamespace, datatypeSuffix)));
     }
 
     /**
@@ -703,7 +701,7 @@ public class DatasetBuilder implements AutoCloseable {
      * @return The builder (for chaining).
      */
     public DatasetBuilder u(final String namespace, final String suffix) {
-        return object(getURI(namespace, suffix));
+        return object(getIRI(namespace, suffix));
     }
 
     /**

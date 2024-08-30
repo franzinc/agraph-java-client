@@ -6,7 +6,7 @@ import com.franz.agraph.repository.AGQuery;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGTupleQuery;
 import org.apache.commons.io.FileUtils;
-import org.eclipse.rdf4j.model.URI;
+import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.query.QueryLanguage;
 import org.eclipse.rdf4j.query.resultio.BooleanQueryResultFormat;
 import org.eclipse.rdf4j.query.resultio.TupleQueryResultFormat;
@@ -42,7 +42,7 @@ public class DownloadTest extends AGAbstractTest {
     @BeforeEach
     public void prepare() throws Exception {
         conn = getConnection();
-        final URI uri = conn.getValueFactory().createURI(NS, TEXT);
+        final IRI uri = conn.getValueFactory().createIRI(NS, TEXT);
         conn.add(uri, uri, uri);
         id = Util.getStatementId(conn, uri, uri, uri);
 

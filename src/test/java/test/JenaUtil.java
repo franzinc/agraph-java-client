@@ -38,7 +38,7 @@ public class JenaUtil extends TestSetup {
         try {
             catalog.deleteRepository(REPOSITORY_ID);
             AGRepository repo = catalog.createRepository(REPOSITORY_ID);
-            repo.initialize();
+            repo.init();
             conn = repo.getConnection();
             maker = new AGGraphMaker(conn);
         } catch (RepositoryException e) {

@@ -10,8 +10,8 @@ import com.franz.agraph.repository.AGServerVersion;
 import com.franz.agraph.repository.AGTupleQuery;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.rdf4j.common.io.IOUtil;
+import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Resource;
-import org.eclipse.rdf4j.model.URI;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
 import org.eclipse.rdf4j.query.QueryLanguage;
@@ -112,7 +112,7 @@ public class Util {
      * @return ID or {@code null}, if it couldn;t be found.
      */
     public static String getStatementId(AGRepositoryConnection conn,
-                                        Resource subj, URI pred, Value obj)
+                                        Resource subj, IRI pred, Value obj)
             throws QueryEvaluationException {
         final String qs = "select ?id { " +
                 "?id <http://franz.com/ns/allegrograph/4.0/tripleId> (?s ?p ?o) }";

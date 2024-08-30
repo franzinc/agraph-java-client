@@ -24,7 +24,7 @@ public class SparqlDefaultDatasetTest extends AGAbstractTest {
     @Test
     public void testMemoryStoreDefaultDataset() throws Exception {
         Repository repo = new SailRepository(new MemoryStore());
-        repo.initialize();
+        repo.init();
         RepositoryConnection conn = repo.getConnection();
         testSesameDefaultDataset(conn);
     }

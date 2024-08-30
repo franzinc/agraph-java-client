@@ -78,7 +78,7 @@ public class JenaTutorialExamples {
         catalog.deleteRepository(REPOSITORY_ID);
         AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);
         println("Got a repository.");
-        myRepository.initialize();
+        myRepository.init();
         println("Initialized repository.");
         AGRepositoryConnection conn = myRepository.getConnection();
         closeBeforeExit(conn);
@@ -979,7 +979,7 @@ public class JenaTutorialExamples {
         closeAll();
         catalog.deleteRepository(REPOSITORY_ID);		
         AGRepository myRepository = catalog.createRepository(REPOSITORY_ID);        
-        myRepository.initialize();        
+        myRepository.init();
         AGRepositoryConnection conn = myRepository.getConnection();
         closeBeforeExit(conn);
         AGGraphMaker maker =  new AGGraphMaker(conn);

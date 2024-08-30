@@ -8,6 +8,7 @@ import com.franz.agraph.http.AGHTTPClient;
 import com.franz.agraph.http.AGHttpRepoClient;
 import com.franz.agraph.http.exception.AGHttpException;
 import com.franz.agraph.pool.AGConnPool;
+import com.franz.agraph.repository.config.AGRepositoryConfig;
 import org.apache.http.Header;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicHeader;
@@ -399,5 +400,23 @@ public class AGRepository extends AbstractRepository implements AGAbstractReposi
         Header[] hdr = new Header[0];
         NameValuePair[] data = {};
         getHTTPClient().post(url, hdr, data, null, null);
+    }
+
+    public AGRepositoryConfig repositoryConfig() {
+        AGServer server = getServer();
+        AGRepositoryConfig config = new AGRepositoryConfig(server.getServerURL());
+        config.setUsername(server.getUser());
+        config.setPassword(server.getPassword());
+        config.setCatalogId(getCatalog().getCatalogName());
+        config.setRepositoryId(getRepositoryID());
+        return config;
+    }
+
+    /**
+     * * @deprecated Use {@link #init()} instead.
+     */
+    @Deprecated
+    public void initialize() {
+        init();
     }
 }

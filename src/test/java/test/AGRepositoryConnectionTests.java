@@ -19,7 +19,6 @@ import com.franz.agraph.http.AGProtocol;
 
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.URI;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.BindingSet;
@@ -35,7 +34,6 @@ import org.eclipse.rdf4j.rio.RDFParseException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import test.RepositoryConnectionTest.RepositoryConnectionTests;
@@ -115,20 +113,20 @@ public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
 
     @Test
     public void testIsActive() {
-        Assertions.assertFalse(testCon.isActive());
+        assertFalse(testCon.isActive());
 
         testCon.begin();
-        Assertions.assertTrue(testCon.isActive());
+        assertTrue(testCon.isActive());
         testCon.commit();
-        Assertions.assertFalse(testCon.isActive());
+        assertFalse(testCon.isActive());
 
         testCon.begin();
-        Assertions.assertTrue(testCon.isActive());
+        assertTrue(testCon.isActive());
         testCon.rollback();
-        Assertions.assertFalse(testCon.isActive());
+        assertFalse(testCon.isActive());
 
         testCon.setAutoCommit(true);
-        Assertions.assertTrue(testCon.isActive());
+        assertTrue(testCon.isActive());
     }
 
     @Test
@@ -346,7 +344,7 @@ public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
 
         for (SampleInput format : formats) {
             // delete all triples.
-            conn.remove((Resource) null, (URI) null, (Value) null, (Resource) null);
+            conn.remove((Resource) null, (IRI) null, (Value) null, (Resource) null);
             // Import data file. If no exception is thrown, we consider the test successful
             try (InputStream in = Util.resourceAsStream(TEST_DIR_PREFIX + format.file)) {
                 addInputStream(in, format.type);
@@ -603,19 +601,6 @@ public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
         assertTrue(testCon.isActive());
         testCon.add(bob, name, nameBob);
         testCon.rollback();
-        // Sesame 2.6 transaction semantics are inverse of Sesame 2.7 transaction semantics.
-        // Therefore, this test as it passes for 2.6 will fail in 2.7
-        // So I have commented out below assert statement
-        // assertFalse(testCon.isActive());
-    }
-
-    @Test
-    public void testisActive() throws Exception {
-        assertFalse(testCon.isActive());
-        testCon.begin();
-        assertTrue(testCon.isActive());
-        testCon.add(bob, name, nameBob);
-        testCon.commit();
         // Sesame 2.6 transaction semantics are inverse of Sesame 2.7 transaction semantics.
         // Therefore, this test as it passes for 2.6 will fail in 2.7
         // So I have commented out below assert statement

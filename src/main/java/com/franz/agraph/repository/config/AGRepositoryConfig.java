@@ -5,15 +5,15 @@
 package com.franz.agraph.repository.config;
 
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.model.util.GraphUtil;
-import org.eclipse.rdf4j.model.util.GraphUtilException;
 import org.eclipse.rdf4j.repository.config.AbstractRepositoryImplConfig;
 import org.eclipse.rdf4j.repository.config.RepositoryConfigException;
+
+import java.util.Set;
 
 import static com.franz.agraph.repository.config.AGRepositorySchema.CATALOGID;
 import static com.franz.agraph.repository.config.AGRepositorySchema.PASSWORD;
@@ -124,35 +124,44 @@ public class AGRepositoryConfig extends AbstractRepositoryImplConfig {
         return implNode;
     }
 
-    @Override
-    public void parse(Model graph, Resource implNode)
-            throws RepositoryConfigException {
-        super.parse(graph, implNode);
 
-        try {
-            IRI uri = GraphUtil.getOptionalObjectURI(graph, implNode, SERVERURL);
-            if (uri != null) {
-                setServerUrl(uri.toString());
-            }
-            Literal username = GraphUtil.getOptionalObjectLiteral(graph, implNode, USERNAME);
-            if (username != null) {
-                setUsername(username.getLabel());
-            }
-            Literal password = GraphUtil.getOptionalObjectLiteral(graph, implNode, PASSWORD);
-            if (password != null) {
-                setPassword(password.getLabel());
-            }
-            Literal catalogId = GraphUtil.getOptionalObjectLiteral(graph, implNode, CATALOGID);
-            if (catalogId != null) {
-                setCatalogId(catalogId.getLabel());
-            }
-            Literal repositoryId = GraphUtil.getOptionalObjectLiteral(graph, implNode, REPOSITORYID);
-            if (repositoryId != null) {
-                setRepositoryId(repositoryId.getLabel());
-            }
-        } catch (GraphUtilException e) {
-            throw new RepositoryConfigException(e.getMessage(), e);
+    private static Value getObjectValue(Model graph, Resource subject, IRI predicate) {
+        Set<Value> objects = graph.filter(subject, predicate, null).objects();
+        if (objects.size() == 1) {
+            return objects.iterator().next();
+        } else if (objects.isEmpty()) {
+            throw new RepositoryConfigException(predicate + " not found");
+        } else {
+            throw new RepositoryConfigException("Multiple " + predicate + " properties found");
         }
+    }
+
+    private static String getIRIStringValue(Model graph, Resource subject, IRI predicate) {
+        Value value = getObjectValue(graph, subject, predicate);
+        if (value.isIRI()) {
+            return value.stringValue();
+        } else {
+            throw new RepositoryConfigException(predicate + " is not an IRI");
+        }
+    }
+
+    private static String getLiteralStringValue(Model graph, Resource subject, IRI predicate) {
+        Value value = getObjectValue(graph, subject, predicate);
+        if (value.isLiteral()) {
+            return value.stringValue();
+        } else {
+            throw new RepositoryConfigException(predicate + " is not a literal");
+        }
+    }
+
+    @Override
+    public void parse(Model graph, Resource implNode) throws RepositoryConfigException {
+        super.parse(graph, implNode);
+        setServerUrl(getIRIStringValue(graph, implNode, SERVERURL));
+        setUsername(getLiteralStringValue(graph, implNode, USERNAME));
+        setPassword(getLiteralStringValue(graph, implNode, PASSWORD));
+        setCatalogId(getLiteralStringValue(graph, implNode, CATALOGID));
+        setRepositoryId(getLiteralStringValue(graph, implNode, REPOSITORYID));
     }
 
     private ValueFactory getValueFactory() {

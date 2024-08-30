@@ -31,7 +31,7 @@ public class AGUpload {
         catalog.deleteRepository(REPOSITORY_ID);
         AGRepository repo = catalog.createRepository(REPOSITORY_ID);
         try {
-            repo.initialize();
+            repo.init();
             AGRepositoryConnection conn = repo.getConnection();
             try {
                 System.out.println("Loading: " + SOURCE_FILE);
