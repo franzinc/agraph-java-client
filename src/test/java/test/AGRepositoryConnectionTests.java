@@ -35,6 +35,7 @@ import org.eclipse.rdf4j.rio.RDFParseException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import test.RepositoryConnectionTest.RepositoryConnectionTests;
@@ -110,6 +111,24 @@ public class AGRepositoryConnectionTests extends RepositoryConnectionTests {
         }
         AGRepository repo = catalog.createRepository(TEST_REPO_1);
         return repo;
+    }
+
+    @Test
+    public void testIsActive() {
+        Assertions.assertFalse(testCon.isActive());
+
+        testCon.begin();
+        Assertions.assertTrue(testCon.isActive());
+        testCon.commit();
+        Assertions.assertFalse(testCon.isActive());
+
+        testCon.begin();
+        Assertions.assertTrue(testCon.isActive());
+        testCon.rollback();
+        Assertions.assertFalse(testCon.isActive());
+
+        testCon.setAutoCommit(true);
+        Assertions.assertTrue(testCon.isActive());
     }
 
     @Test

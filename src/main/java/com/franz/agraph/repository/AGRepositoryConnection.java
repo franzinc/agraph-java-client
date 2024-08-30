@@ -202,6 +202,8 @@ public class AGRepositoryConnection
     private boolean addStatementBufferEnabled;
     private int addStatementBufferMaxSize;
 
+    private AGTransactionState transactionState = AGTransactionState.AUTOCOMMIT_DEFAULT;
+
     /**
      * @param repository a repository name
      * @param client     the HTTP client through which requests on this connection will be made
@@ -1013,6 +1015,10 @@ public class AGRepositoryConnection
         return prepareHttpRepoClient().isAutoCommit();
     }
 
+    private void setClientAutoCommit(boolean autoCommit) throws RepositoryException {
+        prepareHttpRepoClient().setAutoCommit(autoCommit);
+    }
+
     /**
      * Setting autoCommit to false creates a dedicated server session
      * which supports ACID transactions.
@@ -1031,7 +1037,12 @@ public class AGRepositoryConnection
      */
     @Deprecated @Override
     public void setAutoCommit(boolean autoCommit) throws RepositoryException {
-        prepareHttpRepoClient().setAutoCommit(autoCommit);
+        setClientAutoCommit(autoCommit);
+        if (autoCommit) {
+            transactionState = AGTransactionState.AUTOCOMMIT_ENABLED;
+        } else {
+            transactionState = AGTransactionState.ACTIVE;
+        }
     }
 
     /**
@@ -1050,7 +1061,6 @@ public class AGRepositoryConnection
      */
     public void prepareCommit(Xid xid) {
         prepareHttpRepoClient().commit(CommitPhase.PREPARE, xid);
-
     }
 
     /**
@@ -1061,6 +1071,7 @@ public class AGRepositoryConnection
      */
     public void commit() throws RepositoryException {
         prepareHttpRepoClient().commit();
+        transactionState = AGTransactionState.COMMIT_SUCCESSFUL;
     }
 
 
@@ -1071,6 +1082,7 @@ public class AGRepositoryConnection
      */
     public void commit(Xid xid) {
         prepareHttpRepoClient().commit(CommitPhase.COMMIT, xid);
+        transactionState = AGTransactionState.COMMIT_SUCCESSFUL;
     }
 
     /**
@@ -1085,6 +1097,7 @@ public class AGRepositoryConnection
     public void commit(final TransactionSettings transactionSettings) throws RepositoryException {
         try (Ctx ignored = transactionSettingsCtx(transactionSettings)) {
             prepareHttpRepoClient().commit();
+            transactionState = AGTransactionState.COMMIT_SUCCESSFUL;
         }
     }
 
@@ -1098,6 +1111,7 @@ public class AGRepositoryConnection
         // This could first clear addStatementBuffer in order to avoid sending it over needlessly.
         // To keep the buffering logic simple and without further side effects, we don't for now.
         prepareHttpRepoClient().rollback();
+        transactionState = AGTransactionState.ROLLBACK_SUCCESSFUL;
     }
 
     /**
@@ -1107,6 +1121,7 @@ public class AGRepositoryConnection
      */
     public void rollback(Xid xid) {
         prepareHttpRepoClient().rollback(xid);
+        transactionState = AGTransactionState.ROLLBACK_SUCCESSFUL;
     }
 
     /**
@@ -3044,7 +3059,8 @@ public class AGRepositoryConnection
      * @since 2.7.0
      */
     public void begin() throws RepositoryException {
-        prepareHttpRepoClient().setAutoCommit(false);
+        setClientAutoCommit(false);
+        transactionState = AGTransactionState.ACTIVE;
     }
 
     /**
@@ -3060,9 +3076,11 @@ public class AGRepositoryConnection
      * @throws RepositoryException              if there is an error with this request
      * @since 2.7.0
      */
-    public boolean isActive() throws UnknownTransactionStateException,
-            RepositoryException {
-        return !prepareHttpRepoClient().isAutoCommit();
+    public boolean isActive() {
+        return switch (transactionState) {
+            case ACTIVE, AUTOCOMMIT_ENABLED -> true;
+            default -> false;
+        };
     }
 
     /**

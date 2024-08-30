@@ -68,7 +68,7 @@ public class AGXAResource implements XAResource {
         }
 
         // Use of XAResource is only suitable for non-auto-commit mode
-        if (!conn.isActive()) {
+        if (conn.isAutoCommit()) {
             throw new XAException(XAException.XAER_OUTSIDE); // I guess
         }
 
