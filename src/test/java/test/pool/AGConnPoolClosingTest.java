@@ -25,6 +25,7 @@ import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.Assert;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Tag;
 import org.slf4j.Logger;
@@ -171,6 +172,7 @@ public class AGConnPoolClosingTest extends Closer {
 
     @Test
     // This test is unreliable and has been disabled. -- dancy
+    @Disabled
     @Tag("Broken")
     public void openSockets_bug21099() throws Exception {
         final String repoName = "pool.bug21099";
