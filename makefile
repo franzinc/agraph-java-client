@@ -133,6 +133,13 @@ javadoc: FORCE
     # computes the current year will run too late.
 	mkdir -p target
 	mvn $(MVN_ARGS) validate javadoc:javadoc
+####### HACK HACK HACK HACK HACK HACK HACK HACK HACK...
+# The javadoc generated HTML is bogus.  There is no definition for the
+# "#com.franz" bookmark.  Since we don't control javadoc we have to
+# remove the link.  It's useless anyway, since there's no way to
+# map a list of classes (what the "*")
+	sed -i -E 's,<a href="#com.franz">com.franz.*</a>,com.franz.*,' doc/constant-values.html
+####### ...HACK HACK HACK HACK HACK HACK HACK HACK HACK
 
 checkstyle: FORCE
 	mvn $(MVN_ARGS) checkstyle:check
