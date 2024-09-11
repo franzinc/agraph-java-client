@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.franz</groupId>
   <artifactId>agraph-java-client</artifactId>
-  <version>5.0.0-alpha-SNAPSHOT</version>
+  <version>5.0.0</version>
   <name>agraph-java-client</name>
   <description>Java client API for Franz AllegroGraph</description>
   <url>https://github.com/franzinc/agraph-java-client</url>
@@ -24,14 +24,14 @@
 
   <organization>
     <name>Franz Inc.</name>
-    <url>http://franz.com/</url>
+    <url>https://franz.com/</url>
   </organization>
 
   <developers>
     <developer>
       <email>support@franz.com</email>
       <organization>Franz Inc.</organization>
-      <organizationUrl>http://franz.com</organizationUrl>
+      <organizationUrl>https://franz.com</organizationUrl>
     </developer>
   </developers>
   
@@ -109,7 +109,7 @@
       <plugin>
         <groupId>org.sonatype.plugins</groupId>
         <artifactId>nexus-staging-maven-plugin</artifactId>
-        <version>1.6.7</version>
+        <version>1.7.0</version>
         <extensions>true</extensions>
         <configuration>
           <serverId>ossrh</serverId>

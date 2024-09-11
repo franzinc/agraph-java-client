@@ -36,6 +36,8 @@ else
 	MVN_STAGED_OPTS=
 endif
 
+export MAVEN_OPTS = --add-opens java.base/java.util=ALL-UNNAMED
+
 default: build
 
 clean: dist-clean
@@ -46,29 +48,35 @@ prepush: clean all-tutorials test-prepush test-unicode javadoc
 test-bigger: test-prepush test-stress test-stress-events test-xa
 
 test-unicode:
-	# Force Java to use ASCII (i.e. not UTF-8) as the default encoding.
+# Force Java to use ASCII (i.e. not UTF-8) as the default encoding.
 	env LC_ALL=C mvn $(MVN_ARGS) test -Dtest=test.suites.UnicodeTests
 
 test-prepush:
 	mvn $(MVN_ARGS) test -Dtest=test.suites.PrepushTests
 
-test-broken: FORCE
+.PHONY: test-broken
+test-broken:
 	mvn $(MVN_ARGS) test -Dtest=test.suites.BrokenTests
 
-test-stress: FORCE
+.PHONY: test-stress
+test-stress:
 	mvn $(MVN_ARGS) test -Dtest=test.suites.StressTests
 
-test-stress-events: FORCE
+.PHONY: test-stress-events
+test-stress-events:
 	$(EXEC_JAVA) -Dexec.mainClass=test.stress.Events -Dexec.args="--catalog java-catalog --load 2 --query 2 --time 1 --size 100000"
 
-test-xa: FORCE
+.PHONY: test-xa
+test-xa:
 	mvn $(MVN_ARGS) test -Dtest=XAAtomikosTests
 
-lubm-prolog: FORCE
+.PHONY: lubm-prolog
+lubm-prolog:
 	mvn $(MVN_ARGS) test-compile
 	$(EXEC_JAVA) -Dexec.mainClass=test.lubm.AGLubmProlog
 
-lubm-sparql: FORCE
+.PHONY: lubm-sparql
+lubm-sparql:
 	mvn $(MVN_ARGS) test-compile
 	$(EXEC_JAVA) -Dexec.mainClass=test.lubm.AGLubmSparql -Dexample=$(example)
 
@@ -105,18 +113,22 @@ agq-tutorial: local-deploy
 	mvn $(MVN_ARGS) compile -Dmaven.repo.local=$(REPO) && \
 	mvn $(MVN_ARGS) test -Dmaven.repo.local=$(REPO)
 
-test-release: FORCE
+.PHONY: test-release
+test-release:
 	python3 test-release/make-pom.py > test-release/pom.xml
 	cd test-release && mvn $(MVN_ARGS) test -Dtest=test.suites.PrepushTests
 	cd test-release && mvn $(MVN_ARGS) test -Dtest=test.suites.StressTests
 
-local-deploy: FORCE
+.PHONY: local-deploy
+local-deploy:
 	mvn $(MVN_ARGS) install -DskipTests=true -Dmaven.repo.local=$(REPO)
 
-build: FORCE
+.PHONY: build
+build:
 	mvn $(MVN_ARGS) compile
 
-javadoc: FORCE
+.PHONY: javadoc
+javadoc:
     # Note: if we do not call 'validate' explicitly, the plugin that
     # computes the current year will run too late.
 	mkdir -p target
@@ -129,13 +141,16 @@ javadoc: FORCE
 	sed -i -E 's,<a href="#com.franz">com.franz.*</a>,com.franz.*,' doc/constant-values.html
 ####### ...HACK HACK HACK HACK HACK HACK HACK HACK HACK
 
-checkstyle: FORCE
+.PHONY: checkstyle
+checkstyle:
 	mvn $(MVN_ARGS) checkstyle:check
 
-srcjar: FORCE
+.PHONY: srcjar
+srcjar:
 	mvn $(MVN_ARGS) source:jar
 
-tags: FORCE
+.PHONY: tags
+tags:
 	rm -f TAGS
 	find . -name '*.java' -print0 | xargs -0 etags -a
 
@@ -147,38 +162,38 @@ PACKAGE_NAME = agraph-java-client-$(VERSION)
 DIST_DIR=DIST
 TARNAME = $(DIST_DIR)/$(PACKAGE_NAME).tar.gz
 
-stage: FORCE
-	./deploy.sh
-
+.PHONY: deploy
 deploy: stage release-staged
 
-release-staged: FORCE
+.PHONY: stage
+stage:
+	env AG_SKIP_TESTS=xxx ./deploy.sh
+
+.PHONY: release-staged
+release-staged:
 	mvn nexus-staging:release $(MVN_STAGED_OPTS)
 
-drop-staged: FORCE
-	mvn nexus-staging:drop $(MVN_STAGED_OPTS)
-
-list-staged: FORCE
-	@mvn nexus-staging:rc-list | grep franz || echo 'No staged releases found'.
-
-dist: FORCE
+.PHONY: dist
+dist:
 	mvn -DskipTests=true package
-	@# Note that maven creates target/$(PACKAGE_NAME)/$(PACKAGE_NAME) for some reason.
+# Note that maven creates target/$(PACKAGE_NAME)/$(PACKAGE_NAME) for
+# some reason.
 	rm -fr $(DIST_DIR)
 	mkdir -p $(DIST_DIR)
-	tar -c -h -z --owner=root --group=root -f $(TARNAME) -C target/$(PACKAGE_NAME) $(PACKAGE_NAME)
+	tar -c -h -z -f $(TARNAME) -C target/$(PACKAGE_NAME) $(PACKAGE_NAME)
 
 publish-dist: dist
-	cp $(TARNAME) RELEASE-HISTORY.md /fi/ftp/pub/agraph/java-client/
+	cp -p $(TARNAME) RELEASE-HISTORY.md /fi/ftp/pub/agraph/java-client/
 
-prepare-release: FORCE
-	./unsnapshot.sh
+# This is used to delete a partially staged release
+.PHONY: drop-staged
+drop-staged:
+	mvn nexus-staging:drop $(MVN_STAGED_OPTS)
 
-post-release: FORCE
-	./increment-version.sh
-	git push gerrit HEAD:refs/for/master%submit
+.PHONY: list-staged
+list-staged:
+	@mvn nexus-staging:rc-list | grep franz || echo 'No staged releases found'.
 
-dist-clean: FORCE
+.PHONY: dist-clean
+dist-clean:
 	rm -fr target
-
-FORCE:

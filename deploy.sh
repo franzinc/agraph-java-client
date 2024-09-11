@@ -1,4 +1,4 @@
-#!/bin/bash
+#! /usr/bin/env bash
 
 # This script is invoked by make deploy
 # It packages the Java client and uploads it to OSSRH.
@@ -42,10 +42,16 @@ function err () {
 }
 
 function check_passphrase () {
-    if [ -n "${KEY_PASSWORD+x}" ]; then
-	printf %s "${KEY_PASSWORD:-}" | gpg --batch --passphrase-fd 0 -o /dev/null --local-user "${KEY_NAME}" -as - 2> /dev/null || { err "Passphrase is invalid." && return 1; }
+    if [ "${KEY_PASSWORD+x}" ]; then
+	printf %s "${KEY_PASSWORD:-}" |
+            gpg --batch --passphrase-fd 0 --pinentry-mode loopback -o /dev/null \
+                --local-user "${KEY_NAME}" -as - 2> /dev/null ||
+            {
+                err "Passphrase is invalid." && return 1;
+            }
     else
-	 echo | gpg --batch -o /dev/null --passphrase-fd 0 --local-user "${KEY_NAME}" -as - 2> /dev/null || { err "GPG passphrase is required." && return 1; }
+        err "GPG passphrase is required."
+        return 1
     fi
     info "GPG key access verified."
     return 0

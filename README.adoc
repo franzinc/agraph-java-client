@@ -2,25 +2,26 @@
 // We link to this anchor from the AllegroGraph client download page
 // (https://franz.com/agraph/downloads/clients) so if you change this header
 // text, you must update the link on the client download page.
+
 = Java client for Franz AllegroGraph
 
-:version: 4.0.1-SNAPSHOT
+:version: 5.0.0
 
-This is the Java client for the http://franz.com/agraph/[Franz
-AllegroGraph] triple store.  It contains
-http://rdf4j.org/[Sesame/RDF4J-] and
+This is the Java client for the https://allegrograph.com/[Franz
+AllegroGraph] Knowledge base/triple store.  It contains
+https://rdf4j.org/[Sesame/RDF4J-] and
 https://jena.apache.org/[Jena]-compatible APIs.
 
 == Client prerequisites
 
-Java version 8 or higher, and any operating system should work with these jars.
+For client version >= 5.0.0 Java 17 or newer is required.
+For client version < 5.0.0 Java 8 or newer is required.
 
-=== Usage
+== Installation via Maven
 
-==== Maven
-
-The recommended way of using the client API is to create a dependency on its Maven artifact.
-To do this in a Maven project, add the following to your dependencies:
+The recommended way of using the client API is to create a dependency
+on its Maven artifact.  To do this in a Maven project, add the following
+to your dependencies:
 
 [source,xml,subs="verbatim,attributes"]
 ----
@@ -32,66 +33,7 @@ To do this in a Maven project, add the following to your dependencies:
 </dependency>
 ----
 
-For Gradle, use this
-
-[source,groovy,subs="verbatim,attributes"]
-compile group: 'com.franz', name: 'agraph-java-client', version: '{version}'
-
-Apache Ivy syntax:
-
-[source,xml,subs="verbatim,attributes"]
-<dependency org="com.franz" name="agraph-java-client" rev="{version}"/>
-
-SBT (Scala):
-
-[source,scala,subs="verbatim,attributes"]
-libraryDependencies += "com.franz" % "agraph-java-client" % "{version}"
-
-Leiningen (Clojure):
-
-[source,clojure,subs="verbatim,attributes"]
-----
-[com.franz/agraph-java-client "{version}"]
-----
-
-==== Distribution archive
-
-Tar distributions of the AllegroGraph Java client are available from
-ftp://ftp.franz.com/pub/agraph/java-client/.  A tar distribution
-includes jar files for agraph-java-client and jars on which it
-depends.
-
-Programs that use the API should include all JAR files from the `lib/` directory of the distribution on their classpath.
-
-To use that local JAR file through Maven install it into your local repository:
-
-[source,sh,subs="verbatim,attributes"]
-mvn install:install-file -Dfile=lib/agraph-java-client-{version}.jar -DpomFile=pom.xml
-
-Note that when using the API through Maven all dependencies are downloaded from the central repository - JARs included in the distribution are not used.
-
 == Development
-
-=== Testing
-
-Use this command to run the default testsuite. This assumes that AllegroGraph is listening on the local machine on the default port (10035).
-
-    mvn test
-
-=== Distribution
-
-To build a distribution archive, do
-
-    mvn package
-
-== Tutorials
-
-There are three tutorials located in tutorials/ that can be
-compiled and run. They are:
-
-  sesame/::  Example usage of the AG Sesame/RDF4J interface
-  jena/:: Example usage of the AG Jena interface
-  attributes/:: Example usage of AG Triple Attributes
 
 === Prerequisites
 
@@ -115,21 +57,38 @@ that exists on your server. Use the empty string ("") or null to
 indicate the root catalog. All other variables must be updated to
 correspond to your server configuration as well.
 
+=== Building and testing
+
+This will build and run the tests:
+
+    mvn package
+
+== Tutorials
+
+There are three tutorials located in tutorials/ that can be
+compiled and run. They are:
+
+  sesame/::  Example usage of the AG Sesame/RDF4J interface
+  jena/:: Example usage of the AG Jena interface
+  attributes/:: Example usage of AG Triple Attributes
 
 === Compiling Tutorials
 
 Each tutorial is a separate Maven project. To compile the tutorials
 first install the AllegroGraph Java client into your local repository.
-This process is described in the 'Usage' section. One way of the installation is a 2-step process. Build and install the agraph-java-client-{version}.jar locally by executing the following command in the repository root:
+This process is described in the 'Usage' section. One way of the
+installation is a 2-step process. Build and install the
+agraph-java-client-{version}.jar locally by executing the following
+command in the repository root:
 
-     mvn package
-     mvn install:install-file -Dfile=./target/agraph-java-client-{version}-SNAPSHOT.jar -DpomFile=pom.xml
+    mvn package
+    mvn install:install-file -Dfile=./target/agraph-java-client-{version}-SNAPSHOT.jar -DpomFile=pom.xml
 
 Then run the following command in the directory containing the tutorial:
 
-     mvn compile
+    mvn compile
 
-### Running Tutorials
+=== Running Tutorials
 
 To run one of the tutorials, use the following command line:
 
@@ -141,15 +100,11 @@ Sesame and Jena tutorials contain multiple, numbered examples.
 It is possible to run just the specified examples by passing
 their numbers as arguments in the following way:
 
-   mvn exec:java -Dexec.args="1 2 3 5 8 13 21"
+    mvn exec:java -Dexec.args="1 2 3 5 8 13 21"
 
 The argument 'all' indicates that all examples should be
 run.
 
 == License
 
-Copyright (c) 2008-2017 Franz Inc.
-All rights reserved. This program and the accompanying materials
-are made available under the terms of the Eclipse Public License v1.0
-which accompanies this distribution, and is available at
-http://www.eclipse.org/legal/epl-v10.html[http://www.eclipse.org/legal/epl-v10.html]
+The license for this code is in the file LICENSE in this directory.

@@ -1,5 +1,25 @@
 # AllegroGraph Java client release history
 
+## 5.0.0
+
+Major updates:
+
+  * Java 17 is required
+  * Update RDF4J to 5.0.2
+  * Update Jena to 5.1
+
+Minor updates:
+
+  * Update to log4j-core to 2.16.0
+  * Update JUnit to 5
+  * Update orj.json:json to 20240205
+  * Update org.apache.httpcomponents:httpclient to 4.5.14
+  * Update org.apache.commons:commons-pool2 to 2.12.0
+  * Update commons-codec to 1.15
+  * Exclude commons-collections:3.2.2 from rdf4j-queryresultio-text
+  * Pin solr-solrj at 9.4.1
+  * Pin org.apache.zookeeper at 3.9.2
+
 ## 4.0.0
 
 ### migrate from HttpClient v3.1 to HttpClient v4.5.13
