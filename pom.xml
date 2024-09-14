@@ -39,7 +39,6 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
-    <maven.compiler.release>17</maven.compiler.release>
 
     <!-- All RDF4J deps use the same version. -->
     <rdf4j.version>5.0.2</rdf4j.version>
