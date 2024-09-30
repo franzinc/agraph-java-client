@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.franz</groupId>
   <artifactId>agraph-java-client</artifactId>
-  <version>5.0.0</version>
+  <version>5.0.1-SNAPSHOT</version>
   <name>agraph-java-client</name>
   <description>Java client API for Franz AllegroGraph</description>
   <url>https://github.com/franzinc/agraph-java-client</url>
