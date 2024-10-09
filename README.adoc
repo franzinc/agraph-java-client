@@ -5,7 +5,7 @@
 
 = Java client for Franz AllegroGraph
 
-:version: 5.0.1
+:version: 5.0.2-SNAPSHOT
 
 This is the Java client for the https://allegrograph.com/[Franz
 AllegroGraph] Knowledge base/triple store.  It contains
