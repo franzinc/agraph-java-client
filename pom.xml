@@ -230,10 +230,11 @@
           <noindex>false</noindex>
           <nonavbar>false</nonavbar>
           <notree>false</notree>
+	  <!-- making the CTESTs fail...
           <links>
             <link>https://jena.apache.org/documentation/javadoc/jena/</link>
             <link>https://docs.rdf4j.org/javadoc/${rdf4j.version}</link>
-          </links>
+          </links> -->
           <overview>${basedir}/src/main/javadoc/overview.html</overview>
           <reportOutputDirectory>${basedir}</reportOutputDirectory>
           <show>public</show>
