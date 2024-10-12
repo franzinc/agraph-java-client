@@ -4,7 +4,7 @@
 
 /**
  * Implementation of the
- * <a href="http://www.openrdf.org/" target="_top">OpenRDF</a> Sesame API 2.7.11
+ * <a href="https://rdf4j.org/about/" target="_top">RDF4J</a> API
  * with extensions for
  * <a href="http://www.franz.com/agraph/support/documentation/current/agraph-introduction.html"
  * target="_top">AllegroGraph</a> features.
@@ -15,7 +15,7 @@
  * <p>See also:</p>
  * <ul>
  *   <li><a href="http://www.franz.com/agraph/support/documentation/current/java-tutorial/java-tutorial.html"
- *          target="_top">Java Sesame API Tutorial for AllegroGraph</a></li>
+ *          target="_top">Eclipse RDF4J API Tutorial for AllegroGraph</a></li>
  * </ul>
  * @since v4.0
  */

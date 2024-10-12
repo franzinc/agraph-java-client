@@ -4,7 +4,7 @@
 
 /**
  * Implementation of the
- * <a href="http://openjena.org/">Jena</a> RDF API 2.11.1
+ * <a href="https://jena.apache.org/">Jena</a> RDF API
  * with extensions for
  * <a href="http://www.franz.com/agraph/support/documentation/current/agraph-introduction.html">AllegroGraph</a>
  * features.

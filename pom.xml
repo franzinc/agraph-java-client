@@ -40,16 +40,20 @@
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
 
-    <!-- All RDF4J deps use the same version. -->
     <rdf4j.version>5.0.2</rdf4j.version>
-    <!-- Same thing applies to Jena. -->
     <jena.version>5.1.0</jena.version>
+    <org.json.version>20240205</org.json.version>
+    <apache.httpclient.version>4.5.14</apache.httpclient.version>
+    <atomikos.version>4.0.6</atomikos.version>
 
     <junit4.version>4.13.2</junit4.version>
     <junit5.version>5.11.0</junit5.version>
 
     <!-- Default test suite -->
     <test>test.suites.PrepushTests</test>
+
+    <rdf4j.javadoc.url>https://docs.rdf4j.org/javadoc/${rdf4j.version}</rdf4j.javadoc.url>
+    <jena.javadoc.baseurl>https://jena.apache.org/documentation/javadoc</jena.javadoc.baseurl>
 
   </properties>
 
@@ -213,9 +217,8 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.6.3</version>
+        <version>3.10.1</version>
         <configuration>
-          <destDir>doc</destDir>
           <doclint>all,-missing</doclint>
           <failOnError>true</failOnError>
           <failOnWarnings>false</failOnWarnings>
@@ -230,11 +233,84 @@
           <noindex>false</noindex>
           <nonavbar>false</nonavbar>
           <notree>false</notree>
-	  <!-- making the CTESTs fail...
-          <links>
-            <link>https://jena.apache.org/documentation/javadoc/jena/</link>
-            <link>https://docs.rdf4j.org/javadoc/${rdf4j.version}</link>
-          </links> -->
+
+          <detectLinks>true</detectLinks>
+          <dependencyLinks>
+            <!-- RDF4J javadoc links -->
+            <dependencyLink>
+              <groupId>org.eclipse.rdf4j</groupId>
+              <artifactId>rdf4j-model</artifactId>
+              <url>${rdf4j.javadoc.url}</url>
+            </dependencyLink>
+            <dependencyLink>
+              <groupId>org.eclipse.rdf4j</groupId>
+              <artifactId>rdf4j-queryresultio-sparqljson</artifactId>
+              <url>${rdf4j.javadoc.url}</url>
+            </dependencyLink>
+            <dependencyLink>
+              <groupId>org.eclipse.rdf4j</groupId>
+              <artifactId>rdf4j-queryresultio-text</artifactId>
+              <url>${rdf4j.javadoc.url}</url>
+            </dependencyLink>
+            <dependencyLink>
+              <groupId>org.eclipse.rdf4j</groupId>
+              <artifactId>repository-testsuite</artifactId>
+              <url>${rdf4j.javadoc.url}</url>
+            </dependencyLink>
+            <dependencyLink>
+              <groupId>org.eclipse.rdf4j</groupId>
+              <artifactId>rdf4j-rio-nquads</artifactId>
+              <url>${rdf4j.javadoc.url}</url>
+            </dependencyLink>
+            <dependencyLink>
+              <groupId>org.eclipse.rdf4j</groupId>
+              <artifactId>rdf4j-rio-rdfxml</artifactId>
+              <url>${rdf4j.javadoc.url}</url>
+            </dependencyLink>
+            <dependencyLink>
+              <groupId>org.eclipse.rdf4j</groupId>
+              <artifactId>rdf4j-runtime</artifactId>
+              <url>${rdf4j.javadoc.url}</url>
+            </dependencyLink>
+            <dependencyLink>
+              <groupId>org.eclipse.rdf4j</groupId>
+              <artifactId>rdf4j-sparql-testsuite</artifactId>
+              <url>${rdf4j.javadoc.url}</url>
+            </dependencyLink>
+            <!-- Jena javadoc links -->
+            <dependencyLink>
+              <groupId>org.apache.jena</groupId>
+              <artifactId>jena-arq</artifactId>
+              <url>${jena.javadoc.baseurl}/arq</url>
+            </dependencyLink>
+            <dependencyLink>
+              <groupId>org.apache.jena</groupId>
+              <artifactId>jena-core</artifactId>
+              <url>${jena.javadoc.baseurl}/jena</url>
+            </dependencyLink>
+            <dependencyLink>
+              <groupId>org.apache.jena</groupId>
+              <artifactId>jena-ontapi</artifactId>
+              <url>${jena.javadoc.baseurl}/ontapi</url>
+            </dependencyLink>
+            <!-- Other javadoc links -->
+            <dependencyLink>
+              <groupId>org.json</groupId>
+              <artifactId>json</artifactId>
+              <url>https://javadoc.io/doc/org.json/json/${org.json.version}</url>
+            </dependencyLink>
+            <dependencyLink>
+              <groupId>org.apache.httpcomponents</groupId>
+              <artifactId>httpclient</artifactId>
+              <url>https://javadoc.io/doc/org.apache.httpcomponents/httpclient/${apache.httpclient.version}</url>
+            </dependencyLink>
+            <dependency>
+              <groupId>com.atomikos</groupId>
+              <artifactId>transactions-jta</artifactId>
+              <url>https://javadoc.io/doc/com.atomikos/transactions-jta/${atomikos.version}</url>
+            </dependency>
+          </dependencyLinks>
+
           <overview>${basedir}/src/main/javadoc/overview.html</overview>
           <reportOutputDirectory>${basedir}</reportOutputDirectory>
           <show>public</show>
@@ -557,7 +633,7 @@
     <dependency>
       <groupId>org.json</groupId>
       <artifactId>json</artifactId>
-      <version>20240205</version>
+      <version>${org.json.version}</version>
     </dependency>
 
     <dependency>
@@ -569,7 +645,7 @@
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
-      <version>4.5.14</version>
+      <version>${apache.httpclient.version}</version>
     </dependency>
     
     <dependency>
@@ -612,7 +688,7 @@
     <dependency>
       <groupId>com.atomikos</groupId>
       <artifactId>transactions-jta</artifactId>
-      <version>4.0.6</version>
+      <version>${atomikos.version}</version>
     </dependency>
   </dependencies>
 </project>

@@ -131,8 +131,9 @@ build:
 javadoc:
     # Note: if we do not call 'validate' explicitly, the plugin that
     # computes the current year will run too late.
-	mkdir -p target
 	mvn $(MVN_ARGS) validate javadoc:javadoc
+	rm -rf doc
+	cp -r target/reports/apidocs doc
 ####### HACK HACK HACK HACK HACK HACK HACK HACK HACK...
 # The javadoc generated HTML is bogus.  There is no definition for the
 # "#com.franz" bookmark.  Since we don't control javadoc we have to
