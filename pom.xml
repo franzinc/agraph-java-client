@@ -294,7 +294,7 @@
               <url>${jena.javadoc.baseurl}/ontapi</url>
             </dependencyLink>
             <!-- Other javadoc links -->
-            <dependencyLink>
+            <!-- <dependencyLink>
               <groupId>org.json</groupId>
               <artifactId>json</artifactId>
               <url>https://javadoc.io/doc/org.json/json/${org.json.version}</url>
@@ -308,7 +308,7 @@
               <groupId>com.atomikos</groupId>
               <artifactId>transactions-jta</artifactId>
               <url>https://javadoc.io/doc/com.atomikos/transactions-jta/${atomikos.version}</url>
-            </dependency>
+            </dependency> -->
           </dependencyLinks>
 
           <overview>${basedir}/src/main/javadoc/overview.html</overview>

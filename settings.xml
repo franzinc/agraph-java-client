@@ -1,0 +1,10 @@
+<settings>
+  <mirrors>
+    <mirror>
+      <id>nexus</id>
+      <mirrorOf>*</mirrorOf>
+      <name>Nexus repository</name>
+      <url>${env.MAVEN_REPO_URL}</url>
+    </mirror>
+  </mirrors>
+</settings>

@@ -8,12 +8,15 @@ export AGRAPH_HOST ?= $(shell echo $${AGRAPH_HOST:-localhost})
 # Export LABEL, if label is specified prepend a dash to it otherwise leave it blank
 export LABEL = $(if $(label),-$(label))
 export AGRAPH_PORT ?= $(shell echo $${AGRAPH_PORT-`cat ../agraph/lisp/agraph$(LABEL).port 2> /dev/null || echo 10035`})
+export MAVEN_REPO_URL ?= https://repo1.maven.org/maven2/
 
 # For tutorial
 example ?= all
 
+SETTING_XML=$(abspath settings.xml)
+
 # Arguments to use for all mvn invocations
-MVN_ARGS=
+MVN_ARGS=-s $(SETTING_XML)
 
 # Enable batch mode for CI
 ifdef batch
