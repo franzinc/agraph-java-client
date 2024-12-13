@@ -54,6 +54,9 @@
 
     <rdf4j.javadoc.url>https://docs.rdf4j.org/javadoc/${rdf4j.version}</rdf4j.javadoc.url>
     <jena.javadoc.baseurl>https://jena.apache.org/documentation/javadoc</jena.javadoc.baseurl>
+    <org.json.javadoc.url>third-party-javadoc/org/json</org.json.javadoc.url>
+    <org.apache.httpcomponents.javadoc.url>third-party-javadoc/org/apache/httpcomponents</org.apache.httpcomponents.javadoc.url>
+    <com.atomikos.javadoc.url>third-party-javadoc/com/atomikos</com.atomikos.javadoc.url>
 
   </properties>
 
@@ -294,21 +297,21 @@
               <url>${jena.javadoc.baseurl}/ontapi</url>
             </dependencyLink>
             <!-- Other javadoc links -->
-            <!-- <dependencyLink>
+            <dependencyLink>
               <groupId>org.json</groupId>
               <artifactId>json</artifactId>
-              <url>https://javadoc.io/doc/org.json/json/${org.json.version}</url>
+              <url>${org.json.javadoc.url}</url>
             </dependencyLink>
             <dependencyLink>
               <groupId>org.apache.httpcomponents</groupId>
               <artifactId>httpclient</artifactId>
-              <url>https://javadoc.io/doc/org.apache.httpcomponents/httpclient/${apache.httpclient.version}</url>
+              <url>${org.apache.httpcomponents.javadoc.url}</url>
             </dependencyLink>
             <dependency>
               <groupId>com.atomikos</groupId>
               <artifactId>transactions-jta</artifactId>
-              <url>https://javadoc.io/doc/com.atomikos/transactions-jta/${atomikos.version}</url>
-            </dependency> -->
+              <url>${com.atomikos.javadoc.url}</url>
+            </dependency>
           </dependencyLinks>
 
           <overview>${basedir}/src/main/javadoc/overview.html</overview>

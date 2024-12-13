@@ -43,7 +43,7 @@ export MAVEN_OPTS = --add-opens java.base/java.util=ALL-UNNAMED
 
 default: build
 
-clean: dist-clean
+clean: dist-clean clean-3rd-party-javadoc
 	mvn $(MVN_ARGS) clean
 
 prepush: clean all-tutorials test-prepush test-unicode javadoc
@@ -130,8 +130,23 @@ local-deploy:
 build:
 	mvn $(MVN_ARGS) compile
 
+clean-3rd-party-javadoc:
+	rm -f json-20240205-javadoc.jar apache.httpcomponents.javadoc.jar com.atomikos.javadoc.jar
+	rm -rf target/reports/apidocs/third-party-javadoc
+
+target/reports/apidocs/third-party-javadoc:
+	curl -o json-20240205-javadoc.jar $(MAVEN_REPO_URL)org/json/json/20240205/json-20240205-javadoc.jar
+	curl -o apache.httpcomponents.javadoc.jar $(MAVEN_REPO_URL)org/apache/httpcomponents/httpclient/4.5.13/httpclient-4.5.13-javadoc.jar
+	curl -o com.atomikos.javadoc.jar $(MAVEN_REPO_URL)com/atomikos/transactions-jta/4.0.6/transactions-jta-4.0.6-javadoc.jar
+	mkdir -p target/reports/apidocs/third-party-javadoc/org/json
+	mkdir -p target/reports/apidocs/third-party-javadoc/org/apache/httpcomponents
+	mkdir -p target/reports/apidocs/third-party-javadoc/com/atomikos
+	unzip -q -o json-20240205-javadoc.jar -d target/reports/apidocs/third-party-javadoc/org/json
+	unzip -q -o apache.httpcomponents.javadoc.jar -d target/reports/apidocs/third-party-javadoc/org/apache/httpcomponents
+	unzip -q -o com.atomikos.javadoc.jar -d target/reports/apidocs/third-party-javadoc/com/atomikos
+
 .PHONY: javadoc
-javadoc:
+javadoc: target/reports/apidocs/third-party-javadoc
     # Note: if we do not call 'validate' explicitly, the plugin that
     # computes the current year will run too late.
 	mvn $(MVN_ARGS) validate javadoc:javadoc
