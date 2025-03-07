@@ -1,4 +1,8 @@
 # This reports important environment settigns whenever the makefile is evaluated
+
+JAVA_HOME = /usr/lib/jvm/java-21
+MVN = env JAVA_HOME=$(JAVA_HOME) mvn
+
 $(info $(shell mvn --version))
 
 # Client version, not AG version.  This is extracted from pom.xml
@@ -27,7 +31,7 @@ endif
 MVN_EXEC_ARGS = $(MVN_ARGS) -Dexec.cleanupDaemonThreads=false -Dexec.classpathScope=test
 
 # Shortcut to run mvn exec:java
-EXEC_JAVA = mvn $(MVN_ARGS) exec:java $(MVN_EXEC_ARGS)
+EXEC_JAVA = $(MVN) $(MVN_ARGS) exec:java $(MVN_EXEC_ARGS)
 
 # Repo directory used to deploy the artifact locally, for use by the tutorials
 REPO = $(abspath repo)
@@ -44,7 +48,7 @@ export MAVEN_OPTS = --add-opens java.base/java.util=ALL-UNNAMED
 default: build
 
 clean: dist-clean clean-3rd-party-javadoc
-	mvn $(MVN_ARGS) clean
+	$(MVN) $(MVN_ARGS) clean
 
 prepush: clean all-tutorials test-prepush test-unicode javadoc
 
@@ -52,18 +56,18 @@ test-bigger: test-prepush test-stress test-stress-events test-xa
 
 test-unicode:
 # Force Java to use ASCII (i.e. not UTF-8) as the default encoding.
-	env LC_ALL=C mvn $(MVN_ARGS) test -Dtest=test.suites.UnicodeTests
+	env LC_ALL=C $(MVN) $(MVN_ARGS) test -Dtest=test.suites.UnicodeTests
 
 test-prepush:
-	mvn $(MVN_ARGS) test -Dtest=test.suites.PrepushTests
+	$(MVN) $(MVN_ARGS) test -Dtest=test.suites.PrepushTests
 
 .PHONY: test-broken
 test-broken:
-	mvn $(MVN_ARGS) test -Dtest=test.suites.BrokenTests
+	$(MVN) $(MVN_ARGS) test -Dtest=test.suites.BrokenTests
 
 .PHONY: test-stress
 test-stress:
-	mvn $(MVN_ARGS) test -Dtest=test.suites.StressTests
+	$(MVN) $(MVN_ARGS) test -Dtest=test.suites.StressTests
 
 .PHONY: test-stress-events
 test-stress-events:
@@ -71,64 +75,64 @@ test-stress-events:
 
 .PHONY: test-xa
 test-xa:
-	mvn $(MVN_ARGS) test -Dtest=XAAtomikosTests
+	$(MVN) $(MVN_ARGS) test -Dtest=XAAtomikosTests
 
 .PHONY: lubm-prolog
 lubm-prolog:
-	mvn $(MVN_ARGS) test-compile
+	$(MVN) $(MVN_ARGS) test-compile
 	$(EXEC_JAVA) -Dexec.mainClass=test.lubm.AGLubmProlog
 
 .PHONY: lubm-sparql
 lubm-sparql:
-	mvn $(MVN_ARGS) test-compile
+	$(MVN) $(MVN_ARGS) test-compile
 	$(EXEC_JAVA) -Dexec.mainClass=test.lubm.AGLubmSparql -Dexample=$(example)
 
 all-tutorials: tutorial jena-tutorial attributes-tutorial 2pc-tutorial agq-tutorial
 
 tutorial: local-deploy
 	cd tutorials/rdf4j && \
-	mvn $(MVN_ARGS) compile -Dmaven.repo.local=$(REPO) && \
-	mvn $(MVN_ARGS) exec:java -Dmaven.repo.local=$(REPO) -Dexec.args=$(example)
+	$(MVN) $(MVN_ARGS) compile -Dmaven.repo.local=$(REPO) && \
+	$(MVN) $(MVN_ARGS) exec:java -Dmaven.repo.local=$(REPO) -Dexec.args=$(example)
 
 jena-tutorial: local-deploy
 	cd tutorials/jena && \
-	mvn $(MVN_ARGS) compile -Dmaven.repo.local=$(REPO) && \
-	mvn $(MVN_ARGS) exec:java -Dmaven.repo.local=$(REPO) -Dexec.args=$(example)
+	$(MVN) $(MVN_ARGS) compile -Dmaven.repo.local=$(REPO) && \
+	$(MVN) $(MVN_ARGS) exec:java -Dmaven.repo.local=$(REPO) -Dexec.args=$(example)
 
 attributes-tutorial: local-deploy
 	cd tutorials/attributes && \
-	mvn $(MVN_ARGS) compile -Dmaven.repo.local=$(REPO) && \
-	mvn $(MVN_ARGS) exec:java -Dmaven.repo.local=$(REPO)
+	$(MVN) $(MVN_ARGS) compile -Dmaven.repo.local=$(REPO) && \
+	$(MVN) $(MVN_ARGS) exec:java -Dmaven.repo.local=$(REPO)
 
 2pc-tutorial: local-deploy
 	cd tutorials/2pc && \
-	mvn $(MVN_ARGS) compile -Dmaven.repo.local=$(REPO) && \
-	mvn $(MVN_ARGS) exec:java -Dmaven.repo.local=$(REPO)
+	$(MVN) $(MVN_ARGS) compile -Dmaven.repo.local=$(REPO) && \
+	$(MVN) $(MVN_ARGS) exec:java -Dmaven.repo.local=$(REPO)
 
 failures-tutorial: local-deploy
 	cd tutorials/failures && \
-	mvn $(MVN_ARGS) compile -Dmaven.repo.local=$(REPO) && \
-	mvn $(MVN_ARGS) exec:java -Dmaven.repo.local=$(REPO)
+	$(MVN) $(MVN_ARGS) compile -Dmaven.repo.local=$(REPO) && \
+	$(MVN) $(MVN_ARGS) exec:java -Dmaven.repo.local=$(REPO)
 
 
 agq-tutorial: local-deploy
 	cd tutorials/agq && \
-	mvn $(MVN_ARGS) compile -Dmaven.repo.local=$(REPO) && \
-	mvn $(MVN_ARGS) test -Dmaven.repo.local=$(REPO)
+	$(MVN) $(MVN_ARGS) compile -Dmaven.repo.local=$(REPO) && \
+	$(MVN) $(MVN_ARGS) test -Dmaven.repo.local=$(REPO)
 
 .PHONY: test-release
 test-release:
 	python3 test-release/make-pom.py > test-release/pom.xml
-	cd test-release && mvn $(MVN_ARGS) test -Dtest=test.suites.PrepushTests
-	cd test-release && mvn $(MVN_ARGS) test -Dtest=test.suites.StressTests
+	cd test-release && $(MVN) $(MVN_ARGS) test -Dtest=test.suites.PrepushTests
+	cd test-release && $(MVN) $(MVN_ARGS) test -Dtest=test.suites.StressTests
 
 .PHONY: local-deploy
 local-deploy:
-	mvn $(MVN_ARGS) install -DskipTests=true -Dmaven.repo.local=$(REPO)
+	$(MVN) $(MVN_ARGS) install -DskipTests=true -Dmaven.repo.local=$(REPO)
 
 .PHONY: build
 build:
-	mvn $(MVN_ARGS) compile
+	$(MVN) $(MVN_ARGS) compile
 
 clean-3rd-party-javadoc:
 	rm -f json-20240205-javadoc.jar apache.httpcomponents.javadoc.jar com.atomikos.javadoc.jar
@@ -149,7 +153,7 @@ target/reports/apidocs/third-party-javadoc:
 javadoc: target/reports/apidocs/third-party-javadoc
     # Note: if we do not call 'validate' explicitly, the plugin that
     # computes the current year will run too late.
-	mvn $(MVN_ARGS) validate javadoc:javadoc
+	$(MVN) $(MVN_ARGS) validate javadoc:javadoc
 	rm -rf doc
 	cp -r target/reports/apidocs doc
 ####### HACK HACK HACK HACK HACK HACK HACK HACK HACK...
@@ -162,11 +166,11 @@ javadoc: target/reports/apidocs/third-party-javadoc
 
 .PHONY: checkstyle
 checkstyle:
-	mvn $(MVN_ARGS) checkstyle:check
+	$(MVN) $(MVN_ARGS) checkstyle:check
 
 .PHONY: srcjar
 srcjar:
-	mvn $(MVN_ARGS) source:jar
+	$(MVN) $(MVN_ARGS) source:jar
 
 .PHONY: tags
 tags:
@@ -186,15 +190,23 @@ deploy: stage release-staged
 
 .PHONY: stage
 stage:
-	env AG_SKIP_TESTS=xxx ./deploy.sh
+	env JAVA_HOME=$(JAVA_HOME) AG_SKIP_TESTS=xxx ./deploy.sh
 
 .PHONY: release-staged
 release-staged:
-	mvn nexus-staging:release $(MVN_STAGED_OPTS)
+	$(MVN) nexus-staging:release $(MVN_STAGED_OPTS)
+
+.PHONY: java_build
+java_build:
+	$(MVN) package -DskipTests=true
+
+.PHONY: java_build
+java_test_build:
+	$(MVN) package
 
 .PHONY: dist
 dist:
-	mvn -DskipTests=true package
+	$(MVN) -DskipTests=true package
 # Note that maven creates target/$(PACKAGE_NAME)/$(PACKAGE_NAME) for
 # some reason.
 	rm -fr $(DIST_DIR)
@@ -207,11 +219,11 @@ publish-dist: dist
 # This is used to delete a partially staged release
 .PHONY: drop-staged
 drop-staged:
-	mvn nexus-staging:drop $(MVN_STAGED_OPTS)
+	$(MVN) nexus-staging:drop $(MVN_STAGED_OPTS)
 
 .PHONY: list-staged
 list-staged:
-	@mvn nexus-staging:rc-list | grep franz || echo 'No staged releases found'.
+	@$(MVN) nexus-staging:rc-list | grep franz || echo 'No staged releases found'.
 
 .PHONY: dist-clean
 dist-clean:
