@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.franz</groupId>
     <artifactId>agraph-tutorial-parent</artifactId>
-    <version>5.0.2</version>
+    <version>5.0.3-SNAPSHOT</version>
   </parent>
   <artifactId>rdf4j-tutorial</artifactId>
   <packaging>jar</packaging>
