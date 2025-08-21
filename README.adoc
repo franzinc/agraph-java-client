@@ -33,6 +33,9 @@ to your dependencies:
 </dependency>
 ----
 
+You can access the Maven project
+https://mvnrepository.com/artifact/com.franz/agraph-java-client[directly here].
+
 == Development
 
 === Prerequisites
