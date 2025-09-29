@@ -7,7 +7,6 @@ package com.franz.agraph.repository;
 import com.franz.agraph.http.AGHTTPClient;
 import com.franz.agraph.http.AGProtocol;
 import com.franz.agraph.http.exception.AGHttpException;
-import org.eclipse.rdf4j.common.exception.RDF4JException;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.TupleQueryResult;
@@ -247,7 +246,7 @@ public class AGCatalog {
             if (strict || !hasRepository(repositoryID)) {
                 getHTTPClient().putRepository(repoURL);
             }
-        } catch (RDF4JException e) {
+        } catch (RepositoryException e) {
             // TODO: modify hasRepository, shouldn't need to do this
             throw new RepositoryException(e);
         }
@@ -271,7 +270,7 @@ public class AGCatalog {
             if (!hasRepository(repositoryID)) {
                 throw new RepositoryException("Repository not found with ID: " + repositoryID);
             }
-        } catch (RDF4JException e) {
+        } catch (RepositoryException e) {
             // TODO: consider having methods in this class all throw OpenRDFExceptions
             throw new RepositoryException(e);
         }
