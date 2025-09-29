@@ -11,7 +11,8 @@ import com.franz.agraph.repository.AGRepository;
 import com.franz.agraph.repository.AGRepositoryConnection;
 import com.franz.agraph.repository.AGServer;
 import com.franz.agraph.repository.AGTupleQuery;
-import org.eclipse.rdf4j.common.exception.RDF4JException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.repository.RepositoryException;
 
 import java.util.Calendar;
 
@@ -54,7 +55,7 @@ public class AGLubmSparql {
     public static int ITERATIONS = Integer.parseInt(System.getProperty(
             "com.franz.agraph.lubm.iterations", "3"));
 
-    public static void main(String[] args) throws RDF4JException {
+    public static void main(String[] args) throws RepositoryException {
 
         AGServer server = new AGServer(SERVER_URL, USERNAME, PASSWORD);
         if (!server.listCatalogs().contains(CATALOG_ID)) {
@@ -100,7 +101,7 @@ public class AGLubmSparql {
         repo.shutDown();
     }
 
-    public static void doQuery1(AGRepositoryConnection conn) throws RDF4JException {
+    public static void doQuery1(AGRepositoryConnection conn) throws QueryEvaluationException  {
         String q1 = LUBMprefix
                 + "SELECT DISTINCT ?X "
                 + "WHERE {"
@@ -110,7 +111,7 @@ public class AGLubmSparql {
         doQuery(conn, 1, q1);
     }
 
-    public static void doQuery2(AGRepositoryConnection conn) throws RDF4JException {
+    public static void doQuery2(AGRepositoryConnection conn) throws QueryEvaluationException  {
         String q2 = LUBMprefix
                 + "SELECT DISTINCT ?X ?Y ?Z "
                 + "WHERE { "
@@ -124,7 +125,7 @@ public class AGLubmSparql {
         doQuery(conn, 2, q2);
     }
 
-    public static void doQuery3(AGRepositoryConnection conn) throws RDF4JException {
+    public static void doQuery3(AGRepositoryConnection conn) throws QueryEvaluationException  {
         String q3 = LUBMprefix
                 + "SELECT DISTINCT ?X "
                 + "WHERE { "
@@ -134,7 +135,7 @@ public class AGLubmSparql {
         doQuery(conn, 3, q3);
     }
 
-    public static void doQuery4(AGRepositoryConnection conn) throws RDF4JException {
+    public static void doQuery4(AGRepositoryConnection conn) throws QueryEvaluationException  {
         String q4 = LUBMprefix
                 + "SELECT DISTINCT ?X ?Y1 ?Y2 ?Y3 "
                 + "WHERE { "
@@ -147,7 +148,7 @@ public class AGLubmSparql {
         doQuery(conn, 4, q4);
     }
 
-    public static void doQuery5(AGRepositoryConnection conn) throws RDF4JException {
+    public static void doQuery5(AGRepositoryConnection conn) throws QueryEvaluationException  {
         String q5 = LUBMprefix
                 + "SELECT DISTINCT ?X "
                 + "WHERE { "
@@ -157,7 +158,7 @@ public class AGLubmSparql {
         doQuery(conn, 5, q5);
     }
 
-    public static void doQuery6(AGRepositoryConnection conn) throws RDF4JException {
+    public static void doQuery6(AGRepositoryConnection conn) throws QueryEvaluationException  {
         String q6 = LUBMprefix
                 + "SELECT ?X "
                 + "WHERE { "
@@ -166,7 +167,7 @@ public class AGLubmSparql {
         doQuery(conn, 6, q6);
     }
 
-    public static void doQuery7(AGRepositoryConnection conn) throws RDF4JException {
+    public static void doQuery7(AGRepositoryConnection conn) throws QueryEvaluationException  {
         String q7 = LUBMprefix
                 + "SELECT DISTINCT ?X ?Y "
                 + "WHERE { "
@@ -178,7 +179,7 @@ public class AGLubmSparql {
         doQuery(conn, 7, q7);
     }
 
-    public static void doQuery8(AGRepositoryConnection conn) throws RDF4JException {
+    public static void doQuery8(AGRepositoryConnection conn) throws QueryEvaluationException  {
         String q8 = LUBMprefix
                 + "SELECT DISTINCT ?X ?Y ?Z "
                 + "WHERE { "
@@ -191,7 +192,7 @@ public class AGLubmSparql {
         doQuery(conn, 8, q8);
     }
 
-    public static void doQuery9(AGRepositoryConnection conn) throws RDF4JException {
+    public static void doQuery9(AGRepositoryConnection conn) throws QueryEvaluationException  {
         String q9 = LUBMprefix
                 + "SELECT DISTINCT ?X ?Y ?Z "
                 + "WHERE { "
@@ -205,7 +206,7 @@ public class AGLubmSparql {
         doQuery(conn, 9, q9);
     }
 
-    public static void doQuery10(AGRepositoryConnection conn) throws RDF4JException {
+    public static void doQuery10(AGRepositoryConnection conn) throws QueryEvaluationException  {
         String q10 = LUBMprefix
                 + "SELECT DISTINCT ?X "
                 + "WHERE { "
@@ -215,7 +216,7 @@ public class AGLubmSparql {
         doQuery(conn, 10, q10);
     }
 
-    public static void doQuery11(AGRepositoryConnection conn) throws RDF4JException {
+    public static void doQuery11(AGRepositoryConnection conn) throws QueryEvaluationException  {
         String q11 = LUBMprefix
                 + "SELECT DISTINCT ?X "
                 + "WHERE { "
@@ -225,7 +226,7 @@ public class AGLubmSparql {
         doQuery(conn, 11, q11);
     }
 
-    public static void doQuery12(AGRepositoryConnection conn) throws RDF4JException {
+    public static void doQuery12(AGRepositoryConnection conn) throws QueryEvaluationException  {
         String q12 = LUBMprefix
                 + "SELECT DISTINCT ?X ?Y "
                 + "WHERE { "
@@ -237,7 +238,7 @@ public class AGLubmSparql {
         doQuery(conn, 12, q12);
     }
 
-    public static void doQuery13(AGRepositoryConnection conn) throws RDF4JException {
+    public static void doQuery13(AGRepositoryConnection conn) throws QueryEvaluationException  {
         String q13 = LUBMprefix
                 + "SELECT DISTINCT ?X "
                 + "WHERE { "
@@ -247,7 +248,7 @@ public class AGLubmSparql {
         doQuery(conn, 13, q13);
     }
 
-    public static void doQuery14(AGRepositoryConnection conn) throws RDF4JException {
+    public static void doQuery14(AGRepositoryConnection conn) throws QueryEvaluationException  {
         String q14 = LUBMprefix
                 + "SELECT ?X "
                 + "WHERE { "
@@ -256,7 +257,7 @@ public class AGLubmSparql {
         doQuery(conn, 14, q14);
     }
 
-    public static void doQuery(AGRepositoryConnection conn, int qi, String query) throws RDF4JException {
+    public static void doQuery(AGRepositoryConnection conn, int qi, String query) throws QueryEvaluationException  {
         System.out.format("[%tT]Query %2d:", Calendar.getInstance(), qi);
         AGTupleQuery tupleQuery = conn.prepareTupleQuery(
                 AGQueryLanguage.SPARQL, query);
