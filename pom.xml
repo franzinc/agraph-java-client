@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.ohgma</groupId>
+  <groupId>com.franz</groupId>
   <artifactId>agraph-java-client</artifactId>
-  <version>5.1.3-ohgma</version>
-  <name>agraph-java-client (Ohgma RDF4J 5.x fork)</name>
-  <description>Forked Java client API for AllegroGraph, updated for RDF4J 5.x compatibility and Ohgma ingest pipelines</description>
+  <version>5.1.3</version>
+  <name>agraph-java-client</name>
+  <description>Java client API for Franz AllegroGraph</description>
   <url>https://github.com/rhohimer/agraph-java-client</url>
 
   <licenses>
@@ -41,7 +41,6 @@
     <maven.compiler.target>21</maven.compiler.target>
 
     <rdf4j.version>5.1.3</rdf4j.version>
-    <!--rdf4j.version>5.0.2</rdf4j.version -->
     <jena.version>5.1.0</jena.version>
     <org.json.version>20240205</org.json.version>
     <apache.httpclient.version>4.5.14</apache.httpclient.version>
