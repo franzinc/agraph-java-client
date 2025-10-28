@@ -35,4 +35,6 @@ phase-[0-6].vm
 /tutorials/2pc/tmlog*.log
 # IntelliJ asciidoc previewer seems to generate this
 /README.html
+.settings/
+.checkstyle
 
