@@ -42,4 +42,8 @@ public class RDF4JTestsHelper {
             conn.commit();
         }
     }
+
+    public static AGServer getTestServer() {
+        return getServer();
+    }
 }
