@@ -36,13 +36,6 @@ EXEC_JAVA = $(MVN) $(MVN_ARGS) exec:java $(MVN_EXEC_ARGS)
 # Repo directory used to deploy the artifact locally, for use by the tutorials
 REPO = $(abspath repo)
 
-# Options used by release-staged and drop-staged
-ifdef STAGING_ID
-	MVN_STAGED_OPTS=-DstagingRepository.id=$(STAGING_ID)
-else
-	MVN_STAGED_OPTS=
-endif
-
 export MAVEN_OPTS = --add-opens java.base/java.util=ALL-UNNAMED
 
 default: build
@@ -186,27 +179,12 @@ DIST_DIR=DIST
 TARNAME = $(DIST_DIR)/$(PACKAGE_NAME).tar.gz
 
 .PHONY: deploy
-deploy: stage release-staged
-
-.PHONY: stage
-stage:
-	env JAVA_HOME=$(JAVA_HOME) AG_SKIP_TESTS=xxx ./deploy.sh
-
-.PHONY: release-staged
-release-staged:
-	$(MVN) nexus-staging:release $(MVN_STAGED_OPTS)
-
-.PHONY: java_build
-java_build:
-	$(MVN) package -DskipTests=true
-
-.PHONY: java_build
-java_test_build:
-	$(MVN) package
+deploy:
+	$(MVN) -Prelease --batch-mode -DskipTests=true clean deploy
 
 .PHONY: dist
 dist:
-	$(MVN) -DskipTests=true package
+	$(MVN) -Prelease --batch-mode -DskipTests=true clean package
 # Note that maven creates target/$(PACKAGE_NAME)/$(PACKAGE_NAME) for
 # some reason.
 	rm -fr $(DIST_DIR)
@@ -215,15 +193,6 @@ dist:
 
 publish-dist: dist
 	cp -p $(TARNAME) RELEASE-HISTORY.md /fi/ftp/pub/agraph/java-client/
-
-# This is used to delete a partially staged release
-.PHONY: drop-staged
-drop-staged:
-	$(MVN) nexus-staging:drop $(MVN_STAGED_OPTS)
-
-.PHONY: list-staged
-list-staged:
-	@$(MVN) nexus-staging:rc-list | grep franz || echo 'No staged releases found'.
 
 .PHONY: dist-clean
 dist-clean:
