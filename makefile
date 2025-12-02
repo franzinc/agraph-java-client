@@ -191,8 +191,10 @@ dist:
 	mkdir -p $(DIST_DIR)
 	tar -c -h -z -f $(TARNAME) -C target/$(PACKAGE_NAME) $(PACKAGE_NAME)
 
+# The updateweb call will only work for layer (or other SA people)
 publish-dist: dist
 	cp -p $(TARNAME) RELEASE-HISTORY.md /fi/ftp/pub/agraph/java-client/
+	-ssh -n cobweb updateweb --ftp
 
 .PHONY: dist-clean
 dist-clean:
