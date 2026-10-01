@@ -14,7 +14,8 @@ https://jena.apache.org/[Jena]-compatible APIs.
 
 == Client prerequisites
 
-For client version >= 5.0.0 Java 17 or newer is required.
+For client version >= 5.0.2 Java 21 or newer is required.
+For client versions 5.0.0 and 5.0.1 Java 17 or newer is required.
 For client version < 5.0.0 Java 8 or newer is required.
 
 == Installation via Maven
