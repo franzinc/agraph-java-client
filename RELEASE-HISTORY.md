@@ -1,5 +1,34 @@
 # AllegroGraph Java client release history
 
+## 5.0.3
+
+Major updates:
+
+  * Update RDF4J to 5.1.3
+
+Minor updates:
+
+  * Reference the Maven repository directly
+  * Mark testLeftJoinWithJoinCondition to require AG v8.4.2 or later
+
+## 5.0.2
+
+Major updates:
+
+  * Java 21 is required
+
+Minor updates:
+
+  * Fix external links in javadoc (AG-1216)
+  * Fix links to 3rd-party classes in the documentation (AG-1369)
+  * Bump org.apache.derby:derby to 10.17.1.0 in the 2pc tutorial
+
+## 5.0.1
+
+Minor updates:
+
+  * Bump commons-io to 2.17.0 due to CVE-2024-47554
+
 ## 5.0.0
 
 Major updates:
@@ -12,7 +41,7 @@ Minor updates:
 
   * Update to log4j-core to 2.16.0
   * Update JUnit to 5
-  * Update orj.json:json to 20240205
+  * Update org.json:json to 20240205
   * Update org.apache.httpcomponents:httpclient to 4.5.14
   * Update org.apache.commons:commons-pool2 to 2.12.0
   * Update commons-codec to 1.15
